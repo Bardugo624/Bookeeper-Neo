@@ -48,6 +48,7 @@ func AuthenticatedRouter(d Deps) http.Handler {
 		r.Route("/devices", func(r chi.Router) {
 			r.Get("/", d.Devices.List)
 			r.Post("/pairing-token", d.Devices.CreatePairingToken)
+			r.Get("/pairing-token/{token}/status", d.Devices.PairingTokenStatus)
 			r.Post("/{id}/revoke", d.Devices.Revoke)
 			r.Get("/crl.pem", d.Devices.CRL)
 		})
@@ -117,6 +118,12 @@ func BootstrapRouter(d Deps) http.Handler {
 		r.Post("/bootstrap-desktop", d.Pairing.BootstrapDesktop)
 		r.Post("/redeem", d.Pairing.Redeem)
 	})
+
+	// Mobile PWA static bundle (no mTLS, no auth — these are just static
+	// HTML/JS/CSS; all sensitive operations the PWA performs go through
+	// /pairing/redeem above and JWT-authenticated endpoints later).
+	r.Handle("/m", http.RedirectHandler("/m/", http.StatusMovedPermanently))
+	r.Handle("/m/*", MobileSPAHandler())
 
 	return r
 }

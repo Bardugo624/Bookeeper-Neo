@@ -1,0 +1,6 @@
+# Built by `npm run build:mobile` and copied here by the Dockerfile multi-stage.
+# Only the placeholder index.html is committed (so `go build` works locally
+# without Node).
+*
+!.gitignore
+!index.html

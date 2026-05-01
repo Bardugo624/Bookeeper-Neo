@@ -3,6 +3,12 @@ server/bin/
 server/dist/
 *.exe
 
+# Node / npm workspaces
+node_modules/
+clients/*/dist/
+clients/*/frontend/dist/
+clients/mobile-web/dev-dist/
+
 # Local env (NEVER commit secrets)
 deploy/.env
 .env

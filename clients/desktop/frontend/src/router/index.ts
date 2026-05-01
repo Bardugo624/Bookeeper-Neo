@@ -5,6 +5,7 @@ import { shelvesRoutes } from '../modules/shelves/routes';
 import { loansRoutes } from '../modules/loans/routes';
 import { wishlistRoutes } from '../modules/wishlist/routes';
 import { statsRoutes } from '../modules/stats/routes';
+import { devicesRoutes } from '../modules/devices/routes';
 
 const routes: RouteRecordRaw[] = [
     {
@@ -23,7 +24,7 @@ const routes: RouteRecordRaw[] = [
             ...loansRoutes,
             ...wishlistRoutes,
             ...statsRoutes,
-            { path: 'devices', name: 'devices', component: () => import('../views/DevicesView.vue'), meta: { title: 'Dispositivi' } },
+            ...devicesRoutes,
             { path: 'settings', name: 'settings', component: () => import('../views/SettingsView.vue'), meta: { title: 'Impostazioni' } },
         ],
     },

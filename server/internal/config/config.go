@@ -81,7 +81,7 @@ func Load() (*Config, error) {
 		DataDir:         envOr("DATA_DIR", "/data"),
 		JWTAccessTTL:    envDur("JWT_ACCESS_TTL", 15*time.Minute),
 		JWTRefreshTTL:   envDur("JWT_REFRESH_TTL", 30*24*time.Hour),
-		PairingTokenTTL: envDur("PAIRING_TTL", 2*time.Minute),
+		PairingTokenTTL: envDur("PAIRING_TTL", 10*time.Minute),
 		ServiceName:     envOr("SERVICE_NAME", "Bookeeper"),
 		ServerHost:      envOr("SERVER_HOST", "bookeeper.local"),
 		ServerPort:      envInt("SERVER_PORT", 8443),

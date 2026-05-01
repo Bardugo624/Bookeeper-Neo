@@ -1,19 +1,29 @@
-# Bookeeper Neo — Caddy frontend (Hetzner public + mTLS)
+# Bookeeper Neo — Caddy frontend (Hetzner public + mTLS + mobile PWA)
 #
-# Single listener:
-#   :443 — public mTLS-required API. Caddy obtains a Let's Encrypt cert
-#          for SERVER_HOST via HTTP-01 (port 80 must be reachable from the
-#          internet for issuance/renewal), and verifies client certs
-#          against the trust pool at /certs/trusted_clients.pem maintained
-#          by bookeeper-server.
+# Single :443 listener, TWO logical surfaces routed by URL path:
 #
-# The bootstrap surface (pairing/setup) is NOT served here — it is only
-# reachable via Tailscale Serve on the tailnet. See compose.
+#   1. mTLS-required surface — the desktop/authenticated API.
+#      Paths: /api/v1/*  (everything except the public surface below).
+#      Caddy still terminates TLS and verifies client certs against the
+#      per-tenant trust pool maintained by bookeeper-server.
+#
+#   2. Public (no mTLS) surface — mobile PWA assets + pairing redemption.
+#      Paths: /m/*, /pairing/*, /healthz.
+#      Browsers cannot present a client cert from JavaScript, so the
+#      mobile companion lives here. Pairing is one-shot tokens (10min TTL)
+#      so the lack of mTLS is acceptable for that single endpoint.
+#
+# Why client_auth = request (and not require_and_verify):
+#   `require_and_verify` rejects ANY request without a client cert at the
+#   TLS handshake — even GET /m/index.html. We need the same hostname to
+#   accept both authenticated and anonymous traffic, so we set the TLS
+#   handshake to *request* the cert (clients may or may not present one).
+#   Caddy's trust_pool keeps the chain check, so when a client *does*
+#   present a cert it MUST be from a known tenant CA — invalid certs are
+#   still rejected at the handshake. A handler-level guard then rejects
+#   any /api/v1/* request that arrived without a cert.
 
 {
-	# Bind admin API to all interfaces on the internal Docker bridge.
-	# The compose file does NOT publish 2019, so it is unreachable from
-	# outside the `bookeeper` network.
 	admin 0.0.0.0:2019
 	email {$ACME_EMAIL}
 }
@@ -23,33 +33,45 @@
 	redir https://{host}{uri} permanent
 }
 
-# ---------------- AUTHENTICATED PUBLIC SURFACE (mTLS) ----------------
 {$SERVER_HOST}:443 {
-	# Public TLS cert from Let's Encrypt for the hostname; client_auth
-	# enforces mTLS using the per-tenant CA bundle.
+	# Public TLS cert from Let's Encrypt for the hostname.
 	tls {
 		client_auth {
-			mode require_and_verify
+			mode request
 			trust_pool file {
 				pem_file /certs/trusted_clients.pem
 			}
 		}
 	}
 
-	# Forward the verified leaf cert to the Go backend so it can resolve
-		# device → tenant/user. base64(DER) in X-Client-Cert (single-line,
-		# valid HTTP header value — PEM contains newlines and is invalid).
-		reverse_proxy bookeeper-server:7842 {
-			header_up X-Client-Cert {http.request.tls.client.certificate_der_base64}
-	}
-
 	encode gzip
 
-	# Reasonable security headers for an authenticated API.
+	# Reasonable security headers for the whole site.
 	header {
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
 		X-Content-Type-Options "nosniff"
 		Referrer-Policy "no-referrer"
 		-Server
+	}
+
+	# ----- Public surface: mobile PWA + pairing redemption + health -----
+	# These paths bypass mTLS enforcement. Routed to bookeeper-server's
+	# bootstrap listener (port 7843).
+	@public path /m /m/* /pairing /pairing/* /healthz
+	handle @public {
+		reverse_proxy bookeeper-server:7843
+	}
+
+	# ----- Authenticated surface: everything else (mTLS required) -----
+	# Reject any request that didn't present a client cert during TLS.
+	handle {
+		@nocert vars {http.request.tls.client.certificate_der_base64} ""
+		respond @nocert "client certificate required" 401 {
+			close
+		}
+
+		reverse_proxy bookeeper-server:7842 {
+			header_up X-Client-Cert {http.request.tls.client.certificate_der_base64}
+		}
 	}
 }

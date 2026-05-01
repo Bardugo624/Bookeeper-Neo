@@ -194,7 +194,7 @@ function Invoke-RemoteDeploy {
     Write-Step 'Sync server/ -> remote'
     Sync-Dir -LocalDir "$RepoRoot\server" `
              -RemoteDir "$RemotePath/server" `
-             -Excludes @('*.db', '*.db-*', 'data/') `
+             -Excludes @('*.db', '*.db-*', 'data/', 'internal/api/dist/') `
              -Delete
     Write-Ok 'server/ sincronizzato'
 
@@ -203,6 +203,40 @@ function Invoke-RemoteDeploy {
              -RemoteDir "$RemotePath/deploy" `
              -Excludes @('.env', '*.local')
     Write-Ok 'deploy/ sincronizzato'
+
+    # Mobile PWA + npm workspace manifests: serve al multi-stage Dockerfile
+    # (build context = repo root) per buildare clients/mobile-web/dist
+    # ed embedderlo nel binario Go.
+    Write-Step 'Sync clients/mobile-web/ -> remote'
+    Sync-Dir -LocalDir "$RepoRoot\clients\mobile-web" `
+             -RemoteDir "$RemotePath/clients/mobile-web" `
+             -Excludes @('node_modules/', 'dist/') `
+             -Delete
+    Write-Ok 'mobile-web/ sincronizzato'
+
+    Write-Step 'Sync npm workspace manifests -> remote'
+    Invoke-Ssh "mkdir -p $RemotePath/clients/desktop/frontend"
+    if ($script:HasRsync) {
+        $rsyncCommon = @('-az', '-e', "ssh $($SshOpts -join ' ')")
+        Invoke-Tool 'rsync' ($rsyncCommon + @(
+            "$RepoRoot\clients\desktop\frontend\package.json",
+            "${SshTarget}:$RemotePath/clients/desktop/frontend/package.json"))
+        Invoke-Tool 'rsync' ($rsyncCommon + @(
+            "$RepoRoot\package.json",
+            "$RepoRoot\package-lock.json",
+            "${SshTarget}:$RemotePath/"))
+    } else {
+        $scpArgs = @()
+        if ($env:BK_SSH_KEY) { $scpArgs += @('-i', $env:BK_SSH_KEY) }
+        Invoke-Tool 'scp' ($scpArgs + @(
+            "$RepoRoot\clients\desktop\frontend\package.json",
+            "${SshTarget}:$RemotePath/clients/desktop/frontend/package.json"))
+        Invoke-Tool 'scp' ($scpArgs + @(
+            "$RepoRoot\package.json",
+            "$RepoRoot\package-lock.json",
+            "${SshTarget}:$RemotePath/"))
+    }
+    Write-Ok 'manifest workspace sincronizzati'
 
     Write-Step 'docker compose build --pull bookeeper-server'
     Invoke-Ssh @"

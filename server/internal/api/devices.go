@@ -78,9 +78,19 @@ func (h *DeviceHandlers) List(w http.ResponseWriter, r *http.Request) {
 type pairTokenResp struct {
 	Token             string `json:"token"`
 	ExpiresAt         int64  `json:"expires_at"`
-	PairingURL        string `json:"pairing_url"`         // bootstrap port URL
-	ServerFingerprint string `json:"server_fingerprint"`  // CA cert sha256 (hex)
-	QRPayload         string `json:"qr_payload"`          // bookeeper://pair?...
+	PairingURL        string `json:"pairing_url"`        // bootstrap port URL
+	ServerFingerprint string `json:"server_fingerprint"` // CA cert sha256 (hex)
+	QRPayload         string `json:"qr_payload"`         // https://<host>/m/?pair=<token>
+}
+
+// pairTokenStatusResp surfaces redemption progress to the desktop UI so it
+// can show a live "Device paired" indicator while the QR is on screen.
+type pairTokenStatusResp struct {
+	Used       bool   `json:"used"`
+	Expired    bool   `json:"expired"`
+	DeviceID   string `json:"device_id,omitempty"`
+	DeviceName string `json:"device_name,omitempty"`
+	UsedAt     int64  `json:"used_at,omitempty"`
 }
 
 // CreatePairingToken returns a fresh token bound to the calling user. The
@@ -107,7 +117,10 @@ func (h *DeviceHandlers) CreatePairingToken(w http.ResponseWriter, r *http.Reque
 	if h.ServerPort != 443 {
 		publicURL += ":" + itoa(h.ServerPort)
 	}
-	qr := "bookeeper://pair?srv=" + publicURL + "&boot=" + bootstrapURL + "&fp=" + fp + "&tok=" + tok
+	// QR payload: pure HTTPS deep link. The phone's native camera app opens
+	// it directly in browser; the mobile PWA at /m/ auto-redeems on load
+	// when ?pair=<token> is present (see clients/mobile-web router guard).
+	qr := publicURL + "/m/?pair=" + tok
 
 	_ = h.Audit.Write(r.Context(), mw.Event{
 		Action: "device.pairing_token_created", EntityType: "pairing_token", EntityID: tok[:8] + "...",
@@ -216,6 +229,57 @@ func (h *DeviceHandlers) tenantCAFingerprint(r *http.Request, tenantID string) (
 	}
 	sum := sha256.Sum256(c.Raw)
 	return hex.EncodeToString(sum[:]), nil
+}
+
+// PairingTokenStatus reports whether a pairing token has been redeemed,
+// expired, or is still pending. Used by the desktop UI to show a live
+// "device paired" indicator while the QR is on screen (polled every 2s).
+//
+// Token is scoped to the calling tenant: a desktop cannot peek at tokens
+// belonging to another tenant even by guessing the (long) random string.
+func (h *DeviceHandlers) PairingTokenStatus(w http.ResponseWriter, r *http.Request) {
+	id, ok := mw.FromContext(r.Context())
+	if !ok {
+		writeErr(w, http.StatusUnauthorized, "no identity")
+		return
+	}
+	token := chiURLParam(r, "token")
+	if token == "" {
+		writeErr(w, http.StatusBadRequest, "missing token")
+		return
+	}
+
+	var expiresAt int64
+	var usedAt sql.NullInt64
+	err := h.DB.QueryRowContext(r.Context(), `
+        SELECT expires_at, used_at
+          FROM pairing_tokens
+         WHERE token = ? AND tenant_id = ?
+    `, token, id.TenantID).Scan(&expiresAt, &usedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		writeErr(w, http.StatusNotFound, "token not found")
+		return
+	}
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, "db error")
+		return
+	}
+
+	resp := pairTokenStatusResp{
+		Used:    usedAt.Valid,
+		Expired: !usedAt.Valid && time.Now().Unix() > expiresAt,
+	}
+	if usedAt.Valid {
+		resp.UsedAt = usedAt.Int64
+		// Redemption inserts exactly one device row at this exact unix
+		// timestamp for this tenant; fetch its name for live UI feedback.
+		_ = h.DB.QueryRowContext(r.Context(), `
+            SELECT id, name FROM devices
+             WHERE tenant_id = ? AND paired_at = ?
+             ORDER BY paired_at DESC LIMIT 1
+        `, id.TenantID, usedAt.Int64).Scan(&resp.DeviceID, &resp.DeviceName)
+	}
+	writeJSON(w, http.StatusOK, resp)
 }
 
 func itoa(n int) string {

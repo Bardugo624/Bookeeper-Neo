@@ -49,7 +49,10 @@ services:
     # pull` becomes a no-op for it.
     image: bookeeper-neo-server:local
     build:
-      context: ../server
+      # Context = repo root so the multi-stage Dockerfile can also build the
+      # mobile PWA (clients/mobile-web) and embed it into the Go binary.
+      context: ..
+      dockerfile: server/Dockerfile
       args:
         TARGETOS: linux
         TARGETARCH: amd64

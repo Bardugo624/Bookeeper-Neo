@@ -20,6 +20,9 @@ on:
     paths:
       - 'server/**'
       - 'deploy/**'
+      - 'clients/mobile-web/**'
+      - 'package.json'
+      - 'package-lock.json'
       - '.github/workflows/deploy-server.yml'
   workflow_dispatch:
     inputs:
@@ -72,6 +75,7 @@ jobs:
         run: |
           rsync -az --delete \
             --exclude='*.db' --exclude='*.db-*' --exclude='data/' \
+            --exclude='internal/api/dist/' \
             ./server/ deploy-target:/opt/bookeeper-neo/server/
 
       - name: Sync deploy/ (preserve .env)
@@ -79,6 +83,21 @@ jobs:
           rsync -az \
             --exclude='.env' --exclude='*.local' \
             ./deploy/ deploy-target:/opt/bookeeper-neo/deploy/
+
+      - name: Sync mobile PWA sources + root manifest
+        # Needed for the Dockerfile multi-stage Node build (context = repo
+        # root). We sync source files only; node_modules and dist are
+        # rebuilt inside the container.
+        run: |
+          rsync -az --delete \
+            --exclude='node_modules/' --exclude='dist/' \
+            ./clients/mobile-web/ deploy-target:/opt/bookeeper-neo/clients/mobile-web/
+          # Desktop frontend manifest only (npm workspaces resolution).
+          ssh deploy-target 'mkdir -p /opt/bookeeper-neo/clients/desktop/frontend'
+          rsync -az ./clients/desktop/frontend/package.json \
+            deploy-target:/opt/bookeeper-neo/clients/desktop/frontend/package.json
+          rsync -az ./package.json ./package-lock.json \
+            deploy-target:/opt/bookeeper-neo/
 
       - name: Rebuild image
         if: ${{ inputs.skip_rebuild != 'true' }}
