@@ -91,13 +91,18 @@ jobs:
         run: |
           # rsync won't create intermediate parent dirs on the remote;
           # ensure the tree exists before pushing.
-          ssh deploy-target 'mkdir -p /opt/bookeeper-neo/clients/mobile-web /opt/bookeeper-neo/clients/desktop/frontend'
+          ssh deploy-target 'mkdir -p /opt/bookeeper-neo/clients/mobile-web /opt/bookeeper-neo/clients/desktop/frontend/src/theme'
           rsync -az --delete \
             --exclude='node_modules/' --exclude='dist/' \
             ./clients/mobile-web/ deploy-target:/opt/bookeeper-neo/clients/mobile-web/
-          # Desktop frontend manifest only (npm workspaces resolution).
+          # Desktop frontend manifest (npm workspaces resolution) +
+          # sorgenti del theme PrimeVue (riusati dal mobile via
+          # `@desktop-theme` path alias — vedi mobile vite.config.ts).
           rsync -az ./clients/desktop/frontend/package.json \
             deploy-target:/opt/bookeeper-neo/clients/desktop/frontend/package.json
+          rsync -az --delete \
+            ./clients/desktop/frontend/src/theme/ \
+            deploy-target:/opt/bookeeper-neo/clients/desktop/frontend/src/theme/
           rsync -az ./package.json ./package-lock.json \
             deploy-target:/opt/bookeeper-neo/
 

@@ -208,12 +208,20 @@ function Invoke-RemoteDeploy {
     # (build context = repo root) per buildare clients/mobile-web/dist
     # ed embedderlo nel binario Go.
     Write-Step 'Sync clients/mobile-web/ -> remote'
-    Invoke-Ssh "mkdir -p $RemotePath/clients/mobile-web $RemotePath/clients/desktop/frontend"
+    Invoke-Ssh "mkdir -p $RemotePath/clients/mobile-web $RemotePath/clients/desktop/frontend/src/theme"
     Sync-Dir -LocalDir "$RepoRoot\clients\mobile-web" `
              -RemoteDir "$RemotePath/clients/mobile-web" `
              -Excludes @('node_modules/', 'dist/') `
              -Delete
     Write-Ok 'mobile-web/ sincronizzato'
+
+    # Theme PrimeVue del desktop, riusato dal mobile via path alias
+    # `@desktop-theme` (vedi clients/mobile-web/vite.config.ts).
+    Write-Step 'Sync clients/desktop/frontend/src/theme/ -> remote'
+    Sync-Dir -LocalDir "$RepoRoot\clients\desktop\frontend\src\theme" `
+             -RemoteDir "$RemotePath/clients/desktop/frontend/src/theme" `
+             -Delete
+    Write-Ok 'theme/ sincronizzato'
 
     Write-Step 'Sync npm workspace manifests -> remote'
     if ($script:HasRsync) {

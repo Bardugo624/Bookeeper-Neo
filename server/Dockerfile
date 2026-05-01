@@ -24,6 +24,12 @@ RUN --mount=type=cache,target=/root/.npm \
     npm install --workspace=clients/mobile-web --no-audit --no-fund
 
 COPY clients/mobile-web/ clients/mobile-web/
+
+# Mobile riusa il theme PrimeVue del desktop via path alias `@desktop-theme`
+# (vedi clients/mobile-web/vite.config.ts + tsconfig.json). Servono i sorgenti
+# del theme — non l'intero frontend desktop.
+COPY clients/desktop/frontend/src/theme/ clients/desktop/frontend/src/theme/
+
 RUN npm run build --workspace=clients/mobile-web
 
 
