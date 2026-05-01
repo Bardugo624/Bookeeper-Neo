@@ -89,11 +89,13 @@ jobs:
         # root). We sync source files only; node_modules and dist are
         # rebuilt inside the container.
         run: |
+          # rsync won't create intermediate parent dirs on the remote;
+          # ensure the tree exists before pushing.
+          ssh deploy-target 'mkdir -p /opt/bookeeper-neo/clients/mobile-web /opt/bookeeper-neo/clients/desktop/frontend'
           rsync -az --delete \
             --exclude='node_modules/' --exclude='dist/' \
             ./clients/mobile-web/ deploy-target:/opt/bookeeper-neo/clients/mobile-web/
           # Desktop frontend manifest only (npm workspaces resolution).
-          ssh deploy-target 'mkdir -p /opt/bookeeper-neo/clients/desktop/frontend'
           rsync -az ./clients/desktop/frontend/package.json \
             deploy-target:/opt/bookeeper-neo/clients/desktop/frontend/package.json
           rsync -az ./package.json ./package-lock.json \

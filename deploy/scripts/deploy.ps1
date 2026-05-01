@@ -208,6 +208,7 @@ function Invoke-RemoteDeploy {
     # (build context = repo root) per buildare clients/mobile-web/dist
     # ed embedderlo nel binario Go.
     Write-Step 'Sync clients/mobile-web/ -> remote'
+    Invoke-Ssh "mkdir -p $RemotePath/clients/mobile-web $RemotePath/clients/desktop/frontend"
     Sync-Dir -LocalDir "$RepoRoot\clients\mobile-web" `
              -RemoteDir "$RemotePath/clients/mobile-web" `
              -Excludes @('node_modules/', 'dist/') `
@@ -215,7 +216,6 @@ function Invoke-RemoteDeploy {
     Write-Ok 'mobile-web/ sincronizzato'
 
     Write-Step 'Sync npm workspace manifests -> remote'
-    Invoke-Ssh "mkdir -p $RemotePath/clients/desktop/frontend"
     if ($script:HasRsync) {
         $rsyncCommon = @('-az', '-e', "ssh $($SshOpts -join ' ')")
         Invoke-Tool 'rsync' ($rsyncCommon + @(
