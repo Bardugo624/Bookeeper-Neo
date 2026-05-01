@@ -90,10 +90,16 @@ function Invoke-Ssh([string]$RemoteCmd, [switch]$AllowNonZero) {
 # Pre-flight
 # ────────────────────────────────────────────────────────────────────────────
 function Test-Prereqs {
-    foreach ($cmd in @('git', 'ssh', 'rsync')) {
+    foreach ($cmd in @('git', 'ssh')) {
         if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) {
-            throw "Comando richiesto non trovato: $cmd. Installa OpenSSH client + rsync (es. via Git for Windows o WSL)."
+            throw "Comando richiesto non trovato: $cmd. Installa Git for Windows + OpenSSH client."
         }
+    }
+    # rsync e scp sono entrambi accettabili: rsync è più efficiente (delta),
+    # scp è onnipresente (viene con OpenSSH). Lo script sceglie automaticamente.
+    $script:HasRsync = [bool](Get-Command rsync -ErrorAction SilentlyContinue)
+    if (-not $script:HasRsync -and -not (Get-Command scp -ErrorAction SilentlyContinue)) {
+        throw "Serve almeno uno tra rsync e scp. scp dovrebbe arrivare con OpenSSH."
     }
 }
 
@@ -132,33 +138,70 @@ function Invoke-Push {
     }
 }
 
+function Sync-Dir {
+    <#
+    Sincronizza una directory locale verso il remoto. Usa rsync se disponibile
+    (delta + delete), altrimenti scp ricorsivo (full copy, piu' lento ma sempre
+    disponibile su Windows con OpenSSH).
+    #>
+    param(
+        [Parameter(Mandatory)] [string]$LocalDir,
+        [Parameter(Mandatory)] [string]$RemoteDir,
+        [string[]]$Excludes = @(),
+        [switch]$Delete
+    )
+    $localNorm = $LocalDir.TrimEnd('\','/') + '/'
+    $remoteNorm = "${SshTarget}:$($RemoteDir.TrimEnd('/'))/"
+
+    if ($script:HasRsync) {
+        $args = @('-az')
+        if ($Delete) { $args += '--delete' }
+        foreach ($e in $Excludes) { $args += "--exclude=$e" }
+        if ($env:BK_SSH_KEY) { $args += @('-e', "ssh -i $($env:BK_SSH_KEY)") }
+        $args += @($localNorm, $remoteNorm)
+        Invoke-Tool 'rsync' $args
+        return
+    }
+
+    # Fallback scp: prima assicura la cartella remota, poi copia ricorsivo.
+    Write-Step '(rsync non trovato, uso scp -r come fallback)'
+    Invoke-Ssh "mkdir -p '$RemoteDir'"
+    # scp -r non supporta exclude nativi. Per le exclude critiche (.env, *.db,
+    # data/) facciamo una copia tar in stream con esclusioni.
+    $excludeArgs = @()
+    foreach ($e in $Excludes) { $excludeArgs += @('--exclude', $e) }
+    if (Get-Command tar -ErrorAction SilentlyContinue) {
+        # tar disponibile (Windows 10+ ha bsdtar in System32). Stream tar via ssh.
+        $tarArgs = @('-cf', '-', '-C', $LocalDir) + $excludeArgs + @('.')
+        $sshKeyArg = if ($env:BK_SSH_KEY) { "-i $($env:BK_SSH_KEY)" } else { '' }
+        $cmd = "tar $($tarArgs -join ' ') | ssh $sshKeyArg $SshTarget `"cd '$RemoteDir' && tar -xf -`""
+        # Eseguo via cmd per via del piping cross-process
+        cmd /c $cmd
+        if ($LASTEXITCODE -ne 0) { throw "tar+ssh exited with code $LASTEXITCODE" }
+    } else {
+        # Ultimo fallback: scp -r (copia tutto, no exclude). Avvisa.
+        Write-Warn2 'tar non disponibile: scp -r copiera anche file esclusi (.env, data/...).'
+        $scpArgs = @()
+        if ($env:BK_SSH_KEY) { $scpArgs += @('-i', $env:BK_SSH_KEY) }
+        $scpArgs += @('-r', $LocalDir.TrimEnd('\','/') + '/.', $remoteNorm)
+        Invoke-Tool 'scp' $scpArgs
+    }
+}
+
 function Invoke-RemoteDeploy {
     Write-Section "Deploy remoto su $SshTarget"
 
-    Write-Step 'rsync server/ → remote'
-    if ($env:BK_SSH_KEY) {
-        Invoke-Tool 'rsync' @('-az', '--delete',
-            '--exclude=*.db', '--exclude=*.db-*', '--exclude=data/',
-            '-e', "ssh -i $($env:BK_SSH_KEY)",
-            "$RepoRoot/server/", "${SshTarget}:${RemotePath}/server/")
-    } else {
-        Invoke-Tool 'rsync' @('-az', '--delete',
-            '--exclude=*.db', '--exclude=*.db-*', '--exclude=data/',
-            "$RepoRoot/server/", "${SshTarget}:${RemotePath}/server/")
-    }
+    Write-Step 'Sync server/ -> remote'
+    Sync-Dir -LocalDir "$RepoRoot\server" `
+             -RemoteDir "$RemotePath/server" `
+             -Excludes @('*.db', '*.db-*', 'data/') `
+             -Delete
     Write-Ok 'server/ sincronizzato'
 
-    Write-Step 'rsync deploy/ → remote (preserve .env)'
-    if ($env:BK_SSH_KEY) {
-        Invoke-Tool 'rsync' @('-az',
-            '--exclude=.env', '--exclude=*.local',
-            '-e', "ssh -i $($env:BK_SSH_KEY)",
-            "$RepoRoot/deploy/", "${SshTarget}:${RemotePath}/deploy/")
-    } else {
-        Invoke-Tool 'rsync' @('-az',
-            '--exclude=.env', '--exclude=*.local',
-            "$RepoRoot/deploy/", "${SshTarget}:${RemotePath}/deploy/")
-    }
+    Write-Step 'Sync deploy/ -> remote (preserve .env)'
+    Sync-Dir -LocalDir "$RepoRoot\deploy" `
+             -RemoteDir "$RemotePath/deploy" `
+             -Excludes @('.env', '*.local')
     Write-Ok 'deploy/ sincronizzato'
 
     Write-Step 'docker compose build --pull bookeeper-server'
