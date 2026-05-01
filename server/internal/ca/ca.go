@@ -257,3 +257,14 @@ func decryptKey(ciphertext, salt, nonce []byte, password string) ([]byte, error)
 	}
 	return pt, nil
 }
+
+// FingerprintPEM returns the SHA-256 hex of the DER bytes of the first
+// CERTIFICATE block in pemBytes. Empty string on invalid PEM.
+func FingerprintPEM(pemBytes []byte) string {
+	block, _ := pem.Decode(pemBytes)
+	if block == nil || block.Type != "CERTIFICATE" {
+		return ""
+	}
+	sum := sha256.Sum256(block.Bytes)
+	return hex.EncodeToString(sum[:])
+}

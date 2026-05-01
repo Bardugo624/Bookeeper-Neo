@@ -92,7 +92,8 @@ func main() {
 			DB: database, Audit: auditMW, Issuer: issuer,
 			CAStore: caStore, PairingTTL: cfg.PairingTokenTTL,
 		},
-		Setup: &api.SetupHandlers{DB: database, Audit: auditMW, TrustPool: trustMgr},
+		Setup:  &api.SetupHandlers{DB: database, Audit: auditMW, TrustPool: trustMgr},
+		Tenant: &api.TenantHandlers{DB: database},
 	}
 
 	authSrv := &http.Server{

@@ -19,6 +19,7 @@ type Deps struct {
 	Books   *BookHandlers
 	Pairing *PairingHandlers
 	Setup   *SetupHandlers
+	Tenant  *TenantHandlers
 }
 
 // AuthenticatedRouter is mounted by Caddy on the mTLS listener (port 8443).
@@ -51,6 +52,11 @@ func AuthenticatedRouter(d Deps) http.Handler {
 			r.Get("/", d.Books.List)
 			r.Post("/", d.Books.Create)
 		})
+
+		r.Route("/tenant", func(r chi.Router) {
+			r.Get("/", d.Tenant.Get)
+			r.Post("/rotate-invite", d.Tenant.RotateInvite)
+		})
 	})
 
 	return r
@@ -69,6 +75,7 @@ func BootstrapRouter(d Deps) http.Handler {
 
 	r.Route("/setup", func(r chi.Router) {
 		r.Post("/tenant", d.Setup.CreateTenant)
+		r.Post("/reload-trust", d.Setup.ReloadTrust)
 	})
 	r.Route("/pairing", func(r chi.Router) {
 		r.Post("/bootstrap-desktop", d.Pairing.BootstrapDesktop)

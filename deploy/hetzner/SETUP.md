@@ -72,37 +72,53 @@ ss -lntp 'sport = :80 or sport = :443'
 If step 1.4 shows another process on 80/443 (very likely — your existing
 reverse proxy), pick **one** of these strategies and reflect it in `.env`:
 
-### Strategy A — TCP passthrough from your existing proxy (recommended)
+### Strategy A — TCP/SNI passthrough from your existing proxy (DEPLOYED)
 
-Keep your existing reverse proxy in front. It does NOT terminate TLS for
-Bookeeper; it just forwards raw TCP so Caddy can do its own ACME and
-mTLS unchanged.
+The current production setup on `alba-prod-1`. The fronting proxy
+(`alba-caddy`, rebuilt with the **caddy-l4** plugin) demuxes incoming
+TLS by SNI and forwards raw TCP for `bookeeper.*` to the Bookeeper
+Caddy. TLS and mTLS terminate inside `bookeeper-neo-caddy` — the L4
+hop never sees plaintext.
 
-`.env`:
+`.env` on the server:
 ```env
-HOST_BIND_IP=127.0.0.1
+HOST_BIND_IP=172.17.0.1     # docker bridge gateway, NOT 127.0.0.1
 PUBLIC_HTTPS_PORT=8443
 ACME_HTTP_PORT=8080
 ```
 
-Add to your existing proxy config (Caddy example):
+**Why `172.17.0.1` and not `127.0.0.1`:** the front proxy runs in a
+container, not on the host. Loopback (`127.0.0.1`) is unreachable from
+inside another container. The Docker bridge gateway (`172.17.0.1`) is
+unreachable from the Internet but reachable from any container that is
+attached to the `bookeeper-neo-net` network.
+
+The fronting `alba-caddy` must be attached to `bookeeper-neo-net`
+(declare it as `external: true` in alba's compose) so it can resolve
+`bookeeper-neo-caddy:443`. Caddyfile snippet on the front proxy:
 ```caddyfile
-bookeeper.albacremisi.org {
-    reverse_proxy 127.0.0.1:8443 {
-        transport http {
-            tls
-            tls_insecure_skip_verify  # client must verify, not the L4 hop
+{
+    layer4 {
+        :443 {
+            @bookeeper tls sni bookeeper.albacremisi.org
+            route @bookeeper {
+                proxy {
+                    upstream bookeeper-neo-caddy:443
+                }
+            }
+            # default route → your other apps (PROXY v2 to internal listener)
         }
     }
 }
 ```
-For TLS-passthrough you actually want **Layer 4** forwarding (cert and
-mTLS handshake reach Bookeeper directly). With Caddy use `layer4` plugin;
-with nginx, the `stream` module:
+For an alternative with nginx `stream` see the nginx snippet at the end
+of this section.
+
+#### Strategy A — variant with nginx
 ```nginx
 stream {
     map $ssl_preread_server_name $bookeeper_backend {
-        bookeeper.albacremisi.org 127.0.0.1:8443;
+        bookeeper.albacremisi.org 172.17.0.1:8443;
     }
     server {
         listen 443;

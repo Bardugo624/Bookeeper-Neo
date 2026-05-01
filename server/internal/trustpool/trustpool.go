@@ -79,9 +79,16 @@ func (m *Manager) Rebuild(ctx context.Context) error {
 
 	if err := m.reloadCaddy(ctx); err != nil {
 		// The file is on disk; on Caddy restart it'll pick it up. Don't fail
-		// the calling business operation just because reload didn't go
-		// through — log loudly instead.
-		slog.Warn("caddy reload failed (will pick up on next restart)", "err", err)
+		// the calling business operation, but log LOUDLY: a stale in-memory
+		// trust pool means new client certs are rejected during mTLS
+		// handshake (visible client-side as `EOF` on /api/v1/...).
+		slog.Error(
+			"caddy reload FAILED — new client certs will be REJECTED until Caddy is restarted manually",
+			"err", err,
+			"caddy_admin", m.caddyAdmin,
+			"pem_path", m.pemPath,
+			"hint", "docker compose restart caddy  (or POST /setup/reload-trust)",
+		)
 		return nil
 	}
 	return nil

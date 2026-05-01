@@ -135,6 +135,61 @@ func (h *SetupHandlers) CreateTenant(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+type reloadTrustReq struct {
+	AdminPassword string `json:"admin_password"`
+	TenantID      string `json:"tenant_id"`
+}
+
+// ReloadTrust forza la rigenerazione di trusted_clients.pem e il reload
+// di Caddy. Pensato come "pulsante di emergenza" quando il reload
+// post-CreateTenant è fallito (admin API irraggiungibile, container
+// non ancora pronto, etc.) e i nuovi cert vengono rifiutati con EOF.
+//
+// Sicurezza: gira sulla porta bootstrap (no mTLS), quindi richiede
+// admin_password del tenant indicato per evitare DoS / scrittura
+// arbitraria del file di trust.
+func (h *SetupHandlers) ReloadTrust(w http.ResponseWriter, r *http.Request) {
+	var req reloadTrustReq
+	if !readJSON(w, r, &req) {
+		return
+	}
+	if req.AdminPassword == "" || req.TenantID == "" {
+		writeErr(w, http.StatusBadRequest, "missing fields")
+		return
+	}
+	if h.TrustPool == nil {
+		writeErr(w, http.StatusServiceUnavailable, "trust pool not configured")
+		return
+	}
+
+	// Verifica admin_password tentando di sbloccare il CA del tenant.
+	var caCertPEM string
+	var keyEnc, keySalt, keyNonce []byte
+	err := h.DB.QueryRowContext(r.Context(), `
+        SELECT ca_cert_pem, ca_key_enc, ca_key_salt, ca_key_nonce
+          FROM tenants WHERE id = ?
+    `, req.TenantID).Scan(&caCertPEM, &keyEnc, &keySalt, &keyNonce)
+	if errors.Is(err, sql.ErrNoRows) {
+		writeErr(w, http.StatusNotFound, "tenant not found")
+		return
+	}
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, "db error")
+		return
+	}
+	if _, err := ca.Unlock([]byte(caCertPEM), keyEnc, keySalt, keyNonce, req.AdminPassword); err != nil {
+		writeErr(w, http.StatusUnauthorized, "invalid admin password")
+		return
+	}
+
+	if err := h.TrustPool.Rebuild(r.Context()); err != nil {
+		slog.Error("manual trust pool reload failed", "err", err, "tenant", req.TenantID)
+		writeErr(w, http.StatusInternalServerError, "rebuild failed: "+err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
 // newInviteCode returns a 16-char Crockford-base32 invite code.
 func newInviteCode() (string, error) {
 	b := make([]byte, 10)
