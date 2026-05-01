@@ -1,0 +1,12 @@
+# Bookeeper Neo — authorized SSH public keys for the production host.
+#
+# Each non-empty, non-comment line is one public key that gets installed
+# in /root/.ssh/authorized_keys by bootstrap.sh.
+#
+# Keep this file under version control so additions/removals are auditable.
+# REMOVING a key here does NOT auto-revoke it on the server — you must
+# re-run bootstrap.sh (or trim authorized_keys manually) for that.
+
+# alba-prod-1 — operator workstation (Lorenzo)
+# Fingerprint: SHA256:HEdPXR5hUgXbA8nNWNePTtGPMJ9+82RVbvtPz7s859c
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAOy4JTLdvrs3wTUTLk2EiqW0UIQjpFtgOJ/YtpuOhrc root@alba-prod-1
