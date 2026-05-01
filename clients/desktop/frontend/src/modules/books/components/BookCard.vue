@@ -27,6 +27,7 @@ defineProps<{ book: Book }>();
       <p class="book-card__detail">
         <span v-if="book.published_year">{{ book.published_year }}</span>
         <span v-if="book.format" class="book-card__chip">{{ book.format }}</span>
+        <span v-if="book.genre" class="book-card__chip book-card__chip--genre">{{ book.genre }}</span>
       </p>
     </div>
   </RouterLink>
@@ -109,6 +110,11 @@ defineProps<{ book: Book }>();
   font-size: 0.75rem;
   text-transform: capitalize;
 }
+.book-card__chip--genre {
+  background: color-mix(in srgb, var(--p-primary-500) 14%, transparent);
+  color: var(--p-primary-700);
+  text-transform: none;
+}
 </style>
 
 <!-- Vedi BooksListView.vue per la nota sul bug `:global(html.dark)`. -->
@@ -130,5 +136,9 @@ html.dark .book-card__authors {
 html.dark .book-card__chip {
   background: var(--p-surface-700);
   color: var(--p-surface-200);
+}
+html.dark .book-card__chip--genre {
+  background: color-mix(in srgb, var(--p-primary-500) 28%, transparent);
+  color: var(--p-primary-200);
 }
 </style>

@@ -87,8 +87,11 @@ func main() {
 			ServerHost: cfg.ServerHost,
 			ServerPort: cfg.ServerPort,
 		},
-		Books: &api.BookHandlers{DB: database, Audit: auditMW},
-		Shelves: &api.ShelfHandlers{DB: database, Audit: auditMW},
+		Books:    &api.BookHandlers{DB: database, Audit: auditMW},
+		Shelves:  &api.ShelfHandlers{DB: database, Audit: auditMW},
+		Wishlist: &api.WishlistHandlers{DB: database, Audit: auditMW},
+		Loans:    &api.LoanHandlers{DB: database, Audit: auditMW},
+		Stats:    &api.StatHandlers{DB: database},
 		Pairing: &api.PairingHandlers{
 			DB: database, Audit: auditMW, Issuer: issuer,
 			CAStore: caStore, PairingTTL: cfg.PairingTokenTTL,

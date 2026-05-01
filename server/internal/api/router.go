@@ -16,9 +16,12 @@ type Deps struct {
 	Authn   *mw.Authn
 	Auth    *AuthHandlers
 	Devices *DeviceHandlers
-	Books   *BookHandlers
-	Shelves *ShelfHandlers
-	Pairing *PairingHandlers
+	Books    *BookHandlers
+	Shelves  *ShelfHandlers
+	Wishlist *WishlistHandlers
+	Loans    *LoanHandlers
+	Stats    *StatHandlers
+	Pairing  *PairingHandlers
 	Setup   *SetupHandlers
 	Tenant  *TenantHandlers
 }
@@ -67,10 +70,29 @@ func AuthenticatedRouter(d Deps) http.Handler {
 			r.Get("/{id}/books", d.Shelves.ListBooks)
 		})
 
+		r.Route("/wishlist", func(r chi.Router) {
+			r.Get("/", d.Wishlist.List)
+			r.Post("/", d.Wishlist.Create)
+			r.Patch("/{id}", d.Wishlist.Update)
+			r.Delete("/{id}", d.Wishlist.Delete)
+			r.Post("/{id}/convert", d.Wishlist.Convert)
+		})
+
+		r.Route("/loans", func(r chi.Router) {
+			r.Get("/", d.Loans.List)
+			r.Post("/", d.Loans.Create)
+			r.Patch("/{id}", d.Loans.Update)
+			r.Delete("/{id}", d.Loans.Delete)
+			r.Post("/{id}/return", d.Loans.Return)
+			r.Post("/{id}/reopen", d.Loans.Reopen)
+		})
+
 		r.Route("/tenant", func(r chi.Router) {
 			r.Get("/", d.Tenant.Get)
 			r.Post("/rotate-invite", d.Tenant.RotateInvite)
 		})
+
+		r.Get("/stats", d.Stats.Get)
 	})
 
 	return r

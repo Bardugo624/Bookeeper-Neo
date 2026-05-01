@@ -16,6 +16,7 @@ export interface Book {
   page_count?: number | null;
   description?: string | null;
   format?: string | null;
+  genre?: string | null;
   cover_path?: string | null;
   notes?: string | null;
   created_at: number;
@@ -39,6 +40,7 @@ export interface BookInput {
   page_count: number;
   description: string;
   format: string;
+  genre: string;
   notes: string;
 }
 
@@ -55,6 +57,7 @@ export const EMPTY_BOOK_INPUT: BookInput = {
   page_count: 0,
   description: '',
   format: '',
+  genre: '',
   notes: '',
 };
 
@@ -82,6 +85,7 @@ export function toBookInput(b: Book): BookInput {
     page_count: b.page_count ?? 0,
     description: b.description ?? '',
     format: b.format ?? '',
+    genre: b.genre ?? '',
     notes: b.notes ?? '',
   };
 }

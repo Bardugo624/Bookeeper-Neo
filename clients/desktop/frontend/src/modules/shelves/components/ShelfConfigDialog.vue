@@ -90,7 +90,7 @@ function pickColor(c: ShelfColor): void {
     :modal="true"
     :closable="!saving"
     :dismissable-mask="!saving"
-    :style="{ width: '480px' }"
+    :style="{ width: '520px', maxWidth: '95vw' }"
     :header="isEdit ? 'Modifica scaffale' : 'Nuovo scaffale'"
     @update:visible="emit('update:visible', $event)"
   >
@@ -207,14 +207,18 @@ function pickColor(c: ShelfColor): void {
   gap: 1rem;
 }
 .shelf-form__row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* Impilati verticalmente: i due InputNumber con show-buttons
+     orizzontali occupano troppo spazio in 2 colonne dentro un dialog
+     da 520px (causava scroller). */
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
 }
 .shelf-form__field {
   display: flex;
   flex-direction: column;
   gap: 0.375rem;
+  min-width: 0;
 }
 .shelf-form__label {
   font-size: 0.85rem;

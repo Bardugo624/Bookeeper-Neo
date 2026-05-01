@@ -140,6 +140,10 @@ function onDelete(): void {
             <dt>Formato</dt>
             <dd class="book-detail__capitalize">{{ store.current.format }}</dd>
           </template>
+          <template v-if="store.current.genre">
+            <dt>Genere</dt>
+            <dd>{{ store.current.genre }}</dd>
+          </template>
           <template v-if="store.current.language">
             <dt>Lingua</dt>
             <dd>{{ store.current.language }}</dd>

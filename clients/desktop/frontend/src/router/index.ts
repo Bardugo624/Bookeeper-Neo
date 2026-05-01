@@ -2,6 +2,9 @@ import { createRouter, createWebHashHistory, type RouteRecordRaw } from 'vue-rou
 import AppShell from '../layouts/AppShell.vue';
 import { booksRoutes } from '../modules/books/routes';
 import { shelvesRoutes } from '../modules/shelves/routes';
+import { loansRoutes } from '../modules/loans/routes';
+import { wishlistRoutes } from '../modules/wishlist/routes';
+import { statsRoutes } from '../modules/stats/routes';
 
 const routes: RouteRecordRaw[] = [
     {
@@ -17,9 +20,9 @@ const routes: RouteRecordRaw[] = [
             { path: '', redirect: { name: 'books' } },
             ...booksRoutes,
             ...shelvesRoutes,
-            { path: 'loans', name: 'loans', component: () => import('../views/LoansView.vue'), meta: { title: 'Prestiti' } },
-            { path: 'wishlist', name: 'wishlist', component: () => import('../views/WishlistView.vue'), meta: { title: 'Wishlist' } },
-            { path: 'stats', name: 'stats', component: () => import('../views/StatsView.vue'), meta: { title: 'Statistiche' } },
+            ...loansRoutes,
+            ...wishlistRoutes,
+            ...statsRoutes,
             { path: 'devices', name: 'devices', component: () => import('../views/DevicesView.vue'), meta: { title: 'Dispositivi' } },
             { path: 'settings', name: 'settings', component: () => import('../views/SettingsView.vue'), meta: { title: 'Impostazioni' } },
         ],

@@ -2,23 +2,42 @@
 /**
  * BookFormFields — campi del form, condivisi tra Create dialog e Edit view.
  * v-model:form ↔ BookInput, v-model:authorsRaw ↔ string (textarea raw).
+ *
+ * Il campo Autori mostra una riga live di chip che riflettono come la
+ * stringa raw viene splittata su `,` / newline — così la separazione
+ * automatica è visibile mentre si digita. Click sulla X di una chip
+ * rimuove l'autore corrispondente dalla raw.
  */
+import { computed } from 'vue';
 import InputText from 'primevue/inputtext';
 import Textarea from 'primevue/textarea';
 import InputNumber from 'primevue/inputnumber';
 import Select from 'primevue/select';
 import { FORMAT_OPTIONS, type BookInput } from '../types';
 
-defineProps<{
+const props = defineProps<{
   form: BookInput;
   authorsRaw: string;
   errorMessage?: string | null;
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'update:form', v: BookInput): void;
   (e: 'update:authorsRaw', v: string): void;
 }>();
+
+/** Parsing identico a useBookForm.syncAuthors per coerenza visuale. */
+const parsedAuthors = computed<string[]>(() =>
+  props.authorsRaw
+    .split(/[\n,]/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0),
+);
+
+function removeAuthor(idx: number): void {
+  const next = parsedAuthors.value.filter((_, i) => i !== idx);
+  emit('update:authorsRaw', next.join(', '));
+}
 </script>
 
 <template>
@@ -48,7 +67,7 @@ defineEmits<{
 
     <div class="book-form__row book-form__row--full">
       <label class="book-form__label" for="bf-authors">
-        Autori <span class="book-form__hint">(uno per riga o separati da virgola)</span>
+        Autori <span class="book-form__hint">(separa con virgola o invio)</span>
       </label>
       <Textarea
         id="bf-authors"
@@ -56,7 +75,37 @@ defineEmits<{
         @update:model-value="(v) => $emit('update:authorsRaw', String(v ?? ''))"
         rows="2"
         auto-resize
+        :aria-describedby="parsedAuthors.length ? 'bf-authors-chips' : undefined"
       />
+      <TransitionGroup
+        v-if="parsedAuthors.length"
+        id="bf-authors-chips"
+        tag="ul"
+        name="chip"
+        class="book-form__chips"
+        aria-live="polite"
+        :aria-label="`${parsedAuthors.length} autori riconosciuti`"
+      >
+        <li
+          v-for="(name, idx) in parsedAuthors"
+          :key="`${idx}-${name}`"
+          class="book-form__chip"
+        >
+          <i class="pi pi-user book-form__chip-icon" aria-hidden="true" />
+          <span class="book-form__chip-name">{{ name }}</span>
+          <button
+            type="button"
+            class="book-form__chip-remove"
+            :aria-label="`Rimuovi ${name}`"
+            @click="removeAuthor(idx)"
+          >
+            <i class="pi pi-times" aria-hidden="true" />
+          </button>
+        </li>
+      </TransitionGroup>
+      <p v-else class="book-form__chips-empty">
+        Nessun autore inserito.
+      </p>
     </div>
 
     <div class="book-form__row">
@@ -112,6 +161,19 @@ defineEmits<{
         option-value="value"
         placeholder="Seleziona…"
         show-clear
+      />
+    </div>
+
+    <div class="book-form__row">
+      <label class="book-form__label" for="bf-genre">
+        Genere <span class="book-form__hint">(es. Romanzo, Saggio, Fantasy)</span>
+      </label>
+      <InputText
+        id="bf-genre"
+        :model-value="form.genre"
+        @update:model-value="(v) => $emit('update:form', { ...form, genre: String(v ?? '') })"
+        autocomplete="off"
+        maxlength="60"
       />
     </div>
 
@@ -212,6 +274,87 @@ defineEmits<{
     grid-template-columns: 1fr;
   }
 }
+
+/* --- Authors live chips --- */
+.book-form__chips {
+  list-style: none;
+  margin: 0.375rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+.book-form__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.25rem 0.25rem 0.625rem;
+  min-height: 32px;
+  background: color-mix(in srgb, var(--p-primary-500) 12%, transparent);
+  color: var(--p-primary-700);
+  border: 1px solid color-mix(in srgb, var(--p-primary-500) 30%, transparent);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1;
+  max-width: 100%;
+}
+.book-form__chip-icon {
+  font-size: 0.7rem;
+  opacity: 0.85;
+}
+.book-form__chip-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.book-form__chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.7rem;
+  transition: background-color 150ms ease;
+}
+.book-form__chip-remove:hover {
+  background: color-mix(in srgb, var(--p-primary-500) 25%, transparent);
+}
+.book-form__chip-remove:focus-visible {
+  outline: 2px solid var(--p-primary-500);
+  outline-offset: 1px;
+}
+.book-form__chips-empty {
+  margin: 0.375rem 0 0;
+  font-size: 0.75rem;
+  color: var(--p-surface-500);
+  font-style: italic;
+}
+/* Transizione comparsa/scomparsa chip (rispetta reduced-motion). */
+.chip-enter-active,
+.chip-leave-active {
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+.chip-enter-from,
+.chip-leave-to {
+  opacity: 0;
+  transform: scale(0.85);
+}
+.chip-leave-active {
+  position: absolute;
+}
+@media (prefers-reduced-motion: reduce) {
+  .chip-enter-active,
+  .chip-leave-active {
+    transition: none;
+  }
+}
 </style>
 
 <!-- Vedi BooksListView.vue per la nota sul bug `:global(html.dark)`. -->
@@ -220,6 +363,17 @@ html.dark .book-form__label {
   color: var(--p-surface-200);
 }
 html.dark .book-form__hint {
+  color: var(--p-surface-400);
+}
+html.dark .book-form__chip {
+  background: color-mix(in srgb, var(--p-primary-500) 22%, transparent);
+  color: var(--p-primary-200);
+  border-color: color-mix(in srgb, var(--p-primary-500) 45%, transparent);
+}
+html.dark .book-form__chip-remove:hover {
+  background: color-mix(in srgb, var(--p-primary-500) 40%, transparent);
+}
+html.dark .book-form__chips-empty {
   color: var(--p-surface-400);
 }
 </style>

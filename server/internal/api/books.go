@@ -37,6 +37,7 @@ type bookDTO struct {
 	PageCount     *int     `json:"page_count,omitempty"`
 	Description   *string  `json:"description,omitempty"`
 	Format        *string  `json:"format,omitempty"`
+	Genre         *string  `json:"genre,omitempty"`
 	Notes         *string  `json:"notes,omitempty"`
 	CreatedAt     int64    `json:"created_at"`
 	UpdatedAt     int64    `json:"updated_at"`
@@ -62,7 +63,7 @@ func (h *BookHandlers) List(w http.ResponseWriter, r *http.Request) {
 		rows, err = h.DB.QueryContext(r.Context(), `
 			SELECT id, library_id, isbn_13, isbn_10, title, subtitle, authors_json,
 			       publisher, published_year, language, page_count, description,
-			       format, notes, created_at, updated_at
+			       format, genre, notes, created_at, updated_at
 			  FROM books WHERE tenant_id = ?
 			  ORDER BY created_at DESC
 			  LIMIT ?
@@ -75,7 +76,7 @@ func (h *BookHandlers) List(w http.ResponseWriter, r *http.Request) {
 		rows, err = h.DB.QueryContext(r.Context(), `
 			SELECT b.id, b.library_id, b.isbn_13, b.isbn_10, b.title, b.subtitle, b.authors_json,
 			       b.publisher, b.published_year, b.language, b.page_count, b.description,
-			       b.format, b.notes, b.created_at, b.updated_at
+			       b.format, b.genre, b.notes, b.created_at, b.updated_at
 			  FROM books_fts f
 			  JOIN books b ON b.rowid = f.rowid
 			 WHERE b.tenant_id = ? AND books_fts MATCH ?
@@ -112,7 +113,7 @@ func (h *BookHandlers) Get(w http.ResponseWriter, r *http.Request) {
 	row := h.DB.QueryRowContext(r.Context(), `
 		SELECT id, library_id, isbn_13, isbn_10, title, subtitle, authors_json,
 		       publisher, published_year, language, page_count, description,
-		       format, notes, created_at, updated_at
+		       format, genre, notes, created_at, updated_at
 		  FROM books WHERE id = ? AND tenant_id = ?
 	`, bookID, id.TenantID)
 	d, err := scanBook(row)
@@ -140,6 +141,7 @@ type createBookReq struct {
 	PageCount     int      `json:"page_count"`
 	Description   string   `json:"description"`
 	Format        string   `json:"format"`
+	Genre         string   `json:"genre"`
 	Notes         string   `json:"notes"`
 }
 
@@ -172,15 +174,15 @@ func (h *BookHandlers) Create(w http.ResponseWriter, r *http.Request) {
         INSERT INTO books (
             id, tenant_id, library_id, isbn_13, isbn_10, title, subtitle,
             authors_json, publisher, published_year, language, page_count,
-            description, format, notes, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            description, format, genre, notes, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, bookID, id.TenantID, nullableID(req.LibraryID),
 		nullable(req.ISBN13), nullable(req.ISBN10),
 		req.Title, nullable(req.Subtitle),
 		string(authorsJSON), nullable(req.Publisher),
 		nullableInt(req.PublishedYear), nullable(req.Language),
 		nullableInt(req.PageCount), nullable(req.Description),
-		nullable(req.Format), nullable(req.Notes),
+		nullable(req.Format), nullable(req.Genre), nullable(req.Notes),
 		now, now,
 	); err != nil {
 		writeErr(w, http.StatusInternalServerError, "insert failed")
@@ -219,11 +221,11 @@ type rowScanner interface {
 func scanBook(s rowScanner) (bookDTO, error) {
 	var d bookDTO
 	var authorsJSON string
-	var libID, isbn13, isbn10, subtitle, publisher, language, description, format, notes sql.NullString
+	var libID, isbn13, isbn10, subtitle, publisher, language, description, format, genre, notes sql.NullString
 	var publishedYear, pageCount sql.NullInt64
 	if err := s.Scan(&d.ID, &libID, &isbn13, &isbn10, &d.Title, &subtitle, &authorsJSON,
 		&publisher, &publishedYear, &language, &pageCount, &description,
-		&format, &notes, &d.CreatedAt, &d.UpdatedAt); err != nil {
+		&format, &genre, &notes, &d.CreatedAt, &d.UpdatedAt); err != nil {
 		return d, err
 	}
 	_ = json.Unmarshal([]byte(authorsJSON), &d.Authors)
@@ -238,6 +240,7 @@ func scanBook(s rowScanner) (bookDTO, error) {
 	d.Language = nullToPtr(language)
 	d.Description = nullToPtr(description)
 	d.Format = nullToPtr(format)
+	d.Genre = nullToPtr(genre)
 	d.Notes = nullToPtr(notes)
 	if publishedYear.Valid {
 		v := int(publishedYear.Int64)
@@ -329,13 +332,13 @@ func (h *BookHandlers) Update(w http.ResponseWriter, r *http.Request) {
 		UPDATE books SET
 			library_id = ?, isbn_13 = ?, isbn_10 = ?, title = ?, subtitle = ?,
 			authors_json = ?, publisher = ?, published_year = ?, language = ?,
-			page_count = ?, description = ?, format = ?, notes = ?, updated_at = ?
+			page_count = ?, description = ?, format = ?, genre = ?, notes = ?, updated_at = ?
 		WHERE id = ? AND tenant_id = ?
 	`, nullableID(req.LibraryID), nullable(req.ISBN13), nullable(req.ISBN10),
 		req.Title, nullable(req.Subtitle), string(authorsJSON),
 		nullable(req.Publisher), nullableInt(req.PublishedYear),
 		nullable(req.Language), nullableInt(req.PageCount),
-		nullable(req.Description), nullable(req.Format), nullable(req.Notes),
+		nullable(req.Description), nullable(req.Format), nullable(req.Genre), nullable(req.Notes),
 		now, bookID, id.TenantID,
 	)
 	if err != nil {
