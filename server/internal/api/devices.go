@@ -8,6 +8,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/bookeeper/bookeeper-neo/server/internal/ca"
@@ -280,6 +281,40 @@ func (h *DeviceHandlers) PairingTokenStatus(w http.ResponseWriter, r *http.Reque
         `, id.TenantID, usedAt.Int64).Scan(&resp.DeviceID, &resp.DeviceName)
 	}
 	writeJSON(w, http.StatusOK, resp)
+}
+
+// RenameMe updates the calling device's display name. Mounted on the mobile
+// surface (PATCH /api/v1/m/devices/me); the desktop equivalent is the admin
+// rename via /devices/{id} (planned). Body: {"name": "..."}.
+func (h *DeviceHandlers) RenameMe(w http.ResponseWriter, r *http.Request) {
+	id, ok := mw.FromContext(r.Context())
+	if !ok {
+		writeErr(w, http.StatusUnauthorized, "no identity")
+		return
+	}
+	var req struct {
+		Name string `json:"name"`
+	}
+	if !readJSON(w, r, &req) {
+		return
+	}
+	name := strings.TrimSpace(req.Name)
+	if name == "" || len(name) > 60 {
+		writeErr(w, http.StatusBadRequest, "name 1..60 chars required")
+		return
+	}
+	if _, err := h.DB.ExecContext(r.Context(),
+		`UPDATE devices SET name = ? WHERE id = ? AND tenant_id = ?`,
+		name, id.DeviceID, id.TenantID,
+	); err != nil {
+		writeErr(w, http.StatusInternalServerError, "db error")
+		return
+	}
+	_ = h.Audit.Write(r.Context(), mw.Event{
+		Action: "device.renamed", EntityType: "device", EntityID: id.DeviceID,
+		After: map[string]string{"name": name},
+	})
+	writeJSON(w, http.StatusOK, map[string]string{"name": name})
 }
 
 func itoa(n int) string {

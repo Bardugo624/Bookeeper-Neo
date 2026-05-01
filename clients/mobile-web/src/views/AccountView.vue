@@ -11,29 +11,51 @@ import { onMounted, onUnmounted, ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
+import Message from 'primevue/message';
+import Dialog from 'primevue/dialog';
 import { useAuthStore } from '@/stores/auth';
+import { api, ApiError } from '@/lib/api';
 
 const auth = useAuthStore();
 const router = useRouter();
 
 const editing = ref(false);
 const draftName = ref('');
+const saving = ref(false);
+const loggingOut = ref(false);
+const errorMsg = ref<string | null>(null);
+const confirmLogout = ref(false);
 
 function startEdit(): void {
     draftName.value = auth.deviceName ?? '';
     editing.value = true;
+    errorMsg.value = null;
 }
 
 async function saveName(): Promise<void> {
     const next = draftName.value.trim();
-    if (next && next !== auth.deviceName) {
-        await auth.rename(next);
+    if (!next || next === auth.deviceName) {
+        editing.value = false;
+        return;
     }
-    editing.value = false;
+    saving.value = true;
+    errorMsg.value = null;
+    try {
+        // PATCH /api/v1/m/devices/me — server is source of truth so the
+        // device list on desktop reflects the new name immediately.
+        await api.patch('/devices/me', { name: next });
+        await auth.rename(next);
+        editing.value = false;
+    } catch (err) {
+        errorMsg.value = err instanceof ApiError ? err.body : 'errore di rete';
+    } finally {
+        saving.value = false;
+    }
 }
 
 function cancelEdit(): void {
     editing.value = false;
+    errorMsg.value = null;
 }
 
 const pairedHuman = computed(() => {
@@ -90,6 +112,17 @@ async function triggerInstall(): Promise<void> {
 }
 
 async function logout(): Promise<void> {
+    confirmLogout.value = false;
+    loggingOut.value = true;
+    // Best-effort server-side audit; we still wipe locally even if the
+    // network call fails (offline / token already expired) — the user has
+    // explicitly chosen to disconnect, blocking on a server response would
+    // be worse UX than a stale audit row.
+    try {
+        await api.post('/auth/logout');
+    } catch {
+        // ignore
+    }
     await auth.wipe();
     router.replace({ name: 'pair-required' });
 }
@@ -137,6 +170,7 @@ async function logout(): Promise<void> {
                                 severity="success"
                                 text
                                 rounded
+                                :loading="saving"
                                 aria-label="Salva"
                                 @click="saveName"
                             />
@@ -145,6 +179,7 @@ async function logout(): Promise<void> {
                                 severity="secondary"
                                 text
                                 rounded
+                                :disabled="saving"
                                 aria-label="Annulla"
                                 @click="cancelEdit"
                             />
@@ -152,11 +187,26 @@ async function logout(): Promise<void> {
                     </div>
                 </div>
                 <div class="card__divider" />
+                <Message
+                    v-if="errorMsg"
+                    severity="error"
+                    :closable="false"
+                    class="card__error"
+                    role="alert"
+                >
+                    {{ errorMsg }}
+                </Message>
                 <dl class="card__meta">
                     <div>
                         <dt>ID dispositivo</dt>
                         <dd>
                             <code>{{ auth.deviceId }}</code>
+                        </dd>
+                    </div>
+                    <div v-if="auth.certFingerprint">
+                        <dt>Fingerprint cert</dt>
+                        <dd>
+                            <code>{{ auth.certFingerprint.slice(0, 16) }}…</code>
                         </dd>
                     </div>
                     <div>
@@ -201,12 +251,37 @@ async function logout(): Promise<void> {
                 severity="danger"
                 outlined
                 class="logout"
-                @click="logout"
+                :loading="loggingOut"
+                @click="confirmLogout = true"
             />
             <p class="logout__hint">
                 Cancella le credenziali da questo telefono. Servirà rifare l'abbinamento dal desktop.
             </p>
         </div>
+
+        <Dialog
+            v-model:visible="confirmLogout"
+            modal
+            header="Disconnetti dispositivo?"
+            :style="{ width: 'min(380px, 92vw)' }"
+            position="bottom"
+        >
+            <p class="confirm__body">
+                Le credenziali verranno cancellate da questo telefono.
+                Per usare di nuovo Bookeeper qui, dovrai rifare l'abbinamento
+                dal desktop.
+            </p>
+            <template #footer>
+                <Button label="Annulla" text @click="confirmLogout = false" />
+                <Button
+                    label="Disconnetti"
+                    icon="pi pi-sign-out"
+                    severity="danger"
+                    :loading="loggingOut"
+                    @click="logout"
+                />
+            </template>
+        </Dialog>
     </section>
 </template>
 
@@ -276,6 +351,10 @@ async function logout(): Promise<void> {
     height: 1px;
     background: var(--p-surface-200);
     margin: 0.875rem 0;
+}
+
+.card__error {
+    margin-bottom: 0.75rem;
 }
 
 .card__meta {
@@ -375,5 +454,12 @@ async function logout(): Promise<void> {
     color: var(--p-text-muted-color);
     font-size: 0.78rem;
     line-height: 1.5;
+}
+
+.confirm__body {
+    margin: 0;
+    color: var(--p-text-color);
+    font-size: 0.9rem;
+    line-height: 1.55;
 }
 </style>

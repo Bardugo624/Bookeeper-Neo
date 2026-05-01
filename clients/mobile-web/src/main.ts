@@ -6,6 +6,7 @@ import { BookeeperPreset } from '@desktop-theme/index';
 
 import App from './App.vue';
 import { router } from './router';
+import { initPwaUpdate } from './composables/usePwaUpdate';
 
 import 'primeicons/primeicons.css';
 import './style.css';
@@ -26,3 +27,8 @@ app.use(PrimeVue, {
 });
 
 app.mount('#app');
+
+// Register the service worker after the app mounts so the first paint isn't
+// blocked by SW install. Safe to call in dev too — vite-plugin-pwa is a
+// no-op when devOptions.enabled is false.
+initPwaUpdate();

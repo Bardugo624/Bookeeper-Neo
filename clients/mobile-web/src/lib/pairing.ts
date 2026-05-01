@@ -11,6 +11,7 @@
 import { ApiError } from './api';
 import { keystore } from './keystore';
 import { generateKeypairAndCsr, randomDeviceName } from './crypto/csr';
+import { fingerprintFromCertPem } from './fingerprint';
 
 // Re-export so callers can import api/ApiError from a single module.
 export { api, ApiError } from './api';
@@ -61,10 +62,13 @@ export async function redeemPairingToken(token: string): Promise<RedeemResult> {
         throw new ApiError(0, err instanceof Error ? err.message : 'network error');
     }
 
+    const certFingerprint = await fingerprintFromCertPem(res.cert_pem);
+
     await keystore.save({
         deviceId: res.device_id,
         deviceName,
         certPem: res.cert_pem,
+        certFingerprint,
         caCertPem: res.ca_cert_pem,
         privateKey,
         accessToken: res.access_token,

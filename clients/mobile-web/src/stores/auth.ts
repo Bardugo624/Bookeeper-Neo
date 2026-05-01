@@ -9,6 +9,7 @@ import { keystore } from '@/lib/keystore';
 export const useAuthStore = defineStore('auth', () => {
     const deviceId = ref<string | null>(null);
     const deviceName = ref<string | null>(null);
+    const certFingerprint = ref<string | null>(null);
     const pairedAt = ref<number | null>(null);
     const hydrated = ref(false);
 
@@ -20,6 +21,7 @@ export const useAuthStore = defineStore('auth', () => {
         if (creds) {
             deviceId.value = creds.deviceId;
             deviceName.value = creds.deviceName;
+            certFingerprint.value = creds.certFingerprint;
             pairedAt.value = creds.pairedAt;
         }
         hydrated.value = true;
@@ -30,6 +32,12 @@ export const useAuthStore = defineStore('auth', () => {
         deviceId.value = id;
         deviceName.value = name;
         pairedAt.value = Date.now();
+        // certFingerprint is already in IndexedDB at this point — re-hydrate
+        // from the keystore so subsequent api.ts calls see it without
+        // requiring the caller to thread it through.
+        void keystore.load().then((c) => {
+            if (c) certFingerprint.value = c.certFingerprint;
+        });
     }
 
     async function rename(name: string): Promise<void> {
@@ -41,12 +49,14 @@ export const useAuthStore = defineStore('auth', () => {
         await keystore.wipe();
         deviceId.value = null;
         deviceName.value = null;
+        certFingerprint.value = null;
         pairedAt.value = null;
     }
 
     return {
         deviceId,
         deviceName,
+        certFingerprint,
         pairedAt,
         hydrated,
         isPaired,

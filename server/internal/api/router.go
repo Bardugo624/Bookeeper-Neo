@@ -13,7 +13,8 @@ import (
 
 // Deps is the bundle of dependencies the routers need. main() builds it once.
 type Deps struct {
-	Authn   *mw.Authn
+	Authn       *mw.Authn
+	MobileAuthn *mw.MobileAuthn
 	Auth    *AuthHandlers
 	Devices *DeviceHandlers
 	Books    *BookHandlers
@@ -124,6 +125,28 @@ func BootstrapRouter(d Deps) http.Handler {
 	// /pairing/redeem above and JWT-authenticated endpoints later).
 	r.Handle("/m", http.RedirectHandler("/m/", http.StatusMovedPermanently))
 	r.Handle("/m/*", MobileSPAHandler())
+
+	// Mobile API surface. Same backing handlers as the desktop authenticated
+	// router, but gated by JWT + X-Device-Cert-Fingerprint instead of mTLS.
+	// Subset is intentionally narrow for MVP: search/list books, scan
+	// (create), self device rename, refresh & logout. Mutations on shelves,
+	// loans, wishlist remain desktop-only until confirmed for mobile.
+	r.Route("/api/v1/m", func(r chi.Router) {
+		r.Use(d.MobileAuthn.Wrap)
+		r.Get("/me", whoAmI)
+		r.Route("/auth", func(r chi.Router) {
+			r.Post("/refresh", d.Auth.Refresh)
+			r.Post("/logout", d.Auth.Logout)
+		})
+		r.Route("/devices", func(r chi.Router) {
+			r.Patch("/me", d.Devices.RenameMe)
+		})
+		r.Route("/books", func(r chi.Router) {
+			r.Get("/", d.Books.List)
+			r.Post("/", d.Books.Create)
+			r.Get("/{id}", d.Books.Get)
+		})
+	})
 
 	return r
 }

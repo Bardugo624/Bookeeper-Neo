@@ -66,6 +66,7 @@ func main() {
 	caStore := ca.NewStore()
 	auditMW := &mw.Audit{DB: database}
 	authnMW := &mw.Authn{DB: database, Issuer: issuer}
+	mobileAuthnMW := &mw.MobileAuthn{DB: database, Issuer: issuer}
 	trustMgr := trustpool.New(database, cfg.TrustPoolPath, cfg.CaddyAdminURL)
 
 	// Make sure Caddy can boot even on a fresh install with zero tenants:
@@ -77,7 +78,8 @@ func main() {
 	}
 
 	deps := api.Deps{
-		Authn: authnMW,
+		Authn:       authnMW,
+		MobileAuthn: mobileAuthnMW,
 		Auth: &api.AuthHandlers{
 			DB: database, Issuer: issuer, Audit: auditMW,
 		},

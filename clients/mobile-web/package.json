@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@primeuix/themes": "^1.2.5",
+    "@zxing/browser": "^0.1.5",
     "asn1js": "^3.0.5",
     "idb": "^8.0.0",
     "pinia": "^2.3.1",
@@ -27,9 +28,9 @@
     "vite-plugin-pwa": "^0.21.1",
     "vue-tsc": "^2.2.12",
     "workbox-core": "^7.3.0",
+    "workbox-expiration": "^7.3.0",
     "workbox-precaching": "^7.3.0",
     "workbox-routing": "^7.3.0",
-    "workbox-strategies": "^7.3.0",
-    "workbox-expiration": "^7.3.0"
+    "workbox-strategies": "^7.3.0"
   }
 }

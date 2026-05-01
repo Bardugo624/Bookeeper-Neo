@@ -43,6 +43,15 @@ const routes: RouteRecordRaw[] = [
                 component: () => import('@/views/AccountView.vue'),
                 meta: { requiresPaired: true, label: 'Account', icon: 'pi-user' },
             },
+            {
+                // Phase E — book detail. Sits inside the tabs shell so the
+                // bottom nav stays available; tab highlight stays on Search
+                // (which the back button returns to by default).
+                path: 'book/:id',
+                name: 'book-detail',
+                component: () => import('@/views/BookDetailView.vue'),
+                meta: { requiresPaired: true },
+            },
         ],
     },
     {

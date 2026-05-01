@@ -18,6 +18,9 @@ export interface StoredCredentials {
     deviceName: string;
     /** PEM-encoded mobile client certificate signed by the tenant CA. */
     certPem: string;
+    /** SHA-256 hex of the cert DER (matches devices.cert_fingerprint server-side).
+     *  Sent on every authenticated request as `X-Device-Cert-Fingerprint`. */
+    certFingerprint: string;
     /** PEM-encoded tenant CA cert; the PWA pins this to verify the server. */
     caCertPem: string;
     /** Non-extractable EC P-256 private key (matches certPem public key). */

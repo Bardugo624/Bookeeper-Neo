@@ -12,9 +12,11 @@
  */
 import { computed } from 'vue';
 import { RouterView, useRoute, useRouter } from 'vue-router';
+import { usePwaUpdate } from '@/composables/usePwaUpdate';
 
 const route = useRoute();
 const router = useRouter();
+const { needsRefresh, applyUpdate, dismissUpdate } = usePwaUpdate();
 
 interface Tab {
     name: string;
@@ -40,10 +42,39 @@ function go(name: string): void {
         <main class="shell__content">
             <RouterView v-slot="{ Component }">
                 <transition name="page" mode="out-in">
-                    <component :is="Component" />
+                    <keep-alive :include="['SearchView']">
+                        <component :is="Component" />
+                    </keep-alive>
                 </transition>
             </RouterView>
         </main>
+
+        <transition name="banner">
+            <div
+                v-if="needsRefresh"
+                class="shell__update"
+                role="status"
+                aria-live="polite"
+            >
+                <i class="pi pi-sync shell__update-icon" aria-hidden="true" />
+                <span class="shell__update-text">Aggiornamento disponibile</span>
+                <button
+                    type="button"
+                    class="shell__update-action"
+                    @click="applyUpdate"
+                >
+                    Ricarica
+                </button>
+                <button
+                    type="button"
+                    class="shell__update-dismiss"
+                    aria-label="Ignora aggiornamento"
+                    @click="dismissUpdate"
+                >
+                    <i class="pi pi-times" aria-hidden="true" />
+                </button>
+            </div>
+        </transition>
 
         <nav class="shell__tabs" role="tablist" aria-label="Navigazione principale">
             <button
@@ -184,11 +215,79 @@ function go(name: string): void {
     .shell__tab,
     .shell__rail,
     .page-enter-active,
-    .page-leave-active {
+    .page-leave-active,
+    .banner-enter-active,
+    .banner-leave-active {
         transition: none;
     }
     .shell__tab:active {
         transform: none;
     }
+}
+
+/* --- PWA update banner --------------------------------------------------- */
+.shell__update {
+    position: fixed;
+    left: 0.75rem;
+    right: 0.75rem;
+    /* Sits just above the bottom tab bar, with safe-area awareness. */
+    bottom: calc(64px + env(safe-area-inset-bottom) + 0.5rem);
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.625rem 0.75rem;
+    background: var(--p-primary-700);
+    color: var(--p-primary-50);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    font-size: 0.875rem;
+}
+
+.shell__update-icon {
+    font-size: 1rem;
+}
+
+.shell__update-text {
+    flex: 1;
+    font-weight: 500;
+}
+
+.shell__update-action {
+    appearance: none;
+    border: 0;
+    background: var(--p-primary-50);
+    color: var(--p-primary-800);
+    font-weight: 600;
+    font-size: 0.85rem;
+    border-radius: 999px;
+    min-height: 36px;
+    padding: 0 0.875rem;
+    cursor: pointer;
+}
+
+.shell__update-dismiss {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--p-primary-100);
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+.banner-enter-active,
+.banner-leave-active {
+    transition:
+        opacity 200ms ease,
+        transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.banner-enter-from,
+.banner-leave-to {
+    opacity: 0;
+    transform: translateY(12px);
 }
 </style>
