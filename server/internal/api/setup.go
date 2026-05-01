@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/base32"
 	"errors"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"github.com/bookeeper/bookeeper-neo/server/internal/auth"
 	"github.com/bookeeper/bookeeper-neo/server/internal/ca"
 	"github.com/bookeeper/bookeeper-neo/server/internal/mw"
+	"github.com/bookeeper/bookeeper-neo/server/internal/trustpool"
 )
 
 // SetupHandlers serves the very-first-run tenant creation flow on the
@@ -21,8 +23,9 @@ import (
 // continues to allow creating additional tenants on the same server (the
 // "multi-household NAS" scenario).
 type SetupHandlers struct {
-	DB    *sql.DB
-	Audit *mw.Audit
+	DB        *sql.DB
+	Audit     *mw.Audit
+	TrustPool *trustpool.Manager
 }
 
 type createTenantReq struct {
@@ -114,6 +117,16 @@ func (h *SetupHandlers) CreateTenant(w http.ResponseWriter, r *http.Request) {
 		Action: "tenant.created", EntityType: "tenant", EntityID: tenantID,
 		After: map[string]string{"name": req.TenantName, "owner_email": req.OwnerEmail},
 	})
+
+	// Add the new tenant CA to the Caddy trust pool so its devices can
+	// authenticate via mTLS. Run in the request goroutine but do not fail
+	// the response if reload hiccups — Caddy will pick up the new file on
+	// next restart even without a live reload.
+	if h.TrustPool != nil {
+		if err := h.TrustPool.Rebuild(r.Context()); err != nil {
+			slog.Warn("trust pool rebuild after tenant create failed", "err", err, "tenant", tenantID)
+		}
+	}
 
 	writeJSON(w, http.StatusOK, createTenantResp{
 		TenantID:   tenantID,

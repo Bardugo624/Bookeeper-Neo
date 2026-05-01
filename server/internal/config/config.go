@@ -27,8 +27,14 @@ type Config struct {
 	PairingTokenTTL time.Duration
 
 	ServiceName string // mDNS instance name
-	ServerHost  string // host (or IP) advertised to clients (e.g. "bookeeper.local")
+	ServerHost  string // host advertised to clients (tailnet hostname or LAN name)
 	ServerPort  int    // public mTLS port (Caddy front)
+	EnableMDNS  bool   // off by default — only useful on flat LAN deployments
+
+	// Trust pool: Caddy mTLS trust file location (must be on a volume shared
+	// with the Caddy container) and Caddy admin API URL for hot-reload.
+	TrustPoolPath string
+	CaddyAdminURL string
 }
 
 func envOr(k, def string) string {
@@ -42,6 +48,15 @@ func envInt(k string, def int) int {
 	if v := os.Getenv(k); v != "" {
 		if n, err := strconv.Atoi(v); err == nil {
 			return n
+		}
+	}
+	return def
+}
+
+func envBool(k string, def bool) bool {
+	if v := os.Getenv(k); v != "" {
+		if b, err := strconv.ParseBool(v); err == nil {
+			return b
 		}
 	}
 	return def
@@ -70,6 +85,9 @@ func Load() (*Config, error) {
 		ServiceName:     envOr("SERVICE_NAME", "Bookeeper"),
 		ServerHost:      envOr("SERVER_HOST", "bookeeper.local"),
 		ServerPort:      envInt("SERVER_PORT", 8443),
+		EnableMDNS:      envBool("ENABLE_MDNS", false),
+		TrustPoolPath:   envOr("TRUST_POOL_PATH", "/certs/trusted_clients.pem"),
+		CaddyAdminURL:   envOr("CADDY_ADMIN_URL", "http://bookeeper-caddy:2019"),
 	}
 	if err := os.MkdirAll(cfg.DataDir, 0o750); err != nil {
 		return nil, err

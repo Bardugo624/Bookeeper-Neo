@@ -20,7 +20,7 @@ gates the bootstrap/pairing surface.
 The production host's SSH host fingerprint:
 
 ```
-SHA256:HEdPXR5hUgXbA8nNWNePTtGPMJ9+82RVbvtPz7s859c   root@alba-prod-1
+SHA256:kdrnfxIdE2VjLI+YOx1tZs+e9FpvQJ4Wb8s+YLKPu4k   root@alba-prod-1 (ED25519)
 ```
 
 When you `ssh root@46.224.218.228` for the first time, OpenSSH shows the
@@ -34,7 +34,7 @@ on your workstation:
 ```bash
 # Fetch the host key, verify its fingerprint, then add to known_hosts.
 HOST=46.224.218.228
-EXPECTED='SHA256:HEdPXR5hUgXbA8nNWNePTtGPMJ9+82RVbvtPz7s859c'
+EXPECTED='SHA256:kdrnfxIdE2VjLI+YOx1tZs+e9FpvQJ4Wb8s+YLKPu4k'
 ssh-keyscan -t ed25519 "$HOST" 2>/dev/null > /tmp/alba.pub
 GOT=$(ssh-keygen -lf /tmp/alba.pub | awk '{print $2}')
 [[ "$GOT" == "$EXPECTED" ]] || { echo "FINGERPRINT MISMATCH: $GOT"; exit 1; }

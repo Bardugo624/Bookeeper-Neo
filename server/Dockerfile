@@ -1,11 +1,15 @@
 # syntax=docker/dockerfile:1.7
 
 # ---- builder ----
-FROM golang:1.23-alpine AS build
+FROM --platform=$BUILDPLATFORM golang:1.23-alpine AS build
 WORKDIR /src
 
-# Pure-Go SQLite (modernc.org/sqlite) needs no CGO.
-ENV CGO_ENABLED=0 GOOS=linux
+# Pure-Go SQLite (modernc.org/sqlite) needs no CGO → trivial cross-compile.
+# TARGETOS/TARGETARCH are populated by buildx when building multi-arch
+# (e.g. `docker buildx build --platform linux/amd64,linux/arm64 ...`).
+ARG TARGETOS
+ARG TARGETARCH
+ENV CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH}
 
 COPY go.mod go.sum* ./
 RUN --mount=type=cache,target=/go/pkg/mod \

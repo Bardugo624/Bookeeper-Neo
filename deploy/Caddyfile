@@ -1,28 +1,33 @@
-# Bookeeper Neo — Caddy frontend
+# Bookeeper Neo — Caddy frontend (Hetzner public + mTLS)
 #
-# Two listeners:
-#   :8443 — mTLS-required authenticated API. Caddy verifies the client cert
-#           against the trust pool at /certs/trusted_clients.pem (currently
-#           a single-tenant CA; multi-tenant trust is achieved by appending
-#           additional CA certs to that file as new tenants are bootstrapped).
-#   :8080 — plain TLS bootstrap surface. No client cert required. Only the
-#           setup and pairing endpoints live here.
+# Single listener:
+#   :443 — public mTLS-required API. Caddy obtains a Let's Encrypt cert
+#          for SERVER_HOST via HTTP-01 (port 80 must be reachable from the
+#          internet for issuance/renewal), and verifies client certs
+#          against the trust pool at /certs/trusted_clients.pem maintained
+#          by bookeeper-server.
 #
-# In both cases TLS uses the internal CA cert at /certs/server.{pem,key}.
-# For LAN deployments these can be self-signed (Caddy generates them
-# automatically when `tls internal` is used), since clients pin trust via
-# the CA fingerprint exchanged during pairing.
+# The bootstrap surface (pairing/setup) is NOT served here — it is only
+# reachable via Tailscale Serve on the tailnet. See compose.
 
 {
-	# Internal ACME for self-signed LAN certs.
-	local_certs
-	auto_https off
+	# Bind admin API to all interfaces on the internal Docker bridge.
+	# The compose file does NOT publish 2019, so it is unreachable from
+	# outside the `bookeeper` network.
+	admin 0.0.0.0:2019
+	email {$ACME_EMAIL}
 }
 
-# ---------------- AUTHENTICATED SURFACE (mTLS) ----------------
-:8443 {
-	tls internal {
-		# Require any cert signed by a trusted_clients.pem CA.
+# HTTP → HTTPS redirect + ACME challenge handling.
+:80 {
+	redir https://{host}{uri} permanent
+}
+
+# ---------------- AUTHENTICATED PUBLIC SURFACE (mTLS) ----------------
+{$SERVER_HOST}:443 {
+	# Public TLS cert from Let's Encrypt for the hostname; client_auth
+	# enforces mTLS using the per-tenant CA bundle.
+	tls {
 		client_auth {
 			mode require_and_verify
 			trust_pool file {
@@ -32,22 +37,19 @@
 	}
 
 	# Forward the verified leaf cert to the Go backend so it can resolve
-	# device → tenant/user. The header value is URL-encoded PEM.
+	# device → tenant/user. URL-encoded PEM in X-Client-Cert.
 	reverse_proxy bookeeper-server:7842 {
 		header_up X-Client-Cert {http.request.tls.client.certificate_pem}
 		header_up X-Forwarded-For {remote_host}
 	}
 
 	encode gzip
-}
 
-# ---------------- BOOTSTRAP SURFACE (plain TLS) ----------------
-:8080 {
-	tls internal
-
-	reverse_proxy bookeeper-server:7843 {
-		header_up X-Forwarded-For {remote_host}
+	# Reasonable security headers for an authenticated API.
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		-Server
 	}
-
-	encode gzip
 }

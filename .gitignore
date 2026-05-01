@@ -1,0 +1,26 @@
+# Build artifacts
+server/bin/
+server/dist/
+*.exe
+
+# Local env (NEVER commit secrets)
+deploy/.env
+.env
+.env.local
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Go
+*.test
+*.out
+coverage.txt
+
+# Backup / runtime data
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
