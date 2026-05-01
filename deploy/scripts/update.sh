@@ -83,8 +83,16 @@ cd "$DEPLOY_DIR"
 
 # 3. Pull updated images for this project only --------------------------------
 log "pulling images for project '$PROJECT_NAME'"
-docker compose --project-name "$PROJECT_NAME" pull --quiet
+docker compose --project-name "$PROJECT_NAME" pull --quiet --ignore-buildable
 ok "images pulled"
+
+# 3b. Rebuild locally-built images (Go server) --------------------------------
+# `compose pull` skips images that have a `build:` context. We must
+# rebuild them explicitly so source-code changes pulled at step 2 take
+# effect. `--pull` keeps the base images fresh.
+log "rebuilding locally-built images"
+docker compose --project-name "$PROJECT_NAME" build --pull
+ok "images rebuilt"
 
 # 4. Apply changes -------------------------------------------------------------
 log "applying changes (docker compose up -d)"

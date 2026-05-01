@@ -17,6 +17,7 @@ type Deps struct {
 	Auth    *AuthHandlers
 	Devices *DeviceHandlers
 	Books   *BookHandlers
+	Shelves *ShelfHandlers
 	Pairing *PairingHandlers
 	Setup   *SetupHandlers
 	Tenant  *TenantHandlers
@@ -51,6 +52,19 @@ func AuthenticatedRouter(d Deps) http.Handler {
 		r.Route("/books", func(r chi.Router) {
 			r.Get("/", d.Books.List)
 			r.Post("/", d.Books.Create)
+			r.Get("/{id}", d.Books.Get)
+			r.Patch("/{id}", d.Books.Update)
+			r.Delete("/{id}", d.Books.Delete)
+			r.Patch("/{id}/shelf", d.Shelves.Assign)
+		})
+
+		r.Route("/shelves", func(r chi.Router) {
+			r.Get("/", d.Shelves.List)
+			r.Post("/", d.Shelves.Create)
+			r.Get("/{id}", d.Shelves.Get)
+			r.Patch("/{id}", d.Shelves.Update)
+			r.Delete("/{id}", d.Shelves.Delete)
+			r.Get("/{id}/books", d.Shelves.ListBooks)
 		})
 
 		r.Route("/tenant", func(r chi.Router) {

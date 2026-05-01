@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
 	"github.com/bookeeper/bookeeper-neo/server/internal/mw"
@@ -46,14 +48,41 @@ func (h *BookHandlers) List(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, http.StatusUnauthorized, "no identity")
 		return
 	}
-	rows, err := h.DB.QueryContext(r.Context(), `
-        SELECT id, library_id, isbn_13, isbn_10, title, subtitle, authors_json,
-               publisher, published_year, language, page_count, description,
-               format, notes, created_at, updated_at
-          FROM books WHERE tenant_id = ?
-          ORDER BY created_at DESC
-          LIMIT 200
-    `, id.TenantID)
+	q := strings.TrimSpace(r.URL.Query().Get("q"))
+	limit := 200
+	if v, _ := strconv.Atoi(r.URL.Query().Get("limit")); v > 0 && v <= 500 {
+		limit = v
+	}
+
+	var (
+		rows *sql.Rows
+		err  error
+	)
+	if q == "" {
+		rows, err = h.DB.QueryContext(r.Context(), `
+			SELECT id, library_id, isbn_13, isbn_10, title, subtitle, authors_json,
+			       publisher, published_year, language, page_count, description,
+			       format, notes, created_at, updated_at
+			  FROM books WHERE tenant_id = ?
+			  ORDER BY created_at DESC
+			  LIMIT ?
+		`, id.TenantID, limit)
+	} else {
+		// FTS5 MATCH on the books_fts table; the rowid joins back to books.
+		// We sanitize the query: append `*` to enable prefix matching while
+		// stripping FTS operators that could break syntax.
+		ftsQ := ftsPrefixQuery(q)
+		rows, err = h.DB.QueryContext(r.Context(), `
+			SELECT b.id, b.library_id, b.isbn_13, b.isbn_10, b.title, b.subtitle, b.authors_json,
+			       b.publisher, b.published_year, b.language, b.page_count, b.description,
+			       b.format, b.notes, b.created_at, b.updated_at
+			  FROM books_fts f
+			  JOIN books b ON b.rowid = f.rowid
+			 WHERE b.tenant_id = ? AND books_fts MATCH ?
+			 ORDER BY rank
+			 LIMIT ?
+		`, id.TenantID, ftsQ, limit)
+	}
 	if err != nil {
 		writeErr(w, http.StatusInternalServerError, "db error")
 		return
@@ -62,37 +91,40 @@ func (h *BookHandlers) List(w http.ResponseWriter, r *http.Request) {
 
 	out := []bookDTO{}
 	for rows.Next() {
-		var d bookDTO
-		var authorsJSON string
-		var libID, isbn13, isbn10, subtitle, publisher, language, description, format, notes sql.NullString
-		var publishedYear, pageCount sql.NullInt64
-		if err := rows.Scan(&d.ID, &libID, &isbn13, &isbn10, &d.Title, &subtitle, &authorsJSON,
-			&publisher, &publishedYear, &language, &pageCount, &description,
-			&format, &notes, &d.CreatedAt, &d.UpdatedAt); err != nil {
+		d, err := scanBook(rows)
+		if err != nil {
 			writeErr(w, http.StatusInternalServerError, "scan error")
 			return
-		}
-		_ = json.Unmarshal([]byte(authorsJSON), &d.Authors)
-		d.LibraryID = nullToPtr(libID)
-		d.ISBN13 = nullToPtr(isbn13)
-		d.ISBN10 = nullToPtr(isbn10)
-		d.Subtitle = nullToPtr(subtitle)
-		d.Publisher = nullToPtr(publisher)
-		d.Language = nullToPtr(language)
-		d.Description = nullToPtr(description)
-		d.Format = nullToPtr(format)
-		d.Notes = nullToPtr(notes)
-		if publishedYear.Valid {
-			v := int(publishedYear.Int64)
-			d.PublishedYear = &v
-		}
-		if pageCount.Valid {
-			v := int(pageCount.Int64)
-			d.PageCount = &v
 		}
 		out = append(out, d)
 	}
 	writeJSON(w, http.StatusOK, map[string]interface{}{"books": out})
+}
+
+// Get returns a single book by id (tenant-scoped).
+func (h *BookHandlers) Get(w http.ResponseWriter, r *http.Request) {
+	id, ok := mw.FromContext(r.Context())
+	if !ok {
+		writeErr(w, http.StatusUnauthorized, "no identity")
+		return
+	}
+	bookID := chi.URLParam(r, "id")
+	row := h.DB.QueryRowContext(r.Context(), `
+		SELECT id, library_id, isbn_13, isbn_10, title, subtitle, authors_json,
+		       publisher, published_year, language, page_count, description,
+		       format, notes, created_at, updated_at
+		  FROM books WHERE id = ? AND tenant_id = ?
+	`, bookID, id.TenantID)
+	d, err := scanBook(row)
+	if err == sql.ErrNoRows {
+		writeErr(w, http.StatusNotFound, "not found")
+		return
+	}
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, "db error")
+		return
+	}
+	writeJSON(w, http.StatusOK, d)
 }
 
 type createBookReq struct {
@@ -179,6 +211,71 @@ func (h *BookHandlers) Create(w http.ResponseWriter, r *http.Request) {
 
 // --- helpers ---
 
+// rowScanner abstracts over *sql.Row and *sql.Rows for scanBook.
+type rowScanner interface {
+	Scan(dest ...interface{}) error
+}
+
+func scanBook(s rowScanner) (bookDTO, error) {
+	var d bookDTO
+	var authorsJSON string
+	var libID, isbn13, isbn10, subtitle, publisher, language, description, format, notes sql.NullString
+	var publishedYear, pageCount sql.NullInt64
+	if err := s.Scan(&d.ID, &libID, &isbn13, &isbn10, &d.Title, &subtitle, &authorsJSON,
+		&publisher, &publishedYear, &language, &pageCount, &description,
+		&format, &notes, &d.CreatedAt, &d.UpdatedAt); err != nil {
+		return d, err
+	}
+	_ = json.Unmarshal([]byte(authorsJSON), &d.Authors)
+	if d.Authors == nil {
+		d.Authors = []string{}
+	}
+	d.LibraryID = nullToPtr(libID)
+	d.ISBN13 = nullToPtr(isbn13)
+	d.ISBN10 = nullToPtr(isbn10)
+	d.Subtitle = nullToPtr(subtitle)
+	d.Publisher = nullToPtr(publisher)
+	d.Language = nullToPtr(language)
+	d.Description = nullToPtr(description)
+	d.Format = nullToPtr(format)
+	d.Notes = nullToPtr(notes)
+	if publishedYear.Valid {
+		v := int(publishedYear.Int64)
+		d.PublishedYear = &v
+	}
+	if pageCount.Valid {
+		v := int(pageCount.Int64)
+		d.PageCount = &v
+	}
+	return d, nil
+}
+
+// ftsPrefixQuery converts a free-form user query into an FTS5 prefix MATCH
+// expression. Each whitespace-separated term becomes `term*` so partial
+// typing matches; tokens with special characters are quoted.
+func ftsPrefixQuery(q string) string {
+	parts := strings.Fields(q)
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		// Strip FTS operators that could break the parser.
+		p = strings.Map(func(r rune) rune {
+			switch r {
+			case '"', '*', '(', ')', ':':
+				return -1
+			}
+			return r
+		}, p)
+		if p == "" {
+			continue
+		}
+		out = append(out, "\""+p+"\"*")
+	}
+	if len(out) == 0 {
+		return ""
+	}
+	return strings.Join(out, " ")
+}
+
 func nullable(s string) interface{} {
 	if s == "" {
 		return nil
@@ -198,4 +295,129 @@ func nullToPtr(n sql.NullString) *string {
 	}
 	v := n.String
 	return &v
+}
+
+// Update modifies a book in place. Body is the same shape as createBookReq.
+// Empty fields clear their column; absence requires sending zero values
+// explicitly (the client always sends a complete record).
+func (h *BookHandlers) Update(w http.ResponseWriter, r *http.Request) {
+	id, ok := mw.FromContext(r.Context())
+	if !ok {
+		writeErr(w, http.StatusUnauthorized, "no identity")
+		return
+	}
+	bookID := chi.URLParam(r, "id")
+	var req createBookReq
+	if !readJSON(w, r, &req) {
+		return
+	}
+	if strings.TrimSpace(req.Title) == "" {
+		writeErr(w, http.StatusBadRequest, "title required")
+		return
+	}
+	authorsJSON, _ := json.Marshal(req.Authors)
+	now := time.Now().Unix()
+
+	tx, err := h.DB.BeginTx(r.Context(), nil)
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, "db error")
+		return
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	res, err := tx.ExecContext(r.Context(), `
+		UPDATE books SET
+			library_id = ?, isbn_13 = ?, isbn_10 = ?, title = ?, subtitle = ?,
+			authors_json = ?, publisher = ?, published_year = ?, language = ?,
+			page_count = ?, description = ?, format = ?, notes = ?, updated_at = ?
+		WHERE id = ? AND tenant_id = ?
+	`, nullableID(req.LibraryID), nullable(req.ISBN13), nullable(req.ISBN10),
+		req.Title, nullable(req.Subtitle), string(authorsJSON),
+		nullable(req.Publisher), nullableInt(req.PublishedYear),
+		nullable(req.Language), nullableInt(req.PageCount),
+		nullable(req.Description), nullable(req.Format), nullable(req.Notes),
+		now, bookID, id.TenantID,
+	)
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, "update failed")
+		return
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		writeErr(w, http.StatusNotFound, "not found")
+		return
+	}
+
+	// Refresh FTS row: delete + re-insert is the simplest correct path for
+	// a contentless FTS5 table.
+	if _, err := tx.ExecContext(r.Context(),
+		`DELETE FROM books_fts WHERE rowid = (SELECT rowid FROM books WHERE id = ?)`,
+		bookID); err != nil {
+		writeErr(w, http.StatusInternalServerError, "fts cleanup failed")
+		return
+	}
+	authorsTxt := strings.Join(req.Authors, ", ")
+	isbnBoth := strings.TrimSpace(req.ISBN13 + " " + req.ISBN10)
+	if _, err := tx.ExecContext(r.Context(), `
+		INSERT INTO books_fts (rowid, title, subtitle, authors, description, notes, isbn)
+		VALUES ((SELECT rowid FROM books WHERE id = ?), ?, ?, ?, ?, ?, ?)
+	`, bookID, req.Title, req.Subtitle, authorsTxt, req.Description, req.Notes, isbnBoth); err != nil {
+		writeErr(w, http.StatusInternalServerError, "fts mirror failed")
+		return
+	}
+	if err := tx.Commit(); err != nil {
+		writeErr(w, http.StatusInternalServerError, "commit failed")
+		return
+	}
+
+	_ = h.Audit.Write(r.Context(), mw.Event{
+		Action: "book.update", EntityType: "book", EntityID: bookID, After: req,
+	})
+	writeJSON(w, http.StatusOK, map[string]string{"id": bookID})
+}
+
+// Delete removes a book and its FTS mirror row. Loans/wishlist rows that
+// reference it are removed via ON DELETE CASCADE in the schema.
+func (h *BookHandlers) Delete(w http.ResponseWriter, r *http.Request) {
+	id, ok := mw.FromContext(r.Context())
+	if !ok {
+		writeErr(w, http.StatusUnauthorized, "no identity")
+		return
+	}
+	bookID := chi.URLParam(r, "id")
+
+	tx, err := h.DB.BeginTx(r.Context(), nil)
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, "db error")
+		return
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	if _, err := tx.ExecContext(r.Context(),
+		`DELETE FROM books_fts WHERE rowid = (SELECT rowid FROM books WHERE id = ? AND tenant_id = ?)`,
+		bookID, id.TenantID); err != nil {
+		writeErr(w, http.StatusInternalServerError, "fts cleanup failed")
+		return
+	}
+	res, err := tx.ExecContext(r.Context(),
+		`DELETE FROM books WHERE id = ? AND tenant_id = ?`,
+		bookID, id.TenantID)
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, "delete failed")
+		return
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		writeErr(w, http.StatusNotFound, "not found")
+		return
+	}
+	if err := tx.Commit(); err != nil {
+		writeErr(w, http.StatusInternalServerError, "commit failed")
+		return
+	}
+
+	_ = h.Audit.Write(r.Context(), mw.Event{
+		Action: "book.delete", EntityType: "book", EntityID: bookID,
+	})
+	w.WriteHeader(http.StatusNoContent)
 }

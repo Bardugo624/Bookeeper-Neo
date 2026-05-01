@@ -15,6 +15,7 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
     { name: 'books', label: 'Libreria', icon: 'pi pi-book', section: 'main' },
+    { name: 'shelves', label: 'Scaffali', icon: 'pi pi-th-large', section: 'main' },
     { name: 'loans', label: 'Prestiti', icon: 'pi pi-share-alt', section: 'main' },
     { name: 'wishlist', label: 'Wishlist', icon: 'pi pi-heart', section: 'main' },
     { name: 'stats', label: 'Statistiche', icon: 'pi pi-chart-bar', section: 'main' },

@@ -23,10 +23,6 @@ defineProps<{ title: string; subtitle?: string }>();
     background: var(--p-surface-0);
     border: 1px solid var(--p-surface-200);
 }
-:global(html.dark) .placeholder {
-    background: var(--p-surface-800);
-    border-color: var(--p-surface-700);
-}
 .placeholder__icon {
     font-size: 2.25rem;
     margin-bottom: 0.75rem;
@@ -46,10 +42,18 @@ defineProps<{ title: string; subtitle?: string }>();
     font-size: 0.875rem;
     margin: 0;
 }
-:global(html.dark) .placeholder__sub {
+</style>
+
+<!-- Vedi BooksListView.vue per la nota sul bug `:global(html.dark)`. -->
+<style>
+html.dark .placeholder {
+    background: var(--p-surface-800);
+    border-color: var(--p-surface-700);
+}
+html.dark .placeholder__sub {
     color: var(--p-surface-300);
 }
-:global(html.dark) .placeholder__hint {
+html.dark .placeholder__hint {
     color: var(--p-surface-400);
 }
 </style>

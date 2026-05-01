@@ -14,6 +14,7 @@ import (
 	"context"
 	"crypto/x509"
 	"database/sql"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/pem"
 	"errors"
@@ -94,20 +95,27 @@ func (a *Authn) Wrap(next http.Handler) http.Handler {
 			return
 		}
 
+		// /auth/login and /auth/refresh are cert-only: the client has no
+		// access JWT yet (or it's expired). They authenticate via mTLS +
+		// password (login) or refresh token (refresh) at the handler level.
+		certOnly := r.URL.Path == "/api/v1/auth/login" || r.URL.Path == "/api/v1/auth/refresh"
+
 		raw := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
-		if raw == "" || raw == r.Header.Get("Authorization") {
-			http.Error(w, "missing access token", http.StatusUnauthorized)
-			return
-		}
-		claims, err := a.Issuer.Parse(raw, "access")
-		if err != nil {
-			http.Error(w, "invalid access token", http.StatusUnauthorized)
-			return
-		}
-		// The JWT must agree with the cert it was bound to at login.
-		if claims.DeviceID != deviceID || claims.TenantID != tenantID || claims.UserID != userID {
-			http.Error(w, "token/device mismatch", http.StatusUnauthorized)
-			return
+		if !certOnly {
+			if raw == "" || raw == r.Header.Get("Authorization") {
+				http.Error(w, "missing access token", http.StatusUnauthorized)
+				return
+			}
+			claims, err := a.Issuer.Parse(raw, "access")
+			if err != nil {
+				http.Error(w, "invalid access token", http.StatusUnauthorized)
+				return
+			}
+			// The JWT must agree with the cert it was bound to at login.
+			if claims.DeviceID != deviceID || claims.TenantID != tenantID || claims.UserID != userID {
+				http.Error(w, "token/device mismatch", http.StatusUnauthorized)
+				return
+			}
 		}
 
 		// Touch last_seen (best-effort, ignore error).
@@ -122,21 +130,32 @@ func (a *Authn) Wrap(next http.Handler) http.Handler {
 	})
 }
 
-// serialFromHeader decodes the URL-encoded PEM passed by Caddy, parses the
-// leaf cert and returns its lowercase-hex serial number.
+// serialFromHeader decodes the leaf cert passed by Caddy in X-Client-Cert
+// and returns its lowercase-hex serial number. Accepts two formats for
+// compatibility:
+//   - base64(DER) — current Caddy config (no newlines, valid HTTP header)
+//   - URL-encoded PEM — legacy fallback
 func serialFromHeader(headerVal string) (string, error) {
 	if headerVal == "" {
 		return "", errors.New("no cert")
 	}
-	pemBytes, err := url.QueryUnescape(headerVal)
-	if err != nil {
-		return "", err
+	var der []byte
+	// Try base64(DER) first (current format).
+	if b, err := base64.StdEncoding.DecodeString(headerVal); err == nil && len(b) > 0 {
+		der = b
+	} else {
+		// Fallback: URL-encoded PEM.
+		pemBytes, err := url.QueryUnescape(headerVal)
+		if err != nil {
+			return "", err
+		}
+		block, _ := pem.Decode([]byte(pemBytes))
+		if block == nil {
+			return "", errors.New("not pem and not base64")
+		}
+		der = block.Bytes
 	}
-	block, _ := pem.Decode([]byte(pemBytes))
-	if block == nil {
-		return "", errors.New("not pem")
-	}
-	cert, err := x509.ParseCertificate(block.Bytes)
+	cert, err := x509.ParseCertificate(der)
 	if err != nil {
 		return "", err
 	}

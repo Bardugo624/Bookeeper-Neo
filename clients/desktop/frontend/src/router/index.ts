@@ -1,5 +1,7 @@
 import { createRouter, createWebHashHistory, type RouteRecordRaw } from 'vue-router';
 import AppShell from '../layouts/AppShell.vue';
+import { booksRoutes } from '../modules/books/routes';
+import { shelvesRoutes } from '../modules/shelves/routes';
 
 const routes: RouteRecordRaw[] = [
     {
@@ -13,7 +15,8 @@ const routes: RouteRecordRaw[] = [
         component: AppShell,
         children: [
             { path: '', redirect: { name: 'books' } },
-            { path: 'books', name: 'books', component: () => import('../views/BooksView.vue'), meta: { title: 'Libreria' } },
+            ...booksRoutes,
+            ...shelvesRoutes,
             { path: 'loans', name: 'loans', component: () => import('../views/LoansView.vue'), meta: { title: 'Prestiti' } },
             { path: 'wishlist', name: 'wishlist', component: () => import('../views/WishlistView.vue'), meta: { title: 'Wishlist' } },
             { path: 'stats', name: 'stats', component: () => import('../views/StatsView.vue'), meta: { title: 'Statistiche' } },

@@ -578,7 +578,11 @@ onMounted(loadTenant);
 .settings__kv code {
     font-family: ui-monospace, "SF Mono", Menlo, monospace;
     font-size: 0.8125rem;
-    background: var(--p-surface-100, rgba(0, 0, 0, 0.04));
+    /* Tint sage-green del primary: leggibile e on-brand sia in light
+       che in dark (evita il bianco-su-bianco quando --p-surface-100 in
+       dark mode resta vicino al bianco). */
+    background: color-mix(in srgb, var(--p-primary-500) 14%, transparent);
+    color: var(--p-primary-700);
     padding: 0.125rem 0.375rem;
     border-radius: 0.25rem;
 }
@@ -608,7 +612,8 @@ onMounted(loadTenant);
     font-size: 1rem;
     letter-spacing: 0.05em;
     user-select: all;
-    background: var(--p-surface-100, rgba(0, 0, 0, 0.04));
+    background: color-mix(in srgb, var(--p-primary-500) 12%, transparent);
+    color: var(--p-primary-700);
     padding: 0.5rem 0.75rem;
     border-radius: 0.375rem;
     flex: 1;
@@ -622,8 +627,8 @@ onMounted(loadTenant);
     padding: 0.125rem 0.5rem;
     border-radius: 999px;
     font-size: 0.75rem;
-    background: var(--p-surface-200, rgba(0, 0, 0, 0.06));
-    color: var(--p-text-color);
+    background: color-mix(in srgb, var(--p-primary-500) 12%, transparent);
+    color: var(--p-primary-700);
 }
 .settings__badge--ok {
     background: var(--p-green-100, #dcfce7);
@@ -646,5 +651,26 @@ onMounted(loadTenant);
 :deep(.p-button:focus-visible) {
     outline: 2px solid var(--p-primary-color);
     outline-offset: 2px;
+}
+</style>
+
+<!-- Vedi BooksListView.vue per la nota sul bug `:global(html.dark) .x`
+     in scoped CSS Vue: spostiamo le regole dark in un blocco non-scoped. -->
+<style>
+html.dark .settings__kv code {
+    background: color-mix(in srgb, var(--p-primary-500) 22%, transparent);
+    color: var(--p-primary-200);
+}
+html.dark .settings__invite-code {
+    background: color-mix(in srgb, var(--p-primary-500) 22%, transparent);
+    color: var(--p-primary-200);
+}
+html.dark .settings__badge {
+    background: color-mix(in srgb, var(--p-primary-500) 22%, transparent);
+    color: var(--p-primary-200);
+}
+html.dark .settings__badge--ok {
+    background: color-mix(in srgb, #22c55e 22%, transparent);
+    color: #bbf7d0;
 }
 </style>

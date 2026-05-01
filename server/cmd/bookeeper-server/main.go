@@ -88,6 +88,7 @@ func main() {
 			ServerPort: cfg.ServerPort,
 		},
 		Books: &api.BookHandlers{DB: database, Audit: auditMW},
+		Shelves: &api.ShelfHandlers{DB: database, Audit: auditMW},
 		Pairing: &api.PairingHandlers{
 			DB: database, Audit: auditMW, Issuer: issuer,
 			CAStore: caStore, PairingTTL: cfg.PairingTokenTTL,

@@ -4,6 +4,12 @@
 // Brand tone: editoriale, sereno, "biblioteca di casa". Verde-salvia
 // come primary (calmo, libroso), neutralità grigio caldo (zinc), accenti
 // terracotta per warning/lent. Dark mode pronto via .dark selector.
+//
+// Nota dark mode: di default Aura sposta il primary su una shade più
+// chiara (primary.400) per garantire contrasto su superfici scure. Per
+// preservare l'identità visiva di Bookeeper manteniamo invece lo stesso
+// verde-salvia del tema light (primary.500) e regoliamo il contrasto
+// dei pulsanti pieni con un testo molto chiaro (primary.50).
 import { definePreset } from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura';
 
@@ -38,6 +44,18 @@ export const BookeeperPreset = definePreset(Aura, {
                     900: '#181613',
                     950: '#0c0b0a',
                 },
+                primary: {
+                    color: '{primary.500}',
+                    contrastColor: '#ffffff',
+                    hoverColor: '{primary.600}',
+                    activeColor: '{primary.700}',
+                },
+                highlight: {
+                    background: '{primary.50}',
+                    focusBackground: '{primary.100}',
+                    color: '{primary.700}',
+                    focusColor: '{primary.800}',
+                },
             },
             dark: {
                 surface: {
@@ -54,7 +72,22 @@ export const BookeeperPreset = definePreset(Aura, {
                     900: '#0e0d0b',
                     950: '#070706',
                 },
+                // Mantieni lo stesso verde-salvia del tema light invece di
+                // virare su primary.400 (default Aura).
+                primary: {
+                    color: '{primary.500}',
+                    contrastColor: '{primary.50}',
+                    hoverColor: '{primary.400}',
+                    activeColor: '{primary.300}',
+                },
+                highlight: {
+                    background: 'color-mix(in srgb, {primary.500}, transparent 80%)',
+                    focusBackground: 'color-mix(in srgb, {primary.500}, transparent 70%)',
+                    color: '{primary.200}',
+                    focusColor: '{primary.100}',
+                },
             },
         },
     },
 });
+

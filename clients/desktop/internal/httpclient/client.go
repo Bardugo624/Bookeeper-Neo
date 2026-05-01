@@ -35,7 +35,14 @@ func New(id *session.Identity) (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("load client keypair: %w", err)
 	}
-	pool := x509.NewCertPool()
+	// Parti dalle root di sistema (per il cert pubblico del server, es.
+	// Let's Encrypt terminato dal reverse proxy) e aggiungi la CA interna
+	// del tenant — usata solo per validare il cert *server* in deploy non
+	// pubblici / self-signed. Il cert client mTLS è separato (Certificates).
+	pool, err := x509.SystemCertPool()
+	if err != nil || pool == nil {
+		pool = x509.NewCertPool()
+	}
 	if !pool.AppendCertsFromPEM([]byte(id.CACertPEM)) {
 		return nil, errors.New("invalid CA cert")
 	}

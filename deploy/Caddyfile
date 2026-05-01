@@ -37,10 +37,10 @@
 	}
 
 	# Forward the verified leaf cert to the Go backend so it can resolve
-	# device → tenant/user. URL-encoded PEM in X-Client-Cert.
-	reverse_proxy bookeeper-server:7842 {
-		header_up X-Client-Cert {http.request.tls.client.certificate_pem}
-		header_up X-Forwarded-For {remote_host}
+		# device → tenant/user. base64(DER) in X-Client-Cert (single-line,
+		# valid HTTP header value — PEM contains newlines and is invalid).
+		reverse_proxy bookeeper-server:7842 {
+			header_up X-Client-Cert {http.request.tls.client.certificate_der_base64}
 	}
 
 	encode gzip
