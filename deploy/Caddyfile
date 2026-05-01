@@ -1,0 +1,53 @@
+# Bookeeper Neo — Caddy frontend
+#
+# Two listeners:
+#   :8443 — mTLS-required authenticated API. Caddy verifies the client cert
+#           against the trust pool at /certs/trusted_clients.pem (currently
+#           a single-tenant CA; multi-tenant trust is achieved by appending
+#           additional CA certs to that file as new tenants are bootstrapped).
+#   :8080 — plain TLS bootstrap surface. No client cert required. Only the
+#           setup and pairing endpoints live here.
+#
+# In both cases TLS uses the internal CA cert at /certs/server.{pem,key}.
+# For LAN deployments these can be self-signed (Caddy generates them
+# automatically when `tls internal` is used), since clients pin trust via
+# the CA fingerprint exchanged during pairing.
+
+{
+	# Internal ACME for self-signed LAN certs.
+	local_certs
+	auto_https off
+}
+
+# ---------------- AUTHENTICATED SURFACE (mTLS) ----------------
+:8443 {
+	tls internal {
+		# Require any cert signed by a trusted_clients.pem CA.
+		client_auth {
+			mode require_and_verify
+			trust_pool file {
+				pem_file /certs/trusted_clients.pem
+			}
+		}
+	}
+
+	# Forward the verified leaf cert to the Go backend so it can resolve
+	# device → tenant/user. The header value is URL-encoded PEM.
+	reverse_proxy bookeeper-server:7842 {
+		header_up X-Client-Cert {http.request.tls.client.certificate_pem}
+		header_up X-Forwarded-For {remote_host}
+	}
+
+	encode gzip
+}
+
+# ---------------- BOOTSTRAP SURFACE (plain TLS) ----------------
+:8080 {
+	tls internal
+
+	reverse_proxy bookeeper-server:7843 {
+		header_up X-Forwarded-For {remote_host}
+	}
+
+	encode gzip
+}

@@ -1,0 +1,72 @@
+# Bookeeper Neo — server stack
+#
+# Two listeners are exposed publicly:
+#   8443  → mTLS-required authenticated API (clients must present a cert)
+#   8080  → plain TLS bootstrap surface (setup, pairing redemption only)
+#
+# Caddy terminates TLS / mTLS and reverse-proxies to the bookeeper-server
+# container on the internal Docker network.
+
+services:
+  bookeeper-server:
+    image: ghcr.io/bookeeper/bookeeper-server:latest
+    # When developing locally, comment the line above and uncomment:
+    # build: ../server
+    container_name: bookeeper-server
+    restart: unless-stopped
+    environment:
+      DATA_DIR: /data
+      SERVICE_NAME: ${SERVICE_NAME:-Bookeeper}
+      SERVER_HOST: ${SERVER_HOST:-bookeeper.local}
+      SERVER_PORT: 8443
+    volumes:
+      - bookeeper-data:/data
+    expose:
+      - "7842"
+      - "7843"
+    networks:
+      - bookeeper
+
+  caddy:
+    image: caddy:2.8-alpine
+    container_name: bookeeper-caddy
+    restart: unless-stopped
+    depends_on:
+      - bookeeper-server
+    ports:
+      # Public mTLS port — clients connect here.
+      - "8443:8443"
+      # Bootstrap (no mTLS) — setup wizard + pairing redemption.
+      - "8080:8080"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - bookeeper-certs:/certs
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - bookeeper
+
+  # Optional: publish the service via mDNS on the host network so phones
+  # can find it as bookeeper.local. The Go server already does this from
+  # inside its own container, but Docker's bridge network may swallow the
+  # multicast packets — this sidecar republishes from the host namespace.
+  # Comment out if you don't need .local discovery (e.g. you use a fixed IP).
+  mdns:
+    image: ghcr.io/jonathanmh/mdns-publisher:latest
+    container_name: bookeeper-mdns
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      MDNS_NAME: ${SERVER_HOST:-bookeeper.local}
+      MDNS_TYPE: _bookeeper._tcp
+      MDNS_PORT: 8443
+
+volumes:
+  bookeeper-data:
+  bookeeper-certs:
+  caddy-data:
+  caddy-config:
+
+networks:
+  bookeeper:
+    driver: bridge
