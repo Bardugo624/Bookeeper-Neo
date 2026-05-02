@@ -34,7 +34,9 @@ import { useRouter } from 'vue-router';
 import QRCode from 'qrcode';
 import Button from 'primevue/button';
 import Message from 'primevue/message';
+import Password from 'primevue/password';
 import { devicesEndpoints, type PairingToken } from '@/lib/api/endpoints/devices';
+import { ApiError } from '@/lib/api/client';
 
 const router = useRouter();
 
@@ -44,6 +46,15 @@ const loading = ref(true);
 const error = ref<string | null>(null);
 const now = ref(Date.now());
 const pairedDeviceName = ref<string | null>(null);
+
+// CA locked panel — visibile solo la prima volta dopo un deploy: il server
+// non ha ancora popolato lo slot di auto-unlock per questo tenant. Un admin
+// inserisce la password una volta sola, da quel momento in poi nessun
+// utente (admin o no) la dovra' piu' digitare.
+const caLocked = ref(false);
+const adminPassword = ref('');
+const unlocking = ref(false);
+const unlockError = ref<string | null>(null);
 
 let tickInterval: ReturnType<typeof setInterval> | null = null;
 let pollInterval: ReturnType<typeof setInterval> | null = null;
@@ -97,15 +108,45 @@ async function generate(): Promise<void> {
     try {
         const t = await devicesEndpoints.createPairingToken();
         token.value = t;
+        caLocked.value = false;
         await renderQR(t.qr_payload);
         startPolling();
     } catch (e) {
-        error.value =
-            e instanceof Error ? e.message : 'Impossibile generare il QR.';
-        token.value = null;
-        qrDataUrl.value = '';
+        // 503 = CA non sbloccata in memoria. Caso uno-tantum su tenant
+        // legacy: mostriamo il pannello admin invece dell'errore generico.
+        if (e instanceof ApiError && e.status === 503) {
+            caLocked.value = true;
+            token.value = null;
+            qrDataUrl.value = '';
+        } else {
+            error.value =
+                e instanceof Error ? e.message : 'Impossibile generare il QR.';
+            token.value = null;
+            qrDataUrl.value = '';
+        }
     } finally {
         loading.value = false;
+    }
+}
+
+async function unlockCA(): Promise<void> {
+    if (!adminPassword.value) return;
+    unlocking.value = true;
+    unlockError.value = null;
+    try {
+        await devicesEndpoints.caUnlock(adminPassword.value);
+        adminPassword.value = '';
+        caLocked.value = false;
+        await generate();
+    } catch (e) {
+        if (e instanceof ApiError && e.status === 401) {
+            unlockError.value = 'Admin password non valida.';
+        } else {
+            unlockError.value =
+                e instanceof Error ? e.message : 'Sblocco fallito.';
+        }
+    } finally {
+        unlocking.value = false;
     }
 }
 
@@ -205,6 +246,45 @@ function back(): void {
                     <p class="qr-card__success-title">Dispositivo abbinato</p>
                     <p class="qr-card__success-name">{{ pairedDeviceName }}</p>
                     <small>Apertura lista in corso…</small>
+                </div>
+
+                <!-- CA bloccata: prompt admin password (one-shot per tenant) -->
+                <div v-else-if="caLocked" class="qr-card__locked">
+                    <div class="qr-card__lock-icon" aria-hidden="true">
+                        <i class="pi pi-lock" />
+                    </div>
+                    <p class="qr-card__locked-title">Sblocca la CA del tenant</p>
+                    <p class="qr-card__locked-sub">
+                        Operazione necessaria una sola volta dopo l'aggiornamento
+                        del server. Da ora in poi qualsiasi utente potrà
+                        abbinare un dispositivo mobile senza inserire password.
+                    </p>
+                    <form class="qr-card__locked-form" @submit.prevent="unlockCA">
+                        <Password
+                            v-model="adminPassword"
+                            placeholder="Admin password"
+                            :feedback="false"
+                            toggle-mask
+                            :disabled="unlocking"
+                            input-class="qr-card__locked-input"
+                            autofocus
+                        />
+                        <Button
+                            type="submit"
+                            label="Sblocca"
+                            icon="pi pi-key"
+                            :loading="unlocking"
+                            :disabled="!adminPassword || unlocking"
+                        />
+                    </form>
+                    <Message
+                        v-if="unlockError"
+                        severity="error"
+                        :closable="false"
+                        class="qr-card__locked-err"
+                    >
+                        {{ unlockError }}
+                    </Message>
                 </div>
 
                 <!-- Stato normale + scaduto -->
@@ -564,6 +644,61 @@ function back(): void {
     margin: 0;
     font-weight: 600;
     color: var(--p-primary-600);
+}
+
+/* --- CA locked state ---------------------------------------------------- */
+.qr-card__locked {
+    text-align: center;
+    padding: 1rem 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    max-width: 360px;
+    margin: 0 auto;
+}
+
+.qr-card__lock-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--p-amber-500) 15%, transparent);
+    color: var(--p-amber-600);
+    display: grid;
+    place-items: center;
+    font-size: 1.75rem;
+}
+
+.qr-card__locked-title {
+    margin: 0;
+    font-family: 'Lora', Georgia, serif;
+    font-size: 1.15rem;
+    color: var(--p-text-color);
+}
+
+.qr-card__locked-sub {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--p-text-muted-color);
+    line-height: 1.4;
+}
+
+.qr-card__locked-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.qr-card__locked-form :deep(.p-password),
+.qr-card__locked-form :deep(.p-password input) {
+    width: 100%;
+}
+
+.qr-card__locked-err {
+    width: 100%;
+    margin-top: 0.25rem;
 }
 
 /* --- Steps panel -------------------------------------------------------- */

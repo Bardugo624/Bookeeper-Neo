@@ -44,14 +44,29 @@ const (
 // Material is everything needed to persist a freshly bootstrapped CA.
 type Material struct {
 	CertPEM  []byte // root cert, PEM encoded
-	KeyEnc   []byte // AES-GCM ciphertext of PKCS8 private key
-	KeySalt  []byte // Argon2id salt
-	KeyNonce []byte // AES-GCM nonce
+	KeyEnc   []byte // AES-GCM ciphertext of PKCS8 private key (admin-pwd slot)
+	KeySalt  []byte // Argon2id salt (admin-pwd slot)
+	KeyNonce []byte // AES-GCM nonce (admin-pwd slot)
+
+	// Server-key slot (post 2026-05). Same plaintext, encrypted with the
+	// machine-local 32-byte server key. Lets the server auto-unlock all
+	// tenant CAs on startup so non-admin users can pair mobile devices
+	// without ever knowing the admin password.
+	KeyEncServer   []byte
+	KeyNonceServer []byte
 }
+
+// ServerKeyLen is the required length of the auto-unlock key.
+const ServerKeyLen = 32
 
 // Bootstrap generates a fresh ECDSA P-256 root CA for a tenant and encrypts
 // its private key with the tenant admin password.
-func Bootstrap(tenantName, adminPassword string) (*Material, error) {
+//
+// If serverKey is non-nil (must be ServerKeyLen bytes) the same plaintext key
+// is also wrapped with the server key (machine-local secret), populating the
+// server-key slot fields. This lets the server auto-unlock the CA at boot
+// without the admin password.
+func Bootstrap(tenantName, adminPassword string, serverKey []byte) (*Material, error) {
 	priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
 		return nil, fmt.Errorf("ca: gen key: %w", err)
@@ -88,7 +103,16 @@ func Bootstrap(tenantName, adminPassword string) (*Material, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Material{CertPEM: certPEM, KeyEnc: enc, KeySalt: salt, KeyNonce: nonce}, nil
+	m := &Material{CertPEM: certPEM, KeyEnc: enc, KeySalt: salt, KeyNonce: nonce}
+	if len(serverKey) == ServerKeyLen {
+		encS, nonceS, err := encryptKeyRaw(keyDER, serverKey)
+		if err != nil {
+			return nil, err
+		}
+		m.KeyEncServer = encS
+		m.KeyNonceServer = nonceS
+	}
+	return m, nil
 }
 
 // CA is an in-memory unlocked CA usable for issuing leaf certs.
@@ -199,6 +223,63 @@ type RevokedCert struct {
 	RevokedAt time.Time
 }
 
+// ErrNoServerSlot is returned by UnlockWithServerKey when the tenant row has
+// not been migrated yet (server-key slot blobs are NULL/empty). Callers can
+// fall back to the admin-password unlock path.
+var ErrNoServerSlot = errors.New("ca: tenant has no server-key slot")
+
+// UnlockWithServerKey decrypts the tenant CA private key using the
+// machine-local server key (auto-unlock slot).
+//
+// Returns ErrNoServerSlot if the slot is empty (older tenants need to be
+// migrated by calling WrapWithServerKey after a successful admin-password
+// Unlock). Returns ErrBadPassword on auth-tag mismatch (key rotated /
+// blob corrupted).
+func UnlockWithServerKey(certPEM, keyEncServer, nonceServer, serverKey []byte) (*CA, error) {
+	if len(keyEncServer) == 0 || len(nonceServer) == 0 {
+		return nil, ErrNoServerSlot
+	}
+	if len(serverKey) != ServerKeyLen {
+		return nil, fmt.Errorf("ca: server key must be %d bytes", ServerKeyLen)
+	}
+	block, _ := pem.Decode(certPEM)
+	if block == nil {
+		return nil, errors.New("ca: invalid cert PEM")
+	}
+	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+	keyDER, err := decryptKeyRaw(keyEncServer, nonceServer, serverKey)
+	if err != nil {
+		return nil, err
+	}
+	k, err := x509.ParsePKCS8PrivateKey(keyDER)
+	if err != nil {
+		return nil, err
+	}
+	priv, ok := k.(*ecdsa.PrivateKey)
+	if !ok {
+		return nil, errors.New("ca: stored key is not ecdsa")
+	}
+	return &CA{Cert: cert, Key: priv}, nil
+}
+
+// WrapWithServerKey re-encrypts an unlocked CA private key with the server
+// key, producing the ciphertext + nonce to persist into the server-key slot.
+// Used to migrate pre-existing tenants on first successful admin-pwd Unlock,
+// and at bootstrap time for new tenants.
+func WrapWithServerKey(c *CA, serverKey []byte) (encServer, nonceServer []byte, err error) {
+	if len(serverKey) != ServerKeyLen {
+		return nil, nil, fmt.Errorf("ca: server key must be %d bytes", ServerKeyLen)
+	}
+	keyDER, err := x509.MarshalPKCS8PrivateKey(c.Key)
+	if err != nil {
+		return nil, nil, err
+	}
+	return encryptKeyRaw(keyDER, serverKey)
+}
+
 // ParseCSR parses a PEM-encoded PKCS#10 CSR submitted by a client.
 func ParseCSR(pemBytes []byte) (*x509.CertificateRequest, error) {
 	block, _ := pem.Decode(pemBytes)
@@ -243,6 +324,41 @@ func encryptKey(plaintext []byte, password string) (ciphertext, salt, nonce []by
 
 func decryptKey(ciphertext, salt, nonce []byte, password string) ([]byte, error) {
 	key := deriveKey(password, salt)
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, err
+	}
+	pt, err := gcm.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		return nil, ErrBadPassword
+	}
+	return pt, nil
+}
+
+// encryptKeyRaw / decryptKeyRaw use a high-entropy 32-byte key directly
+// (no Argon2id derivation). Used by the server-key auto-unlock slot.
+func encryptKeyRaw(plaintext, key []byte) (ciphertext, nonce []byte, err error) {
+	nonce = make([]byte, gcmNonceLen)
+	if _, err = rand.Read(nonce); err != nil {
+		return
+	}
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return
+	}
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return
+	}
+	ciphertext = gcm.Seal(nil, nonce, plaintext, nil)
+	return
+}
+
+func decryptKeyRaw(ciphertext, nonce, key []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err

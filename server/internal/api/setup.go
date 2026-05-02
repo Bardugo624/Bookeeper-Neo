@@ -26,6 +26,10 @@ type SetupHandlers struct {
 	DB        *sql.DB
 	Audit     *mw.Audit
 	TrustPool *trustpool.Manager
+	CAStore   *ca.Store
+	// ServerKey is the 32-byte machine-local secret used to populate the
+	// server-key auto-unlock slot at tenant bootstrap.
+	ServerKey []byte
 }
 
 type createTenantReq struct {
@@ -60,7 +64,7 @@ func (h *SetupHandlers) CreateTenant(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Generate CA material first (CPU-heavy Argon2id).
-	mat, err := ca.Bootstrap(req.TenantName, req.AdminPassword)
+	mat, err := ca.Bootstrap(req.TenantName, req.AdminPassword, h.ServerKey)
 	if err != nil {
 		writeErr(w, http.StatusInternalServerError, "ca bootstrap failed")
 		return
@@ -89,9 +93,9 @@ func (h *SetupHandlers) CreateTenant(w http.ResponseWriter, r *http.Request) {
 	defer func() { _ = tx.Rollback() }()
 
 	if _, err := tx.ExecContext(r.Context(), `
-        INSERT INTO tenants (id, name, invite_code, ca_cert_pem, ca_key_enc, ca_key_salt, ca_key_nonce, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `, tenantID, req.TenantName, inviteCode, string(mat.CertPEM), mat.KeyEnc, mat.KeySalt, mat.KeyNonce, now); err != nil {
+        INSERT INTO tenants (id, name, invite_code, ca_cert_pem, ca_key_enc, ca_key_salt, ca_key_nonce, ca_key_enc_server, ca_key_nonce_server, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, tenantID, req.TenantName, inviteCode, string(mat.CertPEM), mat.KeyEnc, mat.KeySalt, mat.KeyNonce, mat.KeyEncServer, mat.KeyNonceServer, now); err != nil {
 		writeErr(w, http.StatusInternalServerError, "tenant insert failed")
 		return
 	}
@@ -125,6 +129,15 @@ func (h *SetupHandlers) CreateTenant(w http.ResponseWriter, r *http.Request) {
 	if h.TrustPool != nil {
 		if err := h.TrustPool.Rebuild(r.Context()); err != nil {
 			slog.Warn("trust pool rebuild after tenant create failed", "err", err, "tenant", tenantID)
+		}
+	}
+
+	// Cache the freshly bootstrapped CA in memory so the desktop pairing
+	// flow that follows can issue certs without paying the Argon2id cost
+	// again.
+	if h.CAStore != nil && len(h.ServerKey) == ca.ServerKeyLen {
+		if caInst, err := ca.UnlockWithServerKey(mat.CertPEM, mat.KeyEncServer, mat.KeyNonceServer, h.ServerKey); err == nil {
+			h.CAStore.Set(tenantID, caInst)
 		}
 	}
 

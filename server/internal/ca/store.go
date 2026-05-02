@@ -2,12 +2,14 @@ package ca
 
 import "sync"
 
-// Store keeps unlocked tenant CAs in memory after the first successful
-// admin-password unlock (typically at desktop bootstrap or login).
+// Store keeps unlocked tenant CAs in memory.
 //
-// The Store is process-local: restarting the server requires the next admin
-// login to re-unlock. This is intentional — the admin password is never
-// persisted on disk.
+// On startup the server populates the store via the auto-unlock slot
+// (LoadOrCreateServerKey + UnlockWithServerKey) so any user — admin or not —
+// can pair devices without re-entering the admin password.
+//
+// The admin-password slot remains as a manual-unlock fallback (e.g. recovery
+// after a server-key file loss).
 type Store struct {
 	mu  sync.RWMutex
 	cas map[string]*CA

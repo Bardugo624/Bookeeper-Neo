@@ -55,6 +55,15 @@ func AuthenticatedRouter(d Deps) http.Handler {
 			r.Get("/crl.pem", d.Devices.CRL)
 		})
 
+		// CA control surface — used by the desktop UI to detect (and
+		// optionally repair) the rare condition where the tenant CA is
+		// not loaded in memory: i.e. a legacy tenant that predates the
+		// auto-unlock slot, or after a /data/ca-server.key rotation.
+		r.Route("/ca", func(r chi.Router) {
+			r.Get("/status", d.Devices.CAStatus)
+			r.Post("/unlock", d.Devices.CAUnlock)
+		})
+
 		r.Route("/books", func(r chi.Router) {
 			r.Get("/", d.Books.List)
 			r.Post("/", d.Books.Create)

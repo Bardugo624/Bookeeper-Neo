@@ -52,4 +52,21 @@ export const devicesEndpoints = {
 
     revoke: (id: string): Promise<void> =>
         api.post<void>(`/api/v1/devices/${id}/revoke`, {}),
+
+    /**
+     * Stato della CA tenant in memoria. Se `unlocked === false` il pairing
+     * mobile non puo' essere generato finche' un admin non chiama caUnlock
+     * almeno una volta (operazione una-tantum: il server poi auto-sblocca
+     * ad ogni restart).
+     */
+    caStatus: (): Promise<{ unlocked: boolean }> =>
+        api.get<{ unlocked: boolean }>('/api/v1/ca/status'),
+
+    /**
+     * Sblocca la CA del tenant fornendo l'admin password. Side-effect:
+     * popola lo slot di auto-unlock server-side cosi' che da quel momento
+     * in poi nessuna admin pwd venga piu' richiesta.
+     */
+    caUnlock: (adminPassword: string): Promise<void> =>
+        api.post<void>('/api/v1/ca/unlock', { admin_password: adminPassword }),
 };

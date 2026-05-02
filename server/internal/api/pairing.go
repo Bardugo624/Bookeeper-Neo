@@ -24,6 +24,10 @@ type PairingHandlers struct {
 	Issuer     *auth.Issuer
 	CAStore    *ca.Store
 	PairingTTL time.Duration
+	// ServerKey is the 32-byte machine-local secret used to lazily migrate
+	// pre-existing tenants into the auto-unlock slot when the admin password
+	// is provided here.
+	ServerKey []byte
 }
 
 type pairingResp struct {
@@ -122,6 +126,13 @@ func (h *PairingHandlers) BootstrapDesktop(w http.ResponseWriter, r *http.Reques
 	// Cache the unlocked CA so subsequent mobile pairings (no admin password)
 	// can issue certs.
 	h.CAStore.Set(tenantID, caInst)
+
+	// Lazy migration into the server-key slot for tenants bootstrapped
+	// before migration 20260501000005. After this, the server can
+	// auto-unlock this CA at every restart with no admin password.
+	if len(h.ServerKey) == ca.ServerKeyLen {
+		ensureServerSlot(r.Context(), h.DB, tenantID, caInst, h.ServerKey)
+	}
 
 	access, refresh, err := h.Issuer.Issue(tenantID, userID, deviceID)
 	if err != nil {

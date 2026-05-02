@@ -78,3 +78,41 @@
 		}
 	}
 }
+
+# ----------------------------------------------------------------------------
+# Mobile public surface — separate hostname, NO client_auth.
+#
+# Perche' un sottodominio dedicato:
+#   Sullo stesso hostname, attivare `client_auth` (anche solo `mode request`)
+#   provoca su Android Chrome `SSL_CLIENT_AUTH_CERT_NEEDED` quando il KeyChain
+#   del telefono non ha certificati validi: Caddy invia comunque il
+#   `CertificateRequest` con la lista CA del trust_pool, e il browser non
+#   riesce a completare la handshake "anonima". Spostando le rotte pubbliche
+#   (PWA + pairing) su un hostname separato evitiamo qualsiasi richiesta di
+#   certificato a livello TLS — nessun prompt, nessun errore.
+#
+# DEPLOY (richiede una-tantum):
+#   1) DNS A record: m.{$SERVER_HOST} -> stesso IP del server.
+#   2) Reverse proxy esterno: aggiungere passthrough SNI per
+#      m.{$SERVER_HOST} verso 127.0.0.1:{PUBLIC_HTTPS_PORT}.
+#   3) PUBLIC_BASE_URL nell'.env del server -> https://m.{$SERVER_HOST}
+# ----------------------------------------------------------------------------
+m.{$SERVER_HOST}:443 {
+	# Niente blocco `tls`: Caddy emette/rinnova automaticamente il
+	# certificato Let's Encrypt per questo hostname. Soprattutto, niente
+	# `client_auth`: il TLS handshake non chiede certificati al client,
+	# evitando l'errore SSL_CLIENT_AUTH_CERT_NEEDED su Android Chrome.
+
+	encode gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+
+	# Tutto va al bootstrap listener della Go server. La logica autorizzativa
+	# (token one-shot, redeem) e' a livello applicativo.
+	reverse_proxy bookeeper-server:7843
+}

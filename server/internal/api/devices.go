@@ -34,6 +34,9 @@ type DeviceHandlers struct {
 	// SERVER_PORT (es. 443 → 8443). Senza override viene composto da
 	// ServerHost+ServerPort.
 	PublicBaseURL string
+	// ServerKey: 32-byte machine-local secret. If valued, /api/v1/ca/unlock
+	// also lazily populates the auto-unlock slot for the tenant.
+	ServerKey []byte
 }
 
 type deviceDTO struct {
@@ -107,6 +110,14 @@ func (h *DeviceHandlers) CreatePairingToken(w http.ResponseWriter, r *http.Reque
 	id, ok := mw.FromContext(r.Context())
 	if !ok {
 		writeErr(w, http.StatusUnauthorized, "no identity")
+		return
+	}
+	// Pre-flight: se la CA tenant non è sbloccata in memoria, il successivo
+	// /pairing/redeem dal mobile fallirà comunque con 503. Meglio fallire
+	// subito qui con un codice riconoscibile dal frontend, così il desktop
+	// può richiedere l'admin password e fare unlock prima di mostrare il QR.
+	if _, ok := h.CAStore.Get(id.TenantID); !ok {
+		writeErr(w, http.StatusServiceUnavailable, "tenant CA locked")
 		return
 	}
 	tok, exp, err := NewPairingToken(h.DB, id.TenantID, id.UserID, "mobile", h.PairingTTL)
@@ -327,6 +338,66 @@ func (h *DeviceHandlers) RenameMe(w http.ResponseWriter, r *http.Request) {
 		After: map[string]string{"name": name},
 	})
 	writeJSON(w, http.StatusOK, map[string]string{"name": name})
+}
+
+// CAStatus reports whether the tenant CA is currently unlocked in memory.
+// The frontend uses this to decide if it must prompt for the admin password
+// before generating a mobile pairing QR.
+func (h *DeviceHandlers) CAStatus(w http.ResponseWriter, r *http.Request) {
+	id, ok := mw.FromContext(r.Context())
+	if !ok {
+		writeErr(w, http.StatusUnauthorized, "no identity")
+		return
+	}
+	_, unlocked := h.CAStore.Get(id.TenantID)
+	writeJSON(w, http.StatusOK, map[string]bool{"unlocked": unlocked})
+}
+
+// CAUnlock loads the tenant CA into memory using the admin password.
+// Required after a server restart before any new device pairing can complete
+// (the CA private key on disk is encrypted with admin_password and we never
+// persist the unlocked key — see ca/store.go).
+func (h *DeviceHandlers) CAUnlock(w http.ResponseWriter, r *http.Request) {
+	id, ok := mw.FromContext(r.Context())
+	if !ok {
+		writeErr(w, http.StatusUnauthorized, "no identity")
+		return
+	}
+	var req struct {
+		AdminPassword string `json:"admin_password"`
+	}
+	if !readJSON(w, r, &req) {
+		return
+	}
+	if req.AdminPassword == "" {
+		writeErr(w, http.StatusBadRequest, "admin_password required")
+		return
+	}
+	var certPEM string
+	var keyEnc, keySalt, keyNonce []byte
+	err := h.DB.QueryRowContext(r.Context(), `
+        SELECT ca_cert_pem, ca_key_enc, ca_key_salt, ca_key_nonce
+          FROM tenants WHERE id = ?
+    `, id.TenantID).Scan(&certPEM, &keyEnc, &keySalt, &keyNonce)
+	if errors.Is(err, sql.ErrNoRows) {
+		writeErr(w, http.StatusNotFound, "tenant not found")
+		return
+	}
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, "db error")
+		return
+	}
+	caInst, err := ca.Unlock([]byte(certPEM), keyEnc, keySalt, keyNonce, req.AdminPassword)
+	if err != nil {
+		writeErr(w, http.StatusUnauthorized, "invalid admin password")
+		return
+	}
+	h.CAStore.Set(id.TenantID, caInst)
+	if len(h.ServerKey) == ca.ServerKeyLen {
+		ensureServerSlot(r.Context(), h.DB, id.TenantID, caInst, h.ServerKey)
+	}
+	_ = h.Audit.Write(r.Context(), mw.Event{Action: "ca.unlocked", EntityType: "tenant", EntityID: id.TenantID})
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func itoa(n int) string {
