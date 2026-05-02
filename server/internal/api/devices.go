@@ -28,6 +28,12 @@ type DeviceHandlers struct {
 	PairingTTL time.Duration
 	ServerHost string
 	ServerPort int
+	// PublicBaseURL: se valorizzato (es. "https://bookeeper.example.org")
+	// viene usato come radice del QR di pairing. Necessario quando un
+	// reverse proxy esterno fa TCP-passthrough su una porta diversa da
+	// SERVER_PORT (es. 443 → 8443). Senza override viene composto da
+	// ServerHost+ServerPort.
+	PublicBaseURL string
 }
 
 type deviceDTO struct {
@@ -114,9 +120,15 @@ func (h *DeviceHandlers) CreatePairingToken(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	bootstrapURL := "https://" + h.ServerHost + ":8080"
-	publicURL := "https://" + h.ServerHost
-	if h.ServerPort != 443 {
-		publicURL += ":" + itoa(h.ServerPort)
+	var publicURL string
+	if h.PublicBaseURL != "" {
+		// Override esplicito (proxy passthrough). Strip trailing slash.
+		publicURL = strings.TrimRight(h.PublicBaseURL, "/")
+	} else {
+		publicURL = "https://" + h.ServerHost
+		if h.ServerPort != 443 {
+			publicURL += ":" + itoa(h.ServerPort)
+		}
 	}
 	// QR payload: pure HTTPS deep link. The phone's native camera app opens
 	// it directly in browser; the mobile PWA at /m/ auto-redeems on load

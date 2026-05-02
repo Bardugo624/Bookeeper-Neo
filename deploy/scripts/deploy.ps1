@@ -82,6 +82,11 @@ function Invoke-Tool {
 }
 
 function Invoke-Ssh([string]$RemoteCmd, [switch]$AllowNonZero) {
+    # Normalizza i line ending: gli here-string PowerShell su Windows producono
+    # CRLF, ma bash/sh remoti interpretano `\r` come parte del token, causando
+    # errori tipo `sleep 4\r` o `cd /opt/...\r`. Rimuoviamo i CR prima di
+    # inviare il comando alla shell remota.
+    $RemoteCmd = $RemoteCmd -replace "`r", ''
     $sshArgs = @() + $SshOpts + @($SshTarget, $RemoteCmd)
     Invoke-Tool -Exe 'ssh' -ArgList $sshArgs -AllowNonZero:$AllowNonZero
 }
@@ -172,10 +177,22 @@ function Sync-Dir {
     foreach ($e in $Excludes) { $excludeArgs += @('--exclude', $e) }
     if (Get-Command tar -ErrorAction SilentlyContinue) {
         # tar disponibile (Windows 10+ ha bsdtar in System32). Stream tar via ssh.
-        $tarArgs = @('-cf', '-', '-C', $LocalDir) + $excludeArgs + @('.')
-        $sshKeyArg = if ($env:BK_SSH_KEY) { "-i $($env:BK_SSH_KEY)" } else { '' }
-        $cmd = "tar $($tarArgs -join ' ') | ssh $sshKeyArg $SshTarget `"cd '$RemoteDir' && tar -xf -`""
-        # Eseguo via cmd per via del piping cross-process
+        # IMPORTANTE: $LocalDir puo' contenere spazi (es. "Bookeeper Neo") e
+        # ogni token passato a `cmd /c` deve essere quotato esplicitamente,
+        # altrimenti tar riceve `-C C:\...\Bookeeper` e `Neo` come argomenti
+        # separati ("could not chdir" / "does not look like a tar archive").
+        function _q([string]$s) { '"' + ($s -replace '"','\"') + '"' }
+        $tarTokens = @('-cf', '-', '-C', (_q $LocalDir))
+        foreach ($e in $Excludes) { $tarTokens += @('--exclude', (_q $e)) }
+        $tarTokens += '.'
+        $sshKeyArg = if ($env:BK_SSH_KEY) { "-i " + (_q $env:BK_SSH_KEY) } else { '' }
+        $sshOptStr = ($SshOpts -join ' ')
+        # NB: il comando remoto va passato a ssh come UN singolo argomento
+        # (quote esterne), che a sua volta verra' interpretato dalla shell
+        # remota — usiamo apici singoli interni per cd '...'.
+        $remoteSideShell = "cd '" + ($RemoteDir -replace "'", "'\''") + "' && tar -xf -"
+        $cmd = "tar $($tarTokens -join ' ') | ssh $sshOptStr $sshKeyArg $SshTarget " + (_q $remoteSideShell)
+        # Eseguo via cmd per via del piping cross-process (binary-safe su Windows).
         cmd /c $cmd
         if ($LASTEXITCODE -ne 0) { throw "tar+ssh exited with code $LASTEXITCODE" }
     } else {

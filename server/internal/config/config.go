@@ -31,6 +31,14 @@ type Config struct {
 	ServerPort  int    // public mTLS port (Caddy front)
 	EnableMDNS  bool   // off by default — only useful on flat LAN deployments
 
+	// PublicBaseURL, se valorizzato, viene usato per costruire i link
+	// destinati al client finale (es. QR di pairing mobile). Serve in setup
+	// dove un reverse proxy esterno fa TCP-passthrough da 443 → 8443: in quel
+	// caso ServerPort=8443 (porta interna) ma il QR deve puntare a
+	// https://host (porta 443 implicita). Senza override, fallback su
+	// `https://ServerHost[:ServerPort]`.
+	PublicBaseURL string
+
 	// Trust pool: Caddy mTLS trust file location (must be on a volume shared
 	// with the Caddy container) and Caddy admin API URL for hot-reload.
 	TrustPoolPath string
@@ -85,6 +93,7 @@ func Load() (*Config, error) {
 		ServiceName:     envOr("SERVICE_NAME", "Bookeeper"),
 		ServerHost:      envOr("SERVER_HOST", "bookeeper.local"),
 		ServerPort:      envInt("SERVER_PORT", 8443),
+		PublicBaseURL:   envOr("PUBLIC_BASE_URL", ""),
 		EnableMDNS:      envBool("ENABLE_MDNS", false),
 		TrustPoolPath:   envOr("TRUST_POOL_PATH", "/certs/trusted_clients.pem"),
 		CaddyAdminURL:   envOr("CADDY_ADMIN_URL", "http://bookeeper-caddy:2019"),

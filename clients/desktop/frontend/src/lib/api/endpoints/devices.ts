@@ -9,7 +9,8 @@ import { api } from '../client';
 
 export interface PairingToken {
     token: string;
-    expires_at: string; // RFC3339
+    /** Unix timestamp in **seconds** (server returns int64). */
+    expires_at: number;
     pairing_url: string;
     server_fingerprint: string;
     qr_payload: string; // https://<host>/m/?pair=<token>

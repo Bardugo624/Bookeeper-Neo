@@ -64,6 +64,10 @@ services:
       SERVICE_NAME: ${SERVICE_NAME:-Bookeeper}
       SERVER_HOST: ${SERVER_HOST:?SERVER_HOST required}
       SERVER_PORT: ${PUBLIC_HTTPS_PORT:?PUBLIC_HTTPS_PORT required}
+      # Optional: override the public-facing base URL used in pairing QR
+      # links (e.g. when an external reverse proxy passthroughs 443 -> 8443).
+      # If unset, it's derived from SERVER_HOST + SERVER_PORT.
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
       ENABLE_MDNS: "false"
       TRUST_POOL_PATH: /certs/trusted_clients.pem
       CADDY_ADMIN_URL: http://bookeeper-neo-caddy:2019

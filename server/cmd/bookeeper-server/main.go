@@ -85,9 +85,10 @@ func main() {
 		},
 		Devices: &api.DeviceHandlers{
 			DB: database, Audit: auditMW, CAStore: caStore,
-			PairingTTL: cfg.PairingTokenTTL,
-			ServerHost: cfg.ServerHost,
-			ServerPort: cfg.ServerPort,
+			PairingTTL:    cfg.PairingTokenTTL,
+			ServerHost:    cfg.ServerHost,
+			ServerPort:    cfg.ServerPort,
+			PublicBaseURL: cfg.PublicBaseURL,
 		},
 		Books:    &api.BookHandlers{DB: database, Audit: auditMW},
 		Shelves:  &api.ShelfHandlers{DB: database, Audit: auditMW},

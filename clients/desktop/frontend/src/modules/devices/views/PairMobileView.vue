@@ -51,8 +51,9 @@ let closeTimeout: ReturnType<typeof setTimeout> | null = null;
 
 // --- Countdown -------------------------------------------------------------
 
+// Server invia expires_at in **secondi** Unix (int64), convertiamo a ms.
 const expiresAt = computed(() =>
-    token.value ? new Date(token.value.expires_at).getTime() : 0,
+    token.value ? token.value.expires_at * 1000 : 0,
 );
 const totalMs = computed(() => {
     // We don't get TTL back; assume server-config 10min unless future API
