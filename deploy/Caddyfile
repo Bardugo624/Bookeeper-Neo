@@ -60,7 +60,13 @@
 	#
 	# /.well-known/* serves AASA (no extension, application/json) and
 	# assetlinks.json for iOS/Android deep linking into the installed PWA.
-	@public path /m /m/* /pairing /pairing/* /healthz /.well-known/*
+	#
+	# /setup/* serve la creazione tenant iniziale (POST /setup/tenant) e
+	# il recovery dell'invite code (POST /setup/recover-invite). Entrambi
+	# sono per definizione richieste DA client che NON hanno ancora un
+	# certificato valido (o l'hanno perso): vivono sul listener bootstrap
+	# e sono protetti a livello applicativo (admin password Argon2id).
+	@public path /m /m/* /pairing /pairing/* /setup /setup/* /healthz /.well-known/*
 	handle @public {
 		reverse_proxy bookeeper-server:7843
 	}
