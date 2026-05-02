@@ -67,13 +67,16 @@ ManifestDPIAware true
 !define MUI_FINISHPAGE_NOAUTOCLOSE # Wait on the INSTFILES page so the user can take a look into the details of the installation steps
 !define MUI_ABORTWARNING # This will warn the user if they exit from the installer.
 
-# Custom strings italiane in coda al setup
+# Custom strings italiane on-brand: tono editoriale, sereno, "libroso".
 !define MUI_WELCOMEPAGE_TITLE "Benvenuto in Bookeeper"
-!define MUI_WELCOMEPAGE_TEXT "Stai per installare Bookeeper, la tua biblioteca personale.$\r$\n$\r$\nFai clic su Avanti per continuare."
-!define MUI_FINISHPAGE_TITLE "Installazione completata"
-!define MUI_FINISHPAGE_TEXT "Bookeeper e' installato. Puoi avviarlo dal menu Start o dal collegamento sul desktop."
+!define MUI_WELCOMEPAGE_TEXT "Bookeeper è la tua biblioteca personale: cataloga, ritrova e valorizza i libri che possiedi.$\r$\n$\r$\nL'installazione richiede meno di un minuto. Fai clic su Avanti per iniziare."
+!define MUI_FINISHPAGE_TITLE "Tutto pronto"
+!define MUI_FINISHPAGE_TEXT "Bookeeper è installato sul tuo computer. Lo trovi nel menu Start e sul desktop.$\r$\n$\r$\nBuona lettura."
 !define MUI_FINISHPAGE_RUN "$INSTDIR\${PRODUCT_EXECUTABLE}"
 !define MUI_FINISHPAGE_RUN_TEXT "Avvia Bookeeper ora"
+
+# Branding text in fondo a tutte le pagine (sostituisce "Nullsoft Install System")
+BrandingText "Bookeeper — la tua biblioteca personale"
 
 # Pagine: in modalita' /UPDATE saltiamo welcome e directory (gia' scelta dalla
 # install precedente). Lo skip e' implementato nelle PRE function piu' sotto.
@@ -143,7 +146,14 @@ SectionEnd
 Section "uninstall"
     !insertmacro wails.setShellContext
 
-    RMDir /r "$AppData\${PRODUCT_EXECUTABLE}" # Remove the WebView2 DataPath
+    # Sicurezza dati utente: chiedi esplicitamente prima di cancellare la
+    # cartella WebView2/AppData, che contiene anche cache locali (cover,
+    # cookies di sessione). Default = No (preserva i dati).
+    MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 \
+        "Vuoi cancellare anche i dati locali di Bookeeper su questo computer?$\r$\n$\r$\nIncludono cache delle copertine e dati di sessione. La tua biblioteca sul server resta intatta.$\r$\n$\r$\nScegli 'No' se prevedi di reinstallare." \
+        IDNO skip_userdata
+        RMDir /r "$AppData\${PRODUCT_EXECUTABLE}"
+    skip_userdata:
 
     RMDir /r $INSTDIR
 

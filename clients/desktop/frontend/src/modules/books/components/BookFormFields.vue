@@ -16,6 +16,7 @@ import Select from 'primevue/select';
 import Button from 'primevue/button';
 import { useToast } from 'primevue/usetoast';
 import { lookupIsbn, normalizeIsbn } from '@/lib/googleBooks';
+import { lookupIsbnAnnas, AnnasTransientError } from '@/lib/annasLookup';
 import { FORMAT_OPTIONS, type BookInput } from '../types';
 
 const props = defineProps<{
@@ -75,12 +76,49 @@ async function doLookup(): Promise<void> {
   }
   lookupLoading.value = true;
   try {
-    const info = await lookupIsbn(isbn);
+    // 1) Google Libri (sorgente primaria, copertura mondo anglosassone
+    //    eccellente, edizioni IT mediocre).
+    let info = await lookupIsbn(isbn);
+
+    // 2) Fallback Anna's Archive: spesso ha edizioni italiane / di nicchia
+    //    che Google ignora. Mappiamo la sua struttura su quella di Google
+    //    cosi' il merge sotto resta identico.
+    if (!info) {
+      try {
+        const aa = await lookupIsbnAnnas(isbn);
+        if (aa) {
+          info = {
+            title: aa.title,
+            subtitle: aa.subtitle,
+            authors: aa.authors,
+            publisher: aa.publisher,
+            publishedYear: aa.publishYear,
+            pageCount: aa.pageCount,
+            description: aa.description,
+            language: aa.language,
+            isbn10: aa.isbn10,
+            isbn13: aa.isbn13,
+            categories: [],
+            averageRating: 0,
+            ratingsCount: 0,
+            maturityRating: '',
+            printType: '',
+            previewLink: '',
+            infoLink: aa.sourceUrl ?? '',
+            coverCandidates: aa.coverUrl ? [aa.coverUrl] : [],
+          };
+        }
+      } catch (e) {
+        // Transiente AA: log e proseguiamo come "non trovato".
+        if (!(e instanceof AnnasTransientError)) throw e;
+      }
+    }
+
     if (!info) {
       toast.add({
         severity: 'info',
         summary: 'Nessun risultato',
-        detail: `Google Libri non conosce l'ISBN ${isbn}.`,
+        detail: `Nessuna fonte conosce l'ISBN ${isbn}.`,
         life: 3500,
       });
       return;
@@ -99,6 +137,9 @@ async function doLookup(): Promise<void> {
       language: f.language || info.language,
       isbn_13: f.isbn_13 || info.isbn13,
       isbn_10: f.isbn_10 || info.isbn10,
+      // Genere: prima categoria BISAC di Google (es. "Fiction \u203a Fantasy").
+      // Mantiene il valore manuale se gia' presente.
+      genre: f.genre || (info.categories.length > 0 ? info.categories[0] : ''),
     };
     emit('update:form', merged);
     // Se gli autori arrivano dal lookup, sincronizza anche la textarea raw.

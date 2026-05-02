@@ -18,6 +18,25 @@ export interface GoogleBookInfo {
     isbn10: string;
     isbn13: string;
     /**
+     * Categorie/genere come restituite da Google (BISAC). Tipicamente
+     * stringhe gerarchiche ("Fiction / Fantasy / Epic"). Vuota se Google
+     * non classifica il volume. Il primo elemento e' usato per popolare
+     * il campo `genre` del form.
+     */
+    categories: string[];
+    /** Valutazione media 1-5 (0 = nessuna recensione). */
+    averageRating: number;
+    /** Numero di recensioni che concorrono a averageRating. */
+    ratingsCount: number;
+    /** "NOT_MATURE" | "MATURE" | "" (sconosciuto). */
+    maturityRating: string;
+    /** "BOOK" | "MAGAZINE" | "" (sconosciuto). */
+    printType: string;
+    /** URL pagina di anteprima su Google Books, se disponibile. */
+    previewLink: string;
+    /** URL pagina dettagli su Google Books, se disponibile. */
+    infoLink: string;
+    /**
      * Lista ordinata di URL candidati per la copertina (dal piu' grande
      * al piu' piccolo). Vuota se Google non ha nessun `imageLinks`.
      * Va comunque verificata via `probeCoverUrl` perche' Google a volte
@@ -41,6 +60,14 @@ interface VolumeInfo {
     language?: string;
     industryIdentifiers?: Array<{ type: string; identifier: string }>;
     imageLinks?: Record<string, string>;
+    categories?: string[];
+    averageRating?: number;
+    ratingsCount?: number;
+    maturityRating?: string;
+    printType?: string;
+    previewLink?: string;
+    infoLink?: string;
+    canonicalVolumeLink?: string;
 }
 
 /**
@@ -157,8 +184,81 @@ export async function lookupIsbn(rawIsbn: string): Promise<GoogleBookInfo | null
         language: v.language ?? '',
         isbn10,
         isbn13,
+        categories: cleanCategories(v.categories),
+        averageRating: v.averageRating ?? 0,
+        ratingsCount: v.ratingsCount ?? 0,
+        maturityRating: v.maturityRating ?? '',
+        printType: v.printType ?? '',
+        previewLink: v.previewLink ?? '',
+        infoLink: v.infoLink ?? v.canonicalVolumeLink ?? '',
         coverCandidates: pickCoverCandidates(v.imageLinks),
     };
+}
+
+/**
+ * Normalizza e deduplica le categorie BISAC restituite da Google Books.
+ *
+ * Google restituisce spesso entries gerarchiche ridondanti, p.es.:
+ *   ["Fiction / Fantasy", "Fiction / Fantasy / Epic", "FICTION / Fantasy"]
+ *
+ * Strategia:
+ *   1. Pulizia: trim, collassa whitespace multipli e separatori `/` con
+ *      spazi inconsistenti (`Fiction/Fantasy` == `Fiction / Fantasy`).
+ *   2. Spezza ogni entry in segmenti via `/` per ottenere il path
+ *      gerarchico canonico.
+ *   3. Drop ancestor: se "Fiction › Fantasy › Epic" e' presente,
+ *      rimuoviamo "Fiction › Fantasy" e "Fiction" perche' impliciti.
+ *      Confronto case-insensitive sui segmenti normalizzati.
+ *   4. Dedup esatto case-insensitive (gestisce duplicati di casing).
+ *   5. Ordinamento: per profondita' decrescente, cosi' `categories[0]`
+ *      e' la voce piu' specifica (usata come `genre` nel form).
+ *      A parita' di profondita' mantiene l'ordine originale.
+ *   6. Render finale: segmenti uniti con " \u203a " (breadcrumb).
+ */
+function cleanCategories(cats: string[] | undefined): string[] {
+    if (!cats || cats.length === 0) return [];
+
+    type Entry = { segments: string[]; key: string; order: number };
+    const entries: Entry[] = [];
+    const seenKeys = new Set<string>();
+
+    cats.forEach((raw, idx) => {
+        if (typeof raw !== 'string') return;
+        const segments = raw
+            .split('/')
+            .map((s) => s.replace(/\s+/g, ' ').trim())
+            .filter((s) => s.length > 0);
+        if (segments.length === 0) return;
+        const key = segments.map((s) => s.toLowerCase()).join('\u0000');
+        if (seenKeys.has(key)) return; // dedup esatto post-normalizzazione
+        seenKeys.add(key);
+        entries.push({ segments, key, order: idx });
+    });
+
+    if (entries.length === 0) return [];
+
+    // Drop ancestor: scarta entry che sono prefisso (in segmenti) di un'altra.
+    // Pre-calcoliamo i path lower-case con sentinel \u0000 per match esatto
+    // sui boundary di segmento (evita falsi positivi tipo "Fan" prefix di "Fantasy").
+    const surviving = entries.filter((e) => {
+        const prefix = e.key + '\u0000';
+        return !entries.some(
+            (other) =>
+                other !== e &&
+                other.segments.length > e.segments.length &&
+                (other.key + '\u0000').startsWith(prefix),
+        );
+    });
+
+    // Ordine: profondita' desc, poi ordine originale (stable sort garantito da V8).
+    surviving.sort((a, b) => {
+        if (b.segments.length !== a.segments.length) {
+            return b.segments.length - a.segments.length;
+        }
+        return a.order - b.order;
+    });
+
+    return surviving.map((e) => e.segments.join(' \u203a '));
 }
 
 /**

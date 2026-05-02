@@ -20,6 +20,8 @@ export function Login(arg1:main.LoginReq):Promise<main.SessionInfo>;
 
 export function Logout():Promise<void>;
 
+export function LookupIsbnAnnas(arg1:string):Promise<main.AnnasInfo>;
+
 export function ReloadTrust(arg1:main.ReloadTrustReq):Promise<void>;
 
 export function SetupTenant(arg1:main.SetupTenantReq):Promise<main.SetupTenantResp>;

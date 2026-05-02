@@ -37,3 +37,16 @@ Prima release pubblica del client desktop Bookeeper.
   download verificato via SHA-256, installazione silent in un click.
 - **Tab Info nelle Impostazioni**: versione corrente, build date,
   bottone "Controlla aggiornamenti".
+
+
+## [0.1.1] - 2026-01-15
+
+- **Migliorie UI Updater**
+
+## [0.1.2] - 2026-01-15
+
+- **Update appicon**
+
+## [0.1.4] - 2026-01-15
+
+- **self elevation**

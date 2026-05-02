@@ -1,4 +1,4 @@
-﻿/**
+/**
  * coverCache.ts â€” cache locale (IndexedDB) per le copertine dei libri
  * scaricate da Google Books. Tutto client-side: non passa mai dal server.
  *
@@ -35,19 +35,19 @@ import {
     probeOpenLibrary,
     TransientLookupError,
 } from './googleBooks';
+import { lookupIsbnAnnas, AnnasTransientError } from './annasLookup';
 
 const DB_NAME = 'bookeeper-covers';
-// v5: forza il wipe di eventuali record "placeholder" (zoom=2 128x192)
-// rimasti dal vecchio resolver. Bump questa costante ogni volta che
-// cambi la logica di costruzione URL.
-const DB_VERSION = 5;
+// v6: aggiunge fallback Anna's Archive come 3a fonte. Bump per
+// invalidare cache vecchie che non hanno il discriminante source nuovo.
+const DB_VERSION = 6;
 const STORE = 'covers';
 
 interface CoverRecord {
     isbn: string;
     url: string;
     fetchedAt: number;
-    source: 'google-books' | 'open-library';
+    source: 'google-books' | 'open-library' | 'annas-archive';
 }
 
 // Memo runtime
@@ -176,6 +176,25 @@ async function fetchCoverUrl(
         }
     } catch (e) {
         if (import.meta.env.DEV) console.debug('[coverCache]', isbn, 'OL/search err', e);
+    }
+
+    // Fallback 3: Anna's Archive (solo desktop Wails). Restituisce un
+    // URL di copertina di solito ad alta risoluzione (S3/IPFS) anche
+    // per edizioni italiane di nicchia che mancano altrove.
+    try {
+        const aa = await lookupIsbnAnnas(isbn);
+        if (aa?.coverUrl) {
+            const ok = await probeCoverUrl(aa.coverUrl);
+            if (import.meta.env.DEV) console.debug('[coverCache]', isbn, 'AA probe', aa.coverUrl, '=>', ok);
+            if (ok) return { url: aa.coverUrl, source: 'annas-archive' };
+        }
+    } catch (e) {
+        if (e instanceof AnnasTransientError) {
+            transient = true;
+            if (import.meta.env.DEV) console.debug('[coverCache]', isbn, 'AA transient', e.message);
+        } else if (import.meta.env.DEV) {
+            console.debug('[coverCache]', isbn, 'AA err', e);
+        }
     }
 
     return transient ? 'transient' : null;

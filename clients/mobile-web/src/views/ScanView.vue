@@ -316,6 +316,12 @@ async function lookupIsbn(isbn: string): Promise<void> {
             const gb = await fetchGoogleBooks(isbn);
             if (gb) ol = gb;
         }
+        // 4) Anna's Archive (server proxy) — fallback finale per
+        //    edizioni di nicchia / italiane assenti dalle altre fonti.
+        if (!ol || (!ol.title && !ol.authors)) {
+            const aa = await fetchAnnasArchive(isbn);
+            if (aa) ol = aa;
+        }
         result.value = { isbn, found: null, fallback: ol };
     } catch (err) {
         showToast(err instanceof ApiError ? err.body : 'errore di rete');
@@ -386,6 +392,35 @@ async function fetchGoogleBooks(isbn: string): Promise<OLData | null> {
             cover: v.imageLinks?.thumbnail
                 ? { medium: v.imageLinks.thumbnail }
                 : undefined,
+        };
+    } catch {
+        return null;
+    }
+}
+
+// Anna's Archive lookup via server proxy. Restituisce metadati + cover
+// per ISBN che le altre fonti non hanno (utile per editori italiani di
+// nicchia). Errori 404/503 → null silenzioso, non blocchiamo l'utente.
+async function fetchAnnasArchive(isbn: string): Promise<OLData | null> {
+    try {
+        const r = await api.get<{
+            title?: string;
+            subtitle?: string;
+            authors?: string[];
+            publisher?: string;
+            publishYear?: number;
+            pageCount?: number;
+            coverUrl?: string;
+        }>(`/lookup/annas/${encodeURIComponent(isbn)}`);
+        if (!r || (!r.title && !r.coverUrl)) return null;
+        return {
+            title: r.title,
+            subtitle: r.subtitle,
+            authors: (r.authors ?? []).map((name) => ({ name })),
+            publishers: r.publisher ? [{ name: r.publisher }] : undefined,
+            publish_date: r.publishYear ? String(r.publishYear) : undefined,
+            number_of_pages: r.pageCount,
+            cover: r.coverUrl ? { large: r.coverUrl } : undefined,
         };
     } catch {
         return null;

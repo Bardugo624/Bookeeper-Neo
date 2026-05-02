@@ -26,6 +26,7 @@ type Deps struct {
 	Setup   *SetupHandlers
 	Tenant  *TenantHandlers
 	WellKnown *WellKnownHandlers
+	Lookup    *LookupHandlers
 }
 
 // AuthenticatedRouter is mounted by Caddy on the mTLS listener (port 8443).
@@ -109,6 +110,15 @@ func AuthenticatedRouter(d Deps) http.Handler {
 		})
 
 		r.Get("/stats", d.Stats.Get)
+
+		// Lookup esterni (Anna's Archive). Anche il desktop puo' usare
+		// questo endpoint quando il client Wails non e' disponibile
+		// (es. browser locale puntato direttamente al server).
+		if d.Lookup != nil {
+			r.Route("/lookup", func(r chi.Router) {
+				r.Get("/annas/{isbn}", d.Lookup.LookupAnnasISBN)
+			})
+		}
 	})
 
 	return r
@@ -167,6 +177,11 @@ func BootstrapRouter(d Deps) http.Handler {
 			r.Post("/", d.Books.Create)
 			r.Get("/{id}", d.Books.Get)
 		})
+		if d.Lookup != nil {
+			r.Route("/lookup", func(r chi.Router) {
+				r.Get("/annas/{isbn}", d.Lookup.LookupAnnasISBN)
+			})
+		}
 	})
 
 	return r

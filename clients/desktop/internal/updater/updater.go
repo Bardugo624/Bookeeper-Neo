@@ -23,7 +23,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -227,11 +226,10 @@ func (u *Updater) Download(rel *Release, progress ProgressFunc) (string, error) 
 //   - /S       : flag NSIS standard, esegue in modalita' silent
 //   - /UPDATE  : custom — salta pagine welcome/license e disattiva il
 //                shortcut sul desktop (gia' presente da install precedente)
+//
+// Su Windows l'installer richiede privilegi admin (REQUEST_EXECUTION_LEVEL
+// admin nel .nsi): usiamo ShellExecuteW con verbo "runas" per triggerare
+// la UAC. L'implementazione e' in launch_windows.go / launch_other.go.
 func LaunchInstaller(installerPath string) error {
-	cmd := exec.Command(installerPath, "/S", "/UPDATE")
-	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("updater: lancio installer: %w", err)
-	}
-	// Lasciamo l'installer continuare in background. Non Wait().
-	return nil
+	return launchInstaller(installerPath)
 }

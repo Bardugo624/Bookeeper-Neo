@@ -1,5 +1,39 @@
 export namespace main {
 	
+	export class AnnasInfo {
+	    title: string;
+	    subtitle: string;
+	    authors: string[];
+	    publisher: string;
+	    publishYear: number;
+	    pageCount: number;
+	    language: string;
+	    description: string;
+	    isbn10: string;
+	    isbn13: string;
+	    coverUrl: string;
+	    sourceUrl: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AnnasInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.title = source["title"];
+	        this.subtitle = source["subtitle"];
+	        this.authors = source["authors"];
+	        this.publisher = source["publisher"];
+	        this.publishYear = source["publishYear"];
+	        this.pageCount = source["pageCount"];
+	        this.language = source["language"];
+	        this.description = source["description"];
+	        this.isbn10 = source["isbn10"];
+	        this.isbn13 = source["isbn13"];
+	        this.coverUrl = source["coverUrl"];
+	        this.sourceUrl = source["sourceUrl"];
+	    }
+	}
 	export class AppInfo {
 	    version: string;
 	    build_date: string;

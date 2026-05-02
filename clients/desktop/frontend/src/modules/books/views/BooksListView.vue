@@ -13,6 +13,7 @@
  * commuta a grid resettiamo per evitare azioni "fantasma".
  */
 import { onBeforeUnmount, onMounted, ref, watch, computed } from 'vue';
+import { useRoute } from 'vue-router';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import InputText from 'primevue/inputtext';
@@ -122,16 +123,84 @@ function onPlacementWarning(message: string): void {
   toast.add({ severity: 'warn', summary: 'Attenzione', detail: message, life: 5000 });
 }
 
+// Polling ogni 30s mentre la libreria e' in primo piano: cattura
+// modifiche fatte da mobile / altri client senza richiedere F5 e
+// senza dipendere solo dagli eventi di focus (che non scattano
+// quando la finestra ha gia' il focus e l'utente e' attivo qui).
+const POLL_INTERVAL_MS = 30_000;
+let pollTimer: number | undefined;
+const lastSyncAt = ref<number>(0);
+const route = useRoute();
+
+/** Refresh background-friendly: skippa se gia' in corso o offline. */
+function syncList(): void {
+  if (store.loadingList) return;
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+  void store.fetchList().then(() => {
+    lastSyncAt.value = Date.now();
+  }).catch(() => {
+    // Errori gia' propagati nello store.error; evitiamo doppi toast qui.
+  });
+}
+
+/** Sync esplicito (pulsante toolbar): mostra feedback immediato. */
+async function manualSync(): Promise<void> {
+  if (store.loadingList) return;
+  try {
+    await store.fetchList();
+    lastSyncAt.value = Date.now();
+    toast.add({
+      severity: 'success',
+      summary: 'Libreria aggiornata',
+      detail: `${store.items.length} ${store.items.length === 1 ? 'libro sincronizzato' : 'libri sincronizzati'}.`,
+      life: 2500,
+    });
+  } catch (e) {
+    toast.add({
+      severity: 'error',
+      summary: 'Sincronizzazione fallita',
+      detail: (e as Error).message,
+      life: 4000,
+    });
+  }
+}
+
+function startPolling(): void {
+  stopPolling();
+  pollTimer = window.setInterval(() => {
+    if (document.visibilityState === 'visible') syncList();
+  }, POLL_INTERVAL_MS);
+}
+
+function stopPolling(): void {
+  if (pollTimer !== undefined) {
+    window.clearInterval(pollTimer);
+    pollTimer = undefined;
+  }
+}
+
 onMounted(() => {
-  if (store.items.length === 0) void store.fetchList();
+  // Mount = utente e' arrivato sulla libreria (anche cambiando tab
+  // dalla sidebar): sync immediato in background, mostra skeleton
+  // solo se non abbiamo ancora nulla da mostrare.
+  syncList();
   document.addEventListener('visibilitychange', onVisibility);
   window.addEventListener('focus', onWindowFocus);
+  startPolling();
 });
 
 onBeforeUnmount(() => {
   document.removeEventListener('visibilitychange', onVisibility);
   window.removeEventListener('focus', onWindowFocus);
+  stopPolling();
 });
+
+// Cambio tab nella sidebar (route /books raggiunta da altra pagina
+// senza unmount, es. <KeepAlive>): forziamo un sync.
+watch(
+  () => route.fullPath,
+  (p) => { if (p.startsWith('/books')) syncList(); },
+);
 
 /**
  * Sincronizzazione lazy: quando la finestra torna visibile/in focus,
@@ -140,14 +209,33 @@ onBeforeUnmount(() => {
  * Skippiamo se gia' in caricamento per evitare doppioni.
  */
 function onVisibility(): void {
-  if (document.visibilityState === 'visible' && !store.loadingList) {
-    void store.fetchList();
-  }
+  if (document.visibilityState === 'visible') syncList();
 }
 
 function onWindowFocus(): void {
-  if (!store.loadingList) void store.fetchList();
+  syncList();
 }
+
+/** Etichetta "ultimo sync" relativa, aggiornata via nowTick ogni 30s. */
+const nowTick = ref(Date.now());
+let labelTimer: number | undefined;
+const lastSyncLabel = computed<string>(() => {
+  const now = nowTick.value; // dipendenza esplicita per ricalcolo
+  if (lastSyncAt.value === 0) return '';
+  const diffSec = Math.max(0, Math.round((now - lastSyncAt.value) / 1000));
+  if (diffSec < 10) return 'aggiornata adesso';
+  if (diffSec < 60) return `aggiornata ${diffSec}s fa`;
+  const m = Math.round(diffSec / 60);
+  if (m < 60) return `aggiornata ${m} min fa`;
+  const h = Math.round(m / 60);
+  return `aggiornata ${h}h fa`;
+});
+onMounted(() => {
+  labelTimer = window.setInterval(() => { nowTick.value = Date.now(); }, 30_000);
+});
+onBeforeUnmount(() => {
+  if (labelTimer !== undefined) window.clearInterval(labelTimer);
+});
 </script>
 
 <template>
@@ -158,14 +246,26 @@ function onWindowFocus(): void {
         <p class="books__sub">
           {{ store.items.length }} {{ store.items.length === 1 ? 'libro' : 'libri' }}
           <span v-if="store.isSearching"> (filtrati)</span>
+          <span v-if="lastSyncLabel" class="books__sync-label"> · {{ lastSyncLabel }}</span>
         </p>
       </div>
-      <Button
-        icon="pi pi-plus"
-        label="Nuovo libro"
-        severity="primary"
-        @click="showCreate = true"
-      />
+      <div class="books__header-actions">
+        <Button
+          icon="pi pi-sync"
+          severity="secondary"
+          outlined
+          aria-label="Sincronizza libreria"
+          title="Sincronizza con il server"
+          :loading="store.loadingList"
+          @click="manualSync"
+        />
+        <Button
+          icon="pi pi-plus"
+          label="Nuovo libro"
+          severity="primary"
+          @click="showCreate = true"
+        />
+      </div>
     </header>
 
     <div class="books__toolbar">
@@ -318,6 +418,15 @@ function onWindowFocus(): void {
   margin: 0.125rem 0 0;
   color: var(--p-surface-500);
   font-size: 0.9rem;
+}
+.books__sync-label {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+}
+.books__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 .books__toolbar {
   display: flex;

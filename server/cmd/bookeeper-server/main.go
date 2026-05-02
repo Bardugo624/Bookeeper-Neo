@@ -121,6 +121,9 @@ func main() {
 			AppID: "WEBONLY.com.bookeeper.web",
 			Site:  "https://" + cfg.ServerHost,
 		},
+		// Lookup proxy verso fonti esterne (al momento solo Anna's Archive).
+		// User-Agent dichiarato: rispettoso, identifica il progetto.
+		Lookup: api.NewLookupHandlers("Bookeeper-server/1.0 (+https://github.com/Bardugo624/Bookeeper-Neo)"),
 	}
 
 	authSrv := &http.Server{

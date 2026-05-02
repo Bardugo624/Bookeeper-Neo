@@ -127,8 +127,19 @@ const formattedDate = computed(() => {
 <template>
     <Dialog :visible="props.visible" @update:visible="close"
             modal :dismissable-mask="true"
-            :style="{ width: 'min(640px, 92vw)' }"
-            :header="`Novità di Bookeeper ${props.info?.latest ?? ''}`">
+            :style="{ width: 'min(640px, 92vw)' }">
+        <template #header>
+            <div class="changelog__header">
+                <div class="changelog__header-icon" aria-hidden="true">
+                    <i class="pi pi-sparkles"></i>
+                </div>
+                <div class="changelog__header-text">
+                    <span class="changelog__eyebrow">Novità disponibili</span>
+                    <h2 class="changelog__title">Bookeeper {{ props.info?.latest ?? '' }}</h2>
+                </div>
+            </div>
+        </template>
+
         <div class="changelog">
             <p v-if="formattedDate" class="changelog__meta">
                 <i class="pi pi-calendar" aria-hidden="true"></i>
@@ -138,15 +149,50 @@ const formattedDate = computed(() => {
         </div>
 
         <template #footer>
-            <Button text label="Chiudi" severity="secondary"
+            <Button text label="Più tardi" severity="secondary"
                     @click="close(false)" />
-            <Button label="Scarica aggiornamento" icon="pi pi-download"
+            <Button label="Scarica" icon="pi pi-download"
                     @click="emit('download')" />
         </template>
     </Dialog>
 </template>
 
 <style scoped>
+/* Header brandizzato: icon-tile sage gradient + occhiello editoriale. */
+.changelog__header {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    width: 100%;
+}
+.changelog__header-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--p-primary-500), var(--p-primary-700));
+    color: var(--p-primary-50);
+    flex-shrink: 0;
+    box-shadow: 0 1px 3px color-mix(in oklab, var(--p-primary-700) 30%, transparent);
+}
+.changelog__header-icon i { font-size: 1.25rem; }
+.changelog__header-text { display: flex; flex-direction: column; line-height: 1.15; }
+.changelog__eyebrow {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--p-primary-700);
+    font-weight: 600;
+}
+.changelog__title {
+    margin: 0.15rem 0 0;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--p-text-color);
+}
+
 .changelog__meta {
     margin: 0 0 1rem;
     color: var(--p-text-muted-color);
@@ -156,11 +202,13 @@ const formattedDate = computed(() => {
     gap: 0.4rem;
 }
 .changelog__body {
-    line-height: 1.55;
+    line-height: 1.6;
     color: var(--p-text-color);
     max-height: 50vh;
     overflow-y: auto;
     padding-right: 0.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--p-primary-500) 40%, transparent) transparent;
 }
 .changelog__body :deep(h1),
 .changelog__body :deep(h2),
@@ -168,6 +216,10 @@ const formattedDate = computed(() => {
     margin: 1.25rem 0 0.5rem;
     color: var(--p-primary-700);
     font-weight: 600;
+}
+.changelog__body :deep(h2) {
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid color-mix(in oklab, var(--p-primary-500) 20%, transparent);
 }
 .changelog__body :deep(h1) { font-size: 1.15rem; }
 .changelog__body :deep(h2) { font-size: 1.05rem; }
@@ -183,7 +235,10 @@ const formattedDate = computed(() => {
     padding: 0;
 }
 .changelog__body :deep(li) {
-    margin: 0.2rem 0;
+    margin: 0.25rem 0;
+}
+.changelog__body :deep(li::marker) {
+    color: var(--p-primary-500);
 }
 .changelog__body :deep(code) {
     background: var(--p-surface-100);
@@ -195,8 +250,18 @@ const formattedDate = computed(() => {
 .changelog__body :deep(a) {
     color: var(--p-primary-600);
     text-decoration: underline;
+    text-underline-offset: 2px;
+}
+.changelog__body :deep(a:hover) {
+    color: var(--p-primary-700);
 }
 .changelog__body :deep(p) {
     margin: 0.5rem 0;
 }
+
+:global(.dark) .changelog__eyebrow { color: var(--p-primary-300); }
+:global(.dark) .changelog__body :deep(h1),
+:global(.dark) .changelog__body :deep(h2),
+:global(.dark) .changelog__body :deep(h3) { color: var(--p-primary-200); }
+:global(.dark) .changelog__body :deep(code) { background: var(--p-surface-700); }
 </style>

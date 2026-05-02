@@ -180,15 +180,19 @@ if ($PSCmdlet.ParameterSetName -eq 'Explicit') {
 Write-Ok "Versione target  : $newVersion"
 
 if ($newVersion -ne $currentVersion) {
-    # Aggiorna wails.json (preserva indentazione 2 spazi)
+    # Aggiorna wails.json (preserva indentazione 2 spazi).
+    # NB: usiamo WriteAllText con UTF8Encoding($false) per evitare il BOM
+    # che Set-Content -Encoding UTF8 scrive in PowerShell 5.1 — il parser
+    # JSON di Wails (Go) rifiuta il BOM con "invalid character 'ï'".
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
     $wails.info.productVersion = $newVersion
-    ($wails | ConvertTo-Json -Depth 20) | Set-Content $WailsJson -Encoding UTF8
+    [System.IO.File]::WriteAllText($WailsJson, ($wails | ConvertTo-Json -Depth 20), $utf8NoBom)
     Write-Ok "wails.json aggiornato a $newVersion"
 
     if (-not $NoBumpFrontend -and (Test-Path $PkgJson)) {
         $pkg = Get-Content $PkgJson -Raw | ConvertFrom-Json
         $pkg.version = $newVersion
-        ($pkg | ConvertTo-Json -Depth 20) | Set-Content $PkgJson -Encoding UTF8
+        [System.IO.File]::WriteAllText($PkgJson, ($pkg | ConvertTo-Json -Depth 20), $utf8NoBom)
         Write-Ok "frontend/package.json aggiornato a $newVersion"
     }
 }
@@ -268,7 +272,8 @@ $manifest = [ordered]@{
     channel       = $Channel
 }
 $manifestPath = Join-Path $BuildBinDir 'latest.json'
-($manifest | ConvertTo-Json -Depth 5) | Set-Content $manifestPath -Encoding UTF8
+$utf8NoBomManifest = New-Object System.Text.UTF8Encoding($false)
+[System.IO.File]::WriteAllText($manifestPath, ($manifest | ConvertTo-Json -Depth 5), $utf8NoBomManifest)
 Write-Ok "Manifest: $manifestPath"
 Write-Host ($manifest | ConvertTo-Json -Depth 5) -ForegroundColor DarkGray
 

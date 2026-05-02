@@ -33,6 +33,7 @@ import { cacheStats, clearCovers } from '@/lib/coverCache';
 import { tenantEndpoints, type TenantInfo } from '@/lib/api/endpoints/tenant';
 import { keystore } from '@/lib/keystore';
 import { useUpdater } from '@/composables/useUpdater';
+import UpdateChangelogDialog from '@/layouts/UpdateChangelogDialog.vue';
 import { GetAppInfo } from '../../wailsjs/go/main/App';
 import type { main } from '../../wailsjs/go/models';
 
@@ -246,6 +247,7 @@ onMounted(() => {
 // ---------- Info tab ----------
 const updater = useUpdater();
 const appInfo = ref<main.AppInfo | null>(null);
+const showChangelogFromInfo = ref(false);
 
 async function loadAppInfo() {
     try {
@@ -263,6 +265,23 @@ const formattedBuildDate = computed(() => {
             dateStyle: 'medium', timeStyle: 'short',
         });
     } catch { return d; }
+});
+
+// "Ultimo controllo": legge il timestamp persistito da useUpdater.
+const lastCheckText = computed(() => {
+    if (updater.state.checking) return 'controllo in corso\u2026';
+    const raw = localStorage.getItem('bookeeper:lastUpdateCheck');
+    if (!raw) return 'mai';
+    const t = Number(raw);
+    if (!isFinite(t) || t <= 0) return 'mai';
+    const diffMin = (Date.now() - t) / 60000;
+    if (diffMin < 1) return 'pochi secondi fa';
+    if (diffMin < 60) return `${Math.round(diffMin)} minuti fa`;
+    const diffH = diffMin / 60;
+    if (diffH < 24) return `${Math.round(diffH)} ore fa`;
+    return new Date(t).toLocaleString('it-IT', {
+        dateStyle: 'medium', timeStyle: 'short',
+    });
 });
 
 async function checkUpdatesNow() {
@@ -548,20 +567,28 @@ async function checkUpdatesNow() {
 
                 <!-- ===================== INFO ===================== -->
                 <TabPanel value="info">
-                    <section class="settings__card" aria-labelledby="info-h">
-                        <h2 id="info-h" class="settings__card-title">Informazioni applicazione</h2>
-                        <dl class="settings__kv">
-                            <dt>Versione installata</dt>
-                            <dd><code>{{ appInfo?.version || '\u2014' }}</code></dd>
-
-                            <dt>Build</dt>
-                            <dd>{{ formattedBuildDate }}</dd>
-
-                            <dt>Canale</dt>
-                            <dd><code>{{ appInfo?.channel || 'stable' }}</code></dd>
-                        </dl>
+                    <!-- Hero card: identita' app a colpo d'occhio -->
+                    <section class="settings__card info-hero" aria-labelledby="info-h">
+                        <div class="info-hero__icon" aria-hidden="true">
+                            <i class="pi pi-book"></i>
+                        </div>
+                        <div class="info-hero__body">
+                            <p class="info-hero__eyebrow">Bookeeper</p>
+                            <h2 id="info-h" class="info-hero__version">
+                                Versione {{ appInfo?.version || '\u2014' }}
+                            </h2>
+                            <p class="info-hero__meta">
+                                <span class="info-hero__chip">
+                                    <i class="pi pi-tag" aria-hidden="true"></i>
+                                    {{ appInfo?.channel || 'stable' }}
+                                </span>
+                                <span class="info-hero__dot" aria-hidden="true">·</span>
+                                <span>Build {{ formattedBuildDate }}</span>
+                            </p>
+                        </div>
                     </section>
 
+                    <!-- Stato aggiornamenti: brand, single primary action -->
                     <section class="settings__card" aria-labelledby="info-upd-h">
                         <h2 id="info-upd-h" class="settings__card-title">Aggiornamenti</h2>
 
@@ -569,24 +596,41 @@ async function checkUpdatesNow() {
                             {{ updater.state.error }}
                         </Message>
 
-                        <template v-if="updater.state.available && updater.state.info">
-                            <Message severity="info" :closable="false" class="settings__alert">
-                                <strong>Bookeeper {{ updater.state.info.latest }}</strong> e' disponibile.
-                            </Message>
-                        </template>
-                        <template v-else-if="updater.state.info && !updater.state.available">
-                            <p class="settings__hint" style="margin-top: 0;">
-                                Stai usando l'ultima versione disponibile.
-                            </p>
-                        </template>
-                        <template v-else>
-                            <p class="settings__hint" style="margin-top: 0;">
-                                Bookeeper controlla automaticamente la presenza di aggiornamenti
-                                all'avvio (massimo una volta al giorno).
-                            </p>
-                        </template>
+                        <!-- Pannello stato sage on-brand -->
+                        <div class="update-state" :class="{
+                            'update-state--available': updater.state.available && !updater.state.ready,
+                            'update-state--ready': updater.state.ready,
+                            'update-state--ok': updater.state.info && !updater.state.available,
+                        }">
+                            <i class="pi update-state__icon" :class="{
+                                'pi-sparkles': updater.state.available && !updater.state.ready,
+                                'pi-check-circle': updater.state.ready || (updater.state.info && !updater.state.available),
+                                'pi-clock': !updater.state.info,
+                            }" aria-hidden="true"></i>
+                            <div class="update-state__text">
+                                <template v-if="updater.state.ready">
+                                    <strong>Bookeeper {{ updater.state.info?.latest }}</strong> è pronto da installare.
+                                </template>
+                                <template v-else-if="updater.state.downloading">
+                                    Sto scaricando <strong>Bookeeper {{ updater.state.info?.latest }}</strong>…
+                                </template>
+                                <template v-else-if="updater.state.available && updater.state.info">
+                                    <strong>Bookeeper {{ updater.state.info.latest }}</strong> è disponibile.
+                                </template>
+                                <template v-else-if="updater.state.info">
+                                    Stai usando l'ultima versione disponibile.
+                                </template>
+                                <template v-else>
+                                    Bookeeper controlla in automatico le novità all'avvio,
+                                    al massimo una volta al giorno.
+                                </template>
+                                <span class="update-state__sub">
+                                    Ultimo controllo: {{ lastCheckText }}
+                                </span>
+                            </div>
+                        </div>
 
-                        <div class="settings__actions" style="margin-top: 0.75rem;">
+                        <div class="settings__actions" style="margin-top: 0.875rem;">
                             <Button
                                 label="Controlla ora"
                                 icon="pi pi-refresh"
@@ -594,6 +638,14 @@ async function checkUpdatesNow() {
                                 outlined
                                 :loading="updater.state.checking"
                                 @click="checkUpdatesNow"
+                            />
+                            <Button
+                                v-if="updater.state.available && updater.state.info"
+                                label="Vedi novità"
+                                icon="pi pi-book"
+                                severity="secondary"
+                                text
+                                @click="showChangelogFromInfo = true"
                             />
                             <Button
                                 v-if="updater.state.available && !updater.state.downloading && !updater.state.ready"
@@ -605,12 +657,17 @@ async function checkUpdatesNow() {
                             <Button
                                 v-if="updater.state.ready"
                                 label="Installa e riavvia"
-                                icon="pi pi-check-circle"
-                                severity="success"
+                                icon="pi pi-refresh"
                                 @click="updater.installNow()"
                             />
                         </div>
                     </section>
+
+                    <UpdateChangelogDialog
+                        v-model:visible="showChangelogFromInfo"
+                        :info="updater.state.info"
+                        @download="updater.startDownload(); showChangelogFromInfo = false"
+                    />
                 </TabPanel>
             </TabPanels>
         </Tabs>
@@ -723,6 +780,108 @@ async function checkUpdatesNow() {
 </template>
 
 <style scoped>
+/* ============================================================
+ * Info tab \u2014 hero card + update state panel.
+ * On-brand sage gradient + book icon.
+ * ============================================================ */
+.info-hero {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+.info-hero__icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--p-primary-500), var(--p-primary-700));
+    color: var(--p-primary-50);
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px color-mix(in oklab, var(--p-primary-700) 25%, transparent);
+}
+.info-hero__icon i { font-size: 1.75rem; }
+.info-hero__body { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
+.info-hero__eyebrow {
+    margin: 0;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--p-primary-700);
+    font-weight: 600;
+}
+.info-hero__version {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--p-text-color);
+    font-variant-numeric: tabular-nums;
+}
+.info-hero__meta {
+    margin: 0.25rem 0 0;
+    font-size: 0.85rem;
+    color: var(--p-text-muted-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.info-hero__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--p-primary-500) 12%, var(--p-surface-0));
+    color: var(--p-primary-700);
+    font-weight: 500;
+    font-size: 0.78rem;
+}
+.info-hero__chip i { font-size: 0.7rem; }
+.info-hero__dot { color: var(--p-surface-400); }
+
+/* Pannello stato update sage */
+.update-state {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-radius: 10px;
+    background: color-mix(in oklab, var(--p-primary-500) 6%, var(--p-surface-0));
+    border: 1px solid color-mix(in oklab, var(--p-primary-500) 18%, transparent);
+    color: var(--p-text-color);
+    line-height: 1.45;
+    font-size: 0.9rem;
+}
+.update-state--available {
+    background: color-mix(in oklab, var(--p-primary-500) 10%, var(--p-surface-0));
+    border-color: color-mix(in oklab, var(--p-primary-500) 30%, transparent);
+}
+.update-state--ready {
+    background: color-mix(in oklab, var(--p-primary-500) 14%, var(--p-surface-0));
+    border-color: color-mix(in oklab, var(--p-primary-500) 40%, transparent);
+}
+.update-state__icon {
+    font-size: 1.15rem;
+    color: var(--p-primary-700);
+    margin-top: 0.1rem;
+    flex-shrink: 0;
+}
+.update-state__text { display: flex; flex-direction: column; gap: 0.2rem; }
+.update-state__sub {
+    font-size: 0.78rem;
+    color: var(--p-text-muted-color);
+    font-variant-numeric: tabular-nums;
+}
+
+:global(.dark) .info-hero__eyebrow,
+:global(.dark) .info-hero__chip { color: var(--p-primary-200); }
+:global(.dark) .info-hero__chip {
+    background: color-mix(in oklab, var(--p-primary-500) 20%, transparent);
+}
+:global(.dark) .update-state__icon { color: var(--p-primary-300); }
+
 .settings {
     max-width: 880px;
     margin: 0 auto;

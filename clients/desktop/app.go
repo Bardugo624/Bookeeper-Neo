@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"desktop/internal/annas"
 	"desktop/internal/csr"
 	"desktop/internal/httpclient"
 	"desktop/internal/session"
@@ -30,6 +31,11 @@ type App struct {
 	mu     sync.RWMutex
 	id     *session.Identity
 	client *httpclient.Client
+
+	// annas e' inizializzato lazy alla prima Lookup; e' un provider
+	// thread-safe per Anna's Archive (cache di sessione + rate limit).
+	annasOnce sync.Once
+	annas     *annas.Provider
 
 	// tokensPersisted indica se l'utente ha scelto "ricordami su
 	// questo dispositivo" all'ultimo login. Se true, i tokens
@@ -633,14 +639,81 @@ func (a *App) InstallUpdate() error {
 	if err := updater.LaunchInstaller(pendingInstaller); err != nil {
 		return err
 	}
-	// Diamo all'installer un secondo per partire prima di chiudere
-	// la UI; poi exit. Wails non ha un Quit() pulito accessibile da
-	// qui senza ctx, quindi os.Exit basta (l'installer e' gia'
-	// disaccoppiato).
+	// L'installer e' stato spawnato via ShellExecuteW("runas") che dispatcha
+	// la richiesta di elevazione al servizio AIS in modo asincrono. Se
+	// chiudiamo il processo TROPPO presto:
+	//   - il prompt UAC puo' chiudersi prematuramente (era figlio della
+	//     nostra finestra owner), oppure
+	//   - il setup parte ma la nostra UI e' gia' sparita lasciando lo
+	//     schermo "vuoto" per qualche secondo prima del progress bar NSIS.
+	// Diamo all'utente abbastanza tempo per interagire con l'UAC e per
+	// vedere che qualcosa sta succedendo. 6s e' un buon compromesso:
+	// scelta consapevole = utente clicca "Si"  → setup gira → app sparisce.
 	go func() {
-		// Lasciamo emettere l'evento prima dell'exit.
+		time.Sleep(6 * time.Second)
 		os.Exit(0)
 	}()
 	return nil
+}
+
+// ===== Anna's Archive (cover/metadata fallback) ==============================
+
+// AnnasInfo e' la versione esposta a JS dell'annas.Info. Il payload
+// resta piatto e serializzabile senza tag custom.
+type AnnasInfo struct {
+	Title       string   `json:"title"`
+	Subtitle    string   `json:"subtitle"`
+	Authors     []string `json:"authors"`
+	Publisher   string   `json:"publisher"`
+	PublishYear int      `json:"publishYear"`
+	PageCount   int      `json:"pageCount"`
+	Language    string   `json:"language"`
+	Description string   `json:"description"`
+	ISBN10      string   `json:"isbn10"`
+	ISBN13      string   `json:"isbn13"`
+	CoverURL    string   `json:"coverUrl"`
+	SourceURL   string   `json:"sourceUrl"`
+}
+
+// LookupIsbnAnnas e' il fallback finale del frontend dopo Google Books
+// e Open Library. Restituisce un AnnasInfo (campi vuoti se non noti)
+// oppure una struct azzerata + error == nil per indicare "non trovato".
+//
+// Su errore transiente (rete / Cloudflare challenge) l'errore viene
+// propagato cosi' il frontend NON mette in negative cache.
+func (a *App) LookupIsbnAnnas(rawISBN string) (AnnasInfo, error) {
+	a.annasOnce.Do(func() {
+		ua := "Bookeeper/" + version.Version + " (+https://github.com/Bardugo624/Bookeeper-Neo)"
+		a.annas = annas.New(ua)
+	})
+
+	ctx := a.ctx
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	defer cancel()
+
+	info, err := a.annas.Lookup(ctx, rawISBN)
+	if err != nil {
+		return AnnasInfo{}, err
+	}
+	if info == nil {
+		return AnnasInfo{}, nil // not found (negative)
+	}
+	return AnnasInfo{
+		Title:       info.Title,
+		Subtitle:    info.Subtitle,
+		Authors:     info.Authors,
+		Publisher:   info.Publisher,
+		PublishYear: info.PublishYear,
+		PageCount:   info.PageCount,
+		Language:    info.Language,
+		Description: info.Description,
+		ISBN10:      info.ISBN10,
+		ISBN13:      info.ISBN13,
+		CoverURL:    info.CoverURL,
+		SourceURL:   info.SourceURL,
+	}, nil
 }
 
