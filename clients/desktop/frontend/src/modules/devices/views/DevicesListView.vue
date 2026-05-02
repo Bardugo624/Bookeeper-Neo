@@ -62,7 +62,8 @@ function pairMobile(): void {
     font-family: 'Lora', Georgia, serif;
     font-size: 1.75rem;
     font-weight: 600;
-    color: var(--p-primary-800);
+    /* Token semantico: flippa automaticamente in dark mode. */
+    color: var(--p-text-color);
 }
 
 .page__sub {
@@ -97,5 +98,14 @@ function pairMobile(): void {
     max-width: 28rem;
     margin: 0 auto;
     line-height: 1.55;
+}
+</style>
+
+<!-- Vedi BookFormFields.vue per la nota sul bug `:global(html.dark)`:
+     gli override dark vanno in un secondo <style> non-scoped. -->
+<style>
+html.dark .page__placeholder {
+    background: var(--p-surface-800);
+    border-color: var(--p-surface-600);
 }
 </style>

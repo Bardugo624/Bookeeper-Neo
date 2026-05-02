@@ -4,25 +4,35 @@
  *
  * Layout (top → bottom):
  *   1. Toolbar: search + view toggle (grid/table) + bottone "Nuovo libro"
- *   2. Stato: skeleton (loading) | empty state | grid/table
+ *   2. Toolbar batch (visibile solo se selection.length > 0 in modalita' tabella)
+ *   3. Stato: skeleton (loading) | empty state | grid/table
  *
  * La ricerca FTS è debounced via useBookSearch.
+ *
+ * Selezione: e' significativa solo in vista tabella; quando l'utente
+ * commuta a grid resettiamo per evitare azioni "fantasma".
  */
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch, computed } from 'vue';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import SelectButton from 'primevue/selectbutton';
 import Skeleton from 'primevue/skeleton';
+import { useConfirm } from 'primevue/useconfirm';
+import { useToast } from 'primevue/usetoast';
 import { useBooksStore } from '../store';
 import { useBookSearch } from '../composables/useBookSearch';
 import BookGrid from '../components/BookGrid.vue';
 import BookListTable from '../components/BookListTable.vue';
 import BookCreateDialog from '../components/BookCreateDialog.vue';
+import MoveToShelfDialog from '../components/MoveToShelfDialog.vue';
+import type { Book } from '../types';
 
 const store = useBooksStore();
 const { input, isPending, clear } = useBookSearch();
+const confirm = useConfirm();
+const toast = useToast();
 
 const viewMode = ref<'grid' | 'table'>('grid');
 const viewOptions = [
@@ -31,6 +41,86 @@ const viewOptions = [
 ];
 
 const showCreate = ref(false);
+const selection = ref<Book[]>([]);
+const showMoveDialog = ref(false);
+/**
+ * I book id da spostare: deriva da `selection` per il batch toolbar oppure
+ * dal singolo click "sposta" su una riga (rowMoveTarget). Tenere stati
+ * separati permette di non perdere la selezione quando si sposta una
+ * singola riga fuori dalla selezione attiva.
+ */
+const rowMoveTarget = ref<Book | null>(null);
+const moveTargetIds = computed<string[]>(() =>
+  rowMoveTarget.value ? [rowMoveTarget.value.id] : selection.value.map((b) => b.id),
+);
+
+watch(viewMode, (m) => {
+  if (m !== 'table') selection.value = [];
+});
+
+function openSingleMove(book: Book): void {
+  rowMoveTarget.value = book;
+  showMoveDialog.value = true;
+}
+
+function openBatchMove(): void {
+  rowMoveTarget.value = null;
+  showMoveDialog.value = true;
+}
+
+function onAssigned(p: { placed: number; skippedAlreadyPlaced: number; skippedNoSpace: number }): void {
+  const parts: string[] = [];
+  if (p.placed > 0) parts.push(`${p.placed} libri spostati`);
+  if (p.skippedAlreadyPlaced > 0)
+    parts.push(`${p.skippedAlreadyPlaced} già su altri scaffali`);
+  if (p.skippedNoSpace > 0) parts.push(`${p.skippedNoSpace} senza spazio`);
+  toast.add({
+    severity: p.placed > 0 ? 'success' : 'warn',
+    summary: p.placed > 0 ? 'Operazione completata' : 'Nessun libro spostato',
+    detail: parts.join(' · ') || 'Nessuna modifica effettuata.',
+    life: 4000,
+  });
+  // Se l'azione era batch (no rowMoveTarget) puliamo la selezione.
+  if (!rowMoveTarget.value) selection.value = [];
+  rowMoveTarget.value = null;
+}
+
+function onBatchDelete(): void {
+  const count = selection.value.length;
+  if (count === 0) return;
+  confirm.require({
+    header: 'Conferma cancellazione',
+    message: `Eliminare definitivamente ${count} ${count === 1 ? 'libro' : 'libri'}? L'operazione non è reversibile.`,
+    icon: 'pi pi-exclamation-triangle',
+    acceptLabel: 'Elimina',
+    rejectLabel: 'Annulla',
+    acceptProps: { severity: 'danger' },
+    accept: async () => {
+      try {
+        const ids = selection.value.map((b) => b.id);
+        const deleted = await store.batchDelete(ids);
+        toast.add({
+          severity: 'success',
+          summary: 'Eliminazione completata',
+          detail: `${deleted} ${deleted === 1 ? 'libro eliminato' : 'libri eliminati'}.`,
+          life: 3500,
+        });
+        selection.value = [];
+      } catch (e) {
+        toast.add({
+          severity: 'error',
+          summary: 'Errore',
+          detail: (e as Error).message,
+          life: 5000,
+        });
+      }
+    },
+  });
+}
+
+function onPlacementWarning(message: string): void {
+  toast.add({ severity: 'warn', summary: 'Attenzione', detail: message, life: 5000 });
+}
 
 onMounted(() => {
   if (store.items.length === 0) void store.fetchList();
@@ -120,9 +210,60 @@ onMounted(() => {
     </div>
 
     <BookGrid v-else-if="viewMode === 'grid'" :books="store.items" />
-    <BookListTable v-else :books="store.items" />
+    <BookListTable
+      v-else
+      :books="store.items"
+      v-model:selection="selection"
+      @move="openSingleMove"
+    />
 
-    <BookCreateDialog v-model:visible="showCreate" @created="() => store.fetchList()" />
+    <Transition name="batch-toolbar">
+      <div
+        v-if="viewMode === 'table' && selection.length > 0"
+        class="books__batch"
+        role="toolbar"
+        :aria-label="`${selection.length} libri selezionati\u2014azioni batch`"
+      >
+        <span class="books__batch-count">
+          <i class="pi pi-check-circle" aria-hidden="true" />
+          {{ selection.length }} {{ selection.length === 1 ? 'selezionato' : 'selezionati' }}
+        </span>
+        <div class="books__batch-actions">
+          <Button
+            label="Sposta su scaffale"
+            icon="pi pi-bookmark"
+            severity="secondary"
+            @click="openBatchMove"
+          />
+          <Button
+            label="Elimina"
+            icon="pi pi-trash"
+            severity="danger"
+            outlined
+            :loading="store.deleting"
+            @click="onBatchDelete"
+          />
+          <Button
+            icon="pi pi-times"
+            text
+            severity="secondary"
+            aria-label="Annulla selezione"
+            @click="selection = []"
+          />
+        </div>
+      </div>
+    </Transition>
+
+    <BookCreateDialog
+      v-model:visible="showCreate"
+      @created="() => store.fetchList()"
+      @placement-warning="onPlacementWarning"
+    />
+    <MoveToShelfDialog
+      v-model:visible="showMoveDialog"
+      :book-ids="moveTargetIds"
+      @assigned="onAssigned"
+    />
   </section>
 </template>
 
@@ -218,6 +359,60 @@ onMounted(() => {
   margin: 0 0 1rem;
   max-width: 360px;
 }
+
+/* --- Batch toolbar (sticky bottom-center) --- */
+.books__batch {
+  position: sticky;
+  bottom: 1rem;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.625rem 0.75rem 0.625rem 1rem;
+  background: var(--p-surface-0);
+  border: 1px solid var(--p-surface-200);
+  border-radius: 999px;
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.06);
+  z-index: 5;
+  max-width: min(680px, 100%);
+}
+.books__batch-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--p-primary-700);
+  white-space: nowrap;
+}
+.books__batch-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.batch-toolbar-enter-active,
+.batch-toolbar-leave-active {
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+.batch-toolbar-enter-from,
+.batch-toolbar-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .batch-toolbar-enter-active,
+  .batch-toolbar-leave-active {
+    transition: none;
+  }
+}
+@media (max-width: 640px) {
+  .books__batch {
+    flex-direction: column;
+    align-items: stretch;
+    border-radius: 14px;
+    bottom: 0.5rem;
+  }
+}
 </style>
 
 <!--
@@ -236,5 +431,13 @@ html.dark .books__empty-title {
 }
 html.dark .books__empty-sub {
   color: var(--p-surface-300);
+}
+html.dark .books__batch {
+  background: var(--p-surface-800);
+  border-color: var(--p-surface-700);
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+html.dark .books__batch-count {
+  color: var(--p-primary-300);
 }
 </style>

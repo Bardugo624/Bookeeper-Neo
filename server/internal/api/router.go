@@ -25,6 +25,7 @@ type Deps struct {
 	Pairing  *PairingHandlers
 	Setup   *SetupHandlers
 	Tenant  *TenantHandlers
+	WellKnown *WellKnownHandlers
 }
 
 // AuthenticatedRouter is mounted by Caddy on the mTLS listener (port 8443).
@@ -57,6 +58,9 @@ func AuthenticatedRouter(d Deps) http.Handler {
 		r.Route("/books", func(r chi.Router) {
 			r.Get("/", d.Books.List)
 			r.Post("/", d.Books.Create)
+			// Statiche prima dei placeholder altrimenti chi le tratta come {id}.
+			r.Get("/next-progressive", d.Books.NextProgressive)
+			r.Post("/batch/delete", d.Books.BatchDelete)
 			r.Get("/{id}", d.Books.Get)
 			r.Patch("/{id}", d.Books.Update)
 			r.Delete("/{id}", d.Books.Delete)
@@ -70,6 +74,7 @@ func AuthenticatedRouter(d Deps) http.Handler {
 			r.Patch("/{id}", d.Shelves.Update)
 			r.Delete("/{id}", d.Shelves.Delete)
 			r.Get("/{id}/books", d.Shelves.ListBooks)
+			r.Post("/{id}/batch-assign", d.Shelves.BatchAssign)
 		})
 
 		r.Route("/wishlist", func(r chi.Router) {
@@ -110,6 +115,13 @@ func BootstrapRouter(d Deps) http.Handler {
 	r.Use(middleware.Timeout(30 * time.Second))
 
 	r.Get("/healthz", health)
+
+	// Platform deep-link manifests. iOS Universal Links + Android App
+	// Links route a tap on /m/* to the installed PWA when present.
+	if d.WellKnown != nil {
+		r.Get("/.well-known/apple-app-site-association", d.WellKnown.AppleAppSiteAssociation)
+		r.Get("/.well-known/assetlinks.json", d.WellKnown.AssetLinks)
+	}
 
 	r.Route("/setup", func(r chi.Router) {
 		r.Post("/tenant", d.Setup.CreateTenant)

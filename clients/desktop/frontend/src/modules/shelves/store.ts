@@ -155,6 +155,43 @@ export const useShelvesStore = defineStore('shelves', () => {
     });
   }
 
+  /**
+   * Assegna in batch una lista di libri a uno scaffale, riempiendo i primi
+   * slot liberi server-side. Invalida la cache di TUTTI gli scaffali
+   * possibilmente coinvolti (target + qualunque scaffale gia' caricato che
+   * conteneva uno dei book_ids — improbabile dato che il server salta i
+   * gia' piazzati, ma difensivo) e ricarica la lista per i contatori.
+   */
+  async function batchAssign(
+    shelfId: string,
+    bookIds: string[],
+  ): Promise<{
+    placed: { book_id: string; row_index: number; slot_index: number }[];
+    skipped_already_placed: number;
+    skipped_no_space: number;
+  }> {
+    saving.value = true;
+    error.value = null;
+    try {
+      const result = await shelvesEndpoints.batchAssign(shelfId, bookIds);
+      const targets = new Set<string>([shelfId]);
+      const idSet = new Set(bookIds);
+      for (const [sid, list] of Object.entries(currentBooks.value)) {
+        if (list.some((b) => idSet.has(b.book_id))) targets.add(sid);
+      }
+      for (const sid of targets) {
+        if (currentBooks.value[sid]) await fetchBooks(sid);
+      }
+      await fetchList();
+      return result;
+    } catch (e) {
+      error.value = (e as Error).message;
+      throw e;
+    } finally {
+      saving.value = false;
+    }
+  }
+
   function reset(): void {
     items.value = [];
     currentBooks.value = {};
@@ -182,6 +219,7 @@ export const useShelvesStore = defineStore('shelves', () => {
     remove,
     assignBook,
     unassignBook,
+    batchAssign,
     reset,
   };
 });

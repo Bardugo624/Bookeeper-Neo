@@ -57,7 +57,10 @@
 	# ----- Public surface: mobile PWA + pairing redemption + health -----
 	# These paths bypass mTLS enforcement. Routed to bookeeper-server's
 	# bootstrap listener (port 7843).
-	@public path /m /m/* /pairing /pairing/* /healthz
+	#
+	# /.well-known/* serves AASA (no extension, application/json) and
+	# assetlinks.json for iOS/Android deep linking into the installed PWA.
+	@public path /m /m/* /pairing /pairing/* /healthz /.well-known/*
 	handle @public {
 		reverse_proxy bookeeper-server:7843
 	}

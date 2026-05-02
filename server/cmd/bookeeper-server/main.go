@@ -100,6 +100,12 @@ func main() {
 		},
 		Setup:  &api.SetupHandlers{DB: database, Audit: auditMW, TrustPool: trustMgr},
 		Tenant: &api.TenantHandlers{DB: database},
+		WellKnown: &api.WellKnownHandlers{
+			// PWA-only deployment: a stub Team-prefixed appID keeps AASA
+			// well-formed; iOS uses the domain match for web fallback.
+			AppID: "WEBONLY.com.bookeeper.web",
+			Site:  "https://" + cfg.ServerHost,
+		},
 	}
 
 	authSrv := &http.Server{

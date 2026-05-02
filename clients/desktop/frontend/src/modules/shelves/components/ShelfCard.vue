@@ -28,6 +28,19 @@ const shelfRef = computed(() => props.shelf);
 const booksRef = computed(() => props.books);
 const { fill } = useShelfFill(shelfRef, booksRef);
 
+/**
+ * Range del numero progressivo coperto dallo scaffale. Server-side e' una
+ * subquery MIN/MAX su shelf_books JOIN books, quindi e' sempre allineato
+ * dopo una fetchList. Quando entrambi i bound sono presenti e uguali
+ * mostriamo "#N" (singolo libro), altrimenti "#N–M".
+ */
+const progressiveRange = computed<string | null>(() => {
+  const lo = props.shelf.progressive_min;
+  const hi = props.shelf.progressive_max;
+  if (lo == null || hi == null) return null;
+  return lo === hi ? `#${lo}` : `#${lo}–${hi}`;
+});
+
 const menu = ref<InstanceType<typeof Menu> | null>(null);
 const menuItems = computed(() => [
   {
@@ -72,6 +85,14 @@ function onPickSlot(payload: { rowIndex: number; slotIndex: number }): void {
           {{ shelf.name }}
         </h2>
       </button>
+      <span
+        v-if="progressiveRange"
+        class="shelf-card__range"
+        :title="`Numeri progressivi presenti su questo scaffale: ${progressiveRange}`"
+      >
+        <i class="pi pi-hashtag shelf-card__range-icon" aria-hidden="true" />
+        {{ progressiveRange }}
+      </span>
       <Button
         icon="pi pi-ellipsis-v"
         text
@@ -150,6 +171,25 @@ function onPickSlot(payload: { rowIndex: number; slotIndex: number }): void {
   color: var(--p-primary-500);
   font-size: 1rem;
 }
+.shelf-card__range {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--p-primary-500) 12%, transparent);
+  color: var(--p-primary-700);
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.shelf-card__range-icon {
+  font-size: 0.65rem;
+  opacity: 0.8;
+}
 .shelf-card__svg-wrap {
   /* Cap su SVG molto grandi: max-height evita "muro" su scaffali con
      molte mensole e poche colonne. */
@@ -165,6 +205,10 @@ html.dark .shelf-card {
 }
 html.dark .shelf-card:hover {
   border-color: var(--p-primary-500);
+}
+html.dark .shelf-card__range {
+  background: color-mix(in srgb, var(--p-primary-500) 22%, transparent);
+  color: var(--p-primary-200);
 }
 .shelf-card__menu-danger .p-menuitem-text,
 .shelf-card__menu-danger .p-menuitem-icon {

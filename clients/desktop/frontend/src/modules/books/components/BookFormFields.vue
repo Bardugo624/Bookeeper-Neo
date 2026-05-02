@@ -19,6 +19,13 @@ const props = defineProps<{
   form: BookInput;
   authorsRaw: string;
   errorMessage?: string | null;
+  /**
+   * Numero progressivo suggerito (MAX+1 sul tenant). Quando presente e
+   * diverso dal valore corrente del form viene mostrato un pulsante
+   * "Usa #N" accanto al campo. Opzionale: puo' essere null se non ancora
+   * caricato o se il chiamante non vuole offrire il suggerimento.
+   */
+  suggestedProgressive?: number | null;
 }>();
 
 const emit = defineEmits<{
@@ -199,6 +206,39 @@ function removeAuthor(idx: number): void {
       />
     </div>
 
+    <div class="book-form__row">
+      <label class="book-form__label" for="bf-progressive">
+        N° progressivo
+        <span class="book-form__hint">(univoco — vuoto = nessuno)</span>
+      </label>
+      <div class="book-form__progressive">
+        <InputNumber
+          id="bf-progressive"
+          :model-value="form.progressive_number || null"
+          @update:model-value="(v) => $emit('update:form', { ...form, progressive_number: Number(v ?? 0) })"
+          :use-grouping="false"
+          :min="1"
+          :max="9999999"
+          show-buttons
+          button-layout="horizontal"
+          decrement-button-class="p-button-secondary"
+          increment-button-class="p-button-secondary"
+          placeholder="—"
+          fluid
+        />
+        <button
+          v-if="suggestedProgressive != null && form.progressive_number !== suggestedProgressive"
+          type="button"
+          class="book-form__suggest"
+          :aria-label="`Suggerisci numero ${suggestedProgressive}`"
+          @click="$emit('update:form', { ...form, progressive_number: suggestedProgressive })"
+        >
+          <i class="pi pi-bolt" aria-hidden="true" />
+          Usa #{{ suggestedProgressive }}
+        </button>
+      </div>
+    </div>
+
     <div class="book-form__row book-form__row--full">
       <label class="book-form__label" for="bf-desc">Descrizione</label>
       <Textarea
@@ -268,6 +308,38 @@ function removeAuthor(idx: number): void {
   background: color-mix(in srgb, var(--p-red-500, #dc2626) 10%, transparent);
   color: var(--p-red-600, #b91c1c);
   font-size: 0.875rem;
+}
+.book-form__progressive {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.book-form__progressive :deep(.p-inputnumber) {
+  flex: 1;
+  min-width: 0;
+}
+.book-form__suggest {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.65rem;
+  border-radius: 6px;
+  border: 1px dashed color-mix(in srgb, var(--p-primary-500) 50%, transparent);
+  background: color-mix(in srgb, var(--p-primary-500) 8%, transparent);
+  color: var(--p-primary-700);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+.book-form__suggest:hover {
+  background: color-mix(in srgb, var(--p-primary-500) 15%, transparent);
+  border-style: solid;
+}
+.book-form__suggest:focus-visible {
+  outline: 2px solid var(--p-primary-500);
+  outline-offset: 2px;
 }
 @media (max-width: 640px) {
   .book-form {
@@ -375,5 +447,13 @@ html.dark .book-form__chip-remove:hover {
 }
 html.dark .book-form__chips-empty {
   color: var(--p-surface-400);
+}
+html.dark .book-form__suggest {
+  background: color-mix(in srgb, var(--p-primary-500) 18%, transparent);
+  color: var(--p-primary-200);
+  border-color: color-mix(in srgb, var(--p-primary-500) 55%, transparent);
+}
+html.dark .book-form__suggest:hover {
+  background: color-mix(in srgb, var(--p-primary-500) 28%, transparent);
 }
 </style>

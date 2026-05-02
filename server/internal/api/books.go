@@ -24,23 +24,27 @@ type BookHandlers struct {
 }
 
 type bookDTO struct {
-	ID            string   `json:"id"`
-	LibraryID     *string  `json:"library_id,omitempty"`
-	ISBN13        *string  `json:"isbn_13,omitempty"`
-	ISBN10        *string  `json:"isbn_10,omitempty"`
-	Title         string   `json:"title"`
-	Subtitle      *string  `json:"subtitle,omitempty"`
-	Authors       []string `json:"authors"`
-	Publisher     *string  `json:"publisher,omitempty"`
-	PublishedYear *int     `json:"published_year,omitempty"`
-	Language      *string  `json:"language,omitempty"`
-	PageCount     *int     `json:"page_count,omitempty"`
-	Description   *string  `json:"description,omitempty"`
-	Format        *string  `json:"format,omitempty"`
-	Genre         *string  `json:"genre,omitempty"`
-	Notes         *string  `json:"notes,omitempty"`
-	CreatedAt     int64    `json:"created_at"`
-	UpdatedAt     int64    `json:"updated_at"`
+	ID                string   `json:"id"`
+	LibraryID         *string  `json:"library_id,omitempty"`
+	ISBN13            *string  `json:"isbn_13,omitempty"`
+	ISBN10            *string  `json:"isbn_10,omitempty"`
+	Title             string   `json:"title"`
+	Subtitle          *string  `json:"subtitle,omitempty"`
+	Authors           []string `json:"authors"`
+	Publisher         *string  `json:"publisher,omitempty"`
+	PublishedYear     *int     `json:"published_year,omitempty"`
+	Language          *string  `json:"language,omitempty"`
+	PageCount         *int     `json:"page_count,omitempty"`
+	Description       *string  `json:"description,omitempty"`
+	Format            *string  `json:"format,omitempty"`
+	Genre             *string  `json:"genre,omitempty"`
+	Notes             *string  `json:"notes,omitempty"`
+	// ProgressiveNumber: numero d'inventario opzionale, unique per tenant
+	// quando valorizzato. Permette di mostrare i libri in ordine fisico
+	// e di calcolare il range coperto da ogni scaffale.
+	ProgressiveNumber *int     `json:"progressive_number,omitempty"`
+	CreatedAt         int64    `json:"created_at"`
+	UpdatedAt         int64    `json:"updated_at"`
 }
 
 func (h *BookHandlers) List(w http.ResponseWriter, r *http.Request) {
@@ -63,7 +67,7 @@ func (h *BookHandlers) List(w http.ResponseWriter, r *http.Request) {
 		rows, err = h.DB.QueryContext(r.Context(), `
 			SELECT id, library_id, isbn_13, isbn_10, title, subtitle, authors_json,
 			       publisher, published_year, language, page_count, description,
-			       format, genre, notes, created_at, updated_at
+			       format, genre, notes, progressive_number, created_at, updated_at
 			  FROM books WHERE tenant_id = ?
 			  ORDER BY created_at DESC
 			  LIMIT ?
@@ -76,7 +80,7 @@ func (h *BookHandlers) List(w http.ResponseWriter, r *http.Request) {
 		rows, err = h.DB.QueryContext(r.Context(), `
 			SELECT b.id, b.library_id, b.isbn_13, b.isbn_10, b.title, b.subtitle, b.authors_json,
 			       b.publisher, b.published_year, b.language, b.page_count, b.description,
-			       b.format, b.genre, b.notes, b.created_at, b.updated_at
+			       b.format, b.genre, b.notes, b.progressive_number, b.created_at, b.updated_at
 			  FROM books_fts f
 			  JOIN books b ON b.rowid = f.rowid
 			 WHERE b.tenant_id = ? AND books_fts MATCH ?
@@ -113,7 +117,7 @@ func (h *BookHandlers) Get(w http.ResponseWriter, r *http.Request) {
 	row := h.DB.QueryRowContext(r.Context(), `
 		SELECT id, library_id, isbn_13, isbn_10, title, subtitle, authors_json,
 		       publisher, published_year, language, page_count, description,
-		       format, genre, notes, created_at, updated_at
+		       format, genre, notes, progressive_number, created_at, updated_at
 		  FROM books WHERE id = ? AND tenant_id = ?
 	`, bookID, id.TenantID)
 	d, err := scanBook(row)
@@ -129,20 +133,23 @@ func (h *BookHandlers) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 type createBookReq struct {
-	LibraryID     string   `json:"library_id"`
-	ISBN13        string   `json:"isbn_13"`
-	ISBN10        string   `json:"isbn_10"`
-	Title         string   `json:"title"`
-	Subtitle      string   `json:"subtitle"`
-	Authors       []string `json:"authors"`
-	Publisher     string   `json:"publisher"`
-	PublishedYear int      `json:"published_year"`
-	Language      string   `json:"language"`
-	PageCount     int      `json:"page_count"`
-	Description   string   `json:"description"`
-	Format        string   `json:"format"`
-	Genre         string   `json:"genre"`
-	Notes         string   `json:"notes"`
+	LibraryID         string   `json:"library_id"`
+	ISBN13            string   `json:"isbn_13"`
+	ISBN10            string   `json:"isbn_10"`
+	Title             string   `json:"title"`
+	Subtitle          string   `json:"subtitle"`
+	Authors           []string `json:"authors"`
+	Publisher         string   `json:"publisher"`
+	PublishedYear     int      `json:"published_year"`
+	Language          string   `json:"language"`
+	PageCount         int      `json:"page_count"`
+	Description       string   `json:"description"`
+	Format            string   `json:"format"`
+	Genre             string   `json:"genre"`
+	Notes             string   `json:"notes"`
+	// ProgressiveNumber: 0 = nessun numero (NULL su DB). Non zero = unique
+	// vincolo applicato dall'index parziale; 409 se collide con un altro libro.
+	ProgressiveNumber int      `json:"progressive_number"`
 }
 
 func (h *BookHandlers) Create(w http.ResponseWriter, r *http.Request) {
@@ -174,8 +181,8 @@ func (h *BookHandlers) Create(w http.ResponseWriter, r *http.Request) {
         INSERT INTO books (
             id, tenant_id, library_id, isbn_13, isbn_10, title, subtitle,
             authors_json, publisher, published_year, language, page_count,
-            description, format, genre, notes, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            description, format, genre, notes, progressive_number, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, bookID, id.TenantID, nullableID(req.LibraryID),
 		nullable(req.ISBN13), nullable(req.ISBN10),
 		req.Title, nullable(req.Subtitle),
@@ -183,8 +190,15 @@ func (h *BookHandlers) Create(w http.ResponseWriter, r *http.Request) {
 		nullableInt(req.PublishedYear), nullable(req.Language),
 		nullableInt(req.PageCount), nullable(req.Description),
 		nullable(req.Format), nullable(req.Genre), nullable(req.Notes),
+		nullableInt(req.ProgressiveNumber),
 		now, now,
 	); err != nil {
+		// Index parziale UNIQUE su (tenant_id, progressive_number) genera
+		// l'errore SQLite "UNIQUE constraint failed" se il numero e' gia' preso.
+		if isUniqueConstraintErr(err) {
+			writeErr(w, http.StatusConflict, "progressive_number already in use")
+			return
+		}
 		writeErr(w, http.StatusInternalServerError, "insert failed")
 		return
 	}
@@ -222,10 +236,10 @@ func scanBook(s rowScanner) (bookDTO, error) {
 	var d bookDTO
 	var authorsJSON string
 	var libID, isbn13, isbn10, subtitle, publisher, language, description, format, genre, notes sql.NullString
-	var publishedYear, pageCount sql.NullInt64
+	var publishedYear, pageCount, progressive sql.NullInt64
 	if err := s.Scan(&d.ID, &libID, &isbn13, &isbn10, &d.Title, &subtitle, &authorsJSON,
 		&publisher, &publishedYear, &language, &pageCount, &description,
-		&format, &genre, &notes, &d.CreatedAt, &d.UpdatedAt); err != nil {
+		&format, &genre, &notes, &progressive, &d.CreatedAt, &d.UpdatedAt); err != nil {
 		return d, err
 	}
 	_ = json.Unmarshal([]byte(authorsJSON), &d.Authors)
@@ -249,6 +263,10 @@ func scanBook(s rowScanner) (bookDTO, error) {
 	if pageCount.Valid {
 		v := int(pageCount.Int64)
 		d.PageCount = &v
+	}
+	if progressive.Valid {
+		v := int(progressive.Int64)
+		d.ProgressiveNumber = &v
 	}
 	return d, nil
 }
@@ -332,16 +350,22 @@ func (h *BookHandlers) Update(w http.ResponseWriter, r *http.Request) {
 		UPDATE books SET
 			library_id = ?, isbn_13 = ?, isbn_10 = ?, title = ?, subtitle = ?,
 			authors_json = ?, publisher = ?, published_year = ?, language = ?,
-			page_count = ?, description = ?, format = ?, genre = ?, notes = ?, updated_at = ?
+			page_count = ?, description = ?, format = ?, genre = ?, notes = ?,
+			progressive_number = ?, updated_at = ?
 		WHERE id = ? AND tenant_id = ?
 	`, nullableID(req.LibraryID), nullable(req.ISBN13), nullable(req.ISBN10),
 		req.Title, nullable(req.Subtitle), string(authorsJSON),
 		nullable(req.Publisher), nullableInt(req.PublishedYear),
 		nullable(req.Language), nullableInt(req.PageCount),
 		nullable(req.Description), nullable(req.Format), nullable(req.Genre), nullable(req.Notes),
+		nullableInt(req.ProgressiveNumber),
 		now, bookID, id.TenantID,
 	)
 	if err != nil {
+		if isUniqueConstraintErr(err) {
+			writeErr(w, http.StatusConflict, "progressive_number already in use")
+			return
+		}
 		writeErr(w, http.StatusInternalServerError, "update failed")
 		return
 	}
@@ -424,3 +448,116 @@ func (h *BookHandlers) Delete(w http.ResponseWriter, r *http.Request) {
 	})
 	w.WriteHeader(http.StatusNoContent)
 }
+
+// --- Batch & helpers --------------------------------------------------------
+
+type batchIDsReq struct {
+	IDs []string `json:"ids"`
+}
+
+// BatchDelete rimuove in transazione una lista di libri appartenenti al
+// tenant. Eventuali ID inesistenti o di altri tenant vengono ignorati
+// silenziosamente (il filtro WHERE tenant_id li scarta) — preferiamo questo
+// a un 404 parziale perche' l'operazione e' idempotente lato UI: l'utente
+// seleziona checkbox e si aspetta che alla fine quelle righe non ci siano.
+//
+// Limite difensivo: 500 id per chiamata. Sopra rispondiamo 400 invece di
+// far esplodere la prepared statement (SQLite ha un soft cap su parametri).
+func (h *BookHandlers) BatchDelete(w http.ResponseWriter, r *http.Request) {
+	id, ok := mw.FromContext(r.Context())
+	if !ok {
+		writeErr(w, http.StatusUnauthorized, "no identity")
+		return
+	}
+	var req batchIDsReq
+	if !readJSON(w, r, &req) {
+		return
+	}
+	if len(req.IDs) == 0 {
+		writeJSON(w, http.StatusOK, map[string]int{"deleted": 0})
+		return
+	}
+	if len(req.IDs) > 500 {
+		writeErr(w, http.StatusBadRequest, "too many ids (max 500)")
+		return
+	}
+
+	tx, err := h.DB.BeginTx(r.Context(), nil)
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, "db error")
+		return
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	// IN-clause con placeholder dinamici. tenant_id come ultimo arg.
+	placeholders := strings.Repeat("?,", len(req.IDs))
+	placeholders = placeholders[:len(placeholders)-1]
+	args := make([]interface{}, 0, len(req.IDs)+1)
+	for _, x := range req.IDs {
+		args = append(args, x)
+	}
+	args = append(args, id.TenantID)
+
+	// FTS cleanup: cancelliamo prima per via del JOIN su books per rowid.
+	if _, err := tx.ExecContext(r.Context(),
+		`DELETE FROM books_fts WHERE rowid IN (
+			SELECT rowid FROM books WHERE id IN (`+placeholders+`) AND tenant_id = ?
+		)`, args...); err != nil {
+		writeErr(w, http.StatusInternalServerError, "fts cleanup failed")
+		return
+	}
+	res, err := tx.ExecContext(r.Context(),
+		`DELETE FROM books WHERE id IN (`+placeholders+`) AND tenant_id = ?`, args...)
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, "delete failed")
+		return
+	}
+	n, _ := res.RowsAffected()
+	if err := tx.Commit(); err != nil {
+		writeErr(w, http.StatusInternalServerError, "commit failed")
+		return
+	}
+
+	_ = h.Audit.Write(r.Context(), mw.Event{
+		Action: "book.batch.delete", EntityType: "book",
+		After: map[string]interface{}{"requested": len(req.IDs), "deleted": n},
+	})
+	writeJSON(w, http.StatusOK, map[string]int64{"deleted": n})
+}
+
+// NextProgressive restituisce il prossimo numero progressivo libero per il
+// tenant (MAX(progressive_number) + 1, oppure 1 se nessun libro lo ha).
+// Usato dal form di creazione per offrire un'auto-suggestion senza
+// imporla: l'utente puo' sempre sovrascriverlo o lasciarlo a 0 (= NULL).
+func (h *BookHandlers) NextProgressive(w http.ResponseWriter, r *http.Request) {
+	id, ok := mw.FromContext(r.Context())
+	if !ok {
+		writeErr(w, http.StatusUnauthorized, "no identity")
+		return
+	}
+	var maxNum sql.NullInt64
+	if err := h.DB.QueryRowContext(r.Context(),
+		`SELECT MAX(progressive_number) FROM books WHERE tenant_id = ?`,
+		id.TenantID).Scan(&maxNum); err != nil {
+		writeErr(w, http.StatusInternalServerError, "db error")
+		return
+	}
+	next := 1
+	if maxNum.Valid {
+		next = int(maxNum.Int64) + 1
+	}
+	writeJSON(w, http.StatusOK, map[string]int{"next": next})
+}
+
+// isUniqueConstraintErr riconosce l'errore SQLite "UNIQUE constraint failed".
+// Non importiamo il driver per type-assertion: il messaggio testuale e'
+// stabile dal 2009 e funziona con tutti i driver (mattn, modernc, ncruces).
+func isUniqueConstraintErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := err.Error()
+	return strings.Contains(msg, "UNIQUE constraint failed") ||
+		strings.Contains(msg, "constraint failed: UNIQUE")
+}
+

@@ -47,4 +47,19 @@ export const shelvesEndpoints = {
     input: ShelfAssignmentInput,
   ): Promise<{ id: string }> =>
     api.patch<{ id: string }>(`/api/v1/books/${bookId}/shelf`, input),
+
+  /**
+   * Assegna in batch una lista di libri a uno scaffale, riempiendo i primi
+   * slot liberi (per riga, poi per slot). Restituisce i piazzamenti
+   * effettuati e i contatori di skip (gia' piazzati altrove o no spazio).
+   */
+  batchAssign: (
+    shelfId: string,
+    bookIds: string[],
+  ): Promise<{
+    placed: { book_id: string; row_index: number; slot_index: number }[];
+    skipped_already_placed: number;
+    skipped_no_space: number;
+  }> =>
+    api.post(`/api/v1/shelves/${shelfId}/batch-assign`, { book_ids: bookIds }),
 };

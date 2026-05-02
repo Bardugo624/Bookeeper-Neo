@@ -39,6 +39,13 @@ export interface Shelf {
   icon?: string | null;
   capacity: number;
   book_count: number;
+  /**
+   * Range del numero progressivo dei libri presenti sullo scaffale.
+   * Calcolati server-side via subquery (vedi shelves.go). Entrambi null
+   * se nessun libro presente ha un progressive_number assegnato.
+   */
+  progressive_min?: number | null;
+  progressive_max?: number | null;
   created_at: number;
   updated_at: number;
 }
@@ -51,6 +58,7 @@ export interface ShelfBook {
   spine_color?: string | null;
   spine_width: 1 | 2 | 3;
   title: string;
+  progressive_number?: number | null;
   updated_at: number;
 }
 

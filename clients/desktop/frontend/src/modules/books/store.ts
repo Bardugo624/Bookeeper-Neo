@@ -102,6 +102,31 @@ export const useBooksStore = defineStore('books', () => {
     }
   }
 
+  /**
+   * Cancella in batch. Restituisce il numero di righe effettivamente eliminate
+   * (puo' essere < ids.length se alcune erano gia' sparite). La lista locale
+   * viene filtrata in maniera ottimistica usando gli id richiesti, non solo
+   * quelli confermati: e' coerente perche' anche se il server non ha trovato
+   * un id, il client lo aveva e ora deve toglierlo.
+   */
+  async function batchDelete(ids: string[]): Promise<number> {
+    if (ids.length === 0) return 0;
+    deleting.value = true;
+    error.value = null;
+    try {
+      const r = await booksEndpoints.batchDelete(ids);
+      const idSet = new Set(ids);
+      items.value = items.value.filter((b) => !idSet.has(b.id));
+      if (current.value && idSet.has(current.value.id)) current.value = null;
+      return r.deleted;
+    } catch (e) {
+      error.value = (e as Error).message;
+      throw e;
+    } finally {
+      deleting.value = false;
+    }
+  }
+
   function setQuery(q: string): void {
     query.value = q;
   }
@@ -132,6 +157,7 @@ export const useBooksStore = defineStore('books', () => {
     create,
     update,
     remove,
+    batchDelete,
     setQuery,
     reset,
   };

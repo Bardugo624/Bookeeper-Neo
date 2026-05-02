@@ -38,19 +38,26 @@ type shelfDTO struct {
 	Icon        *string `json:"icon,omitempty"`
 	Capacity    int     `json:"capacity"`
 	BookCount   int     `json:"book_count"`
+	// Range del numero progressivo dei libri presenti sullo scaffale.
+	// Permette al ShelfCard di mostrare "Vol. N-M" senza un secondo round-trip.
+	// Entrambi NULL se lo scaffale e' vuoto o nessun libro presente ha un
+	// progressive_number assegnato.
+	ProgressiveMin *int   `json:"progressive_min,omitempty"`
+	ProgressiveMax *int   `json:"progressive_max,omitempty"`
 	CreatedAt   int64   `json:"created_at"`
 	UpdatedAt   int64   `json:"updated_at"`
 }
 
 type shelfBookDTO struct {
-	BookID      string  `json:"book_id"`
-	ShelfID     string  `json:"shelf_id"`
-	RowIndex    int     `json:"row_index"`
-	SlotIndex   int     `json:"slot_index"`
-	SpineColor  *string `json:"spine_color,omitempty"`
-	SpineWidth  int     `json:"spine_width"`
-	Title       string  `json:"title"`
-	UpdatedAt   int64   `json:"updated_at"`
+	BookID            string  `json:"book_id"`
+	ShelfID           string  `json:"shelf_id"`
+	RowIndex          int     `json:"row_index"`
+	SlotIndex         int     `json:"slot_index"`
+	SpineColor        *string `json:"spine_color,omitempty"`
+	SpineWidth        int     `json:"spine_width"`
+	Title             string  `json:"title"`
+	ProgressiveNumber *int    `json:"progressive_number,omitempty"`
+	UpdatedAt         int64   `json:"updated_at"`
 }
 
 func (h *ShelfHandlers) List(w http.ResponseWriter, r *http.Request) {
@@ -62,7 +69,13 @@ func (h *ShelfHandlers) List(w http.ResponseWriter, r *http.Request) {
 	rows, err := h.DB.QueryContext(r.Context(), `
 		SELECT s.id, s.name, s.rows, s.slots_per_row, s.color, s.icon,
 		       s.created_at, s.updated_at,
-		       (SELECT COUNT(*) FROM shelf_books sb WHERE sb.shelf_id = s.id) AS book_count
+		       (SELECT COUNT(*) FROM shelf_books sb WHERE sb.shelf_id = s.id) AS book_count,
+		       (SELECT MIN(b.progressive_number) FROM shelf_books sb
+		          JOIN books b ON b.id = sb.book_id
+		         WHERE sb.shelf_id = s.id AND b.progressive_number IS NOT NULL) AS progressive_min,
+		       (SELECT MAX(b.progressive_number) FROM shelf_books sb
+		          JOIN books b ON b.id = sb.book_id
+		         WHERE sb.shelf_id = s.id AND b.progressive_number IS NOT NULL) AS progressive_max
 		  FROM shelves s
 		 WHERE s.tenant_id = ?
 		 ORDER BY s.created_at ASC
@@ -94,7 +107,13 @@ func (h *ShelfHandlers) Get(w http.ResponseWriter, r *http.Request) {
 	row := h.DB.QueryRowContext(r.Context(), `
 		SELECT s.id, s.name, s.rows, s.slots_per_row, s.color, s.icon,
 		       s.created_at, s.updated_at,
-		       (SELECT COUNT(*) FROM shelf_books sb WHERE sb.shelf_id = s.id) AS book_count
+		       (SELECT COUNT(*) FROM shelf_books sb WHERE sb.shelf_id = s.id) AS book_count,
+		       (SELECT MIN(b.progressive_number) FROM shelf_books sb
+		          JOIN books b ON b.id = sb.book_id
+		         WHERE sb.shelf_id = s.id AND b.progressive_number IS NOT NULL) AS progressive_min,
+		       (SELECT MAX(b.progressive_number) FROM shelf_books sb
+		          JOIN books b ON b.id = sb.book_id
+		         WHERE sb.shelf_id = s.id AND b.progressive_number IS NOT NULL) AS progressive_max
 		  FROM shelves s
 		 WHERE s.id = ? AND s.tenant_id = ?
 	`, shelfID, id.TenantID)
@@ -242,7 +261,8 @@ func (h *ShelfHandlers) ListBooks(w http.ResponseWriter, r *http.Request) {
 	}
 	rows, err := h.DB.QueryContext(r.Context(), `
 		SELECT sb.book_id, sb.shelf_id, sb.row_index, sb.slot_index,
-		       sb.spine_color, sb.spine_width, sb.updated_at, b.title
+		       sb.spine_color, sb.spine_width, sb.updated_at,
+		       b.title, b.progressive_number
 		  FROM shelf_books sb
 		  JOIN books b ON b.id = sb.book_id
 		 WHERE sb.shelf_id = ?
@@ -257,12 +277,17 @@ func (h *ShelfHandlers) ListBooks(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var d shelfBookDTO
 		var spineColor sql.NullString
+		var progressive sql.NullInt64
 		if err := rows.Scan(&d.BookID, &d.ShelfID, &d.RowIndex, &d.SlotIndex,
-			&spineColor, &d.SpineWidth, &d.UpdatedAt, &d.Title); err != nil {
+			&spineColor, &d.SpineWidth, &d.UpdatedAt, &d.Title, &progressive); err != nil {
 			writeErr(w, http.StatusInternalServerError, "scan error")
 			return
 		}
 		d.SpineColor = nullToPtr(spineColor)
+		if progressive.Valid {
+			v := int(progressive.Int64)
+			d.ProgressiveNumber = &v
+		}
 		out = append(out, d)
 	}
 	writeJSON(w, http.StatusOK, map[string]interface{}{"books": out})
@@ -368,12 +393,21 @@ func (h *ShelfHandlers) Assign(w http.ResponseWriter, r *http.Request) {
 func scanShelf(s rowScanner) (shelfDTO, error) {
 	var d shelfDTO
 	var icon sql.NullString
+	var progMin, progMax sql.NullInt64
 	if err := s.Scan(&d.ID, &d.Name, &d.Rows, &d.SlotsPerRow, &d.Color, &icon,
-		&d.CreatedAt, &d.UpdatedAt, &d.BookCount); err != nil {
+		&d.CreatedAt, &d.UpdatedAt, &d.BookCount, &progMin, &progMax); err != nil {
 		return d, err
 	}
 	d.Icon = nullToPtr(icon)
 	d.Capacity = d.Rows * d.SlotsPerRow
+	if progMin.Valid {
+		v := int(progMin.Int64)
+		d.ProgressiveMin = &v
+	}
+	if progMax.Valid {
+		v := int(progMax.Int64)
+		d.ProgressiveMax = &v
+	}
 	return d, nil
 }
 
@@ -403,3 +437,162 @@ func nullableStrPtr(p *string) interface{} {
 	}
 	return nullable(*p)
 }
+
+// --- Batch assignment -------------------------------------------------------
+
+type batchAssignReq struct {
+	BookIDs []string `json:"book_ids"`
+}
+
+type batchAssignResult struct {
+	BookID    string `json:"book_id"`
+	RowIndex  int    `json:"row_index"`
+	SlotIndex int    `json:"slot_index"`
+}
+
+// BatchAssign collloca una lista di libri sul primo slot libero dello scaffale,
+// scorrendo per riga e slot in ordine. Salta i libri gia' presenti su QUALSIASI
+// scaffale (richiede di rimuoverli prima dall'altro scaffale per evitare
+// sovrapposizioni accidentali). Si ferma quando finiscono gli slot disponibili.
+//
+// Risposta: { placed: [{book_id,row,slot}...], skipped_already_placed: N,
+//             skipped_no_space: N }.
+//
+// Atomico: tutto in una transazione, rollback su qualsiasi errore — non
+// vogliamo lasciare l'utente con metà operazione completata e nessun feedback.
+func (h *ShelfHandlers) BatchAssign(w http.ResponseWriter, r *http.Request) {
+	id, ok := mw.FromContext(r.Context())
+	if !ok {
+		writeErr(w, http.StatusUnauthorized, "no identity")
+		return
+	}
+	shelfID := chi.URLParam(r, "id")
+	var req batchAssignReq
+	if !readJSON(w, r, &req) {
+		return
+	}
+	if len(req.BookIDs) == 0 {
+		writeJSON(w, http.StatusOK, map[string]interface{}{
+			"placed": []batchAssignResult{}, "skipped_already_placed": 0, "skipped_no_space": 0,
+		})
+		return
+	}
+	if len(req.BookIDs) > 500 {
+		writeErr(w, http.StatusBadRequest, "too many ids (max 500)")
+		return
+	}
+
+	// Validate target shelf and read dimensions.
+	var rowsCnt, slotsCnt int
+	if err := h.DB.QueryRowContext(r.Context(),
+		`SELECT rows, slots_per_row FROM shelves WHERE id = ? AND tenant_id = ?`,
+		shelfID, id.TenantID).Scan(&rowsCnt, &slotsCnt); err == sql.ErrNoRows {
+		writeErr(w, http.StatusNotFound, "shelf not found")
+		return
+	} else if err != nil {
+		writeErr(w, http.StatusInternalServerError, "db error")
+		return
+	}
+
+	tx, err := h.DB.BeginTx(r.Context(), nil)
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, "db error")
+		return
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	// Carica gli slot occupati su questo scaffale come bitmap row*slots+slot.
+	occRows, err := tx.QueryContext(r.Context(),
+		`SELECT row_index, slot_index FROM shelf_books WHERE shelf_id = ?`, shelfID)
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, "db error")
+		return
+	}
+	occupied := make(map[int]bool, rowsCnt*slotsCnt)
+	for occRows.Next() {
+		var ri, si int
+		if err := occRows.Scan(&ri, &si); err != nil {
+			occRows.Close()
+			writeErr(w, http.StatusInternalServerError, "scan error")
+			return
+		}
+		occupied[ri*slotsCnt+si] = true
+	}
+	occRows.Close()
+
+	// Per ogni book_id: verifica appartenenza al tenant e che non sia gia'
+	// piazzato altrove. Poi piazza nel primo slot libero.
+	placed := []batchAssignResult{}
+	skippedPlaced := 0
+	skippedNoSpace := 0
+	now := time.Now().Unix()
+	cursor := 0 // prossimo slot da provare (row*slots+slot)
+
+	for _, bookID := range req.BookIDs {
+		// Verifica ownership.
+		var owned int
+		if err := tx.QueryRowContext(r.Context(),
+			`SELECT 1 FROM books WHERE id = ? AND tenant_id = ?`,
+			bookID, id.TenantID).Scan(&owned); err == sql.ErrNoRows {
+			// Skip silenziosamente: l'utente ha selezionato un libro
+			// che non puo' vedere — improbabile dall'UI ma difensivo.
+			continue
+		} else if err != nil {
+			writeErr(w, http.StatusInternalServerError, "db error")
+			return
+		}
+
+		// Verifica se gia' piazzato.
+		var existingShelf string
+		err := tx.QueryRowContext(r.Context(),
+			`SELECT shelf_id FROM shelf_books WHERE book_id = ?`, bookID).Scan(&existingShelf)
+		if err == nil && existingShelf != "" {
+			skippedPlaced++
+			continue
+		} else if err != nil && err != sql.ErrNoRows {
+			writeErr(w, http.StatusInternalServerError, "db error")
+			return
+		}
+
+		// Trova il prossimo slot libero a partire da cursor.
+		for cursor < rowsCnt*slotsCnt && occupied[cursor] {
+			cursor++
+		}
+		if cursor >= rowsCnt*slotsCnt {
+			skippedNoSpace++
+			continue
+		}
+		ri := cursor / slotsCnt
+		si := cursor % slotsCnt
+		if _, err := tx.ExecContext(r.Context(), `
+			INSERT INTO shelf_books (book_id, shelf_id, row_index, slot_index, spine_color, spine_width, updated_at)
+			VALUES (?, ?, ?, ?, NULL, 1, ?)
+		`, bookID, shelfID, ri, si, now); err != nil {
+			writeErr(w, http.StatusInternalServerError, "insert failed")
+			return
+		}
+		occupied[cursor] = true
+		placed = append(placed, batchAssignResult{BookID: bookID, RowIndex: ri, SlotIndex: si})
+		cursor++
+	}
+
+	if err := tx.Commit(); err != nil {
+		writeErr(w, http.StatusInternalServerError, "commit failed")
+		return
+	}
+
+	_ = h.Audit.Write(r.Context(), mw.Event{
+		Action: "shelf.batch.assign", EntityType: "shelf", EntityID: shelfID,
+		After: map[string]interface{}{
+			"placed":                 len(placed),
+			"skipped_already_placed": skippedPlaced,
+			"skipped_no_space":       skippedNoSpace,
+		},
+	})
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"placed":                 placed,
+		"skipped_already_placed": skippedPlaced,
+		"skipped_no_space":       skippedNoSpace,
+	})
+}
+

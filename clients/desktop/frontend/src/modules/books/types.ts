@@ -19,6 +19,12 @@ export interface Book {
   genre?: string | null;
   cover_path?: string | null;
   notes?: string | null;
+  /**
+   * Numero progressivo d'inventario (opzionale, unique per tenant). Se
+   * presente viene mostrato come "#N" in tabella e usato per calcolare
+   * il range coperto da ogni scaffale (ShelfCard).
+   */
+  progressive_number?: number | null;
   created_at: number;
   updated_at: number;
 }
@@ -42,6 +48,8 @@ export interface BookInput {
   format: string;
   genre: string;
   notes: string;
+  /** 0 = nessun numero (NULL su DB). */
+  progressive_number: number;
 }
 
 export const EMPTY_BOOK_INPUT: BookInput = {
@@ -59,6 +67,7 @@ export const EMPTY_BOOK_INPUT: BookInput = {
   format: '',
   genre: '',
   notes: '',
+  progressive_number: 0,
 };
 
 export type BookFormat = 'hardcover' | 'paperback' | 'ebook' | 'audiobook';
@@ -87,5 +96,6 @@ export function toBookInput(b: Book): BookInput {
     format: b.format ?? '',
     genre: b.genre ?? '',
     notes: b.notes ?? '',
+    progressive_number: b.progressive_number ?? 0,
   };
 }

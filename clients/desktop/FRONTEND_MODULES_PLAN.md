@@ -222,10 +222,43 @@ const routes = [
 | **4** | `modules/shelves` (SVG dashboard) | scaffali interattivi + assegnazione libri |
 | **5** | `modules/loans` | gestione prestiti + scadenze |
 | **6** | `modules/wishlist` | wishlist + quick-add |
-| **7** | `modules/devices` + pairing QR | mobile pairing flow |
+| **7** | `modules/devices` (desktop side) + `clients/mobile-web/` (PWA) | QR pairing + companion mobile webapp |
 | **8** | `modules/stats` | dashboard analytics |
 | **9** | `modules/settings` + `modules/audit` | gestione + audit log |
 | **10** | i18n, accessibility audit, perf pass | release candidate |
+
+## Mobile webapp companion (Phase 7)
+
+PWA Vue 3 separata in [clients/mobile-web/](../mobile-web/), servita dallo stesso
+binario Go via `embed.FS` su `https://<host>/m/`. Non è una versione responsive
+del desktop: è un'app dedicata con bundle minimo, service worker proprio,
+manifest standalone.
+
+**Architettura**
+
+- **Pairing**: il desktop genera un QR (`PairMobileView.vue` in `modules/devices/`)
+  che incorpora un token one-shot da 10 min (`POST /api/v1/pairing/tokens`).
+  Il telefono apre l'URL via fotocamera nativa → la PWA esegue auto-redeem
+  (genera CSR client-side via `pkijs`, chiama `/pairing/redeem`, salva certificato +
+  JWT in IndexedDB).
+- **Auth mobile**: JWT bearer + header `X-Device-Cert-Fingerprint` (sha256 del
+  cert DER) sul sub-router `/api/v1/m/*`. Browser non possono presentare client
+  cert via fetch, quindi il fingerprint binda comunque token↔device.
+- **Tre tab MVP**: Cerca (FTS catalogo), Scan (BarcodeDetector + ZXing fallback +
+  Open Library), Account (rename device, install PWA, logout).
+- **Detail view** read-only `/m/book/:id` (modifiche solo da desktop).
+- **Service worker**: SWR su `/api/v1/m/books`, NetworkFirst con timeout su
+  `/books/:id` e `/me`, CacheFirst su `covers.openlibrary.org` (30 giorni).
+- **Update flow**: banner non bloccante con "Ricarica" → `SKIP_WAITING` su
+  gesture utente.
+- **Universal/App Link**: `/.well-known/apple-app-site-association` +
+  `assetlinks.json` per aprire la PWA installata invece del browser.
+
+**Build pipeline**: Dockerfile multi-stage Node→Go, Vite build → `dist/` →
+`embed all:dist` → singolo binario. Atomic deploy via GH Actions.
+
+**Excluded dal MVP**: prestiti/scaffali/wishlist mobile, push notifications
+(rinviate a Phase 7.5), edit libro mobile, background sync mutation.
 
 ## Modulo `shelves` — visualizzazione SVG interattiva
 

@@ -333,7 +333,9 @@ function back(): void {
     font-family: 'Lora', Georgia, serif;
     font-size: 1.75rem;
     font-weight: 600;
-    color: var(--p-primary-800);
+    /* Token semantico: flippa automaticamente in dark mode con contrasto
+       garantito. Override dark sotto solo per la sfumatura primary. */
+    color: var(--p-text-color);
 }
 
 .pair__sub {
@@ -417,7 +419,11 @@ function back(): void {
 .qr-card__expired {
     position: absolute;
     inset: 0;
-    background: rgba(255, 255, 255, 0.82);
+    /* L'overlay sta SEMPRE sopra il QR bianco (anche in dark mode il QR
+       resta bianco per scannability), quindi forziamo testo scuro a
+       prescindere dal tema. */
+    background: rgba(255, 255, 255, 0.86);
+    color: #1f2937;
     backdrop-filter: blur(2px);
     display: flex;
     flex-direction: column;
@@ -431,11 +437,11 @@ function back(): void {
 
 .qr-card__expired i {
     font-size: 2rem;
-    color: var(--p-orange-500);
+    color: #c2410c; /* orange-700: contrast >=4.5:1 sul bianco overlay */
 }
 
 .qr-card__expired strong {
-    color: var(--p-text-color);
+    color: inherit;
     font-size: 1.05rem;
 }
 
@@ -556,7 +562,7 @@ function back(): void {
 .qr-card__success-name {
     margin: 0;
     font-weight: 600;
-    color: var(--p-primary-700);
+    color: var(--p-primary-600);
 }
 
 /* --- Steps panel -------------------------------------------------------- */
@@ -616,5 +622,52 @@ function back(): void {
     .qr-card__check svg path {
         stroke-dashoffset: 0;
     }
+}
+
+/* ===== Dark mode =====
+   Il preset Aura non ribalta automaticamente surface-0/100/200 ne'
+   primary-700/800: dobbiamo override esplicitamente per evitare card
+   chiare su shell scura e titoli sotto soglia di contrasto.
+   Vedi `BookFormFields.vue` e `AppShell.css` per lo stesso pattern. */
+</style>
+
+<!-- Vedi BookFormFields.vue per la nota sul bug `:global(html.dark)` in
+     scoped CSS: gli override dark vanno in un secondo <style> non-scoped. -->
+<style>
+html.dark .pair__title {
+    color: var(--p-surface-50);
+}
+html.dark .qr-card {
+    background: var(--p-surface-800);
+    border-color: var(--p-surface-700);
+}
+html.dark .qr-card--paired {
+    border-color: var(--p-green-400);
+    background: color-mix(in oklab, var(--p-green-500) 14%, var(--p-surface-800));
+}
+html.dark .qr-card__skel {
+    background: linear-gradient(
+        90deg,
+        var(--p-surface-700) 0%,
+        var(--p-surface-600) 50%,
+        var(--p-surface-700) 100%
+    );
+}
+html.dark .qr-card__bar {
+    background: var(--p-surface-700);
+}
+html.dark .qr-card__time--warn {
+    /* orange-600 puro su surface-800 ha contrasto borderline; usiamo 400 */
+    color: var(--p-orange-400);
+}
+html.dark .qr-card__time--exp {
+    color: var(--p-red-400);
+}
+html.dark .qr-card__success-name {
+    color: var(--p-primary-300);
+}
+html.dark .pair__step-num {
+    background: color-mix(in oklab, var(--p-primary-500) 22%, transparent);
+    color: var(--p-primary-200);
 }
 </style>

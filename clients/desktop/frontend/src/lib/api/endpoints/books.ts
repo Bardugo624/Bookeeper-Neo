@@ -35,4 +35,20 @@ export const booksEndpoints = {
     api.patch<{ id: string }>(`/api/v1/books/${id}`, input),
 
   delete: (id: string): Promise<void> => api.delete<void>(`/api/v1/books/${id}`),
+
+  /**
+   * Cancella in batch una lista di libri. Atomico server-side: o tutti o
+   * nessuno. ID inesistenti / di altri tenant vengono ignorati silenziosamente
+   * (il count restituito riflette le righe effettivamente cancellate).
+   */
+  batchDelete: (ids: string[]): Promise<{ deleted: number }> =>
+    api.post<{ deleted: number }>('/api/v1/books/batch/delete', { ids }),
+
+  /**
+   * Restituisce il prossimo numero progressivo libero per il tenant
+   * (MAX(progressive_number)+1, oppure 1). Solo suggerimento — l'utente
+   * resta libero di sceglierne un altro o nessuno.
+   */
+  nextProgressive: (): Promise<{ next: number }> =>
+    api.get<{ next: number }>('/api/v1/books/next-progressive'),
 };
