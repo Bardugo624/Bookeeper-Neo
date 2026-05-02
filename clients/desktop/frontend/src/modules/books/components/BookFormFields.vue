@@ -8,11 +8,14 @@
  * automatica è visibile mentre si digita. Click sulla X di una chip
  * rimuove l'autore corrispondente dalla raw.
  */
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import InputText from 'primevue/inputtext';
 import Textarea from 'primevue/textarea';
 import InputNumber from 'primevue/inputnumber';
 import Select from 'primevue/select';
+import Button from 'primevue/button';
+import { useToast } from 'primevue/usetoast';
+import { lookupIsbn, normalizeIsbn } from '@/lib/googleBooks';
 import { FORMAT_OPTIONS, type BookInput } from '../types';
 
 const props = defineProps<{
@@ -44,6 +47,80 @@ const parsedAuthors = computed<string[]>(() =>
 function removeAuthor(idx: number): void {
   const next = parsedAuthors.value.filter((_, i) => i !== idx);
   emit('update:authorsRaw', next.join(', '));
+}
+
+// ---------- Lookup ISBN (Google Books) ----------
+const toast = useToast();
+const lookupLoading = ref(false);
+
+/** ISBN candidato per il lookup: preferiamo ISBN-13, fallback su ISBN-10. */
+const lookupIsbnValue = computed(() => {
+  const v13 = normalizeIsbn(props.form.isbn_13 || '');
+  if (v13.length === 13) return v13;
+  const v10 = normalizeIsbn(props.form.isbn_10 || '');
+  if (v10.length === 10) return v10;
+  return '';
+});
+
+async function doLookup(): Promise<void> {
+  const isbn = lookupIsbnValue.value;
+  if (!isbn) {
+    toast.add({
+      severity: 'warn',
+      summary: 'ISBN mancante',
+      detail: 'Inserisci un ISBN-13 o ISBN-10 valido prima del lookup.',
+      life: 3500,
+    });
+    return;
+  }
+  lookupLoading.value = true;
+  try {
+    const info = await lookupIsbn(isbn);
+    if (!info) {
+      toast.add({
+        severity: 'info',
+        summary: 'Nessun risultato',
+        detail: `Google Libri non conosce l'ISBN ${isbn}.`,
+        life: 3500,
+      });
+      return;
+    }
+    // Riempi solo i campi vuoti per non sovrascrivere modifiche manuali.
+    const f = props.form;
+    const merged: BookInput = {
+      ...f,
+      title: f.title || info.title,
+      subtitle: f.subtitle || info.subtitle,
+      authors: f.authors.length > 0 ? f.authors : info.authors,
+      publisher: f.publisher || info.publisher,
+      published_year: f.published_year || info.publishedYear,
+      page_count: f.page_count || info.pageCount,
+      description: f.description || info.description,
+      language: f.language || info.language,
+      isbn_13: f.isbn_13 || info.isbn13,
+      isbn_10: f.isbn_10 || info.isbn10,
+    };
+    emit('update:form', merged);
+    // Se gli autori arrivano dal lookup, sincronizza anche la textarea raw.
+    if (f.authors.length === 0 && info.authors.length > 0) {
+      emit('update:authorsRaw', info.authors.join(', '));
+    }
+    toast.add({
+      severity: 'success',
+      summary: 'Metadati importati',
+      detail: info.title || 'Lookup completato',
+      life: 2500,
+    });
+  } catch (err) {
+    toast.add({
+      severity: 'error',
+      summary: 'Lookup fallito',
+      detail: err instanceof Error ? err.message : 'errore di rete',
+      life: 4000,
+    });
+  } finally {
+    lookupLoading.value = false;
+  }
 }
 </script>
 
@@ -117,13 +194,28 @@ function removeAuthor(idx: number): void {
 
     <div class="book-form__row">
       <label class="book-form__label" for="bf-isbn13">ISBN-13</label>
-      <InputText
-        id="bf-isbn13"
-        :model-value="form.isbn_13"
-        @update:model-value="(v) => $emit('update:form', { ...form, isbn_13: String(v ?? '') })"
-        autocomplete="off"
-        inputmode="numeric"
-      />
+      <div class="book-form__isbn">
+        <InputText
+          id="bf-isbn13"
+          :model-value="form.isbn_13"
+          @update:model-value="(v) => $emit('update:form', { ...form, isbn_13: String(v ?? '') })"
+          autocomplete="off"
+          inputmode="numeric"
+          class="book-form__isbn-input"
+        />
+        <Button
+          type="button"
+          icon="pi pi-search"
+          label="Lookup"
+          severity="secondary"
+          outlined
+          size="small"
+          :loading="lookupLoading"
+          :disabled="!lookupIsbnValue || lookupLoading"
+          title="Recupera titolo, autori, editore... da Google Libri"
+          @click="doLookup"
+        />
+      </div>
     </div>
 
     <div class="book-form__row">
@@ -282,6 +374,15 @@ function removeAuthor(idx: number): void {
 }
 .book-form__row--full {
   grid-column: 1 / -1;
+}
+.book-form__isbn {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+.book-form__isbn-input {
+  flex: 1;
+  min-width: 0;
 }
 .book-form__label {
   font-size: 0.8rem;

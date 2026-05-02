@@ -63,8 +63,11 @@ const manualError = ref<string | null>(null);
 const manualLoading = ref(false);
 const result = ref<ScanResult | null>(null);
 const lookupLoading = ref(false);
+const lookupIsbnInProgress = ref<string | null>(null);
 const addLoading = ref(false);
 const toast = ref<string | null>(null);
+const torchSupported = ref(false);
+const torchOn = ref(false);
 let toastTimer: number | undefined;
 
 function showToast(msg: string, ms = 4000): void {
@@ -100,13 +103,54 @@ interface ZXingReader {
 async function startCamera(): Promise<void> {
     cameraError.value = null;
     try {
+        // Higher resolution → smaller barcodes still resolve to enough
+        // pixels for EAN-13 decoding. 480p (the device default for many
+        // Android phones) often produces only ~80px-tall bars at typical
+        // book-holding distance, which is below the reliable threshold.
+        // We also ask for continuous autofocus so the lens keeps the
+        // barcode sharp as the user moves the phone.
         stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { ideal: 'environment' } },
+            video: {
+                facingMode: { ideal: 'environment' },
+                width: { ideal: 1920 },
+                height: { ideal: 1080 },
+                // @ts-expect-error — non-standard but honoured by Chrome Android
+                focusMode: 'continuous',
+            },
             audio: false,
         });
         if (videoRef.value) {
             videoRef.value.srcObject = stream;
             await videoRef.value.play().catch(() => {/* user gesture required on iOS — autoplay attr handles it */});
+        }
+        // Best-effort: enable continuous autofocus + a small zoom on
+        // devices that expose the constraint via applyConstraints.
+        try {
+            const track = stream.getVideoTracks()[0];
+            const caps = (track.getCapabilities?.() ?? {}) as MediaTrackCapabilities & {
+                focusMode?: string[];
+                zoom?: { min: number; max: number; step: number };
+                torch?: boolean;
+            };
+            const advanced: MediaTrackConstraintSet[] = [];
+            if (caps.focusMode?.includes('continuous')) {
+                // @ts-expect-error — non-standard
+                advanced.push({ focusMode: 'continuous' });
+            }
+            if (caps.zoom && caps.zoom.max >= 1.5) {
+                // Slight zoom helps the camera focus close enough on the
+                // barcode without forcing the user into macro distance.
+                // @ts-expect-error — non-standard
+                advanced.push({ zoom: Math.min(2, caps.zoom.max) });
+            }
+            if (advanced.length > 0) {
+                await track.applyConstraints({ advanced });
+            }
+            // Detect torch capability (Chrome Android exposes it; iOS Safari
+            // does not). Used to render the flashlight button in the UI.
+            torchSupported.value = caps.torch === true;
+        } catch {
+            // Constraint not supported on this device — ignore.
         }
         await startDecoder();
     } catch (err) {
@@ -121,9 +165,16 @@ async function startDecoder(): Promise<void> {
     const Ctor = (window as Window & { BarcodeDetector?: BarcodeDetectorCtor }).BarcodeDetector;
     if (Ctor) {
         try {
-            const formats = (await Ctor.getSupportedFormats?.()) ?? ['ean_13'];
-            if (formats.includes('ean_13')) {
-                nativeDetector = new Ctor({ formats: ['ean_13'] });
+            const supported = (await Ctor.getSupportedFormats?.()) ?? [];
+            // EAN-13 is the only format actually used for ISBNs, but some
+            // older / supplementary barcodes are ean_8 or upc_a; including
+            // them increases chances of a hit when the camera grabs only
+            // the smaller addon code first.
+            const wanted = ['ean_13', 'ean_8', 'upc_a'].filter(
+                (f) => supported.length === 0 || supported.includes(f),
+            );
+            if (wanted.includes('ean_13')) {
+                nativeDetector = new Ctor({ formats: wanted });
                 decoderReady.value = true;
                 scanLoop();
                 return;
@@ -197,8 +248,26 @@ function handleDetection(raw: string): void {
         if (nativeDetector) rafId = window.requestAnimationFrame(scanLoop);
         return;
     }
-    if (navigator.vibrate) navigator.vibrate(50);
+    // Short pulse to confirm "barcode acquired" — distinct from the longer
+    // success haptic fired when the lookup resolves.
+    if (navigator.vibrate) navigator.vibrate(40);
     void lookupIsbn(isbn);
+}
+
+async function toggleTorch(): Promise<void> {
+    if (!stream || !torchSupported.value) return;
+    const track = stream.getVideoTracks()[0];
+    const next = !torchOn.value;
+    try {
+        // @ts-expect-error — non-standard but supported on Chrome Android
+        await track.applyConstraints({ advanced: [{ torch: next }] });
+        torchOn.value = next;
+    } catch {
+        // Some devices report support but reject the constraint mid-stream;
+        // surface a discreet toast so the user understands.
+        showToast('Torcia non disponibile su questo dispositivo', 2500);
+        torchSupported.value = false;
+    }
 }
 
 function normaliseIsbn(raw: string): string | null {
@@ -226,6 +295,7 @@ function validIsbn10(s: string): boolean {
 
 async function lookupIsbn(isbn: string): Promise<void> {
     lookupLoading.value = true;
+    lookupIsbnInProgress.value = isbn;
     try {
         // 1) Local catalog — exact match in title+isbn FTS.
         const data = await api.get<{ books: Book[] }>(
@@ -238,8 +308,14 @@ async function lookupIsbn(isbn: string): Promise<void> {
             result.value = { isbn, found: local, fallback: null };
             return;
         }
-        // 2) Open Library fallback.
-        const ol = await fetchOpenLibrary(isbn);
+        // 2) Open Library fallback (good English coverage, weak on IT).
+        let ol = await fetchOpenLibrary(isbn);
+        // 3) Google Books fallback — much better coverage for Italian
+        //    publishers. Tried only when OL returns nothing useful.
+        if (!ol || (!ol.title && !ol.authors)) {
+            const gb = await fetchGoogleBooks(isbn);
+            if (gb) ol = gb;
+        }
         result.value = { isbn, found: null, fallback: ol };
     } catch (err) {
         showToast(err instanceof ApiError ? err.body : 'errore di rete');
@@ -247,6 +323,10 @@ async function lookupIsbn(isbn: string): Promise<void> {
         if (!result.value) resumeScanning();
     } finally {
         lookupLoading.value = false;
+        lookupIsbnInProgress.value = null;
+        // Distinct success pattern (short-pause-short) so the user can
+        // distinguish "detected" from "book ready to confirm".
+        if (result.value && navigator.vibrate) navigator.vibrate([60, 50, 60]);
     }
 }
 
@@ -264,9 +344,82 @@ async function fetchOpenLibrary(isbn: string): Promise<OLData | null> {
     }
 }
 
+// Best-effort cover URL for the result dialog. Prefers the OL/Google
+// thumbnail when available, otherwise falls back to the OL covers CDN.
+function coverUrl(): string | null {
+    if (!result.value) return null;
+    const fb = result.value.fallback;
+    if (fb?.cover?.large) return fb.cover.large;
+    if (fb?.cover?.medium) return fb.cover.medium;
+    return `https://covers.openlibrary.org/b/isbn/${result.value.isbn}-M.jpg`;
+}
+
+// Google Books volumes API. Returns at most one volume mapped onto the
+// shared OLData shape so the rest of the UI doesn't care about the source.
+async function fetchGoogleBooks(isbn: string): Promise<OLData | null> {
+    try {
+        const r = await fetch(
+            `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&maxResults=1`,
+            { mode: 'cors' },
+        );
+        if (!r.ok) return null;
+        const j = (await r.json()) as {
+            items?: { volumeInfo: {
+                title?: string;
+                subtitle?: string;
+                authors?: string[];
+                publisher?: string;
+                publishedDate?: string;
+                pageCount?: number;
+                imageLinks?: { thumbnail?: string };
+            } }[];
+        };
+        const v = j.items?.[0]?.volumeInfo;
+        if (!v) return null;
+        return {
+            title: v.title,
+            subtitle: v.subtitle,
+            authors: (v.authors ?? []).map((name) => ({ name })),
+            publishers: v.publisher ? [{ name: v.publisher }] : undefined,
+            publish_date: v.publishedDate,
+            number_of_pages: v.pageCount,
+            cover: v.imageLinks?.thumbnail
+                ? { medium: v.imageLinks.thumbnail }
+                : undefined,
+        };
+    } catch {
+        return null;
+    }
+}
+
 function closeDialog(): void {
     result.value = null;
     resumeScanning();
+}
+
+// Add the bare ISBN to the catalog when no metadata can be found anywhere.
+// Title falls back to the ISBN itself; user can fix it from desktop.
+async function addBareIsbn(): Promise<void> {
+    if (!result.value) return;
+    addLoading.value = true;
+    try {
+        await api.post('/books', {
+            title: `ISBN ${result.value.isbn}`,
+            isbn_13: result.value.isbn.length === 13 ? result.value.isbn : '',
+            isbn_10: result.value.isbn.length === 10 ? result.value.isbn : '',
+            authors: [],
+            publisher: '',
+            published_year: 0,
+            page_count: 0,
+        });
+        showToast('Libro aggiunto — completa i metadati dal desktop', 2400);
+        result.value = null;
+        window.setTimeout(() => { resumeScanning(); }, 1400);
+    } catch (err) {
+        showToast(err instanceof ApiError ? err.body : 'errore aggiunta');
+    } finally {
+        addLoading.value = false;
+    }
 }
 
 async function addFromOpenLibrary(): Promise<void> {
@@ -355,12 +508,33 @@ onUnmounted(() => {
                 <div class="viewport__corner viewport__corner--tr" />
                 <div class="viewport__corner viewport__corner--bl" />
                 <div class="viewport__corner viewport__corner--br" />
+                <!-- Animated scan-line is the only decoder-armed signal:
+                     it stops while a lookup is in flight so the user knows
+                     the camera isn't going to fire another detection. -->
+                <div
+                    v-if="decoderReady && !lookupLoading"
+                    class="viewport__scanline"
+                />
             </div>
+
+            <button
+                v-if="torchSupported"
+                type="button"
+                class="viewport__torch"
+                :class="{ 'viewport__torch--on': torchOn }"
+                :aria-pressed="torchOn"
+                aria-label="Torcia"
+                @click="toggleTorch"
+            >
+                <i :class="torchOn ? 'pi pi-bolt' : 'pi pi-bolt'" aria-hidden="true" />
+            </button>
+
             <p v-if="!cameraError && !decoderReady" class="viewport__status" role="status" aria-live="polite">
                 Avvio fotocamera…
             </p>
-            <p v-else-if="lookupLoading" class="viewport__status" role="status" aria-live="polite">
-                Cerco il libro…
+            <p v-else-if="lookupLoading" class="viewport__status viewport__status--lookup" role="status" aria-live="polite">
+                <i class="pi pi-spin pi-spinner" aria-hidden="true" />
+                <span>Cerco ISBN&nbsp;{{ lookupIsbnInProgress }}</span>
             </p>
         </div>
 
@@ -441,57 +615,100 @@ onUnmounted(() => {
             @update:visible="closeDialog"
         >
             <div v-if="result?.found" class="lookup">
-                <p class="lookup__title">{{ result.found.title }}</p>
-                <p v-if="result.found.subtitle" class="lookup__sub">
-                    {{ result.found.subtitle }}
+                <div class="lookup__head">
+                    <img
+                        v-if="coverUrl()"
+                        :src="coverUrl()!"
+                        alt=""
+                        class="lookup__cover"
+                        loading="lazy"
+                        @error="($event.target as HTMLImageElement).style.display='none'"
+                    >
+                    <div class="lookup__head-text">
+                        <p class="lookup__title">{{ result.found.title }}</p>
+                        <p v-if="result.found.subtitle" class="lookup__sub">
+                            {{ result.found.subtitle }}
+                        </p>
+                        <p class="lookup__authors">
+                            {{ (result.found.authors ?? []).join(', ') || '—' }}
+                        </p>
+                        <p class="lookup__meta">
+                            <span v-if="result.found.publisher">{{ result.found.publisher }}</span>
+                            <span v-if="result.found.publisher && result.found.published_year"> · </span>
+                            <span v-if="result.found.published_year">{{ result.found.published_year }}</span>
+                        </p>
+                    </div>
+                </div>
+                <p class="lookup__hint lookup__hint--success">
+                    <i class="pi pi-check-circle" aria-hidden="true" />
+                    Questo libro è già nel tuo catalogo.
                 </p>
-                <p class="lookup__authors">
-                    {{ (result.found.authors ?? []).join(', ') || '—' }}
-                </p>
-                <p class="lookup__meta">
-                    <span v-if="result.found.publisher">{{ result.found.publisher }}</span>
-                    <span v-if="result.found.publisher && result.found.published_year"> · </span>
-                    <span v-if="result.found.published_year">{{ result.found.published_year }}</span>
-                </p>
-                <p class="lookup__hint">Questo libro è già nel tuo catalogo.</p>
             </div>
 
             <div v-else-if="result?.fallback" class="lookup">
-                <p class="lookup__title">{{ result.fallback.title || 'Senza titolo' }}</p>
-                <p v-if="result.fallback.subtitle" class="lookup__sub">
-                    {{ result.fallback.subtitle }}
-                </p>
-                <p class="lookup__authors">
-                    {{ (result.fallback.authors ?? []).map((a) => a.name).join(', ') || '—' }}
-                </p>
-                <p class="lookup__meta">
-                    <span v-if="result.fallback.publishers?.[0]">
-                        {{ result.fallback.publishers[0].name }}
-                    </span>
-                    <span v-if="result.fallback.publishers?.[0] && result.fallback.publish_date"> · </span>
-                    <span v-if="result.fallback.publish_date">{{ result.fallback.publish_date }}</span>
-                </p>
+                <div class="lookup__head">
+                    <img
+                        v-if="coverUrl()"
+                        :src="coverUrl()!"
+                        alt=""
+                        class="lookup__cover"
+                        loading="lazy"
+                        @error="($event.target as HTMLImageElement).style.display='none'"
+                    >
+                    <div class="lookup__head-text">
+                        <p class="lookup__title">{{ result.fallback.title || 'Senza titolo' }}</p>
+                        <p v-if="result.fallback.subtitle" class="lookup__sub">
+                            {{ result.fallback.subtitle }}
+                        </p>
+                        <p class="lookup__authors">
+                            {{ (result.fallback.authors ?? []).map((a) => a.name).join(', ') || '—' }}
+                        </p>
+                        <p class="lookup__meta">
+                            <span v-if="result.fallback.publishers?.[0]">
+                                {{ result.fallback.publishers[0].name }}
+                            </span>
+                            <span v-if="result.fallback.publishers?.[0] && result.fallback.publish_date"> · </span>
+                            <span v-if="result.fallback.publish_date">{{ result.fallback.publish_date }}</span>
+                        </p>
+                    </div>
+                </div>
                 <p class="lookup__hint">
-                    Metadati Open Library — verifica e modifica dal desktop dopo l'aggiunta.
+                    Metadati indicativi — potrai correggerli dal desktop.
                 </p>
             </div>
 
             <div v-else class="lookup">
                 <p class="lookup__title">ISBN {{ result?.isbn }}</p>
                 <p class="lookup__hint">
-                    Nessun risultato locale né su Open Library. Aggiungi il libro
-                    dal desktop con i metadati corretti.
+                    Nessun risultato online. Puoi aggiungerlo lo stesso e
+                    completare titolo/autore dal desktop.
                 </p>
             </div>
 
             <template #footer>
+                <!-- Primary action depends on result state. We never show two
+                     equal-weight buttons: the secondary "Chiudi" stays text
+                     so the primary CTA is unambiguous. -->
                 <Button label="Chiudi" text @click="closeDialog" />
                 <Button
-                    v-if="result?.fallback"
+                    v-if="result?.found"
+                    label="Scansiona un altro"
+                    icon="pi pi-camera"
+                    @click="closeDialog"
+                />
+                <Button
+                    v-else-if="result?.fallback"
                     label="Aggiungi al catalogo"
                     icon="pi pi-plus"
                     :loading="addLoading"
                     @click="addFromOpenLibrary"
+                />
+                <Button
+                    v-else
+                    label="Aggiungi solo ISBN"
+                    icon="pi pi-plus"
+                    :loading="addLoading"
+                    @click="addBareIsbn"
                 />
             </template>
         </Dialog>
@@ -550,11 +767,76 @@ onUnmounted(() => {
     left: 50%;
     transform: translateX(-50%);
     margin: 0;
-    padding: 0.25rem 0.625rem;
-    background: rgba(0, 0, 0, 0.55);
+    padding: 0.375rem 0.75rem;
+    background: rgba(0, 0, 0, 0.65);
     color: #fff;
     border-radius: 999px;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: calc(100% - 2rem);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.viewport__status--lookup { background: rgba(33, 99, 232, 0.9); }
+
+/* Scan line: a soft horizontal beam that sweeps across the framing
+   reticle to signal that the decoder is actively looking for codes.
+   Disabled while a lookup is in progress so the UI doesn't suggest the
+   camera is about to fire another detection. */
+.viewport__scanline {
+    position: absolute;
+    left: 6%;
+    right: 6%;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(56, 189, 248, 0.95) 50%,
+        transparent 100%
+    );
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+    animation: scan 2s ease-in-out infinite;
+    pointer-events: none;
+}
+@keyframes scan {
+    0%   { top: 8%;  opacity: 0; }
+    15%  {           opacity: 1; }
+    85%  {           opacity: 1; }
+    100% { top: 92%; opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .viewport__scanline { animation: none; top: 50%; opacity: 0.5; }
+}
+
+/* Torch button: floating top-right, large enough for thumb reach. */
+.viewport__torch {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    font-size: 1.05rem;
+    cursor: pointer;
+    transition: background 150ms ease, transform 100ms ease;
+    -webkit-tap-highlight-color: transparent;
+}
+.viewport__torch:active { transform: scale(0.94); }
+.viewport__torch--on {
+    background: #facc15;
+    color: #1f2937;
+    border-color: #facc15;
+    box-shadow: 0 0 16px rgba(250, 204, 21, 0.55);
 }
 
 .footer {
@@ -603,6 +885,30 @@ onUnmounted(() => {
     justify-content: space-between;
     gap: 0.75rem;
     width: 100%;
+}
+
+.lookup__head {
+    display: flex;
+    gap: 0.875rem;
+    align-items: flex-start;
+    margin-bottom: 0.875rem;
+}
+.lookup__cover {
+    width: 72px;
+    height: 108px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: var(--p-content-background, #f1f5f9);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    flex-shrink: 0;
+}
+.lookup__head-text { flex: 1; min-width: 0; }
+.lookup__hint--success {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--p-green-600, #16a34a);
+    font-weight: 500;
 }
 
 .lookup__title {

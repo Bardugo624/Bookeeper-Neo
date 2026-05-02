@@ -21,6 +21,7 @@ import type {
 
 const EMPTY: SessionInfo = {
   has_session: false,
+  has_cert: false,
   server_url: '',
   email: '',
   user_id: '',
@@ -57,6 +58,15 @@ export const useAuthStore = defineStore('auth', () => {
       restoring.value = false
       restored.value = true
     }
+  }
+
+  /**
+   * Ri-legge lo stato di sessione dal backend Go senza riguardo al
+   * flag `restored`. Usato dall'AppShell quando arriva l'evento Wails
+   * `session:expired` (i tokens sono stati svuotati lato Go).
+   */
+  async function refreshSession() {
+    update(await authEndpoints.session())
   }
 
   async function bootstrap(input: BootstrapInput) {
@@ -118,6 +128,7 @@ export const useAuthStore = defineStore('auth', () => {
     restored,
     lastError,
     restore,
+    refreshSession,
     bootstrap,
     setupTenant,
     login,

@@ -56,6 +56,12 @@ export async function generateKeypairAndCsr(commonName: string): Promise<Keypair
             value: new asn1js.Utf8String({ value: commonName }),
         }),
     );
+    // Empty attributes [0] IMPLICIT SET. pkijs OMITS the whole field when
+    // `attributes` is undefined, producing a CSR without the trailing `A0 00`.
+    // Go's encoding/asn1 parser then rejects it with
+    // "asn1: syntax error: sequence truncated" because PKCS#10 requires the
+    // field to be present (even if empty).
+    csr.attributes = [];
 
     // Import the public key into the CSR's subjectPublicKeyInfo.
     await csr.subjectPublicKeyInfo.importKey(publicKey);
@@ -63,7 +69,12 @@ export async function generateKeypairAndCsr(commonName: string): Promise<Keypair
     // Sign CSR with the matching private key. ECDSA-with-SHA256.
     await csr.sign(privateKey, 'SHA-256');
 
-    const der = csr.toSchema().toBER(false);
+    // IMPORTANT: pass `true` to force re-encoding from current state.
+    // Without it pkijs may reuse a cached schema captured BEFORE sign()
+    // populated signatureAlgorithm + signatureValue, producing a CSR
+    // with a truncated BIT STRING that Go rejects with
+    // "asn1: syntax error: sequence truncated".
+    const der = csr.toSchema(true).toBER(false);
     const b64 = base64Encode(new Uint8Array(der));
     const csrPem = wrapPem('CERTIFICATE REQUEST', b64);
 

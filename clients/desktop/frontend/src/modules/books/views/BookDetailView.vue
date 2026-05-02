@@ -115,6 +115,7 @@ function onDelete(): void {
       <BookCover
         :title="store.current.title"
         :path="store.current.cover_path"
+        :isbn="store.current.isbn_13 || store.current.isbn_10"
         size="lg"
         class="book-detail__cover"
       />

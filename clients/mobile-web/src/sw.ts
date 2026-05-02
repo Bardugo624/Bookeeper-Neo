@@ -35,11 +35,14 @@ cleanupOutdatedCaches();
 // --- Runtime caching ------------------------------------------------------
 
 // Catalog list endpoints (GET /api/v1/m/books?...): SWR with 7-day cap.
+// Le richieste con header `X-Force-Refresh: 1` (rifresh esplicito da
+// onVisibility) bypassano questa rotta e vanno direttamente in rete.
 registerRoute(
     ({ url, request, sameOrigin }) =>
         sameOrigin &&
         request.method === 'GET' &&
-        url.pathname === '/api/v1/m/books',
+        url.pathname === '/api/v1/m/books' &&
+        request.headers.get('X-Force-Refresh') !== '1',
     new StaleWhileRevalidate({
         cacheName: 'bk-books-list-v1',
         plugins: [

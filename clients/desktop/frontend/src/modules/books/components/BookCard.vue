@@ -17,7 +17,12 @@ defineProps<{ book: Book }>();
     class="book-card"
     :aria-label="`Apri ${book.title}`"
   >
-    <BookCover :title="book.title" :path="book.cover_path" size="md" />
+    <BookCover
+      :title="book.title"
+      :path="book.cover_path"
+      :isbn="book.isbn_13 || book.isbn_10"
+      size="md"
+    />
     <div class="book-card__meta">
       <h3 class="book-card__title">{{ book.title }}</h3>
       <p v-if="book.subtitle" class="book-card__sub">{{ book.subtitle }}</p>

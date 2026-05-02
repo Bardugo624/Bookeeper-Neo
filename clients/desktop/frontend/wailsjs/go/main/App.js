@@ -10,8 +10,24 @@ export function BootstrapDesktop(arg1) {
   return window['go']['main']['App']['BootstrapDesktop'](arg1);
 }
 
+export function CheckForUpdate() {
+  return window['go']['main']['App']['CheckForUpdate']();
+}
+
+export function DownloadUpdate() {
+  return window['go']['main']['App']['DownloadUpdate']();
+}
+
+export function GetAppInfo() {
+  return window['go']['main']['App']['GetAppInfo']();
+}
+
 export function GetSession() {
   return window['go']['main']['App']['GetSession']();
+}
+
+export function InstallUpdate() {
+  return window['go']['main']['App']['InstallUpdate']();
 }
 
 export function Login(arg1) {

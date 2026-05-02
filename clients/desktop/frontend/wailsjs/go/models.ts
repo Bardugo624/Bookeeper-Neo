@@ -1,5 +1,21 @@
 export namespace main {
 	
+	export class AppInfo {
+	    version: string;
+	    build_date: string;
+	    channel: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AppInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.version = source["version"];
+	        this.build_date = source["build_date"];
+	        this.channel = source["channel"];
+	    }
+	}
 	export class BootstrapDesktopReq {
 	    server_url: string;
 	    bootstrap_url: string;
@@ -27,6 +43,7 @@ export namespace main {
 	export class LoginReq {
 	    email: string;
 	    password: string;
+	    persist: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new LoginReq(source);
@@ -36,6 +53,7 @@ export namespace main {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.email = source["email"];
 	        this.password = source["password"];
+	        this.persist = source["persist"];
 	    }
 	}
 	export class ReloadTrustReq {
@@ -56,6 +74,7 @@ export namespace main {
 	}
 	export class SessionInfo {
 	    has_session: boolean;
+	    has_cert: boolean;
 	    server_url: string;
 	    email: string;
 	    user_id: string;
@@ -69,6 +88,7 @@ export namespace main {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.has_session = source["has_session"];
+	        this.has_cert = source["has_cert"];
 	        this.server_url = source["server_url"];
 	        this.email = source["email"];
 	        this.user_id = source["user_id"];
@@ -114,6 +134,30 @@ export namespace main {
 	        this.tenant_id = source["tenant_id"];
 	        this.user_id = source["user_id"];
 	        this.invite_code = source["invite_code"];
+	    }
+	}
+	export class UpdateInfo {
+	    available: boolean;
+	    current: string;
+	    latest: string;
+	    release_date: string;
+	    notes_md: string;
+	    size_bytes: number;
+	    installer_url: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new UpdateInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.available = source["available"];
+	        this.current = source["current"];
+	        this.latest = source["latest"];
+	        this.release_date = source["release_date"];
+	        this.notes_md = source["notes_md"];
+	        this.size_bytes = source["size_bytes"];
+	        this.installer_url = source["installer_url"];
 	    }
 	}
 

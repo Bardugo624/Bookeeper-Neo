@@ -24,13 +24,20 @@ import InputText from 'primevue/inputtext';
 import Dialog from 'primevue/dialog';
 import Message from 'primevue/message';
 import Skeleton from 'primevue/skeleton';
+import ToggleSwitch from 'primevue/toggleswitch';
 import { useToast } from 'primevue/usetoast';
 import { useConfirm } from 'primevue/useconfirm';
 import { useAuthStore } from '@/stores/auth';
+import { useCoverPrefsStore } from '@/stores/coverPrefs';
+import { cacheStats, clearCovers } from '@/lib/coverCache';
 import { tenantEndpoints, type TenantInfo } from '@/lib/api/endpoints/tenant';
 import { keystore } from '@/lib/keystore';
+import { useUpdater } from '@/composables/useUpdater';
+import { GetAppInfo } from '../../wailsjs/go/main/App';
+import type { main } from '../../wailsjs/go/models';
 
 const auth = useAuthStore();
+const coverPrefs = useCoverPrefsStore();
 const router = useRouter();
 const toast = useToast();
 const confirm = useConfirm();
@@ -172,7 +179,7 @@ async function doLogout() {
             detail: 'Il certificato e stato mantenuto: potrai rientrare con email + password.',
             life: 3000,
         });
-        router.push('/login');
+        router.push({ path: '/login', query: { loggedout: '1' } });
     } finally {
         loggingOut.value = false;
     }
@@ -201,7 +208,83 @@ function confirmWipe() {
     });
 }
 
-onMounted(loadTenant);
+// ---------- Covers tab ----------
+const coverStats = ref<{ count: number }>({ count: 0 });
+const coverStatsLoading = ref(false);
+const clearingCovers = ref(false);
+
+async function loadCoverStats() {
+    coverStatsLoading.value = true;
+    try {
+        coverStats.value = await cacheStats();
+    } finally {
+        coverStatsLoading.value = false;
+    }
+}
+
+async function doClearCovers() {
+    clearingCovers.value = true;
+    try {
+        await clearCovers();
+        await loadCoverStats();
+        toast.add({
+            severity: 'success',
+            summary: 'Cache copertine svuotata',
+            life: 2500,
+        });
+    } finally {
+        clearingCovers.value = false;
+    }
+}
+
+onMounted(() => {
+    loadTenant();
+    loadCoverStats();
+    loadAppInfo();
+});
+
+// ---------- Info tab ----------
+const updater = useUpdater();
+const appInfo = ref<main.AppInfo | null>(null);
+
+async function loadAppInfo() {
+    try {
+        appInfo.value = await GetAppInfo();
+    } catch {
+        /* best effort */
+    }
+}
+
+const formattedBuildDate = computed(() => {
+    const d = appInfo.value?.build_date;
+    if (!d) return 'sviluppo locale';
+    try {
+        return new Date(d).toLocaleString('it-IT', {
+            dateStyle: 'medium', timeStyle: 'short',
+        });
+    } catch { return d; }
+});
+
+async function checkUpdatesNow() {
+    const info = await updater.checkNow(true);
+    if (!info) {
+        toast.add({
+            severity: 'error',
+            summary: 'Controllo non riuscito',
+            detail: updater.state.error || 'Verifica la connessione e riprova.',
+            life: 4000,
+        });
+        return;
+    }
+    if (!info.available) {
+        toast.add({
+            severity: 'success',
+            summary: 'Sei aggiornato',
+            detail: `Stai usando l'ultima versione (${info.current}).`,
+            life: 3000,
+        });
+    }
+}
 </script>
 
 <template>
@@ -209,7 +292,7 @@ onMounted(loadTenant);
         <header class="settings__header">
             <h1 class="settings__title">Impostazioni</h1>
             <p class="settings__subtitle">
-                Gestione account, tenant e sicurezza del dispositivo.
+                Gestione account, tenant, copertine e sicurezza del dispositivo.
             </p>
         </header>
 
@@ -217,6 +300,8 @@ onMounted(loadTenant);
             <TabList>
                 <Tab value="account"><i class="pi pi-user" aria-hidden="true" />&nbsp;Account</Tab>
                 <Tab value="tenant"><i class="pi pi-building" aria-hidden="true" />&nbsp;Tenant</Tab>
+                <Tab value="covers"><i class="pi pi-image" aria-hidden="true" />&nbsp;Copertine</Tab>
+                <Tab value="info"><i class="pi pi-info-circle" aria-hidden="true" />&nbsp;Info</Tab>
             </TabList>
 
             <TabPanels>
@@ -390,6 +475,139 @@ onMounted(loadTenant);
                                 severity="secondary"
                                 outlined
                                 @click="openReload"
+                            />
+                        </div>
+                    </section>
+                </TabPanel>
+
+                <!-- ===================== COVERS ===================== -->
+                <TabPanel value="covers">
+                    <section class="settings__card" aria-labelledby="cov-h">
+                        <h2 id="cov-h" class="settings__card-title">Copertine da Google Libri</h2>
+                        <p class="settings__hint">
+                            Quando attivo, l'app cerca automaticamente le copertine dei tuoi libri
+                            su Google Libri (per ISBN) e le salva in una cache locale di questo
+                            dispositivo. Nessuna copertina passa o viene salvata sul server: la
+                            cache vive solo qui dentro.
+                        </p>
+
+                        <div class="settings__toggle-row">
+                            <ToggleSwitch
+                                v-model="coverPrefs.enabled"
+                                input-id="cov-enabled"
+                                aria-describedby="cov-enabled-hint"
+                            />
+                            <label for="cov-enabled" class="settings__toggle-label">
+                                Scarica copertine automaticamente
+                            </label>
+                        </div>
+                        <p id="cov-enabled-hint" class="settings__hint" style="margin-top: 0.5rem;">
+                            Disattivando, l'app non contattera' piu' Google Libri e i libri
+                            mostreranno il placeholder editoriale. Le copertine gia' in cache
+                            restano disponibili finche' non svuoti la cache.
+                        </p>
+                    </section>
+
+                    <section class="settings__card" aria-labelledby="cov-cache-h">
+                        <h2 id="cov-cache-h" class="settings__card-title">Cache locale</h2>
+                        <dl class="settings__kv">
+                            <dt>Copertine salvate</dt>
+                            <dd>
+                                <template v-if="coverStatsLoading">
+                                    <Skeleton width="3rem" height="1rem" />
+                                </template>
+                                <template v-else>{{ coverStats.count }}</template>
+                            </dd>
+                        </dl>
+                        <div class="settings__actions" style="margin-top: 0.75rem;">
+                            <Button
+                                label="Aggiorna statistiche"
+                                icon="pi pi-refresh"
+                                severity="secondary"
+                                outlined
+                                size="small"
+                                :loading="coverStatsLoading"
+                                @click="loadCoverStats"
+                            />
+                            <Button
+                                label="Svuota cache copertine"
+                                icon="pi pi-trash"
+                                severity="danger"
+                                outlined
+                                :loading="clearingCovers"
+                                :disabled="coverStats.count === 0"
+                                @click="doClearCovers"
+                            />
+                            <p class="settings__hint">
+                                Dopo lo svuotamento, le copertine verranno riscaricate al
+                                bisogno (se l'opzione qui sopra e' attiva).
+                            </p>
+                        </div>
+                    </section>
+                </TabPanel>
+
+                <!-- ===================== INFO ===================== -->
+                <TabPanel value="info">
+                    <section class="settings__card" aria-labelledby="info-h">
+                        <h2 id="info-h" class="settings__card-title">Informazioni applicazione</h2>
+                        <dl class="settings__kv">
+                            <dt>Versione installata</dt>
+                            <dd><code>{{ appInfo?.version || '\u2014' }}</code></dd>
+
+                            <dt>Build</dt>
+                            <dd>{{ formattedBuildDate }}</dd>
+
+                            <dt>Canale</dt>
+                            <dd><code>{{ appInfo?.channel || 'stable' }}</code></dd>
+                        </dl>
+                    </section>
+
+                    <section class="settings__card" aria-labelledby="info-upd-h">
+                        <h2 id="info-upd-h" class="settings__card-title">Aggiornamenti</h2>
+
+                        <Message v-if="updater.state.error" severity="error" :closable="false" class="settings__alert">
+                            {{ updater.state.error }}
+                        </Message>
+
+                        <template v-if="updater.state.available && updater.state.info">
+                            <Message severity="info" :closable="false" class="settings__alert">
+                                <strong>Bookeeper {{ updater.state.info.latest }}</strong> e' disponibile.
+                            </Message>
+                        </template>
+                        <template v-else-if="updater.state.info && !updater.state.available">
+                            <p class="settings__hint" style="margin-top: 0;">
+                                Stai usando l'ultima versione disponibile.
+                            </p>
+                        </template>
+                        <template v-else>
+                            <p class="settings__hint" style="margin-top: 0;">
+                                Bookeeper controlla automaticamente la presenza di aggiornamenti
+                                all'avvio (massimo una volta al giorno).
+                            </p>
+                        </template>
+
+                        <div class="settings__actions" style="margin-top: 0.75rem;">
+                            <Button
+                                label="Controlla ora"
+                                icon="pi pi-refresh"
+                                severity="secondary"
+                                outlined
+                                :loading="updater.state.checking"
+                                @click="checkUpdatesNow"
+                            />
+                            <Button
+                                v-if="updater.state.available && !updater.state.downloading && !updater.state.ready"
+                                label="Scarica aggiornamento"
+                                icon="pi pi-download"
+                                :loading="updater.state.downloading"
+                                @click="updater.startDownload()"
+                            />
+                            <Button
+                                v-if="updater.state.ready"
+                                label="Installa e riavvia"
+                                icon="pi pi-check-circle"
+                                severity="success"
+                                @click="updater.installNow()"
                             />
                         </div>
                     </section>
@@ -646,6 +864,17 @@ onMounted(loadTenant);
 .settings__label {
     font-size: 0.8125rem;
     font-weight: 500;
+}
+
+.settings__toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.settings__toggle-label {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    cursor: pointer;
 }
 
 :deep(.p-button:focus-visible) {

@@ -68,6 +68,12 @@ const form = reactive<FormState>({
 
 const errors = reactive<Partial<Record<keyof FormState, string>>>({});
 const submitError = ref<string | null>(null);
+// Notice (info/warn) separato dall'errore di submit: usato per
+// comunicare "sessione scaduta" o "disconnesso" al rientro nella
+// LoginView. Visivamente è ambra (non rosso) per non sembrare un
+// fallimento del form.
+interface LoginNotice { kind: 'info' | 'warn'; icon: string; text: string }
+const notice = ref<LoginNotice | null>(null);
 const submitting = ref(false);
 
 // Banner mostrato dopo un setup riuscito: invita l'utente a salvare
@@ -112,12 +118,33 @@ const submitIcon = computed(() => {
 });
 
 onMounted(() => {
-    if (!auth.isAuthenticated && !auth.session.server_url) {
+    // Decidi la modalità iniziale in base allo stato della sessione:
+    //   - Nessun cert paired → PAIR (primo avvio o post-wipe).
+    //   - Cert presente (con o senza tokens validi) → LOGIN (l'utente
+    //     deve solo riautenticarsi, niente nuovo pairing).
+    if (!auth.session.has_cert) {
         mode.value = 'pair';
-    } else if (auth.session.email) {
-        form.email = auth.session.email;
+    } else {
+        mode.value = 'login';
     }
+    if (auth.session.email) form.email = auth.session.email;
     if (auth.serverURL) form.serverUrl = auth.serverURL;
+
+    // Banner per chi arriva qui dopo che il refresh JWT ha fallito
+    // (token scaduto, refresh revocato, ecc).
+    if (route.query.expired === '1') {
+        notice.value = {
+            kind: 'warn',
+            icon: 'pi pi-clock',
+            text: 'La tua sessione è scaduta. Reinserisci la password per continuare.',
+        };
+    } else if (route.query.loggedout === '1') {
+        notice.value = {
+            kind: 'info',
+            icon: 'pi pi-sign-out',
+            text: 'Disconnesso. Inserisci la password per rientrare.',
+        };
+    }
 });
 
 function clearErrors() {
@@ -197,7 +224,11 @@ async function submit() {
             const redirect = (route.query.redirect as string | undefined) || '/';
             router.push(redirect);
         } else {
-            await auth.login({ email: form.email.trim(), password: form.password });
+            await auth.login({
+                email: form.email.trim(),
+                password: form.password,
+                persist: form.remember,
+            });
             const redirect = (route.query.redirect as string | undefined) || '/';
             router.push(redirect);
         }
@@ -312,6 +343,12 @@ async function copyInvite() {
                     </div>
                     <Button text rounded severity="secondary" icon="pi pi-copy"
                             aria-label="Copia invite code" @click="copyInvite" />
+                </div>
+
+                <div v-if="notice" class="login__alert" :class="`login__alert--${notice.kind}`"
+                     role="status" aria-live="polite">
+                    <i :class="notice.icon" aria-hidden="true"></i>
+                    <span>{{ notice.text }}</span>
                 </div>
 
                 <div v-if="submitError" class="login__alert" role="alert" aria-live="assertive">

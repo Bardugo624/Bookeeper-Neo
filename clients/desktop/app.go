@@ -7,10 +7,15 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"time"
 
 	"desktop/internal/csr"
 	"desktop/internal/httpclient"
 	"desktop/internal/session"
+	"desktop/internal/updater"
+	"desktop/internal/version"
+
+	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // App è la radice esposta a JS via Wails bindings. Mantiene lo stato
@@ -25,6 +30,14 @@ type App struct {
 	mu     sync.RWMutex
 	id     *session.Identity
 	client *httpclient.Client
+
+	// tokensPersisted indica se l'utente ha scelto "ricordami su
+	// questo dispositivo" all'ultimo login. Se true, i tokens
+	// vengono scritti su disco (in identity.json) e sopravvivono al
+	// riavvio. Se false, vivono solo in memoria: alla chiusura della
+	// app l'utente dovrà ri-fare login (il cert resta, niente nuovo
+	// pairing).
+	tokensPersisted bool
 }
 
 // NewApp costruisce l'istanza usata da main.go.
@@ -36,6 +49,10 @@ func NewApp() *App {
 // saltare lo schermo di login.
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	// Auto-check aggiornamenti in background (non blocca l'avvio).
+	// Frontend ascolta gli eventi update:* e mostra il banner se appare.
+	go a.backgroundUpdateCheck()
+
 	id, err := session.Load()
 	if err != nil {
 		// Nessuna sessione: stato "primo avvio".
@@ -51,17 +68,108 @@ func (a *App) startup(ctx context.Context) {
 	}
 	a.id = id
 	a.client = cli
+	a.wireAuthHooks()
+}
+
+// wireAuthHooks collega il refresh JWT automatico e l'evento di
+// scadenza sessione al Wails event bus. Va chiamato OGNI volta che si
+// ricrea a.client (startup / bootstrap / login).
+func (a *App) wireAuthHooks() {
+	if a.client == nil {
+		return
+	}
+	a.client.OnRefresh = a.refreshTokens
+	a.client.OnExpired = a.handleSessionExpired
+}
+
+// refreshTokens chiama POST /api/v1/auth/refresh col refresh token
+// corrente, persiste i nuovi tokens su disco (se la sessione era stata
+// scelta come "ricordami" — cioè i tokens erano già su disco) e li
+// ritorna al chiamante.
+func (a *App) refreshTokens() (string, string, error) {
+	a.mu.RLock()
+	cli := a.client
+	refresh := ""
+	if a.id != nil {
+		refresh = a.id.RefreshToken
+	}
+	a.mu.RUnlock()
+	if cli == nil || refresh == "" {
+		return "", "", errors.New("no refresh token")
+	}
+	var resp tokenResp
+	if err := cli.Do("POST", "/api/v1/auth/refresh",
+		map[string]string{"refresh_token": refresh}, &resp); err != nil {
+		return "", "", err
+	}
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if a.id == nil {
+		return resp.AccessToken, resp.RefreshToken, nil
+	}
+	a.id.AccessToken = resp.AccessToken
+	a.id.RefreshToken = resp.RefreshToken
+	// Persisti solo se i tokens erano già su disco (modalità
+	// "ricordami"). Se erano in memoria soltanto, li teniamo lì.
+	if a.tokensPersisted {
+		_ = session.Save(a.id)
+	}
+	return resp.AccessToken, resp.RefreshToken, nil
+}
+
+// handleSessionExpired è invocato dal http client quando il refresh
+// fallisce. Pulisce i tokens (in memoria + su disco) ed emette un
+// evento Wails che la UI ascolta per rimandare l'utente alla LoginView.
+func (a *App) handleSessionExpired() {
+	a.mu.Lock()
+	if a.id != nil {
+		a.id.AccessToken = ""
+		a.id.RefreshToken = ""
+		if a.tokensPersisted {
+			_ = session.Save(a.id)
+		}
+	}
+	if a.client != nil {
+		a.client.SetTokens("", "")
+	}
+	a.mu.Unlock()
+	if a.ctx != nil {
+		wailsruntime.EventsEmit(a.ctx, "session:expired")
+	}
 }
 
 // SessionInfo è il payload restituito a JS per descrivere lo stato di
-// sessione (no segreti).
+// sessione (no segreti). HasSession=true SOLO se ci sono tokens validi
+// in memoria: il cert paired da solo non basta, l'utente deve aver
+// fatto login (o l'identità deve essere persistente "ricordami").
 type SessionInfo struct {
 	HasSession bool   `json:"has_session"`
-	ServerURL  string `json:"server_url"`
-	Email      string `json:"email"`
-	UserID     string `json:"user_id"`
-	TenantID   string `json:"tenant_id"`
-	DeviceID   string `json:"device_id"`
+	// HasCert indica che il dispositivo è paired (cert+chiave su disco)
+	// anche se i tokens sono mancanti/scaduti. Permette alla LoginView
+	// di mostrare la modalità "login" invece di "pair".
+	HasCert   bool   `json:"has_cert"`
+	ServerURL string `json:"server_url"`
+	Email     string `json:"email"`
+	UserID    string `json:"user_id"`
+	TenantID  string `json:"tenant_id"`
+	DeviceID  string `json:"device_id"`
+}
+
+// AppInfo è la metadata di build esposta alla UI per il pannello "Info".
+type AppInfo struct {
+	Version   string `json:"version"`    // semver, es. "0.1.0" o "dev"
+	BuildDate string `json:"build_date"` // ISO-8601, vuoto in dev
+	Channel   string `json:"channel"`    // "stable" / "beta"
+}
+
+// GetAppInfo restituisce versione/data/channel dell'app desktop.
+// Usato dal tab "Info" e dall'updater.
+func (a *App) GetAppInfo() AppInfo {
+	return AppInfo{
+		Version:   version.Version,
+		BuildDate: version.BuildDate,
+		Channel:   version.Channel,
+	}
 }
 
 // GetSession restituisce le info correnti (vuote se nessuna sessione).
@@ -71,8 +179,10 @@ func (a *App) GetSession() SessionInfo {
 	if a.id == nil {
 		return SessionInfo{}
 	}
+	hasTokens := a.id.AccessToken != "" && a.id.RefreshToken != ""
 	return SessionInfo{
-		HasSession: true,
+		HasSession: hasTokens,
+		HasCert:    a.id.CertPEM != "" && a.id.KeyPEM != "",
 		ServerURL:  a.id.ServerURL,
 		Email:      a.id.Email,
 		UserID:     a.id.UserID,
@@ -156,7 +266,9 @@ func (a *App) BootstrapDesktop(req BootstrapDesktopReq) (SessionInfo, error) {
 	a.mu.Lock()
 	a.id = id
 	a.client = cli
+	a.tokensPersisted = true // il bootstrap salva sempre tutto
 	a.mu.Unlock()
+	a.wireAuthHooks()
 	// Best-effort: fetch /me per popolare userId/tenantId; ignora errori.
 	_ = a.refreshWhoAmI()
 	return a.GetSession(), nil
@@ -249,9 +361,16 @@ func (a *App) ReloadTrust(req ReloadTrustReq) error {
 }
 
 // LoginReq è il payload del login mTLS (presuppone HasSession()).
+//
+// Persist controlla se i tokens vanno salvati su disco ("ricordami su
+// questo dispositivo"). Quando false, i tokens vivono solo in memoria
+// per la sessione corrente; alla chiusura dell'app vengono persi e
+// l'utente dovrà ri-fare login alla prossima apertura (il cert resta
+// comunque, quindi niente nuovo pairing).
 type LoginReq struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+	Persist  bool   `json:"persist"`
 }
 
 type tokenResp struct {
@@ -277,7 +396,16 @@ func (a *App) Login(req LoginReq) (SessionInfo, error) {
 	a.id.AccessToken = resp.AccessToken
 	a.id.RefreshToken = resp.RefreshToken
 	a.client.SetTokens(resp.AccessToken, resp.RefreshToken)
+	a.tokensPersisted = req.Persist
 	idCopy := *a.id
+	if !req.Persist {
+		// Modalità ephemeral: scrivi su disco UNA versione senza
+		// tokens, così se l'utente chiude e riapre l'app i tokens
+		// sono persi e dovrà ri-fare login. Il cert (che fa il pairing)
+		// resta comunque — il login è quindi un'operazione veloce.
+		idCopy.AccessToken = ""
+		idCopy.RefreshToken = ""
+	}
 	a.mu.Unlock()
 	if err := session.Save(&idCopy); err != nil {
 		return SessionInfo{}, err
@@ -393,3 +521,126 @@ func bootURLOr(boot, server string) string {
 	}
 	return server
 }
+
+// ============================================================================
+// Updater (vedi internal/updater + plan in /memories/session/installer-autoupdate-plan.md)
+// ============================================================================
+
+// updateManifestURL e' override-abile via -ldflags se serve cambiare CDN.
+//
+//	go build -ldflags "-X main.updateManifestURL=https://.../latest.json"
+var updateManifestURL = "https://pub-0df1da0d1687437385f2c20390176493.r2.dev/desktop/stable/latest.json"
+
+// UpdateInfo e' il payload Wails-friendly esposto al frontend.
+// Tutti i campi sono "snake_case" per coerenza con SessionInfo.
+type UpdateInfo struct {
+	Available    bool   `json:"available"`
+	Current      string `json:"current"`       // versione installata
+	Latest       string `json:"latest"`        // versione del manifest
+	ReleaseDate  string `json:"release_date"`  // ISO-8601
+	NotesMd      string `json:"notes_md"`      // changelog markdown
+	SizeBytes    int64  `json:"size_bytes"`
+	InstallerURL string `json:"installer_url"` // utile per debug / "scarica manualmente"
+}
+
+// pendingInstaller tiene il path del .exe gia' scaricato e verificato,
+// pronto per essere lanciato. Pulito alla chiusura dell'app.
+var pendingInstaller string
+
+// backgroundUpdateCheck e' lanciato come goroutine in startup. Aspetta
+// qualche secondo (così la UI ha modo di renderizzare la prima vista),
+// poi interroga il manifest. Se trova una versione piu' recente emette
+// "update:available" — il frontend mostra il banner.
+//
+// Best-effort silenzioso: errori di rete vengono ignorati (no toast).
+func (a *App) backgroundUpdateCheck() {
+	// Skip in dev: il manifest punta a una versione che non esiste
+	// ancora e mostrare un banner "aggiornamento disponibile" durante
+	// `wails dev` e' rumore.
+	if version.Version == "dev" {
+		return
+	}
+	time.Sleep(3 * time.Second)
+	info, err := a.CheckForUpdate()
+	if err != nil || !info.Available || a.ctx == nil {
+		return
+	}
+	wailsruntime.EventsEmit(a.ctx, "update:available", info)
+}
+
+// CheckForUpdate interroga il manifest pubblico e restituisce le info
+// (Available=false se siamo gia' alla versione corrente o piu' nuovi).
+func (a *App) CheckForUpdate() (UpdateInfo, error) {
+	u := updater.New(updateManifestURL)
+	rel, err := u.CheckLatest()
+	if err != nil {
+		return UpdateInfo{}, err
+	}
+	return UpdateInfo{
+		Available:    updater.IsNewer(version.Version, rel.Version),
+		Current:      version.Version,
+		Latest:       rel.Version,
+		ReleaseDate:  rel.ReleaseDate,
+		NotesMd:      rel.NotesMd,
+		SizeBytes:    rel.SizeBytes,
+		InstallerURL: rel.InstallerURL,
+	}, nil
+}
+
+// DownloadUpdate scarica l'installer in %TEMP%, verifica SHA-256 e
+// emette eventi "update:progress" (downloaded/total) durante il
+// trasferimento. Ritorna errore se la verifica fallisce.
+func (a *App) DownloadUpdate() error {
+	u := updater.New(updateManifestURL)
+	rel, err := u.CheckLatest()
+	if err != nil {
+		return err
+	}
+	if !updater.IsNewer(version.Version, rel.Version) {
+		return errors.New("updater: nessun aggiornamento da scaricare")
+	}
+	path, err := u.Download(rel, func(downloaded, total int64) {
+		if a.ctx == nil {
+			return
+		}
+		wailsruntime.EventsEmit(a.ctx, "update:progress", map[string]int64{
+			"downloaded": downloaded,
+			"total":      total,
+		})
+	})
+	if err != nil {
+		if a.ctx != nil {
+			wailsruntime.EventsEmit(a.ctx, "update:error", err.Error())
+		}
+		return err
+	}
+	pendingInstaller = path
+	if a.ctx != nil {
+		wailsruntime.EventsEmit(a.ctx, "update:downloaded", map[string]string{
+			"version": rel.Version,
+			"path":    path,
+		})
+	}
+	return nil
+}
+
+// InstallUpdate lancia l'installer scaricato (modalita' silent+update)
+// e termina il processo cosi' Windows puo' sostituire il binario.
+func (a *App) InstallUpdate() error {
+	if pendingInstaller == "" {
+		return errors.New("updater: nessun installer pronto, scaricare prima l'aggiornamento")
+	}
+	if err := updater.LaunchInstaller(pendingInstaller); err != nil {
+		return err
+	}
+	// Diamo all'installer un secondo per partire prima di chiudere
+	// la UI; poi exit. Wails non ha un Quit() pulito accessibile da
+	// qui senza ctx, quindi os.Exit basta (l'installer e' gia'
+	// disaccoppiato).
+	go func() {
+		// Lasciamo emettere l'evento prima dell'exit.
+		os.Exit(0)
+	}()
+	return nil
+}
+

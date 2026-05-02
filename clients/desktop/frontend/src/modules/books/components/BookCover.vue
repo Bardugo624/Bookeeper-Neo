@@ -1,14 +1,27 @@
 <script setup lang="ts">
 /**
- * BookCover — placeholder editoriale per la copertina di un libro.
- * Quando `path` non è disponibile, mostra il titolo stilizzato su un
- * gradiente derivato dall'iniziale (deterministico, no flicker).
+ * BookCover — copertina del libro con cache locale (IndexedDB).
+ *
+ * Sorgente immagine, in priorita':
+ *   1. `path` esplicito (se mai presente lato server)
+ *   2. cache locale → fetch da Google Books → cache locale
+ *      (saltata se l'utente disattiva l'opzione in Impostazioni)
+ *   3. placeholder gradient + iniziale (deterministico, no flicker).
+ *
+ * Nessun byte di copertina passa dal server: il fetch e' diretto verso
+ * `googleapis.com/books/v1/volumes` e l'immagine e' persistita solo in
+ * IndexedDB locale (vedi `lib/coverCache.ts`).
  */
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
+import { storeToRefs } from 'pinia';
+import { getCover } from '@/lib/coverCache';
+import { useCoverPrefsStore } from '@/stores/coverPrefs';
 
 const props = defineProps<{
   title: string;
   path?: string | null;
+  /** ISBN-13 preferito; ISBN-10 in fallback. Usato per Google Books. */
+  isbn?: string | null;
   size?: 'sm' | 'md' | 'lg';
 }>();
 
@@ -28,17 +41,54 @@ const gradient = computed(
     hsl(${hue.value}deg 32% 38%) 0%,
     hsl(${(hue.value + 24) % 360}deg 28% 22%) 100%)`,
 );
+
+const prefs = useCoverPrefsStore();
+const { enabled: coversEnabled } = storeToRefs(prefs);
+
+// blob: URL risolto dalla cache; null finche' non disponibile.
+const cachedUrl = ref<string | null>(null);
+// true quando l'<img> fallisce a caricare l'URL (URL stale, rete, CSP):
+// in quel caso ri-mostriamo il gradiente invece dell'icona "broken image".
+const loadFailed = ref(false);
+const effectivePath = computed(() => {
+  if (loadFailed.value) return null;
+  return props.path || cachedUrl.value;
+});
+
+async function resolveCover() {
+  // Reset per evitare di mostrare la copertina del libro precedente
+  cachedUrl.value = null;
+  loadFailed.value = false;
+  if (props.path) return;
+  if (!coversEnabled.value) return;
+  const isbn = props.isbn;
+  if (!isbn) return;
+  cachedUrl.value = await getCover(isbn);
+}
+
+watch(
+  () => [props.isbn, props.path, coversEnabled.value] as const,
+  () => void resolveCover(),
+  { immediate: true },
+);
 </script>
 
 <template>
   <div
     class="cover"
     :class="`cover--${size ?? 'md'}`"
-    :style="path ? undefined : { background: gradient }"
+    :style="effectivePath ? undefined : { background: gradient }"
     role="img"
     :aria-label="`Copertina di ${title}`"
   >
-    <img v-if="path" :src="path" :alt="`Copertina di ${title}`" />
+    <img
+      v-if="effectivePath"
+      :src="effectivePath"
+      :alt="`Copertina di ${title}`"
+      loading="lazy"
+      referrerpolicy="no-referrer"
+      @error="loadFailed = true"
+    />
     <span v-else class="cover__initial" aria-hidden="true">{{ initial }}</span>
   </div>
 </template>

@@ -39,6 +39,12 @@ interface RequestOpts {
     body?: unknown;
     /** When true (default), include Authorization + fingerprint headers. */
     auth?: boolean;
+    /**
+     * Bypassa la cache del service worker (SWR) per la chiamata corrente:
+     * aggiunge l'header `X-Force-Refresh: 1` che il SW intercetta e
+     * inoltra direttamente alla rete (NetworkOnly).
+     */
+    forceRefresh?: boolean;
     /** Internal: prevent infinite refresh loops. */
     _retried?: boolean;
 }
@@ -50,6 +56,7 @@ async function request<T>(
 ): Promise<T> {
     const auth = init.auth !== false;
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (init.forceRefresh) headers['X-Force-Refresh'] = '1';
 
     const creds = auth ? await keystore.load() : undefined;
     if (auth) {
@@ -112,8 +119,8 @@ async function tryRefresh(refreshToken: string, fingerprint: string): Promise<bo
 }
 
 export const api = {
-    get: <T>(path: string, opts?: { auth?: boolean }) =>
-        request<T>('GET', path, { auth: opts?.auth }),
+    get: <T>(path: string, opts?: { auth?: boolean; forceRefresh?: boolean }) =>
+        request<T>('GET', path, { auth: opts?.auth, forceRefresh: opts?.forceRefresh }),
     post: <T>(path: string, body?: unknown, opts?: { auth?: boolean }) =>
         request<T>('POST', path, { body, auth: opts?.auth }),
     patch: <T>(path: string, body?: unknown, opts?: { auth?: boolean }) =>

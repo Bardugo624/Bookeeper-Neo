@@ -12,7 +12,7 @@
  * Selezione: e' significativa solo in vista tabella; quando l'utente
  * commuta a grid resettiamo per evitare azioni "fantasma".
  */
-import { onMounted, ref, watch, computed } from 'vue';
+import { onBeforeUnmount, onMounted, ref, watch, computed } from 'vue';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import InputText from 'primevue/inputtext';
@@ -124,7 +124,30 @@ function onPlacementWarning(message: string): void {
 
 onMounted(() => {
   if (store.items.length === 0) void store.fetchList();
+  document.addEventListener('visibilitychange', onVisibility);
+  window.addEventListener('focus', onWindowFocus);
 });
+
+onBeforeUnmount(() => {
+  document.removeEventListener('visibilitychange', onVisibility);
+  window.removeEventListener('focus', onWindowFocus);
+});
+
+/**
+ * Sincronizzazione lazy: quando la finestra torna visibile/in focus,
+ * rifacciamo il fetch della lista per riflettere modifiche fatte da
+ * un altro client (mobile o secondo desktop) senza richiedere F5.
+ * Skippiamo se gia' in caricamento per evitare doppioni.
+ */
+function onVisibility(): void {
+  if (document.visibilityState === 'visible' && !store.loadingList) {
+    void store.fetchList();
+  }
+}
+
+function onWindowFocus(): void {
+  if (!store.loadingList) void store.fetchList();
+}
 </script>
 
 <template>

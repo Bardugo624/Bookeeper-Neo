@@ -3,6 +3,7 @@ package api
 import (
 	"database/sql"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -380,6 +381,7 @@ func (h *BookHandlers) Update(w http.ResponseWriter, r *http.Request) {
 	if _, err := tx.ExecContext(r.Context(),
 		`DELETE FROM books_fts WHERE rowid = (SELECT rowid FROM books WHERE id = ?)`,
 		bookID); err != nil {
+		slog.Warn("book.update: fts delete failed", "err", err, "book", bookID)
 		writeErr(w, http.StatusInternalServerError, "fts cleanup failed")
 		return
 	}
@@ -423,6 +425,7 @@ func (h *BookHandlers) Delete(w http.ResponseWriter, r *http.Request) {
 	if _, err := tx.ExecContext(r.Context(),
 		`DELETE FROM books_fts WHERE rowid = (SELECT rowid FROM books WHERE id = ? AND tenant_id = ?)`,
 		bookID, id.TenantID); err != nil {
+		slog.Warn("book.delete: fts delete failed", "err", err, "book", bookID)
 		writeErr(w, http.StatusInternalServerError, "fts cleanup failed")
 		return
 	}
@@ -503,6 +506,7 @@ func (h *BookHandlers) BatchDelete(w http.ResponseWriter, r *http.Request) {
 		`DELETE FROM books_fts WHERE rowid IN (
 			SELECT rowid FROM books WHERE id IN (`+placeholders+`) AND tenant_id = ?
 		)`, args...); err != nil {
+		slog.Warn("book.batch.delete: fts delete failed", "err", err, "count", len(req.IDs))
 		writeErr(w, http.StatusInternalServerError, "fts cleanup failed")
 		return
 	}

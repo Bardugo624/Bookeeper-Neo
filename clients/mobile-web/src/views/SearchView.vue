@@ -16,7 +16,7 @@
  * Detail view is deferred (Phase E); tap is a no-op for now beyond
  * highlighting the row.
  */
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import InputText from 'primevue/inputtext';
 import ProgressSpinner from 'primevue/progressspinner';
 import Message from 'primevue/message';
@@ -48,14 +48,17 @@ const error = ref<string | null>(null);
 let debounceId: number | undefined;
 let inflight = 0;
 
-async function fetchBooks(q: string): Promise<void> {
+async function fetchBooks(q: string, opts?: { forceRefresh?: boolean }): Promise<void> {
     const seq = ++inflight;
     loading.value = true;
     error.value = null;
     try {
         const params = new URLSearchParams({ limit: '50' });
         if (q) params.set('q', q);
-        const data = await api.get<{ books: Book[] }>(`/books?${params.toString()}`);
+        const data = await api.get<{ books: Book[] }>(
+            `/books?${params.toString()}`,
+            { forceRefresh: opts?.forceRefresh },
+        );
         if (seq !== inflight) return; // stale response
         books.value = data.books ?? [];
     } catch (err) {
@@ -73,6 +76,28 @@ watch(query, (q) => {
 });
 
 onMounted(() => fetchBooks(''));
+
+/**
+ * Sincronizzazione lazy: quando l'utente torna sulla scheda, rifacciamo
+ * il fetch per riflettere modifiche (cancellazioni, aggiunte) fatte da
+ * un altro client (desktop). Saltiamo se la query e' attiva: in quel
+ * caso il debounce sulla ricerca prendera' carico al prossimo input.
+ */
+function onVisibility(): void {
+    if (document.visibilityState === 'visible' && !loading.value) {
+        void fetchBooks(query.value.trim(), { forceRefresh: true });
+    }
+}
+
+onMounted(() => {
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('focus', onVisibility);
+});
+
+onBeforeUnmount(() => {
+    document.removeEventListener('visibilitychange', onVisibility);
+    window.removeEventListener('focus', onVisibility);
+});
 
 function coverUrl(b: Book): string | null {
     const isbn = b.isbn_13 || b.isbn_10;
@@ -290,6 +315,11 @@ function authorsLine(b: Book): string {
     cursor: pointer;
     min-height: 88px;
     transition: background 120ms ease;
+    /* Senza un color esplicito sul <button>, alcuni browser mobile (in
+       particolare WebView Android) ereditano da `ButtonText` di sistema
+       e i <p> figli risultano invisibili sul tema chiaro/scuro. */
+    color: var(--p-text-color);
+    font: inherit;
 }
 
 .card:active {
@@ -348,7 +378,7 @@ function authorsLine(b: Book): string {
     margin: 0;
     font-size: 0.95rem;
     font-weight: 600;
-    color: var(--p-text-color);
+    color: inherit;
     line-height: 1.3;
     overflow: hidden;
     display: -webkit-box;
@@ -370,7 +400,7 @@ function authorsLine(b: Book): string {
 .card__authors {
     margin: 0.125rem 0 0;
     font-size: 0.85rem;
-    color: var(--p-text-color);
+    color: inherit;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

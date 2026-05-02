@@ -27,8 +27,13 @@ export interface PairingTokenStatus {
 export interface DeviceSummary {
     id: string;
     name: string;
-    paired_at: string;
-    last_seen_at?: string;
+    kind: string;
+    user_id: string;
+    cert_fingerprint: string;
+    /** Unix timestamp in **seconds** (server returns int64). */
+    paired_at: number;
+    /** Unix timestamp in **seconds**, omitted if the device never came online. */
+    last_seen?: number;
     revoked: boolean;
 }
 

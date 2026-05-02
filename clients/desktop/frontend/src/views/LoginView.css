@@ -146,6 +146,20 @@
     border: 1px solid color-mix(in oklab, var(--p-red-500, #d04a4a) 30%, transparent);
 }
 
+/* Variante "warn" — sessione scaduta: ambra, non rossa, non sembra un fallimento. */
+.login__alert--warn {
+    background: color-mix(in oklab, var(--p-amber-500, #f59e0b) 14%, transparent);
+    color: var(--p-amber-800, #92400e);
+    border-color: color-mix(in oklab, var(--p-amber-500, #f59e0b) 35%, transparent);
+}
+
+/* Variante "info" — logout volontario: tono neutro/primary. */
+.login__alert--info {
+    background: color-mix(in oklab, var(--p-primary-500) 10%, transparent);
+    color: var(--p-primary-700);
+    border-color: color-mix(in oklab, var(--p-primary-500) 28%, transparent);
+}
+
 .login__row {
     display: flex;
     align-items: center;

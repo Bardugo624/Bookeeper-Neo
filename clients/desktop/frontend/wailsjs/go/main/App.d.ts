@@ -6,7 +6,15 @@ export function ApiRequest(arg1:string,arg2:string,arg3:string):Promise<string>;
 
 export function BootstrapDesktop(arg1:main.BootstrapDesktopReq):Promise<main.SessionInfo>;
 
+export function CheckForUpdate():Promise<main.UpdateInfo>;
+
+export function DownloadUpdate():Promise<void>;
+
+export function GetAppInfo():Promise<main.AppInfo>;
+
 export function GetSession():Promise<main.SessionInfo>;
+
+export function InstallUpdate():Promise<void>;
 
 export function Login(arg1:main.LoginReq):Promise<main.SessionInfo>;
 

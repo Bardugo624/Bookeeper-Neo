@@ -38,6 +38,13 @@ export interface BootstrapInput {
 export interface LoginInput {
   email: string
   password: string
+  /**
+   * Quando true (default), i tokens JWT vengono persistiti su disco e
+   * sopravvivono al riavvio dell'app ("ricordami su questo dispositivo").
+   * Quando false, vivono solo in memoria: alla chiusura l'utente dovrà
+   * ri-fare login (il cert resta, niente nuovo pairing).
+   */
+  persist?: boolean
 }
 
 export interface SetupTenantInput {
@@ -90,7 +97,11 @@ export const keystore = {
 
   /** Login mTLS: richiede una sessione preesistente (cert già paired). */
   login: (input: LoginInput): Promise<SessionInfo> =>
-    Login(new main.LoginReq({ email: input.email, password: input.password })),
+    Login(new main.LoginReq({
+      email: input.email,
+      password: input.password,
+      persist: input.persist ?? true,
+    })),
 
   /** Logout best-effort: tiene il cert, butta i token. */
   logout: (): Promise<void> => Logout(),

@@ -13,15 +13,34 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"desktop/internal/session"
 )
 
-// Client wrappa http.Client + base URL + reference all'identità per refresh.
+// Client wrappa http.Client + base URL + reference all'identita per refresh.
 type Client struct {
 	id      *session.Identity
 	httpCli *http.Client
+
+	// OnRefresh, se non nil, viene invocato quando una chiamata
+	// autenticata riceve 401. Deve eseguire il flusso di refresh JWT
+	// (POST /api/v1/auth/refresh) usando il refresh token corrente,
+	// persistere i nuovi tokens su disco e ritornarli. Se ritorna
+	// errore, la chiamata originale fallisce con APIError 401 e viene
+	// invocato OnExpired (se settato).
+	OnRefresh func() (access string, refresh string, err error)
+
+	// OnExpired viene invocato quando il refresh fallisce in modo
+	// terminale (refresh token scaduto/non valido). Tipicamente la app
+	// ne approfitta per emettere un evento Wails alla UI cosi' l'utente
+	// venga rimandato alla LoginView con un banner.
+	OnExpired func()
+
+	// refreshing serializza il refresh: se due chiamate concorrenti
+	// vedono 401, solo una esegue il refresh e l'altra aspetta.
+	refreshing sync.Mutex
 }
 
 // New costruisce un client mTLS dal session.Identity dato. Il cliente è
@@ -86,21 +105,32 @@ func (e *APIError) Error() string {
 //   - Content-Type: application/json
 //   - Accept: application/json
 func (c *Client) Do(method, path string, body any, out any) error {
+	return c.do(method, path, body, out, false)
+}
+
+func (c *Client) do(method, path string, body any, out any, retried bool) error {
 	url := strings.TrimRight(c.id.ServerURL, "/") + path
-	var rdr io.Reader
+	// Serializziamo il body una volta sola: se il primo tentativo
+	// torna 401 e dobbiamo ripetere dopo un refresh, riusiamo gli
+	// stessi bytes (non possiamo re-leggere un io.Reader esaurito).
+	var bodyBytes []byte
 	if body != nil {
 		b, err := json.Marshal(body)
 		if err != nil {
 			return fmt.Errorf("marshal body: %w", err)
 		}
-		rdr = bytes.NewReader(b)
+		bodyBytes = b
+	}
+	var rdr io.Reader
+	if bodyBytes != nil {
+		rdr = bytes.NewReader(bodyBytes)
 	}
 	req, err := http.NewRequest(method, url, rdr)
 	if err != nil {
 		return err
 	}
 	req.Header.Set("Accept", "application/json")
-	if body != nil {
+	if bodyBytes != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
 	if c.id.AccessToken != "" {
@@ -113,6 +143,20 @@ func (c *Client) Do(method, path string, body any, out any) error {
 	defer resp.Body.Close()
 	respBody, _ := io.ReadAll(resp.Body)
 
+	// 401 su una chiamata autenticata e non ancora ritentata: prova
+	// un refresh JWT (mTLS, niente Bearer richiesto) e ripeti UNA volta.
+	if resp.StatusCode == http.StatusUnauthorized && !retried &&
+		c.OnRefresh != nil && path != "/api/v1/auth/refresh" {
+		if c.tryRefresh() {
+			return c.do(method, path, body, out, true)
+		}
+		// Refresh fallito: notifica la UI (la app emettera' un evento
+		// session:expired su Wails). Restituiamo il 401 originale.
+		if c.OnExpired != nil {
+			c.OnExpired()
+		}
+	}
+
 	if resp.StatusCode >= 400 {
 		return &APIError{Status: resp.StatusCode, Body: string(respBody)}
 	}
@@ -122,6 +166,24 @@ func (c *Client) Do(method, path string, body any, out any) error {
 		}
 	}
 	return nil
+}
+
+// tryRefresh esegue al massimo un refresh per volta (mutex). Le chiamate
+// concorrenti che trovano gia' un refresh in corso aspettano e poi
+// procedono con i tokens aggiornati.
+func (c *Client) tryRefresh() bool {
+	c.refreshing.Lock()
+	defer c.refreshing.Unlock()
+	if c.OnRefresh == nil {
+		return false
+	}
+	access, refresh, err := c.OnRefresh()
+	if err != nil {
+		return false
+	}
+	c.id.AccessToken = access
+	c.id.RefreshToken = refresh
+	return true
 }
 
 // Plain è un client HTTP senza mTLS (usato per il bootstrap iniziale, che

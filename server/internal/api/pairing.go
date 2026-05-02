@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"errors"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -103,7 +104,12 @@ func (h *PairingHandlers) BootstrapDesktop(w http.ResponseWriter, r *http.Reques
 	}
 	csr, err := ca.ParseCSR([]byte(req.CSRPem))
 	if err != nil {
-		writeErr(w, http.StatusBadRequest, "invalid csr")
+		slog.Warn("bootstrap-desktop: csr parse failed",
+			"err", err,
+			"csr_len", len(req.CSRPem),
+			"csr_preview", csrPreview(req.CSRPem),
+		)
+		writeErr(w, http.StatusBadRequest, "invalid csr: "+err.Error())
 		return
 	}
 	deviceID := uuid.NewString()
@@ -215,13 +221,19 @@ func (h *PairingHandlers) Redeem(w http.ResponseWriter, r *http.Request) {
 
 	csr, err := ca.ParseCSR([]byte(req.CSRPem))
 	if err != nil {
-		writeErr(w, http.StatusBadRequest, "invalid csr")
+		slog.Warn("redeem: csr parse failed",
+			"err", err,
+			"csr_len", len(req.CSRPem),
+			"csr_preview", csrPreview(req.CSRPem),
+		)
+		writeErr(w, http.StatusBadRequest, "invalid csr: "+err.Error())
 		return
 	}
 	deviceID := uuid.NewString()
 	issued, err := caInst.IssueClient(csr, tenantID, userID, deviceID)
 	if err != nil {
-		writeErr(w, http.StatusInternalServerError, "ca issue failed")
+		slog.Warn("redeem: ca issue failed", "err", err, "tenant", tenantID)
+		writeErr(w, http.StatusInternalServerError, "ca issue failed: "+err.Error())
 		return
 	}
 
@@ -269,6 +281,16 @@ func (h *PairingHandlers) Redeem(w http.ResponseWriter, r *http.Request) {
 		AccessToken:  access,
 		RefreshToken: refresh,
 	})
+}
+
+// csrPreview returns a short, log-safe excerpt of the submitted CSR PEM.
+// Useful to triage parser failures without leaking the full body in logs.
+func csrPreview(s string) string {
+	const max = 1200
+	if len(s) <= max {
+		return s
+	}
+	return s[:max] + "..."
 }
 
 // NewPairingToken creates and persists a fresh one-shot pairing token,

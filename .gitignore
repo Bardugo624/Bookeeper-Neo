@@ -11,6 +11,7 @@ clients/mobile-web/dev-dist/
 
 # Local env (NEVER commit secrets)
 deploy/.env
+deploy/.env.publish
 .env
 .env.local
 

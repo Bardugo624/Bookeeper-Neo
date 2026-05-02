@@ -8,6 +8,13 @@
   "frontend:dev:serverUrl": "auto",
   "author": {
     "name": "Bardu624",
-    "email": "lorenzo.campari.mc@gmail.com"
+    "email": "lorenzo.campari@protonmail.com"
+  },
+  "info": {
+    "companyName": "Lorenzo Campari",
+    "productName": "Bookeeper",
+    "productVersion": "0.1.0",
+    "copyright": "Copyright (c) 2026 Lorenzo Campari. All rights reserved.",
+    "comments": "Bookeeper — la tua biblioteca personale"
   }
 }

@@ -33,6 +33,11 @@ Unicode true
 ## Include the wails tools
 ####
 !include "wails_tools.nsh"
+!include "FileFunc.nsh"   # ${GetParameters}, ${GetOptions}
+!include "LogicLib.nsh"   # ${If}, ${EndIf}
+
+# /UPDATE flag (set by .onInit) — usato da WelcomePre/DirectoryPre
+Var IsUpdate
 
 # The version information for this two must consist of 4 parts
 VIProductVersion "${INFO_PRODUCTVERSION}.0"
@@ -52,19 +57,37 @@ ManifestDPIAware true
 
 !define MUI_ICON "..\icon.ico"
 !define MUI_UNICON "..\icon.ico"
-# !define MUI_WELCOMEFINISHPAGE_BITMAP "resources\leftimage.bmp" #Include this to add a bitmap on the left side of the Welcome Page. Must be a size of 164x314
+# Brand bitmaps generati da deploy/scripts/gen-installer-bitmaps.ps1
+# Sage gradient (#4d8369 -> #386650) + cream wordmark.
+!define MUI_HEADERIMAGE
+!define MUI_HEADERIMAGE_BITMAP "header.bmp"        # 150x57, top-right durante install
+!define MUI_HEADERIMAGE_UNBITMAP "header.bmp"
+!define MUI_WELCOMEFINISHPAGE_BITMAP "wizard.bmp"  # 164x314, sinistra welcome/finish
+!define MUI_UNWELCOMEFINISHPAGE_BITMAP "wizard.bmp"
 !define MUI_FINISHPAGE_NOAUTOCLOSE # Wait on the INSTFILES page so the user can take a look into the details of the installation steps
 !define MUI_ABORTWARNING # This will warn the user if they exit from the installer.
 
-!insertmacro MUI_PAGE_WELCOME # Welcome to the installer page.
-# !insertmacro MUI_PAGE_LICENSE "resources\eula.txt" # Adds a EULA page to the installer
-!insertmacro MUI_PAGE_DIRECTORY # In which folder install page.
-!insertmacro MUI_PAGE_INSTFILES # Installing page.
-!insertmacro MUI_PAGE_FINISH # Finished installation page.
+# Custom strings italiane in coda al setup
+!define MUI_WELCOMEPAGE_TITLE "Benvenuto in Bookeeper"
+!define MUI_WELCOMEPAGE_TEXT "Stai per installare Bookeeper, la tua biblioteca personale.$\r$\n$\r$\nFai clic su Avanti per continuare."
+!define MUI_FINISHPAGE_TITLE "Installazione completata"
+!define MUI_FINISHPAGE_TEXT "Bookeeper e' installato. Puoi avviarlo dal menu Start o dal collegamento sul desktop."
+!define MUI_FINISHPAGE_RUN "$INSTDIR\${PRODUCT_EXECUTABLE}"
+!define MUI_FINISHPAGE_RUN_TEXT "Avvia Bookeeper ora"
+
+# Pagine: in modalita' /UPDATE saltiamo welcome e directory (gia' scelta dalla
+# install precedente). Lo skip e' implementato nelle PRE function piu' sotto.
+!define MUI_PAGE_CUSTOMFUNCTION_PRE WelcomePre
+!insertmacro MUI_PAGE_WELCOME
+!define MUI_PAGE_CUSTOMFUNCTION_PRE DirectoryPre
+!insertmacro MUI_PAGE_DIRECTORY
+!insertmacro MUI_PAGE_INSTFILES
+!insertmacro MUI_PAGE_FINISH
 
 !insertmacro MUI_UNPAGE_INSTFILES # Uinstalling page
 
-!insertmacro MUI_LANGUAGE "English" # Set the Language of the installer
+!insertmacro MUI_LANGUAGE "Italian" # UI installer in italiano
+!insertmacro MUI_LANGUAGE "English" # Fallback per locale non-IT
 
 ## The following two statements can be used to sign the installer and the uninstaller. The path to the binaries are provided in %1
 #!uninstfinalize 'signtool --file "%1"'
@@ -77,6 +100,26 @@ ShowInstDetails show # This will always show the installation details.
 
 Function .onInit
    !insertmacro wails.checkArchitecture
+   # /UPDATE: aggiornamento da app esistente. Salta welcome/directory.
+   StrCpy $IsUpdate "0"
+   ${GetParameters} $R0
+   ClearErrors
+   ${GetOptions} $R0 "/UPDATE" $R1
+   ${IfNot} ${Errors}
+       StrCpy $IsUpdate "1"
+   ${EndIf}
+FunctionEnd
+
+Function WelcomePre
+    ${If} $IsUpdate == "1"
+        Abort   ; salta la pagina
+    ${EndIf}
+FunctionEnd
+
+Function DirectoryPre
+    ${If} $IsUpdate == "1"
+        Abort   ; usa $INSTDIR ereditato dal registry uninstall key
+    ${EndIf}
 FunctionEnd
 
 Section
