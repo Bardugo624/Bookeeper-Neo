@@ -11,6 +11,8 @@ import {
   keystore,
   type BootstrapInput,
   type LoginInput,
+  type RecoverInviteInput,
+  type RecoverInviteResult,
   type SessionInfo,
   type SetupTenantInput,
   type SetupTenantResult,
@@ -24,4 +26,6 @@ export const authEndpoints = {
   wipe: (): Promise<void> => keystore.wipe(),
   session: (): Promise<SessionInfo> => keystore.getSession(),
   whoAmI: () => keystore.whoAmI(),
+  recoverInvite: (input: RecoverInviteInput): Promise<RecoverInviteResult> =>
+    keystore.recoverInvite(input),
 }

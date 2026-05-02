@@ -160,6 +160,118 @@
     border-color: color-mix(in oklab, var(--p-primary-500) 28%, transparent);
 }
 
+/* Pannello-guida mostrato sopra ai campi del form di SETUP per
+   spiegare cosa sta facendo l'utente (cos'e' un tenant, ordine dei
+   passi, differenza fra password admin e password owner). */
+.login__guide {
+    background: color-mix(in oklab, var(--p-primary-500) 6%, transparent);
+    border: 1px solid color-mix(in oklab, var(--p-primary-500) 22%, transparent);
+    border-radius: 10px;
+    padding: 0.875rem 1rem;
+    margin-bottom: 1.25rem;
+    color: var(--p-text-color);
+}
+.login__guide-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--p-primary-700);
+    font-size: 0.9375rem;
+    margin-bottom: 0.5rem;
+}
+.login__guide-header i { font-size: 1rem; }
+.login__guide-text {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    margin: 0 0 0.625rem;
+    color: var(--p-text-color);
+}
+.login__guide-steps {
+    margin: 0 0 0.625rem;
+    padding-left: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+}
+.login__guide-steps li strong { display: block; margin-bottom: 0.1rem; }
+.login__guide-steps li span { color: var(--p-text-muted-color); }
+.login__guide-warn {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin: 0;
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: var(--p-text-muted-color);
+    padding-top: 0.5rem;
+    border-top: 1px dashed color-mix(in oklab, var(--p-primary-500) 22%, transparent);
+}
+.login__guide-warn i { color: var(--p-amber-600, #d97706); margin-top: 0.1rem; }
+html.dark .login__guide {
+    background: color-mix(in oklab, var(--p-primary-500) 12%, transparent);
+    border-color: color-mix(in oklab, var(--p-primary-500) 32%, transparent);
+}
+html.dark .login__guide-header { color: var(--p-primary-300); }
+
+/* Link-button \"Hai perso il codice invito?\": piccolo, sotto-tono,
+   sempre visibile sotto al campo invite-code. Ridiventa pi\u00f9 visibile
+   in dark mode dove gli outline sono pi\u00f9 deboli. */
+.login__link-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-top: 0.4rem;
+    background: none;
+    border: none;
+    padding: 0.25rem 0;
+    color: var(--p-primary-700);
+    font-size: 0.8125rem;
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    align-self: flex-start;
+}
+.login__link-button:hover:not(:disabled) { color: var(--p-primary-800); }
+.login__link-button:disabled { opacity: 0.5; cursor: not-allowed; }
+.login__link-button i { font-size: 0.75rem; }
+html.dark .login__link-button { color: var(--p-primary-300); }
+html.dark .login__link-button:hover:not(:disabled) { color: var(--p-primary-200); }
+
+/* Pannello inline di recupero invite. Non e' un modal: vive nel flusso
+   del form per non rompere il contesto e mantenere lo stesso stile dei
+   campi circostanti. */
+.login__recovery {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    padding: 0.875rem 1rem;
+    margin: 0.25rem 0 1rem;
+    border: 1px solid color-mix(in oklab, var(--p-primary-500) 25%, transparent);
+    border-radius: 10px;
+    background: color-mix(in oklab, var(--p-primary-500) 5%, transparent);
+}
+.login__recovery-intro {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--p-text-color);
+}
+.login__recovery-intro i {
+    color: var(--p-primary-600);
+    margin-top: 0.1rem;
+}
+html.dark .login__recovery {
+    background: color-mix(in oklab, var(--p-primary-500) 10%, transparent);
+    border-color: color-mix(in oklab, var(--p-primary-500) 35%, transparent);
+}
+html.dark .login__recovery-intro i { color: var(--p-primary-300); }
+
 .login__row {
     display: flex;
     align-items: center;

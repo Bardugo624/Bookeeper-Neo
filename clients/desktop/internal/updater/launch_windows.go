@@ -4,30 +4,61 @@ package updater
 
 import (
 	"fmt"
+	"os/exec"
 	"syscall"
 	"unsafe"
 )
 
-// launchInstaller esegue l'installer NSIS chiedendo elevazione UAC tramite
-// ShellExecuteW con verbo "runas". Necessario perche' il setup gira come
-// admin (REQUEST_EXECUTION_LEVEL admin nel project.nsi) e una semplice
-// CreateProcess da un processo non elevato fallisce con
-// "ERROR_ELEVATION_REQUIRED" (740).
+// launchInstaller esegue l'installer NSIS in background.
 //
-// Il processo creato e' completamente detached: ritorniamo subito senza
-// attendere, cosi' l'app puo' chiudersi e lasciare al setup la facolta'
-// di sostituire il proprio .exe.
+// Nota: l'app principale gira gia' come "requireAdministrator" (vedi
+// build/windows/wails.exe.manifest), quindi qualsiasi processo figlio
+// eredita il token elevato e Windows NON mostra un secondo prompt UAC.
+// Sfruttiamo questo per lanciare l'installer via CreateProcess diretto
+// (exec.Command) invece di ShellExecuteW("runas") che, anche quando
+// "runas" e' tecnicamente un no-op, attivava un round-trip asincrono
+// col servizio AIS che a volte falliva o lasciava il setup invisibile.
+//
+// Se per qualche motivo (manifest non applicato, esecuzione da dev
+// senza elevazione) il processo NON e' elevato, CreateProcess fallisce
+// con ERROR_ELEVATION_REQUIRED (740) e ricadiamo su ShellExecuteW per
+// chiedere comunque UAC.
+//
+// Il processo creato e' detached (CREATE_NEW_PROCESS_GROUP +
+// DETACHED_PROCESS) cosi' chiudere l'app principale non lo termina.
 func launchInstaller(installerPath string) error {
+	cmd := exec.Command(installerPath, "/S", "/UPDATE")
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		// 0x00000008 DETACHED_PROCESS | 0x00000200 CREATE_NEW_PROCESS_GROUP
+		CreationFlags: 0x00000008 | 0x00000200,
+		HideWindow:    true,
+	}
+	if err := cmd.Start(); err != nil {
+		// Start fallisce tipicamente per ERROR_ELEVATION_REQUIRED (740)
+		// quando l'app NON e' elevata (es. eseguita da `wails dev` o
+		// build senza il manifest applicato). Tentiamo comunque il path
+		// con UAC esplicito come fallback.
+		if e := launchInstallerElevated(installerPath); e == nil {
+			return nil
+		}
+		return fmt.Errorf("updater: avvio installer: %w", err)
+	}
+	// Detach: non vogliamo aspettare. Release rilascia l'handle.
+	_ = cmd.Process.Release()
+	return nil
+}
+
+// launchInstallerElevated e' il vecchio path basato su ShellExecuteW("runas").
+// Tenuto come fallback nel caso il manifest non sia stato applicato (build di
+// sviluppo, override di policy, ecc.).
+func launchInstallerElevated(installerPath string) error {
 	verb, _ := syscall.UTF16PtrFromString("runas")
 	exe, _ := syscall.UTF16PtrFromString(installerPath)
 	args, _ := syscall.UTF16PtrFromString("/S /UPDATE")
 
-	// SW_SHOWNORMAL = 1. Il setup e' silent (/S), quindi non vedremo nulla,
-	// ma alcuni shim UAC richiedono una nShow valida.
 	const SW_SHOWNORMAL = 1
-
 	if err := shellExecute(0, verb, exe, args, nil, SW_SHOWNORMAL); err != nil {
-		return fmt.Errorf("updater: lancio installer (UAC): %w", err)
+		return fmt.Errorf("updater: lancio installer (UAC fallback): %w", err)
 	}
 	return nil
 }
@@ -35,8 +66,8 @@ func launchInstaller(installerPath string) error {
 // shellExecute wrappa ShellExecuteW. Ritorna errore se l'handle istanza
 // e' <= 32 (convenzione Win32).
 var (
-	shell32              = syscall.NewLazyDLL("shell32.dll")
-	procShellExecuteW    = shell32.NewProc("ShellExecuteW")
+	shell32           = syscall.NewLazyDLL("shell32.dll")
+	procShellExecuteW = shell32.NewProc("ShellExecuteW")
 )
 
 func shellExecute(hwnd uintptr, verb, file, args, dir *uint16, show int) error {

@@ -14,6 +14,8 @@ import { authEndpoints } from '@/lib/api/endpoints/auth'
 import type {
   BootstrapInput,
   LoginInput,
+  RecoverInviteInput,
+  RecoverInviteResult,
   SessionInfo,
   SetupTenantInput,
   SetupTenantResult,
@@ -93,6 +95,21 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  /**
+   * Recovery: rigenera l'invite_code partendo da nome tenant +
+   * admin_password. Non tocca lo stato di sessione: torna semplicemente
+   * il nuovo invite_code che la UI puo' iniettare nel form di pairing.
+   */
+  async function recoverInvite(input: RecoverInviteInput): Promise<RecoverInviteResult> {
+    lastError.value = null
+    try {
+      return await authEndpoints.recoverInvite(input)
+    } catch (e) {
+      lastError.value = e instanceof Error ? e.message : String(e)
+      throw e
+    }
+  }
+
   async function login(input: LoginInput) {
     lastError.value = null
     try {
@@ -131,6 +148,7 @@ export const useAuthStore = defineStore('auth', () => {
     refreshSession,
     bootstrap,
     setupTenant,
+    recoverInvite,
     login,
     logout,
     wipe,

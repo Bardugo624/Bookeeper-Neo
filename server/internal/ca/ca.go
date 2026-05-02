@@ -300,6 +300,21 @@ func deriveKey(password string, salt []byte) []byte {
 	return argon2.IDKey([]byte(password), salt, argonTime, argonMemoryKiB, argonThreads, argonKeyLen)
 }
 
+// BurnArgon2id consuma il tempo di una derivazione Argon2id senza alcun
+// effetto utile. Pensato per le superfici di autenticazione "lookup +
+// password" (es. /setup/recover-invite) dove il caso "lookup vuoto" deve
+// impiegare lo stesso tempo del caso "lookup pieno + password sbagliata"
+// per non leakare l'esistenza dell'entita' tramite timing.
+//
+// Il salt e' derivato dalla password stessa via SHA-256 truncato:
+// non serve casualita' (l'output viene buttato via), serve solo evitare
+// l'errore "argon2: salt too short". Costo: ~100ms con i parametri
+// correnti, identico a un decryptKey reale.
+func BurnArgon2id(password string) {
+	h := sha256.Sum256([]byte(password))
+	_ = argon2.IDKey([]byte(password), h[:saltLen], argonTime, argonMemoryKiB, argonThreads, argonKeyLen)
+}
+
 func encryptKey(plaintext []byte, password string) (ciphertext, salt, nonce []byte, err error) {
 	salt = make([]byte, saltLen)
 	if _, err = rand.Read(salt); err != nil {

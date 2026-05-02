@@ -19,11 +19,13 @@ import {
   WhoAmI,
   SetupTenant,
   ReloadTrust,
+  RecoverInvite,
 } from '../../wailsjs/go/main/App'
 import { main } from '../../wailsjs/go/models'
 
 export type SessionInfo = main.SessionInfo
 export type SetupTenantResult = main.SetupTenantResp
+export type RecoverInviteResult = main.RecoverInviteResp
 
 export interface BootstrapInput {
   serverUrl: string
@@ -60,6 +62,13 @@ export interface SetupTenantInput {
 export interface ReloadTrustInput {
   bootstrapUrl?: string
   tenantId?: string
+  adminPassword: string
+}
+
+export interface RecoverInviteInput {
+  serverUrl: string
+  bootstrapUrl?: string
+  tenantName: string
   adminPassword: string
 }
 
@@ -122,6 +131,21 @@ export const keystore = {
       new main.ReloadTrustReq({
         bootstrap_url: input.bootstrapUrl ?? '',
         tenant_id: input.tenantId ?? '',
+        admin_password: input.adminPassword,
+      }),
+    ),
+
+  /**
+   * Rigenera l'invite_code conoscendo solo nome tenant + admin_password.
+   * Va sulla porta bootstrap (no mTLS) perche' tipicamente l'utente che
+   * lo usa NON ha un cert valido (e' "chiuso fuori" dal proprio tenant).
+   */
+  recoverInvite: (input: RecoverInviteInput): Promise<RecoverInviteResult> =>
+    RecoverInvite(
+      new main.RecoverInviteReq({
+        server_url: input.serverUrl,
+        bootstrap_url: input.bootstrapUrl ?? '',
+        tenant_name: input.tenantName,
         admin_password: input.adminPassword,
       }),
     ),

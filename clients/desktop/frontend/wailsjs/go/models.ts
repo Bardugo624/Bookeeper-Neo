@@ -90,6 +90,40 @@ export namespace main {
 	        this.persist = source["persist"];
 	    }
 	}
+	export class RecoverInviteReq {
+	    server_url: string;
+	    bootstrap_url: string;
+	    tenant_name: string;
+	    admin_password: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new RecoverInviteReq(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.server_url = source["server_url"];
+	        this.bootstrap_url = source["bootstrap_url"];
+	        this.tenant_name = source["tenant_name"];
+	        this.admin_password = source["admin_password"];
+	    }
+	}
+	export class RecoverInviteResp {
+	    tenant_id: string;
+	    tenant_name: string;
+	    invite_code: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new RecoverInviteResp(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.tenant_id = source["tenant_id"];
+	        this.tenant_name = source["tenant_name"];
+	        this.invite_code = source["invite_code"];
+	    }
+	}
 	export class ReloadTrustReq {
 	    bootstrap_url: string;
 	    tenant_id: string;

@@ -42,6 +42,10 @@ export function LookupIsbnAnnas(arg1) {
   return window['go']['main']['App']['LookupIsbnAnnas'](arg1);
 }
 
+export function RecoverInvite(arg1) {
+  return window['go']['main']['App']['RecoverInvite'](arg1);
+}
+
 export function ReloadTrust(arg1) {
   return window['go']['main']['App']['ReloadTrust'](arg1);
 }

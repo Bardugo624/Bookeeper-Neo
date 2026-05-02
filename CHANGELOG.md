@@ -23,7 +23,6 @@ pubblicata e la mostra nella dialog "Vedi novità". Sono supportati:
 
 Prima release pubblica del client desktop Bookeeper.
 
-### Added
 
 - **Autenticazione end-to-end**: pairing device con invite code,
   certificati mTLS per dispositivo, refresh token automatico.
@@ -50,3 +49,12 @@ Prima release pubblica del client desktop Bookeeper.
 ## [0.1.4] - 2026-01-15
 
 - **self elevation**
+
+## [0.1.5] - 2026-01-15
+
+- **Nuovo lookup**
+-**Nuove categorie da google books**
+
+## [0.1.6] - 2026-01-15
+
+- **fix e docs flusso login e creazione nuovi tenant**

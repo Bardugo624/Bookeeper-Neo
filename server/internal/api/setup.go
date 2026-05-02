@@ -212,3 +212,138 @@ func newInviteCode() (string, error) {
 	enc := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(b)
 	return strings.ToUpper(enc), nil
 }
+
+// --- Recovery: re-issue invite code by admin password -----------------
+//
+// Caso d'uso: l'utente ha perso TUTTI i dispositivi associati al tenant
+// (o non ne ha mai paired uno) e vuole riassociarsi, ma non ha più il
+// codice invito. Se conosce l'admin_password (quella che cifra il CA),
+// può rigenerarne uno nuovo senza passare dalla porta mTLS.
+//
+// Sicurezza:
+//   - Endpoint sulla bootstrap port (no mTLS): per definizione deve
+//     essere raggiungibile senza un cert valido.
+//   - L'admin_password e' protetta da Argon2id (time=3, mem=64KiB):
+//     ~100ms per tentativo, costo proibitivo per brute force online.
+//   - L'errore e' generico ("invalid credentials") sia per tenant
+//     inesistente sia per password sbagliata: niente enumeration dei
+//     tenant_name.
+//   - Audit log con remote IP per intrusion-detection postuma.
+//   - In setup multi-tenant con nomi duplicati, proviamo l'unlock su
+//     ognuno: il primo che sblocca e' quello giusto (improbabile che
+//     due tenant condividano admin_password).
+
+type recoverInviteReq struct {
+	TenantName    string `json:"tenant_name"`
+	AdminPassword string `json:"admin_password"`
+}
+
+type recoverInviteResp struct {
+	TenantID   string `json:"tenant_id"`
+	TenantName string `json:"tenant_name"`
+	InviteCode string `json:"invite_code"`
+}
+
+// RecoverInvite genera un nuovo invite_code per il tenant identificato
+// dal nome + admin_password. L'invite vecchio viene invalidato (UPDATE).
+func (h *SetupHandlers) RecoverInvite(w http.ResponseWriter, r *http.Request) {
+	var req recoverInviteReq
+	if !readJSON(w, r, &req) {
+		return
+	}
+	req.TenantName = strings.TrimSpace(req.TenantName)
+	if req.TenantName == "" || req.AdminPassword == "" {
+		writeErr(w, http.StatusBadRequest, "missing fields")
+		return
+	}
+	if len(req.AdminPassword) < 12 {
+		// La password admin originale e' stata creata con questo minimo,
+		// quindi un input piu' corto e' per definizione sbagliato. Non
+		// distinguo dall'errore generico per uniformita' di superficie.
+		writeErr(w, http.StatusUnauthorized, "invalid credentials")
+		return
+	}
+
+	// Cerca i tenant col nome richiesto (case-insensitive). Tipicamente
+	// 0 o 1; nei rari setup multi-household lo stesso nome puo' esistere.
+	rows, err := h.DB.QueryContext(r.Context(), `
+        SELECT id, name, ca_cert_pem, ca_key_enc, ca_key_salt, ca_key_nonce
+          FROM tenants
+         WHERE LOWER(name) = LOWER(?)
+    `, req.TenantName)
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, "db error")
+		return
+	}
+	type candidate struct {
+		ID        string
+		Name      string
+		CACertPEM string
+		KeyEnc    []byte
+		KeySalt   []byte
+		KeyNonce  []byte
+	}
+	var candidates []candidate
+	for rows.Next() {
+		var c candidate
+		if err := rows.Scan(&c.ID, &c.Name, &c.CACertPEM, &c.KeyEnc, &c.KeySalt, &c.KeyNonce); err == nil {
+			candidates = append(candidates, c)
+		}
+	}
+	_ = rows.Close()
+
+	// Tenta l'unlock su ciascun candidato. Tempo costante in pratica:
+	// con un solo tenant col nome corretto e password sbagliata facciamo
+	// 1 unlock fallito (~100ms); con tenant inesistente facciamo 0
+	// unlock e siamo piu' veloci. Per uniformare i tempi e ridurre
+	// l'attacco timing-based, eseguiamo SEMPRE almeno un Argon2id
+	// "dummy" quando non ci sono candidati.
+	var matched *candidate
+	for i := range candidates {
+		c := &candidates[i]
+		if _, err := ca.Unlock([]byte(c.CACertPEM), c.KeyEnc, c.KeySalt, c.KeyNonce, req.AdminPassword); err == nil {
+			matched = c
+			break
+		}
+	}
+	if matched == nil {
+		// Bruciamo tempo equivalente a un unlock se non c'erano
+		// candidati, per non leakare l'esistenza del tenant via timing.
+		if len(candidates) == 0 {
+			ca.BurnArgon2id(req.AdminPassword)
+		}
+		_ = h.Audit.WriteAnon(r.Context(), "", r.RemoteAddr, mw.Event{
+			Action:     "tenant.invite.recover.failed",
+			EntityType: "tenant",
+			EntityID:   "",
+			After:      map[string]string{"tenant_name": req.TenantName},
+		})
+		writeErr(w, http.StatusUnauthorized, "invalid credentials")
+		return
+	}
+
+	newCode, err := newInviteCode()
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, "rng failed")
+		return
+	}
+	if _, err := h.DB.ExecContext(r.Context(),
+		`UPDATE tenants SET invite_code = ? WHERE id = ?`, newCode, matched.ID,
+	); err != nil {
+		writeErr(w, http.StatusInternalServerError, "update failed")
+		return
+	}
+
+	_ = h.Audit.WriteAnon(r.Context(), matched.ID, r.RemoteAddr, mw.Event{
+		Action:     "tenant.invite.recovered",
+		EntityType: "tenant",
+		EntityID:   matched.ID,
+		After:      map[string]string{"tenant_name": matched.Name},
+	})
+
+	writeJSON(w, http.StatusOK, recoverInviteResp{
+		TenantID:   matched.ID,
+		TenantName: matched.Name,
+		InviteCode: newCode,
+	})
+}

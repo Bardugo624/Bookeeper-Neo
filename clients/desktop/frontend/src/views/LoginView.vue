@@ -18,7 +18,7 @@
 // L'utente può forzare la modalità SETUP/PAIR cliccando i bottoni in
 // fondo al form.
 
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
@@ -80,6 +80,24 @@ const submitting = ref(false);
 // l'invite code (sarà nella tabella tenants ma è comodo averlo qui).
 const setupResult = ref<{ inviteCode: string; tenantId: string } | null>(null);
 
+// --- Recovery codice invito --------------------------------------------
+//
+// Pannello inline (modalita' PAIR) per chi ha perso l'invite code ma
+// conosce ancora l'admin password. Va sulla porta bootstrap (no mTLS),
+// quindi serve solo Server URL gia' compilato + nome tenant + password.
+// Su success rigenera l'invite e lo inietta nel form.
+const recoveryOpen = ref(false);
+const recoveryForm = reactive({ tenantName: '', adminPassword: '' });
+const recoveryError = ref<string | null>(null);
+const recoverySuccess = ref<string | null>(null);
+const recoveryLoading = ref(false);
+
+// Ref al <details> del Bootstrap URL: lo apriamo programmaticamente
+// quando l'errore di submit indica un host mTLS-only e il bootstrap
+// non e' compilato. In tutti gli altri casi resta chiuso (UX pulita
+// per chi non usa Tailscale/VPN).
+const bootstrapDetails = ref<HTMLDetailsElement | null>(null);
+
 const themeIcon = computed(() => {
     if (ui.mode === 'system') return 'pi pi-desktop';
     return ui.isDark ? 'pi pi-sun' : 'pi pi-moon';
@@ -95,7 +113,7 @@ const titleText = computed(() => {
 const subtitleText = computed(() => {
     switch (mode.value) {
         case 'setup':
-            return 'Primo avvio: crea il tenant e l\'utente proprietario sul tuo server Bookeeper.';
+            return 'Primo avvio: crea il tenant e l\'utente proprietario. Questo dispositivo verrà associato in automatico.';
         case 'pair':
             return 'Genera un certificato client per il primo accesso al tuo server Bookeeper.';
         default:
@@ -116,6 +134,22 @@ const submitIcon = computed(() => {
         default:      return 'pi pi-sign-in';
     }
 });
+
+// Guard difensivo: la modalita' LOGIN richiede un cert paired (altrimenti
+// il submit fallisce con "no session: bootstrap required" lato Go). Se
+// per qualunque motivo finiamo in LOGIN senza cert (es. l'utente naviga
+// indietro dopo un wipe, o il guard di rotta ci porta qui da una
+// protected route post-logout), forziamo lo switch a PAIR. Il watch e'
+// piu' robusto del solo onMounted perche' interviene anche dopo
+// state-change in-place.
+watch(
+    () => [mode.value, auth.session.has_cert] as const,
+    ([m, hasCert]) => {
+        if (m === 'login' && !hasCert) {
+            mode.value = 'pair';
+        }
+    },
+);
 
 onMounted(() => {
     // Decidi la modalità iniziale in base allo stato della sessione:
@@ -255,6 +289,19 @@ async function submit() {
                 'Il pairing non è raggiungibile sul Server URL: il dominio pubblico è mTLS-only. ' +
                 'Compila "URL bootstrap" con l\'host che espone /setup e /pairing ' +
                 '(es. tailnet https://bookeeper.tail22adce.ts.net).';
+            // Apri programmaticamente il <details> del bootstrap URL e
+            // sposta il focus sul campo: l'utente trova il campo gia'
+            // pronto invece di dover capire dove cliccare.
+            if (bootstrapDetails.value) {
+                bootstrapDetails.value.open = true;
+                // Aspetta il tick successivo perche' l'input potrebbe
+                // essere stato appena montato dal v-show del details.
+                requestAnimationFrame(() => {
+                    const el = document.getElementById('login-bootstrap') as HTMLInputElement | null;
+                    el?.focus();
+                    el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                });
+            }
         }
         submitError.value = msg || 'Errore di autenticazione';
         console.error('[LoginView] submit failed:', e);
@@ -281,6 +328,93 @@ function gotoSetup() {
     setupResult.value = null;
     clearErrors();
     mode.value = 'setup';
+}
+
+// Torna alla schermata di login standard. Usato come "back" sia da
+// PAIR che da SETUP. Se non c'e' un cert paired (caso post-wipe o
+// primissimo avvio) torniamo comunque a LOGIN: il submit fallira'
+// con un errore chiaro che invita l'utente a riassociarsi, ma e'
+// preferibile a non avere alcuna via di uscita dal form.
+function backToLogin() {
+    setupResult.value = null;
+    clearErrors();
+    mode.value = 'login';
+}
+
+// --- Recovery codice invito ---------------------------------------------
+
+function toggleRecovery() {
+    recoveryOpen.value = !recoveryOpen.value;
+    recoveryError.value = null;
+    recoverySuccess.value = null;
+    if (recoveryOpen.value) {
+        // Pre-compila il nome tenant se l'abbiamo gia' (caso "vengo da
+        // setup appena fatto"): risparmia un campo.
+        if (!recoveryForm.tenantName && form.tenantName) {
+            recoveryForm.tenantName = form.tenantName;
+        }
+        requestAnimationFrame(() => {
+            const el = document.getElementById('recovery-tenant') as HTMLInputElement | null;
+            el?.focus();
+        });
+    }
+}
+
+async function submitRecovery() {
+    recoveryError.value = null;
+    recoverySuccess.value = null;
+    const serverUrl = form.serverUrl.trim();
+    const tenantName = recoveryForm.tenantName.trim();
+    if (!URL_RE.test(serverUrl)) {
+        recoveryError.value = 'Compila prima il Server URL qui sopra.';
+        return;
+    }
+    if (!tenantName) {
+        recoveryError.value = 'Indica il nome del tenant.';
+        return;
+    }
+    if (recoveryForm.adminPassword.length < 12) {
+        recoveryError.value = 'La password admin ha almeno 12 caratteri.';
+        return;
+    }
+    recoveryLoading.value = true;
+    try {
+        const res = await auth.recoverInvite({
+            serverUrl,
+            bootstrapUrl: form.bootstrapUrl.trim() || undefined,
+            tenantName,
+            adminPassword: recoveryForm.adminPassword,
+        });
+        // Inietta il nuovo invite code nel form di pairing.
+        form.inviteCode = res.invite_code;
+        // Buona fede: l'utente conosce la admin password, e' verosimile
+        // che sia lui l'admin del tenant. Pre-compiliamo anche la admin
+        // password del form principale, cosi' il pairing parte subito.
+        form.adminPassword = recoveryForm.adminPassword;
+        recoverySuccess.value =
+            `Nuovo codice generato per “${res.tenant_name}”. Quello vecchio non funziona piu'.`;
+        // Pulisci la password admin del pannello recovery (resta nel
+        // form principale, dove serve adesso). Chiudi il pannello.
+        recoveryForm.adminPassword = '';
+        setTimeout(() => {
+            recoveryOpen.value = false;
+            recoverySuccess.value = null;
+        }, 2500);
+    } catch (e) {
+        let msg = '';
+        if (e instanceof Error) msg = e.message;
+        else if (typeof e === 'string') msg = e;
+        else { try { msg = JSON.stringify(e); } catch { msg = String(e); } }
+        // Il server torna 401 "invalid credentials" sia per tenant
+        // inesistente sia per password sbagliata: messaggio uniforme.
+        if (/401|invalid credentials|unauthor/i.test(msg)) {
+            recoveryError.value = 'Nome tenant o password admin non corretti.';
+        } else {
+            recoveryError.value = msg || 'Recupero fallito.';
+        }
+    } finally {
+        recoveryLoading.value = false;
+    }
 }
 
 function pairMobile() {
@@ -356,6 +490,48 @@ async function copyInvite() {
                     <span>{{ submitError }}</span>
                 </div>
 
+                <!-- Guida contestuale per la creazione di un nuovo tenant.
+                     Visibile solo in SETUP: spiega cosa stiamo per fare,
+                     l'ordine dei passi e la differenza tra le due password
+                     (CA del tenant vs utente owner). -->
+                <aside v-if="mode === 'setup'" class="login__guide" aria-label="Guida alla creazione del tenant">
+                    <header class="login__guide-header">
+                        <i class="pi pi-info-circle" aria-hidden="true"></i>
+                        <strong>Stai creando un nuovo tenant</strong>
+                    </header>
+                    <p class="login__guide-text">
+                        Un <em>tenant</em> è la tua libreria isolata sul server: contiene i libri,
+                        gli utenti e i dispositivi associati. Crealo solo al <strong>primo avvio</strong>
+                        del server: ne basta uno per famiglia / installazione.
+                    </p>
+                    <ol class="login__guide-steps">
+                        <li>
+                            <strong>Indica il server</strong>
+                            <span>L'URL pubblico (mTLS) del tuo Bookeeper. Se il pairing è esposto solo su rete privata, apri "Endpoint pairing alternativo".</span>
+                        </li>
+                        <li>
+                            <strong>Dai un nome al tenant</strong>
+                            <span>Es. "Casa Cremisi" — è solo un'etichetta umana, puoi cambiarla dopo.</span>
+                        </li>
+                        <li>
+                            <strong>Imposta la password amministratore</strong>
+                            <span>Cifra la chiave privata del tenant (CA). <strong>Non è recuperabile</strong>: salvala in un password manager.</span>
+                        </li>
+                        <li>
+                            <strong>Crea l'utente owner</strong>
+                            <span>Sei tu: nome, email e password con cui farai login da questo PC e dagli altri dispositivi.</span>
+                        </li>
+                        <li>
+                            <strong>Riceverai un codice invito</strong>
+                            <span>Servirà per associare PC e mobile aggiuntivi a questo tenant. Questo dispositivo verrà associato in automatico.</span>
+                        </li>
+                    </ol>
+                    <p class="login__guide-warn">
+                        <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+                        Se hai già creato un tenant in passato, usa <strong>"Ho già un tenant (associa)"</strong> qui sotto: due tenant sullo stesso server sono indipendenti e non condividono libri.
+                    </p>
+                </aside>
+
                 <!-- URL server: visibile sia in PAIR che in SETUP -->
                 <template v-if="mode === 'pair' || mode === 'setup'">
                     <div class="login__field">
@@ -375,13 +551,14 @@ async function copyInvite() {
                         </span>
                     </div>
 
-                    <details open class="login__field"
+                    <details ref="bootstrapDetails" class="login__field"
                              style="border:1px solid var(--p-content-border-color);border-radius:0.5rem;padding:0.5rem 0.75rem;">
                         <summary style="cursor:pointer;font-size:0.8125rem;color:var(--p-text-muted-color);">
-                            URL bootstrap (separato dal Server URL)
+                            <i class="pi pi-cog" aria-hidden="true" style="font-size:0.75rem;margin-right:0.25rem;"></i>
+                            Opzioni avanzate (server su rete privata)
                         </summary>
                         <div style="display:flex;flex-direction:column;gap:0.375rem;margin-top:0.5rem;">
-                            <label for="login-bootstrap" class="login__label">Bootstrap URL</label>
+                            <label for="login-bootstrap" class="login__label">URL pairing alternativo</label>
                             <InputText
                                 id="login-bootstrap" v-model="form.bootstrapUrl"
                                 type="url" autocomplete="url" spellcheck="false"
@@ -389,9 +566,9 @@ async function copyInvite() {
                                 :disabled="submitting"
                             />
                             <span class="login__hint">
-                                <strong>Obbligatorio</strong> se il tuo server espone il pairing solo su una rete privata (tailnet, VPN, LAN).
-                                Il dominio pubblico mTLS chiude la connessione (<code>EOF</code> / 400) durante il pairing.
-                                Lascia vuoto solo se il server espone <code>/setup</code> e <code>/pairing</code> sullo stesso host del Server URL.
+                                Lascia vuoto nella maggior parte dei casi. Compila solo se il pairing
+                                e' raggiungibile su un host diverso (es. <strong>Tailscale</strong>, VPN o LAN)
+                                rispetto al Server URL pubblico mTLS. Se sbagli, te lo segnalo io al primo tentativo.
                             </span>
                         </div>
                     </details>
@@ -405,9 +582,12 @@ async function copyInvite() {
                             id="setup-tenant" v-model="form.tenantName"
                             placeholder="Es. Casa Cremisi"
                             :invalid="!!errors.tenantName"
-                            :aria-describedby="errors.tenantName ? 'setup-tenant-err' : undefined"
+                            :aria-describedby="errors.tenantName ? 'setup-tenant-err' : 'setup-tenant-hint'"
                             :disabled="submitting"
                         />
+                        <span v-if="!errors.tenantName" id="setup-tenant-hint" class="login__hint">
+                            Etichetta della tua libreria. Solo per riconoscerla, puoi cambiarla dopo.
+                        </span>
                         <span v-if="errors.tenantName" id="setup-tenant-err" class="login__error">
                             <i class="pi pi-times-circle" aria-hidden="true"></i>{{ errors.tenantName }}
                         </span>
@@ -417,10 +597,14 @@ async function copyInvite() {
                         <InputText
                             id="setup-owner-name" v-model="form.ownerName"
                             autocomplete="name"
+                            placeholder="Es. Lorenzo Rossi"
                             :invalid="!!errors.ownerName"
-                            :aria-describedby="errors.ownerName ? 'setup-owner-name-err' : undefined"
+                            :aria-describedby="errors.ownerName ? 'setup-owner-name-err' : 'setup-owner-name-hint'"
                             :disabled="submitting"
                         />
+                        <span v-if="!errors.ownerName" id="setup-owner-name-hint" class="login__hint">
+                            Tu: il primo utente del tenant, con privilegi di amministratore.
+                        </span>
                         <span v-if="errors.ownerName" id="setup-owner-name-err" class="login__error">
                             <i class="pi pi-times-circle" aria-hidden="true"></i>{{ errors.ownerName }}
                         </span>
@@ -441,6 +625,54 @@ async function copyInvite() {
                         <span v-if="errors.inviteCode" id="login-invite-err" class="login__error">
                             <i class="pi pi-times-circle" aria-hidden="true"></i>{{ errors.inviteCode }}
                         </span>
+                        <button type="button" class="login__link-button"
+                                @click="toggleRecovery" :disabled="submitting">
+                            <i class="pi pi-shield" aria-hidden="true"></i>
+                            {{ recoveryOpen ? 'Annulla recupero' : 'Hai perso il codice invito?' }}
+                        </button>
+                    </div>
+
+                    <!-- Pannello recovery: rigenera l'invite con admin pwd. -->
+                    <div v-if="recoveryOpen" class="login__recovery" role="region" aria-label="Recupero codice invito">
+                        <p class="login__recovery-intro">
+                            <i class="pi pi-info-circle" aria-hidden="true"></i>
+                            Se conosci la <strong>password amministratore</strong> del tenant possiamo
+                            generarne uno nuovo. Il vecchio codice (anche se ce l'hai) verra' invalidato.
+                        </p>
+                        <div class="login__field">
+                            <label for="recovery-tenant" class="login__label">Nome tenant</label>
+                            <InputText
+                                id="recovery-tenant" v-model="recoveryForm.tenantName"
+                                placeholder="Es. Casa Cremisi"
+                                :disabled="recoveryLoading"
+                            />
+                            <span class="login__hint">
+                                Il nome scelto al primo setup del server.
+                            </span>
+                        </div>
+                        <div class="login__field">
+                            <label for="recovery-admin" class="login__label">Password amministratore tenant</label>
+                            <Password
+                                input-id="recovery-admin" v-model="recoveryForm.adminPassword"
+                                :feedback="false" toggle-mask autocomplete="off"
+                                :disabled="recoveryLoading"
+                                :input-style="{ width: '100%' }"
+                                :pt="{ root: { style: 'width: 100%' } }"
+                            />
+                        </div>
+                        <div v-if="recoveryError" class="login__alert" role="alert" aria-live="assertive"
+                             style="margin: 0.25rem 0;">
+                            <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+                            <span>{{ recoveryError }}</span>
+                        </div>
+                        <div v-if="recoverySuccess" class="login__alert" role="status" aria-live="polite"
+                             style="margin: 0.25rem 0;background: var(--p-green-50, #ecfdf5); color: var(--p-green-900, #064e3b); border-color: var(--p-green-300, #6ee7b7);">
+                            <i class="pi pi-check-circle" aria-hidden="true"></i>
+                            <span>{{ recoverySuccess }}</span>
+                        </div>
+                        <Button type="button" label="Recupera codice"
+                                icon="pi pi-refresh" severity="secondary"
+                                :loading="recoveryLoading" @click="submitRecovery" />
                     </div>
 
                     <div class="login__field">
@@ -533,22 +765,41 @@ async function copyInvite() {
                 <div class="login__divider">oppure</div>
 
                 <div class="login__alt" style="display:flex;flex-direction:column;gap:0.5rem;">
+                    <!-- LOGIN: passa al pairing o crea un nuovo tenant. -->
                     <Button v-if="mode === 'login'"
                         type="button" label="Usa un altro account / ri-associa"
                         icon="pi pi-refresh" severity="secondary" outlined
                         @click="useAnotherAccount" :disabled="submitting" />
-                    <Button v-if="mode === 'pair' && auth.session.server_url"
+                    <Button v-if="mode === 'login'"
+                        type="button" label="Configura un nuovo server"
+                        icon="pi pi-cog" severity="secondary" outlined
+                        @click="gotoSetup" :disabled="submitting" />
+
+                    <!-- PAIR: "Torna al login" solo se esiste gia' un cert
+                         paired (altrimenti il form di login fallirebbe con
+                         "no session: bootstrap required"). Senza cert l'unica
+                         exit sensata e' SETUP. -->
+                    <Button v-if="mode === 'pair' && auth.session.has_cert"
                         type="button" label="Torna al login"
                         icon="pi pi-arrow-left" severity="secondary" outlined
-                        @click="mode = 'login'" :disabled="submitting" />
-                    <Button v-if="mode === 'setup'"
-                        type="button" label="Ho già un tenant (associa)"
-                        icon="pi pi-arrow-left" severity="secondary" outlined
-                        @click="mode = 'pair'" :disabled="submitting" />
+                        @click="backToLogin" :disabled="submitting" />
                     <Button v-if="mode === 'pair'"
                         type="button" label="Configura un nuovo server"
                         icon="pi pi-cog" severity="secondary" outlined
                         @click="gotoSetup" :disabled="submitting" />
+
+                    <!-- SETUP: due exit point. "Ho gia' un tenant" porta
+                         dritto al pairing; "Torna al login" solo se c'e'
+                         un cert valido. -->
+                    <Button v-if="mode === 'setup'"
+                        type="button" label="Ho già un tenant (associa)"
+                        icon="pi pi-key" severity="secondary" outlined
+                        @click="mode = 'pair'" :disabled="submitting" />
+                    <Button v-if="mode === 'setup' && auth.session.has_cert"
+                        type="button" label="Torna al login"
+                        icon="pi pi-arrow-left" severity="secondary" outlined
+                        @click="backToLogin" :disabled="submitting" />
+
                     <Button
                         type="button" label="Associa da mobile (QR)"
                         icon="pi pi-qrcode" severity="secondary" outlined

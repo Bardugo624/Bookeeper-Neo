@@ -324,6 +324,46 @@ func (a *App) SetupTenant(req SetupTenantReq) (SetupTenantResp, error) {
 	return resp, nil
 }
 
+// RecoverInviteReq è il payload per riottenere un invite_code valido a
+// partire dall'admin_password del tenant. Pensato per il caso "ho perso
+// tutti i dispositivi paired e/o il vecchio invite, ma ho ancora la
+// password admin": senza un cert mTLS valido la /tenant/rotate-invite
+// e' irraggiungibile, quindi questa va sulla porta bootstrap.
+type RecoverInviteReq struct {
+	ServerURL     string `json:"server_url"`
+	BootstrapURL  string `json:"bootstrap_url"`
+	TenantName    string `json:"tenant_name"`
+	AdminPassword string `json:"admin_password"`
+}
+
+// RecoverInviteResp riflette la risposta del server. tenant_name viene
+// rimandato indietro per conferma visiva (case-fix se l'utente ha
+// scritto "casa cremisi" e nel DB era "Casa Cremisi").
+type RecoverInviteResp struct {
+	TenantID   string `json:"tenant_id"`
+	TenantName string `json:"tenant_name"`
+	InviteCode string `json:"invite_code"`
+}
+
+// RecoverInvite chiama /setup/recover-invite. Il server invalida l'invite
+// vecchio e ne emette uno nuovo. La UI puo' iniettarlo direttamente nel
+// form di pairing senza richiedere altri passaggi.
+func (a *App) RecoverInvite(req RecoverInviteReq) (RecoverInviteResp, error) {
+	if req.ServerURL == "" || req.TenantName == "" || req.AdminPassword == "" {
+		return RecoverInviteResp{}, errors.New("missing required fields")
+	}
+	plain := httpclient.NewPlain(bootURLOr(req.BootstrapURL, req.ServerURL))
+	body := map[string]string{
+		"tenant_name":    req.TenantName,
+		"admin_password": req.AdminPassword,
+	}
+	var resp RecoverInviteResp
+	if err := plain.Do("POST", "/setup/recover-invite", body, &resp); err != nil {
+		return RecoverInviteResp{}, err
+	}
+	return resp, nil
+}
+
 // ReloadTrustReq forza Caddy a ricaricare la trust pool. Va sulla porta
 // bootstrap (no mTLS) perché il caso d'uso tipico è "il mio cert non
 // passa più la mTLS handshake": la chiamata mTLS qui non funzionerebbe.
@@ -639,18 +679,14 @@ func (a *App) InstallUpdate() error {
 	if err := updater.LaunchInstaller(pendingInstaller); err != nil {
 		return err
 	}
-	// L'installer e' stato spawnato via ShellExecuteW("runas") che dispatcha
-	// la richiesta di elevazione al servizio AIS in modo asincrono. Se
-	// chiudiamo il processo TROPPO presto:
-	//   - il prompt UAC puo' chiudersi prematuramente (era figlio della
-	//     nostra finestra owner), oppure
-	//   - il setup parte ma la nostra UI e' gia' sparita lasciando lo
-	//     schermo "vuoto" per qualche secondo prima del progress bar NSIS.
-	// Diamo all'utente abbastanza tempo per interagire con l'UAC e per
-	// vedere che qualcosa sta succedendo. 6s e' un buon compromesso:
-	// scelta consapevole = utente clicca "Si"  → setup gira → app sparisce.
+	// L'app gira come admin (vedi wails.exe.manifest), quindi
+	// l'installer eredita il token elevato senza ulteriore UAC: parte
+	// immediatamente. Diamo comunque ~1.5s a NSIS per agganciarsi al
+	// disco e iniziare la copia dei file prima di chiudere la nostra
+	// finestra, cosi' l'utente vede una transizione pulita e l'installer
+	// puo' eventualmente killare il nostro exe per sostituirlo.
 	go func() {
-		time.Sleep(6 * time.Second)
+		time.Sleep(1500 * time.Millisecond)
 		os.Exit(0)
 	}()
 	return nil

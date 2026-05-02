@@ -145,6 +145,7 @@ func BootstrapRouter(d Deps) http.Handler {
 	r.Route("/setup", func(r chi.Router) {
 		r.Post("/tenant", d.Setup.CreateTenant)
 		r.Post("/reload-trust", d.Setup.ReloadTrust)
+		r.Post("/recover-invite", d.Setup.RecoverInvite)
 	})
 	r.Route("/pairing", func(r chi.Router) {
 		r.Post("/bootstrap-desktop", d.Pairing.BootstrapDesktop)
