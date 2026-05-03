@@ -265,11 +265,15 @@ function cleanCategories(cats: string[] | undefined): string[] {
  * Verifica che un URL puntato a una copertina restituisca un'immagine
  * "vera" e non il placeholder "image not available" di Google Books.
  *
- * Il placeholder di Google e' un PNG di esattamente 128x192 px, identico
- * per tutti gli ISBN senza copertina. Lo rileviamo via `Image()` preload
- * controllando le dimensioni naturali. Le copertine reali a `zoom=2`
- * sono di norma piu' grandi (lato lungo ≥ 256 px) o comunque hanno
- * dimensioni diverse da quel valore esatto.
+ * Il placeholder originale di Google e' un PNG di 128x192 px, ma la
+ * stessa API ritorna anche varianti 128x195 / 128x198 per record
+ * "metadata-only" (volumi senza copertina reale, es. ISBN
+ * 9788804406839). Generalizziamo: qualunque immagine larga 128 px o
+ * meno e' un thumbnail/placeholder e va scartata, lasciando spazio ai
+ * fallback OpenLibrary / Anna's Archive che hanno l'immagine corretta.
+ *
+ * Le copertine reali a `zoom=2` sono sempre piu' larghe di 128 px
+ * (tipicamente 256-512 px), quindi non perdiamo nulla di buono.
  */
 export function probeCoverUrl(url: string, timeoutMs = 8000): Promise<boolean> {
     return new Promise((resolve) => {
@@ -285,8 +289,10 @@ export function probeCoverUrl(url: string, timeoutMs = 8000): Promise<boolean> {
             if (done) return;
             done = true;
             window.clearTimeout(timer);
-            // Placeholder Google Books: 128x192 esatti.
-            const isPlaceholder = img.naturalWidth === 128 && img.naturalHeight === 192;
+            // Tutto cio' che e' largo <=128 px e' un thumbnail/placeholder
+            // di Google Books — la copertina vera, quando esiste, e'
+            // sempre piu' grande di cosi'.
+            const isPlaceholder = img.naturalWidth <= 128;
             resolve(!isPlaceholder);
         };
         img.onerror = () => {

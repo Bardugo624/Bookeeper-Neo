@@ -31,13 +31,14 @@ import { probeCoverUrl, probeOpenLibrary } from './googleBooks';
 import { lookupMetadata, MetadataTransientError, normalizeIsbn as normalizeIsbnUnified } from './metadataLookup';
 
 const DB_NAME = 'bookeeper-covers';
-// v7: passaggio al lookup unificato server-side. La risposta include
-// gia' un array `coverCandidates` ordinato per priorita' di sorgente
-// (GoogleBooks → AnnasArchive → OpenLibrary), quindi qui ci limitiamo
-// a probarli in ordine. Bump di versione per invalidare le voci
-// salvate da v6 che potrebbero contenere URL non probati col nuovo
-// criterio (e per consistenza col contratto di shape `source`).
-const DB_VERSION = 7;
+// v8: il filtro placeholder di GoogleBooks e' stato esteso a tutte le
+// immagini larghe <=128 px (non piu' solo l'esatto 128x192) e il
+// server scarta i record GB metadata-only privi di varianti grandi.
+// Le voci v7 in cache potevano contenere thumbnail GB sbagliati per
+// edizioni che invece hanno la copertina corretta su OpenLibrary
+// (cfr. ISBN 9788804406839 → "Neanche gli dei" di Asimov). Bump per
+// forzare il refresh.
+const DB_VERSION = 8;
 const STORE = 'covers';
 
 interface CoverRecord {

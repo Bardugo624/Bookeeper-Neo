@@ -155,8 +155,22 @@ func parseFirstYear(s string) int {
 // each present in two variants: zoom=1 (full-bleed when available) then
 // the original. Mirrors what desktop's googleBooks.ts already does so
 // the probe behaviour stays identical client-side.
+//
+// IMPORTANTE: quando GoogleBooks espone SOLO `thumbnail` e/o
+// `smallThumbnail` (cioe' nessuna delle varianti grandi extraLarge /
+// large / medium), il record e' tipicamente un volume "metadata-only"
+// senza una vera copertina — l'API ritorna comunque un'immagine
+// generica 128xN che NON corrisponde all'edizione (cfr. ISBN
+// 9788804406839 → volume J2X7HAAACAAJ). In quel caso restituiamo nil
+// cosi' che i candidati di AnnasArchive / OpenLibrary, anche se in
+// fondo all'ordine di precedenza, finiscono per primi nella lista
+// effettiva probata dal client.
 func pickGoogleCoverCandidates(links map[string]string) []string {
 	if len(links) == 0 {
+		return nil
+	}
+	hasReal := links["extraLarge"] != "" || links["large"] != "" || links["medium"] != ""
+	if !hasReal {
 		return nil
 	}
 	order := []string{"extraLarge", "large", "medium", "thumbnail", "smallThumbnail"}

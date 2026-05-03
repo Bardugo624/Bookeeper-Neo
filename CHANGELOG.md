@@ -58,3 +58,7 @@ Prima release pubblica del client desktop Bookeeper.
 ## [0.1.6] - 2026-01-15
 
 - **fix e docs flusso login e creazione nuovi tenant**
+
+## [0.1.7] - 2026-01-15
+
+- **MIGLIORMAENTI LOOKUP ISBN**
