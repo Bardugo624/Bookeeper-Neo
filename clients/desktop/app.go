@@ -680,14 +680,16 @@ func (a *App) InstallUpdate() error {
 	if err := updater.LaunchInstaller(pendingInstaller); err != nil {
 		return err
 	}
-	// L'app gira come admin (vedi wails.exe.manifest), quindi
-	// l'installer eredita il token elevato senza ulteriore UAC: parte
-	// immediatamente. Diamo comunque ~1.5s a NSIS per agganciarsi al
-	// disco e iniziare la copia dei file prima di chiudere la nostra
-	// finestra, cosi' l'utente vede una transizione pulita e l'installer
-	// puo' eventualmente killare il nostro exe per sostituirlo.
+	// updater.LaunchInstaller spawna un cmd.exe che fa:
+	//   timeout 2s & installer /S /UPDATE && start <selfExe>
+	// Quindi possiamo uscire SUBITO: il `timeout 2` serve proprio ad
+	// aspettare che questo processo abbia rilasciato il lock su
+	// desktop.exe prima che NSIS provi a sovrascriverlo. Stiamo
+	// 300ms per dar tempo all'evento "update:installing" di propagarsi
+	// alla UI (cosi' l'utente vede il messaggio di chiusura) prima del
+	// hard exit.
 	go func() {
-		time.Sleep(1500 * time.Millisecond)
+		time.Sleep(300 * time.Millisecond)
 		os.Exit(0)
 	}()
 	return nil

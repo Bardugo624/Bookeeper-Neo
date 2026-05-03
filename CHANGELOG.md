@@ -62,3 +62,8 @@ Prima release pubblica del client desktop Bookeeper.
 ## [0.1.7] - 2026-01-15
 
 - **MIGLIORMAENTI LOOKUP ISBN**
+
+## [0.1.8] - 2026-01-15
+
+- **hotfix copertine**
+-**hotfix updater**
