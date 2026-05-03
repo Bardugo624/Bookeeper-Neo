@@ -46,8 +46,8 @@ export function LookupIsbnAnnas(arg1) {
   return window['go']['main']['App']['LookupIsbnAnnas'](arg1);
 }
 
-export function LookupMetadata(arg1) {
-  return window['go']['main']['App']['LookupMetadata'](arg1);
+export function LookupMetadata(arg1, arg2) {
+  return window['go']['main']['App']['LookupMetadata'](arg1, arg2);
 }
 
 export function RecoverInvite(arg1) {

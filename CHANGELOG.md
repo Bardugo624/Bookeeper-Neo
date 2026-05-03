@@ -19,6 +19,22 @@ pubblicata e la mostra nella dialog "Vedi novità". Sono supportati:
 
 - (in lavorazione)
 
+## [0.1.19] - 2026-05-03
+
+### Fixed
+
+- **Pulsante "ricarica copertina" che non sbloccava i libri "non
+  trovati"**: il server tiene una cache negativa di 24h per i lookup
+  ISBN che falliscono (per non martellare i provider). Quando un
+  fallimento transiente di Anna's Archive / Google Books / OpenLibrary
+  finiva in cache, il successivo refresh dal client riceveva subito
+  "isbn non trovato" senza nemmeno provare un nuovo fetch — lo spinner
+  lampeggiava per una frazione di secondo e poi tornava all'icona
+  "non disponibile". Ora il pulsante invia `?fresh=1` al server, che
+  bypassa la cache e ri-interroga le fonti da capo. La cache positiva
+  viene comunque aggiornata col nuovo risultato per gli accessi
+  successivi.
+
 ## [0.1.18] - 2026-05-03
 
 ### Fixed

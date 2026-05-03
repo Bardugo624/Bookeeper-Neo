@@ -24,7 +24,7 @@ export function Logout():Promise<void>;
 
 export function LookupIsbnAnnas(arg1:string):Promise<main.AnnasInfo>;
 
-export function LookupMetadata(arg1:string):Promise<main.MetadataInfo>;
+export function LookupMetadata(arg1:string,arg2:boolean):Promise<main.MetadataInfo>;
 
 export function RecoverInvite(arg1:main.RecoverInviteReq):Promise<main.RecoverInviteResp>;
 
