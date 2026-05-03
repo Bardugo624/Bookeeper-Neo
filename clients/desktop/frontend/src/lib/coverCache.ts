@@ -27,27 +27,27 @@
  *     RAM per la sessione: evita di martellare l'API a ogni scroll.
  */
 
-import {
-    lookupIsbn,
-    openLibraryCoverUrl,
-    openLibraryCoverViaSearch,
-    probeCoverUrl,
-    probeOpenLibrary,
-    TransientLookupError,
-} from './googleBooks';
-import { lookupIsbnAnnas, AnnasTransientError } from './annasLookup';
+import { probeCoverUrl, probeOpenLibrary } from './googleBooks';
+import { lookupMetadata, MetadataTransientError, normalizeIsbn as normalizeIsbnUnified } from './metadataLookup';
 
 const DB_NAME = 'bookeeper-covers';
-// v6: aggiunge fallback Anna's Archive come 3a fonte. Bump per
-// invalidare cache vecchie che non hanno il discriminante source nuovo.
-const DB_VERSION = 6;
+// v7: passaggio al lookup unificato server-side. La risposta include
+// gia' un array `coverCandidates` ordinato per priorita' di sorgente
+// (GoogleBooks → AnnasArchive → OpenLibrary), quindi qui ci limitiamo
+// a probarli in ordine. Bump di versione per invalidare le voci
+// salvate da v6 che potrebbero contenere URL non probati col nuovo
+// criterio (e per consistenza col contratto di shape `source`).
+const DB_VERSION = 7;
 const STORE = 'covers';
 
 interface CoverRecord {
     isbn: string;
     url: string;
     fetchedAt: number;
-    source: 'google-books' | 'open-library' | 'annas-archive';
+    // `source` resta libero: il server ce lo dice a parole nel campo
+    // `sources` della risposta, ma noi qui salviamo solo il primo che
+    // ha passato la probe (nome del provider o "unknown" per fallback).
+    source: string;
 }
 
 // Memo runtime
@@ -116,88 +116,66 @@ async function dbClear(): Promise<void> {
 }
 
 function normalizeIsbn(isbn: string): string {
-    return isbn.replace(/[^0-9Xx]/g, '').toUpperCase();
+    return normalizeIsbnUnified(isbn);
 }
 
 /**
- * Risolve l'URL di copertina:
- *   1. Google Books → se restituisce un URL, verifichiamo con Image()
- *      che NON sia il placeholder "image not available" 128x192.
- *   2. Fallback Open Library `?default=false` (404 quando manca).
+ * Risolve l'URL di copertina chiedendo al server l'array
+ * `coverCandidates` (gia' ordinato per priorita' di sorgente) e
+ * probando uno per uno con `<img>` finche' non ne carica uno
+ * "vero" (no placeholder, no 404).
+ *
+ * Restituisce:
+ *   - `{url, source}` se almeno un candidato ha caricato;
+ *   - `null` se la lookup ha detto "no record" o tutti i candidati
+ *     hanno fallito → ISBN da mettere in negative cache;
+ *   - `'transient'` se la lookup ha fallito in modo recuperabile
+ *     (rete, fonti giu') → NON mettere in negative cache.
  */
 async function fetchCoverUrl(
     isbn: string,
-): Promise<
-    | { url: string; source: CoverRecord['source'] }
-    | null
-    | 'transient'
-> {
-    let transient = false;
-
+): Promise<{ url: string; source: string } | null | 'transient'> {
+    let info: Awaited<ReturnType<typeof lookupMetadata>> = null;
     try {
-        const info = await lookupIsbn(isbn);
-        const candidates = info?.coverCandidates ?? [];
-        if (import.meta.env.DEV) {
-            console.debug('[coverCache]', isbn, 'candidates:', candidates);
-        }
-        for (const candidate of candidates) {
-            const ok = await probeCoverUrl(candidate);
-            if (import.meta.env.DEV) {
-                console.debug('[coverCache]', isbn, 'probe', candidate, '=>', ok);
-            }
-            if (ok) return { url: candidate, source: 'google-books' };
-        }
+        info = await lookupMetadata(isbn);
     } catch (e) {
-        if (e instanceof TransientLookupError) {
-            transient = true;
-            if (import.meta.env.DEV) console.debug('[coverCache]', isbn, 'transient lookup err', e.message);
-        } else if (import.meta.env.DEV) {
-            console.debug('[coverCache]', isbn, 'lookup err', e);
+        if (e instanceof MetadataTransientError) {
+            if (import.meta.env.DEV) console.debug('[coverCache]', isbn, 'lookup transient', e.message);
+            return 'transient';
+        }
+        if (import.meta.env.DEV) console.debug('[coverCache]', isbn, 'lookup err', e);
+        return 'transient';
+    }
+    if (!info) return null;
+
+    // L'ordine di `coverCandidates` rispetta la precedenza dei
+    // provider lato server: GoogleBooks (zoom=1 + originale) →
+    // AnnasArchive → OpenLibrary (large/medium/small + fallback by
+    // ISBN). Ci limitiamo a provarli in sequenza.
+    const candidates = info.coverCandidates ?? [];
+    if (import.meta.env.DEV) {
+        console.debug('[coverCache]', isbn, 'candidates:', candidates);
+    }
+    for (const url of candidates) {
+        // OpenLibrary va probata diversamente da Google: il primo non
+        // emette CORS e una <img> con onload basta; OL invece torna
+        // 200 anche per i placeholder a meno che non si forzi
+        // `?default=false` (gia' fatto server-side).
+        const isOL = /covers\.openlibrary\.org/.test(url);
+        const ok = isOL ? await probeOpenLibrary(url) : await probeCoverUrl(url);
+        if (import.meta.env.DEV) console.debug('[coverCache]', isbn, 'probe', url, '=>', ok);
+        if (ok) {
+            // Source label: deduciamo dal dominio (sufficiente per
+            // statistiche/debug; il record non viene letto altrove).
+            const source = isOL
+                ? 'open-library'
+                : /books\.google/.test(url)
+                  ? 'google-books'
+                  : info.sources?.[0] ?? 'unknown';
+            return { url, source };
         }
     }
-
-    // Fallback 1: Open Library via ISBN diretto.
-    try {
-        const ol = openLibraryCoverUrl(isbn);
-        const ok = await probeOpenLibrary(ol);
-        if (import.meta.env.DEV) console.debug('[coverCache]', isbn, 'OL/isbn probe =>', ok);
-        if (ok) return { url: ol, source: 'open-library' };
-    } catch (e) {
-        if (import.meta.env.DEV) console.debug('[coverCache]', isbn, 'OL/isbn err', e);
-    }
-
-    // Fallback 2: Open Library via search.json (cover_i → /b/id/).
-    try {
-        const olSearch = await openLibraryCoverViaSearch(isbn);
-        if (olSearch) {
-            const ok = await probeOpenLibrary(olSearch);
-            if (import.meta.env.DEV) console.debug('[coverCache]', isbn, 'OL/search probe', olSearch, '=>', ok);
-            if (ok) return { url: olSearch, source: 'open-library' };
-        }
-    } catch (e) {
-        if (import.meta.env.DEV) console.debug('[coverCache]', isbn, 'OL/search err', e);
-    }
-
-    // Fallback 3: Anna's Archive (solo desktop Wails). Restituisce un
-    // URL di copertina di solito ad alta risoluzione (S3/IPFS) anche
-    // per edizioni italiane di nicchia che mancano altrove.
-    try {
-        const aa = await lookupIsbnAnnas(isbn);
-        if (aa?.coverUrl) {
-            const ok = await probeCoverUrl(aa.coverUrl);
-            if (import.meta.env.DEV) console.debug('[coverCache]', isbn, 'AA probe', aa.coverUrl, '=>', ok);
-            if (ok) return { url: aa.coverUrl, source: 'annas-archive' };
-        }
-    } catch (e) {
-        if (e instanceof AnnasTransientError) {
-            transient = true;
-            if (import.meta.env.DEV) console.debug('[coverCache]', isbn, 'AA transient', e.message);
-        } else if (import.meta.env.DEV) {
-            console.debug('[coverCache]', isbn, 'AA err', e);
-        }
-    }
-
-    return transient ? 'transient' : null;
+    return null;
 }
 
 /**

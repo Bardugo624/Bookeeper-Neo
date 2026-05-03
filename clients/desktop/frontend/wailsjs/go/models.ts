@@ -90,6 +90,48 @@ export namespace main {
 	        this.persist = source["persist"];
 	    }
 	}
+	export class MetadataInfo {
+	    title: string;
+	    subtitle: string;
+	    authors: string[];
+	    publisher: string;
+	    publishYear: number;
+	    pageCount: number;
+	    language: string;
+	    description: string;
+	    genre: string;
+	    format: string;
+	    isbn10: string;
+	    isbn13: string;
+	    coverUrl: string;
+	    coverCandidates: string[];
+	    sourceUrl: string;
+	    sources: string[];
+	
+	    static createFrom(source: any = {}) {
+	        return new MetadataInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.title = source["title"];
+	        this.subtitle = source["subtitle"];
+	        this.authors = source["authors"];
+	        this.publisher = source["publisher"];
+	        this.publishYear = source["publishYear"];
+	        this.pageCount = source["pageCount"];
+	        this.language = source["language"];
+	        this.description = source["description"];
+	        this.genre = source["genre"];
+	        this.format = source["format"];
+	        this.isbn10 = source["isbn10"];
+	        this.isbn13 = source["isbn13"];
+	        this.coverUrl = source["coverUrl"];
+	        this.coverCandidates = source["coverCandidates"];
+	        this.sourceUrl = source["sourceUrl"];
+	        this.sources = source["sources"];
+	    }
+	}
 	export class RecoverInviteReq {
 	    server_url: string;
 	    bootstrap_url: string;

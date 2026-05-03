@@ -15,8 +15,7 @@ import InputNumber from 'primevue/inputnumber';
 import Select from 'primevue/select';
 import Button from 'primevue/button';
 import { useToast } from 'primevue/usetoast';
-import { lookupIsbn, normalizeIsbn } from '@/lib/googleBooks';
-import { lookupIsbnAnnas, AnnasTransientError } from '@/lib/annasLookup';
+import { lookupMetadata, normalizeIsbn, MetadataTransientError } from '@/lib/metadataLookup';
 import { FORMAT_OPTIONS, type BookInput } from '../types';
 
 const props = defineProps<{
@@ -76,42 +75,22 @@ async function doLookup(): Promise<void> {
   }
   lookupLoading.value = true;
   try {
-    // 1) Google Libri (sorgente primaria, copertura mondo anglosassone
-    //    eccellente, edizioni IT mediocre).
-    let info = await lookupIsbn(isbn);
-
-    // 2) Fallback Anna's Archive: spesso ha edizioni italiane / di nicchia
-    //    che Google ignora. Mappiamo la sua struttura su quella di Google
-    //    cosi' il merge sotto resta identico.
-    if (!info) {
-      try {
-        const aa = await lookupIsbnAnnas(isbn);
-        if (aa) {
-          info = {
-            title: aa.title,
-            subtitle: aa.subtitle,
-            authors: aa.authors,
-            publisher: aa.publisher,
-            publishedYear: aa.publishYear,
-            pageCount: aa.pageCount,
-            description: aa.description,
-            language: aa.language,
-            isbn10: aa.isbn10,
-            isbn13: aa.isbn13,
-            categories: [],
-            averageRating: 0,
-            ratingsCount: 0,
-            maturityRating: '',
-            printType: '',
-            previewLink: '',
-            infoLink: aa.sourceUrl ?? '',
-            coverCandidates: aa.coverUrl ? [aa.coverUrl] : [],
-          };
-        }
-      } catch (e) {
-        // Transiente AA: log e proseguiamo come "non trovato".
-        if (!(e instanceof AnnasTransientError)) throw e;
-      }
+    // Endpoint server-side unificato (vedi server/internal/lookup):
+    // orchestrazione GoogleBooks → AnnasArchive → OpenLibrary con
+    // cache 30g e merge per-campo "first non-empty wins". Se la
+    // sessione mTLS non e' attiva il binding Wails ricade su AA locale.
+    let info: Awaited<ReturnType<typeof lookupMetadata>> = null;
+    try {
+      info = await lookupMetadata(isbn);
+    } catch (e) {
+      if (!(e instanceof MetadataTransientError)) throw e;
+      toast.add({
+        severity: 'warn',
+        summary: 'Fonti momentaneamente irraggiungibili',
+        detail: 'Riprova tra poco.',
+        life: 3500,
+      });
+      return;
     }
 
     if (!info) {
@@ -131,15 +110,15 @@ async function doLookup(): Promise<void> {
       subtitle: f.subtitle || info.subtitle,
       authors: f.authors.length > 0 ? f.authors : info.authors,
       publisher: f.publisher || info.publisher,
-      published_year: f.published_year || info.publishedYear,
+      published_year: f.published_year || info.publishYear,
       page_count: f.page_count || info.pageCount,
       description: f.description || info.description,
       language: f.language || info.language,
       isbn_13: f.isbn_13 || info.isbn13,
       isbn_10: f.isbn_10 || info.isbn10,
-      // Genere: prima categoria BISAC di Google (es. "Fiction \u203a Fantasy").
-      // Mantiene il valore manuale se gia' presente.
-      genre: f.genre || (info.categories.length > 0 ? info.categories[0] : ''),
+      // Genere gia' formattato dal server come breadcrumb BISAC
+      // (es. "Fiction \u203a Fantasy"). Non sovrascriviamo input manuale.
+      genre: f.genre || info.genre,
     };
     emit('update:form', merged);
     // Se gli autori arrivano dal lookup, sincronizza anche la textarea raw.

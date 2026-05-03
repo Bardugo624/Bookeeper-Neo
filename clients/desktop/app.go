@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -751,5 +752,107 @@ func (a *App) LookupIsbnAnnas(rawISBN string) (AnnasInfo, error) {
 		CoverURL:    info.CoverURL,
 		SourceURL:   info.SourceURL,
 	}, nil
+}
+
+// ===== Unified metadata lookup ===============================================
+//
+// MetadataInfo e' lo shape del nuovo endpoint server-side
+// `/api/v1/lookup/metadata/{isbn}` (vedi server/internal/lookup).
+// Sostituisce nel tempo i lookup paralleli che desktop e mobile facevano
+// client-side verso GoogleBooks / OpenLibrary / AnnasArchive.
+//
+// I tag JSON sono camelCase per coerenza col server.
+type MetadataInfo struct {
+	Title           string   `json:"title"`
+	Subtitle        string   `json:"subtitle"`
+	Authors         []string `json:"authors"`
+	Publisher       string   `json:"publisher"`
+	PublishYear     int      `json:"publishYear"`
+	PageCount       int      `json:"pageCount"`
+	Language        string   `json:"language"`
+	Description     string   `json:"description"`
+	Genre           string   `json:"genre"`
+	Format          string   `json:"format"`
+	ISBN10          string   `json:"isbn10"`
+	ISBN13          string   `json:"isbn13"`
+	CoverURL        string   `json:"coverUrl"`
+	CoverCandidates []string `json:"coverCandidates"`
+	SourceURL       string   `json:"sourceUrl"`
+	Sources         []string `json:"sources"`
+}
+
+// LookupMetadata e' il punto unico per ottenere metadata + cover URLs.
+// Politica:
+//  1. Se la sessione mTLS e' attiva, chiama
+//     `GET /api/v1/lookup/metadata/{isbn}` sul server (che orchestra
+//     GoogleBooks → AnnasArchive → OpenLibrary, con cache 30g).
+//  2. Se il server e' irraggiungibile (utente offline o non ancora
+//     paired) ricade sul provider locale Anna's Archive — meno ricco
+//     ma sufficiente per inserire il libro a mano senza connessione.
+//
+// Sempre struct azzerata + nil per "non trovato"; error solo per
+// fallimenti transienti (frontend NON deve metterli in negative cache).
+func (a *App) LookupMetadata(rawISBN string) (MetadataInfo, error) {
+	// Path 1: server unificato (preferito).
+	a.mu.RLock()
+	cli := a.client
+	a.mu.RUnlock()
+	if cli != nil {
+		var resp MetadataInfo
+		err := cli.Do("GET", "/api/v1/lookup/metadata/"+rawISBN, nil, &resp)
+		if err == nil {
+			return resp, nil
+		}
+		// 404 logico: il server ha detto "no record". Distinguiamolo
+		// dagli errori transienti per non innescare il fallback AA
+		// (che probabilmente direbbe la stessa cosa).
+		if isHTTPNotFound(err) {
+			return MetadataInfo{}, nil
+		}
+		// Errori non-404 (rete, 5xx, mTLS broken): proviamo il locale.
+	}
+
+	// Path 2: fallback locale Anna's Archive. Mappa il vecchio
+	// AnnasInfo sul nuovo MetadataInfo cosi' il frontend usa
+	// sempre lo stesso shape.
+	aa, err := a.LookupIsbnAnnas(rawISBN)
+	if err != nil {
+		return MetadataInfo{}, err
+	}
+	if aa.Title == "" && aa.CoverURL == "" {
+		return MetadataInfo{}, nil
+	}
+	out := MetadataInfo{
+		Title:       aa.Title,
+		Subtitle:    aa.Subtitle,
+		Authors:     aa.Authors,
+		Publisher:   aa.Publisher,
+		PublishYear: aa.PublishYear,
+		PageCount:   aa.PageCount,
+		Language:    aa.Language,
+		Description: aa.Description,
+		ISBN10:      aa.ISBN10,
+		ISBN13:      aa.ISBN13,
+		CoverURL:    aa.CoverURL,
+		SourceURL:   aa.SourceURL,
+		Sources:     []string{"annas-archive"},
+	}
+	if aa.CoverURL != "" {
+		out.CoverCandidates = []string{aa.CoverURL}
+	}
+	return out, nil
+}
+
+// isHTTPNotFound e' una euristica leggera: il client httpclient.Do
+// formatta gli errori HTTP includendo "404" nel messaggio. Sufficiente
+// per discriminare il "definitivo no" dal transiente.
+func isHTTPNotFound(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := err.Error()
+	return strings.Contains(msg, "404") ||
+		strings.Contains(strings.ToLower(msg), "non trovato") ||
+		strings.Contains(strings.ToLower(msg), "not found")
 }
 

@@ -10,25 +10,36 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/bookeeper/bookeeper-neo/server/internal/annas"
+	"github.com/bookeeper/bookeeper-neo/server/internal/lookup"
 )
 
 // LookupHandlers espone endpoint read-only verso fonti di metadata
-// pubbliche (al momento: Anna's Archive). Funziona da proxy server-side
-// per i client browser/mobile che non possono fare scraping cross-origin.
+// pubbliche. Da Bookeeper 0.6 unifichiamo tutte le fonti dietro
+// `lookup.Service` in modo che desktop, mobile e cover-fetch ricevano
+// lo stesso shape e la stessa precedenza di provider — vedi
+// server/internal/lookup/lookup.go.
 //
 // Caratteristiche:
-//   - rate limit centralizzato a livello di provider (annas.Provider) →
-//     impedisce di far esplodere AA con troppe richieste concorrenti;
-//   - cache di sessione del processo (sufficiente per un server
-//     domestico — se in futuro vogliamo persistenza, va su sqlite).
+//   - rate limit interno a ciascun provider (es. annas.Provider) →
+//     impedisce di far esplodere le sorgenti con troppe richieste;
+//   - cache di processo a livello di Service (positivi 30g, negativi 24h).
+//
+// L'endpoint legacy /lookup/annas/{isbn} resta come thin shim che chiama
+// solo il provider Anna's Archive (per compatibilita' con vecchi
+// installer desktop ancora attivi); il nuovo /lookup/metadata/{isbn} e'
+// quello canonico verso cui tutti i client devono migrare.
 type LookupHandlers struct {
-	annas *annas.Provider
+	annas    *annas.Provider
+	metadata *lookup.Service
 }
 
 // NewLookupHandlers crea l'istanza condivisa dei provider esterni.
 // userAgent dovrebbe essere "Bookeeper/<version> (+url-progetto)".
 func NewLookupHandlers(userAgent string) *LookupHandlers {
-	return &LookupHandlers{annas: annas.New(userAgent)}
+	return &LookupHandlers{
+		annas:    annas.New(userAgent),
+		metadata: lookup.New(userAgent, 12*time.Second),
+	}
 }
 
 // AnnasResponse e' lo shape JSON ritornato a /lookup/annas/{isbn}.
@@ -97,4 +108,53 @@ func (h *LookupHandlers) LookupAnnasISBN(w http.ResponseWriter, r *http.Request)
 		CoverURL:    info.CoverURL,
 		SourceURL:   info.SourceURL,
 	})
+}
+
+// LookupMetadata gestisce GET /lookup/metadata/{isbn} — l'endpoint
+// canonico unificato per metadata + cover URLs. Aggrega GoogleBooks,
+// Anna's Archive e OpenLibrary lato server e ritorna un singolo
+// `lookup.Metadata` con sorgenti deduplicate.
+//
+// Risposte:
+//   - 200 + Metadata → almeno una fonte ha dati
+//   - 404 + errResp  → tutte le fonti hanno detto "no record"
+//   - 503 + errResp  → tutte le fonti hanno fallito in modo transiente
+//   - 400 + errResp  → ISBN malformato
+func (h *LookupHandlers) LookupMetadata(w http.ResponseWriter, r *http.Request) {
+	raw := strings.TrimSpace(chi.URLParam(r, "isbn"))
+	if raw == "" {
+		writeErr(w, http.StatusBadRequest, "isbn mancante")
+		return
+	}
+	isbn := lookup.NormalizeISBN(raw)
+	if len(isbn) != 10 && len(isbn) != 13 {
+		writeErr(w, http.StatusBadRequest, "isbn deve essere 10 o 13 cifre")
+		return
+	}
+
+	// Budget complessivo: ogni provider ha gia' il proprio timeout (~12s),
+	// ma con tre fonti in serie diamo al chiamante un tetto piu' generoso.
+	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
+	defer cancel()
+
+	info, err := h.metadata.Lookup(ctx, isbn)
+	if err != nil {
+		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+			w.Header().Set("Cache-Control", "no-store")
+			writeErr(w, http.StatusServiceUnavailable, "lookup timeout")
+			return
+		}
+		w.Header().Set("Cache-Control", "no-store")
+		writeErr(w, http.StatusServiceUnavailable, "fonti momentaneamente non disponibili")
+		return
+	}
+	if info == nil {
+		// Definitive miss: caching breve lato client per non rimartellare
+		// l'endpoint scrollando una lista di ISBN ignoti.
+		w.Header().Set("Cache-Control", "public, max-age=86400")
+		writeErr(w, http.StatusNotFound, "isbn non trovato")
+		return
+	}
+	w.Header().Set("Cache-Control", "public, max-age=2592000")
+	writeJSON(w, http.StatusOK, info)
 }

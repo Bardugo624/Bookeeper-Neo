@@ -117,6 +117,7 @@ func AuthenticatedRouter(d Deps) http.Handler {
 		if d.Lookup != nil {
 			r.Route("/lookup", func(r chi.Router) {
 				r.Get("/annas/{isbn}", d.Lookup.LookupAnnasISBN)
+				r.Get("/metadata/{isbn}", d.Lookup.LookupMetadata)
 			})
 		}
 	})
@@ -181,6 +182,7 @@ func BootstrapRouter(d Deps) http.Handler {
 		if d.Lookup != nil {
 			r.Route("/lookup", func(r chi.Router) {
 				r.Get("/annas/{isbn}", d.Lookup.LookupAnnasISBN)
+				r.Get("/metadata/{isbn}", d.Lookup.LookupMetadata)
 			})
 		}
 	})

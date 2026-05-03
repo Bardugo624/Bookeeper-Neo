@@ -47,6 +47,35 @@ interface OLData {
     publish_date?: string;
     cover?: { medium?: string; large?: string };
     number_of_pages?: number;
+    // Estensioni dal lookup unificato server-side: questi campi
+    // arrivano dall'endpoint /lookup/metadata/{isbn} e vengono
+    // forwardati al POST /books per parita' col desktop.
+    language?: string;
+    description?: string;
+    genre?: string;
+    format?: string;
+    cover_candidates?: string[];
+}
+
+// Shape della risposta /api/v1/m/lookup/metadata/{isbn} — vedi
+// server/internal/lookup/lookup.go. JSON camelCase.
+interface MetadataResp {
+    title: string;
+    subtitle: string;
+    authors: string[];
+    publisher: string;
+    publishYear: number;
+    pageCount: number;
+    language: string;
+    description: string;
+    genre: string;
+    format: string;
+    isbn10: string;
+    isbn13: string;
+    coverUrl: string;
+    coverCandidates: string[];
+    sourceUrl: string;
+    sources: string[];
 }
 
 interface ScanResult {
@@ -308,20 +337,11 @@ async function lookupIsbn(isbn: string): Promise<void> {
             result.value = { isbn, found: local, fallback: null };
             return;
         }
-        // 2) Open Library fallback (good English coverage, weak on IT).
-        let ol = await fetchOpenLibrary(isbn);
-        // 3) Google Books fallback — much better coverage for Italian
-        //    publishers. Tried only when OL returns nothing useful.
-        if (!ol || (!ol.title && !ol.authors)) {
-            const gb = await fetchGoogleBooks(isbn);
-            if (gb) ol = gb;
-        }
-        // 4) Anna's Archive (server proxy) — fallback finale per
-        //    edizioni di nicchia / italiane assenti dalle altre fonti.
-        if (!ol || (!ol.title && !ol.authors)) {
-            const aa = await fetchAnnasArchive(isbn);
-            if (aa) ol = aa;
-        }
+        // 2) Lookup unificato server-side. Un solo round-trip: il
+        //    server orchestra GoogleBooks → AnnasArchive → OpenLibrary
+        //    con cache 30g e ci ritorna il merge. Stessa fonte usata
+        //    da desktop, garantendo parita' totale di shape.
+        const ol = await fetchUnifiedMetadata(isbn);
         result.value = { isbn, found: null, fallback: ol };
     } catch (err) {
         showToast(err instanceof ApiError ? err.body : 'errore di rete');
@@ -336,16 +356,35 @@ async function lookupIsbn(isbn: string): Promise<void> {
     }
 }
 
-async function fetchOpenLibrary(isbn: string): Promise<OLData | null> {
+// Single source of truth: chiama l'endpoint server unificato e mappa
+// la risposta sullo shape OLData esteso usato dal resto della view.
+// 404 → null. Errori transienti → null silenzioso (best-effort:
+// l'utente puo' sempre aggiungere il bare ISBN).
+async function fetchUnifiedMetadata(isbn: string): Promise<OLData | null> {
     try {
-        const r = await fetch(
-            `https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&jscmd=data&format=json`,
-            { mode: 'cors' },
+        const r = await api.get<MetadataResp>(
+            `/lookup/metadata/${encodeURIComponent(isbn)}`,
         );
-        if (!r.ok) return null;
-        const j = (await r.json()) as Record<string, OLData>;
-        return j[`ISBN:${isbn}`] ?? null;
+        if (!r || (!r.title && !r.coverUrl && (!r.coverCandidates || r.coverCandidates.length === 0))) {
+            return null;
+        }
+        return {
+            title: r.title,
+            subtitle: r.subtitle,
+            authors: (r.authors ?? []).map((name) => ({ name })),
+            publishers: r.publisher ? [{ name: r.publisher }] : undefined,
+            publish_date: r.publishYear ? String(r.publishYear) : undefined,
+            number_of_pages: r.pageCount,
+            cover: r.coverUrl ? { large: r.coverUrl } : undefined,
+            language: r.language,
+            description: r.description,
+            genre: r.genre,
+            format: r.format,
+            cover_candidates: r.coverCandidates ?? [],
+        };
     } catch {
+        // 404 dal server o transiente: l'utente vedra' il branch
+        // "nessun metadato" e potra' usare addBareIsbn.
         return null;
     }
 }
@@ -357,74 +396,8 @@ function coverUrl(): string | null {
     const fb = result.value.fallback;
     if (fb?.cover?.large) return fb.cover.large;
     if (fb?.cover?.medium) return fb.cover.medium;
+    if (fb?.cover_candidates && fb.cover_candidates.length > 0) return fb.cover_candidates[0];
     return `https://covers.openlibrary.org/b/isbn/${result.value.isbn}-M.jpg`;
-}
-
-// Google Books volumes API. Returns at most one volume mapped onto the
-// shared OLData shape so the rest of the UI doesn't care about the source.
-async function fetchGoogleBooks(isbn: string): Promise<OLData | null> {
-    try {
-        const r = await fetch(
-            `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&maxResults=1`,
-            { mode: 'cors' },
-        );
-        if (!r.ok) return null;
-        const j = (await r.json()) as {
-            items?: { volumeInfo: {
-                title?: string;
-                subtitle?: string;
-                authors?: string[];
-                publisher?: string;
-                publishedDate?: string;
-                pageCount?: number;
-                imageLinks?: { thumbnail?: string };
-            } }[];
-        };
-        const v = j.items?.[0]?.volumeInfo;
-        if (!v) return null;
-        return {
-            title: v.title,
-            subtitle: v.subtitle,
-            authors: (v.authors ?? []).map((name) => ({ name })),
-            publishers: v.publisher ? [{ name: v.publisher }] : undefined,
-            publish_date: v.publishedDate,
-            number_of_pages: v.pageCount,
-            cover: v.imageLinks?.thumbnail
-                ? { medium: v.imageLinks.thumbnail }
-                : undefined,
-        };
-    } catch {
-        return null;
-    }
-}
-
-// Anna's Archive lookup via server proxy. Restituisce metadati + cover
-// per ISBN che le altre fonti non hanno (utile per editori italiani di
-// nicchia). Errori 404/503 → null silenzioso, non blocchiamo l'utente.
-async function fetchAnnasArchive(isbn: string): Promise<OLData | null> {
-    try {
-        const r = await api.get<{
-            title?: string;
-            subtitle?: string;
-            authors?: string[];
-            publisher?: string;
-            publishYear?: number;
-            pageCount?: number;
-            coverUrl?: string;
-        }>(`/lookup/annas/${encodeURIComponent(isbn)}`);
-        if (!r || (!r.title && !r.coverUrl)) return null;
-        return {
-            title: r.title,
-            subtitle: r.subtitle,
-            authors: (r.authors ?? []).map((name) => ({ name })),
-            publishers: r.publisher ? [{ name: r.publisher }] : undefined,
-            publish_date: r.publishYear ? String(r.publishYear) : undefined,
-            number_of_pages: r.pageCount,
-            cover: r.coverUrl ? { large: r.coverUrl } : undefined,
-        };
-    } catch {
-        return null;
-    }
 }
 
 function closeDialog(): void {
@@ -463,6 +436,11 @@ async function addFromOpenLibrary(): Promise<void> {
     const year = ol.publish_date ? Number((ol.publish_date.match(/\d{4}/) ?? [])[0]) : 0;
     addLoading.value = true;
     try {
+        // Parita' col desktop: includiamo TUTTI i campi che il
+        // server accetta nel createBookReq (genre, language,
+        // description, format, subtitle), in modo che un libro
+        // aggiunto da mobile sia indistinguibile da uno aggiunto
+        // dal form desktop dopo lookup.
         await api.post('/books', {
             title: ol.title ?? 'Senza titolo',
             subtitle: ol.subtitle ?? '',
@@ -472,6 +450,10 @@ async function addFromOpenLibrary(): Promise<void> {
             publisher: ol.publishers?.[0]?.name ?? '',
             published_year: year || 0,
             page_count: ol.number_of_pages ?? 0,
+            language: ol.language ?? '',
+            description: ol.description ?? '',
+            genre: ol.genre ?? '',
+            format: ol.format ?? '',
         });
         showToast('Libro aggiunto al catalogo', 2000);
         result.value = null;
