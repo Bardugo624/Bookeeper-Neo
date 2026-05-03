@@ -8,13 +8,20 @@
  *      (saltata se l'utente disattiva l'opzione in Impostazioni)
  *   3. placeholder gradient + iniziale (deterministico, no flicker).
  *
+ * UX:
+ *   - badge angolare in basso-dx mostra lo stato del download
+ *     (spinner, errore, non disponibile) cosi' l'utente vede subito
+ *     se l'app sta lavorando per quel libro;
+ *   - pulsante "ricarica" in alto-dx (visibile su hover o sempre se
+ *     fallita) per forzare il re-download via `forceRefetch`.
+ *
  * Nessun byte di copertina passa dal server: il fetch e' diretto verso
  * `googleapis.com/books/v1/volumes` e l'immagine e' persistita solo in
  * IndexedDB locale (vedi `lib/coverCache.ts`).
  */
 import { computed, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
-import { getCover } from '@/lib/coverCache';
+import { getCover, getCoverStatus, forceRefetch, markBad, type CoverStatus } from '@/lib/coverCache';
 import { useCoverPrefsStore } from '@/stores/coverPrefs';
 
 const props = defineProps<{
@@ -55,6 +62,57 @@ const effectivePath = computed(() => {
   return props.path || cachedUrl.value;
 });
 
+// Stato reattivo dal cache (Vue tracking della Map reactive in coverCache).
+const status = computed<CoverStatus>(() => {
+  if (props.path) return 'cached';      // path server: niente download
+  if (!props.isbn) return 'idle';
+  if (!coversEnabled.value) return 'idle';
+  return getCoverStatus(props.isbn);
+});
+
+// Mostra badge stato solo quando c'e' qualcosa da comunicare.
+const showBadge = computed(() => {
+  if (props.path) return false;          // copertina servita dal server
+  if (!coversEnabled.value) return false; // utente ha disattivato il download
+  if (!props.isbn) return false;
+  return status.value === 'fetching' || status.value === 'failed' || status.value === 'not-found';
+});
+
+// Mostra pulsante ricarica: sempre se ISBN presente e download abilitato,
+// MA solo su hover quando la copertina e' gia' caricata correttamente.
+const canRetry = computed(() => {
+  if (props.path) return false;
+  if (!coversEnabled.value) return false;
+  if (!props.isbn) return false;
+  return status.value !== 'fetching';
+});
+
+const retrying = ref(false);
+async function onRetry(ev: Event) {
+  ev.preventDefault();
+  ev.stopPropagation();
+  if (!props.isbn || retrying.value) return;
+  retrying.value = true;
+  loadFailed.value = false;
+  cachedUrl.value = null;
+  try {
+    cachedUrl.value = await forceRefetch(props.isbn);
+  } finally {
+    retrying.value = false;
+  }
+}
+
+async function onImgError() {
+  loadFailed.value = true;
+  // Se l'URL veniva dalla cache locale, il blob e' probabilmente
+  // corrotto (es. garbage da v0.1.12). Cancelliamo il record IDB
+  // cosi' la prossima richiesta forza un fresh fetch — ma solo se
+  // l'errore non era su `path` esplicito server-side.
+  if (!props.path && props.isbn) {
+    await markBad(props.isbn);
+  }
+}
+
 async function resolveCover() {
   // Reset per evitare di mostrare la copertina del libro precedente
   cachedUrl.value = null;
@@ -76,7 +134,7 @@ watch(
 <template>
   <div
     class="cover"
-    :class="`cover--${size ?? 'md'}`"
+    :class="[`cover--${size ?? 'md'}`, { 'cover--has-isbn': canRetry }]"
     :style="effectivePath ? undefined : { background: gradient }"
     role="img"
     :aria-label="`Copertina di ${title}`"
@@ -87,9 +145,44 @@ watch(
       :alt="`Copertina di ${title}`"
       loading="lazy"
       referrerpolicy="no-referrer"
-      @error="loadFailed = true"
+      @error="onImgError"
     />
     <span v-else class="cover__initial" aria-hidden="true">{{ initial }}</span>
+
+    <!-- Badge stato (basso-destra). Solo quando c'e' qualcosa da dire. -->
+    <span
+      v-if="showBadge"
+      class="cover__badge"
+      :class="`cover__badge--${status}`"
+      :title="
+        status === 'fetching' ? 'Sto scaricando la copertina...'
+        : status === 'failed'  ? 'Download fallito — clicca ricarica per riprovare'
+        : 'Copertina non disponibile su Google Libri / OpenLibrary'
+      "
+      :aria-label="
+        status === 'fetching' ? 'Download copertina in corso'
+        : status === 'failed'  ? 'Download copertina fallito'
+        : 'Copertina non trovata'
+      "
+    >
+      <i v-if="status === 'fetching'" class="pi pi-spin pi-spinner" aria-hidden="true" />
+      <i v-else-if="status === 'failed'" class="pi pi-exclamation-triangle" aria-hidden="true" />
+      <i v-else class="pi pi-image" aria-hidden="true" />
+    </span>
+
+    <!-- Pulsante ricarica (alto-destra). Forza il re-download. -->
+    <button
+      v-if="canRetry && size !== 'sm'"
+      type="button"
+      class="cover__retry"
+      :class="{ 'cover__retry--persistent': status === 'failed' || status === 'not-found' }"
+      :disabled="retrying"
+      :title="status === 'cached' || effectivePath ? 'Riscarica copertina' : 'Cerca copertina'"
+      :aria-label="status === 'cached' || effectivePath ? 'Riscarica copertina' : 'Cerca copertina'"
+      @click="onRetry"
+    >
+      <i :class="retrying ? 'pi pi-spin pi-spinner' : 'pi pi-refresh'" aria-hidden="true" />
+    </button>
   </div>
 </template>
 
@@ -136,5 +229,96 @@ watch(
 }
 .cover--lg .cover__initial {
   font-size: 4.4rem;
+}
+
+/* ================== Badge stato ================== */
+.cover__badge {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: #fff;
+  background: rgba(15, 23, 42, 0.78);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  pointer-events: none; /* il tooltip basta */
+  z-index: 2;
+}
+.cover--sm .cover__badge {
+  width: 14px;
+  height: 14px;
+  font-size: 0.55rem;
+  bottom: 2px;
+  right: 2px;
+}
+.cover__badge--fetching {
+  background: rgba(77, 131, 105, 0.92); /* sage brand */
+}
+.cover__badge--failed {
+  background: rgba(185, 47, 47, 0.92);
+}
+.cover__badge--not-found {
+  background: rgba(80, 80, 80, 0.85);
+}
+
+/* ================== Pulsante ricarica ================== */
+.cover__retry {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: #fff;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transform: scale(0.85);
+  transition: opacity 160ms ease, transform 160ms ease, background 160ms ease;
+  z-index: 3;
+}
+.cover__retry:hover:not(:disabled) {
+  background: rgba(48, 85, 69, 0.95); /* dark sage */
+  transform: scale(1);
+}
+.cover__retry:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+  opacity: 1;
+  transform: scale(1);
+}
+.cover__retry:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+.cover:hover .cover__retry,
+.cover__retry--persistent {
+  opacity: 1;
+  transform: scale(1);
+}
+@media (hover: none) {
+  /* Touch: sempre visibile (no hover affordance) */
+  .cover__retry {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cover__retry { transition: none; }
 }
 </style>

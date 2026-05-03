@@ -78,13 +78,15 @@ ManifestDPIAware true
 # Branding text in fondo a tutte le pagine (sostituisce "Nullsoft Install System")
 BrandingText "Bookeeper — la tua biblioteca personale"
 
-# Pagine: in modalita' /UPDATE saltiamo welcome e directory (gia' scelta dalla
-# install precedente). Lo skip e' implementato nelle PRE function piu' sotto.
+# Pagine: in modalita' /UPDATE saltiamo welcome, directory e finish
+# (l'app si rilancia da sola e la finestra si chiude automaticamente).
+# Lo skip e' implementato nelle PRE function piu' sotto.
 !define MUI_PAGE_CUSTOMFUNCTION_PRE WelcomePre
 !insertmacro MUI_PAGE_WELCOME
 !define MUI_PAGE_CUSTOMFUNCTION_PRE DirectoryPre
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
+!define MUI_PAGE_CUSTOMFUNCTION_PRE FinishPre
 !insertmacro MUI_PAGE_FINISH
 
 !insertmacro MUI_UNPAGE_INSTFILES # Uinstalling page
@@ -125,10 +127,51 @@ Function DirectoryPre
     ${EndIf}
 FunctionEnd
 
+Function FinishPre
+    ${If} $IsUpdate == "1"
+        Abort   ; in update mode la finestra si chiude da sola (SetAutoClose true)
+    ${EndIf}
+FunctionEnd
+
 Section
     !insertmacro wails.setShellContext
 
     !insertmacro wails.webview2runtime
+
+    # In modalita' update: chiudiamo l'app vecchia e aspettiamo che
+    # Windows rilasci il lock su desktop.exe prima di sovrascriverlo.
+    # Senza questo step NSIS in /S fallirebbe SILENZIOSAMENTE la File
+    # instruction lasciando installata la versione precedente.
+    ${If} $IsUpdate == "1"
+        DetailPrint "Aggiornamento in corso: chiusura della versione precedente..."
+
+        # nsExec::Exec gira completamente nascosto, niente flash di
+        # console nera. taskkill /F /IM termina tutte le istanze.
+        # NON usiamo /T (kill tree): l'installer NSIS e' a sua volta
+        # un figlio di desktop.exe (lo ha spawnato l'app stessa) e
+        # /T lo ammazzerebbe interrompendo l'aggiornamento.
+        nsExec::Exec 'taskkill /F /IM "${PRODUCT_EXECUTABLE}"'
+        Pop $0  ; ignoriamo l'exit code: se non c'e' nulla da uccidere e' OK
+
+        # Loop di attesa unlock: tentiamo di rinominare il vecchio
+        # exe; se la rename riesce significa che Windows ha rilasciato
+        # l'handle. Massimo ~6 secondi (30 × 200ms). Su SSD e PC
+        # moderni di solito basta 1 ciclo.
+        StrCpy $1 0  ; counter
+        unlock_retry:
+            ClearErrors
+            Delete "$INSTDIR\${PRODUCT_EXECUTABLE}"
+            ${IfNot} ${Errors}
+                Goto unlock_done
+            ${EndIf}
+            IntOp $1 $1 + 1
+            ${If} $1 >= 30
+                Goto unlock_done   ; abbiamo provato abbastanza, andiamo avanti comunque
+            ${EndIf}
+            Sleep 200
+            Goto unlock_retry
+        unlock_done:
+    ${EndIf}
 
     SetOutPath $INSTDIR
 
@@ -141,6 +184,14 @@ Section
     !insertmacro wails.associateCustomProtocols
 
     !insertmacro wails.writeUninstaller
+
+    # Rilancio automatico dopo update. La pagina FINISH viene saltata
+    # (vedi FinishPre) e SetAutoClose chiude l'installer subito dopo
+    # la fine della section. ExecShell async non blocca.
+    ${If} $IsUpdate == "1"
+        SetAutoClose true
+        ExecShell "" "$INSTDIR\${PRODUCT_EXECUTABLE}"
+    ${EndIf}
 SectionEnd
 
 Section "uninstall"

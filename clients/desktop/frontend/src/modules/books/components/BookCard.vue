@@ -100,10 +100,13 @@ defineProps<{ book: Book }>();
 .book-card__detail {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.375rem 0.5rem;
   font-size: 0.8rem;
   color: var(--p-surface-500);
   margin: 0.5rem 0 0;
+  /* Permetti shrink dei figli su righe strette */
+  min-width: 0;
 }
 .book-card__chip {
   display: inline-flex;
@@ -114,6 +117,12 @@ defineProps<{ book: Book }>();
   color: var(--p-surface-700);
   font-size: 0.75rem;
   text-transform: capitalize;
+  /* Tronca testi lunghi (es. genere multi-livello BISAC) per evitare
+     overflow oltre il bordo della card. */
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .book-card__chip--genre {
   background: color-mix(in srgb, var(--p-primary-500) 14%, transparent);

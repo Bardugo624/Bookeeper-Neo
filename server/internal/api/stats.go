@@ -132,15 +132,12 @@ func (h *StatHandlers) Get(w http.ResponseWriter, r *http.Request) {
 		 GROUP BY k ORDER BY n DESC, k ASC
 	`, tenant)
 
-	// Genre: COUNT only sui valori effettivamente impostati. Limite top 12 per
-	// non saturare il chart su librerie con tassonomia ampia.
-	out.ByGenre, _ = scanKV(ctx, h.DB, `
-		SELECT TRIM(genre) AS k, COUNT(*) AS n
-		  FROM books WHERE tenant_id = ?
-		   AND genre IS NOT NULL AND TRIM(genre) <> ''
-		 GROUP BY k ORDER BY n DESC, k ASC
-		 LIMIT 12
-	`, tenant)
+	// Genre: i valori sono breadcrumb BISAC tipo "Fiction / Science Fiction /
+	// Hard SF". Aggregare sull'intera stringa frammenta i conteggi: ogni libro
+	// finisce in un bucket diverso e nulla si "raggruppa". Estraggo l'ultimo
+	// segmento (leaf) — il più specifico — così il chart mostra categorie
+	// reali e i conteggi rappresentano il numero di libri per ciascuna.
+	out.ByGenre = topGenres(ctx, h.DB, tenant, 12)
 
 	out.ByDecade, _ = scanKV(ctx, h.DB, `
 		SELECT CASE
@@ -248,14 +245,15 @@ func (h *StatHandlers) Get(w http.ResponseWriter, r *http.Request) {
 	out.Overview.TotalAuthors = len(totalAuthors)
 	out.TopAuthors = topNFromMap(authorsCount, 10)
 
-	// --- Shelf fill: capacity = rows*slots_per_row, used = libri con
-	// location_shelf = nome dello scaffale (best-effort; manca FK reale).
+	// --- Shelf fill: capacity = rows*slots_per_row, used = righe in
+	// `shelf_books` (tabella di placement: book_id ↔ shelf_id ↔ row/slot).
+	// Nota: in passato la query usava `books.location_shelf`, campo che non
+	// viene mai aggiornato dal flusso di assegnazione → riempimento sempre 0%.
 	if rows5, err := h.DB.QueryContext(ctx, `
 		SELECT s.id, s.name, COALESCE(s.color, 'sage'),
 		       (s.rows * s.slots_per_row) AS capacity,
-		       COALESCE((SELECT COUNT(*) FROM books b
-		                  WHERE b.tenant_id = s.tenant_id
-		                    AND b.location_shelf = s.id), 0) AS used
+		       COALESCE((SELECT COUNT(*) FROM shelf_books sb
+		                  WHERE sb.shelf_id = s.id), 0) AS used
 		  FROM shelves s
 		 WHERE s.tenant_id = ?
 		 ORDER BY s.name ASC
@@ -323,6 +321,63 @@ func topNFromMap(m map[string]int, n int) []statsKV {
 	all := make([]statsKV, 0, len(m))
 	for k, v := range m {
 		all = append(all, statsKV{Key: k, Count: v})
+	}
+	sort.Slice(all, func(i, j int) bool {
+		if all[i].Count != all[j].Count {
+			return all[i].Count > all[j].Count
+		}
+		return all[i].Key < all[j].Key
+	})
+	if len(all) > n {
+		all = all[:n]
+	}
+	return all
+}
+
+// topGenres legge il campo `books.genre` (breadcrumb BISAC tipo
+// "Fiction / Science Fiction / Hard SF") e conta ciascun libro UNA volta
+// sotto l'ultimo segmento (la categoria più specifica). Normalizza il
+// separatore (`/`, `>`, `›`) e fa il match case-insensitive sul leaf,
+// preservando la prima capitalizzazione vista come label canonica.
+func topGenres(ctx context.Context, db *sql.DB, tenant string, n int) []statsKV {
+	out := []statsKV{}
+	rows, err := db.QueryContext(ctx,
+		`SELECT genre FROM books WHERE tenant_id = ? AND genre IS NOT NULL AND TRIM(genre) <> ''`, tenant)
+	if err != nil {
+		return out
+	}
+	defer rows.Close()
+	counts := map[string]int{}
+	labels := map[string]string{}
+	for rows.Next() {
+		var raw string
+		if err := rows.Scan(&raw); err != nil {
+			continue
+		}
+		// Normalizza separatori secondari sul "/" canonico.
+		s := strings.ReplaceAll(raw, "›", "/")
+		s = strings.ReplaceAll(s, ">", "/")
+		parts := strings.Split(s, "/")
+		leaf := ""
+		for i := len(parts) - 1; i >= 0; i-- {
+			p := strings.TrimSpace(parts[i])
+			if p != "" {
+				leaf = p
+				break
+			}
+		}
+		if leaf == "" {
+			continue
+		}
+		key := strings.ToLower(leaf)
+		counts[key]++
+		if _, ok := labels[key]; !ok {
+			labels[key] = leaf
+		}
+	}
+	all := make([]statsKV, 0, len(counts))
+	for k, v := range counts {
+		all = append(all, statsKV{Key: labels[k], Count: v})
 	}
 	sort.Slice(all, func(i, j int) bool {
 		if all[i].Count != all[j].Count {

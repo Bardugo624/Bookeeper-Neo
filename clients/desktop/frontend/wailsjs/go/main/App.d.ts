@@ -10,6 +10,8 @@ export function CheckForUpdate():Promise<main.UpdateInfo>;
 
 export function DownloadUpdate():Promise<void>;
 
+export function FetchCoverBytes(arg1:string):Promise<main.CoverBytes>;
+
 export function GetAppInfo():Promise<main.AppInfo>;
 
 export function GetSession():Promise<main.SessionInfo>;

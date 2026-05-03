@@ -298,9 +298,15 @@ $env:AWS_DEFAULT_REGION    = 'auto'   # R2 ignora la region ma AWS CLI la richie
 $awsCommon = @('--endpoint-url', $env:R2_ENDPOINT)
 
 Write-Step "Upload installer -> s3://$Bucket/$installerKey"
+# NB: NIENTE 'immutable' nel cache-control. L'installer ha il numero
+# di versione nel filename, quindi in teoria immutable sarebbe corretto
+# — MA durante il dev cycle ripubblichiamo la stessa versione piu' volte
+# e il CDN R2 servirebbe la copia stale per 1 anno, scollegata dal
+# manifest aggiornato. Una max-age moderata + must-revalidate evita
+# sorprese e costa meno di 1 HEAD request per update.
 & aws s3 cp $installerPath "s3://$Bucket/$installerKey" `
     --content-type 'application/vnd.microsoft.portable-executable' `
-    --cache-control 'public, max-age=31536000, immutable' `
+    --cache-control 'public, max-age=300, must-revalidate' `
     @awsCommon
 if ($LASTEXITCODE -ne 0) { Write-Err2 "Upload installer fallito"; exit 1 }
 Write-Ok "Installer caricato"
@@ -312,6 +318,26 @@ Write-Step "Upload manifest  -> s3://$Bucket/$manifestKey"
     @awsCommon
 if ($LASTEXITCODE -ne 0) { Write-Err2 "Upload manifest fallito"; exit 1 }
 Write-Ok "Manifest caricato"
+
+# Verifica end-to-end: scarichiamo il manifest pubblico e confermiamo
+# che la version dichiarata corrisponde a quella appena pubblicata.
+# Catches: cache R2 stale, propagazione edge incompleta, key sbagliata.
+Write-Step "Verifica manifest pubblico"
+try {
+    $publicManifest = Invoke-RestMethod -Uri "$PublicBase/$manifestKey" -Headers @{ 'Cache-Control' = 'no-cache' } -TimeoutSec 15
+    if ($publicManifest.version -ne $newVersion) {
+        Write-Warn2 "ATTENZIONE: manifest pubblico ancora a versione '$($publicManifest.version)' invece di '$newVersion'."
+        Write-Warn2 "Probabile cache CDN R2 stale: i client riceveranno il manifest vecchio finche' non scade (TTL 5min)."
+    } else {
+        Write-Ok "Manifest pubblico verificato: version=$newVersion, sha256=$($publicManifest.sha256.Substring(0,12))..."
+    }
+    if ($publicManifest.sha256 -and $publicManifest.sha256 -ne $hash) {
+        Write-Err2 "SHA-256 nel manifest pubblico ($($publicManifest.sha256)) NON coincide con build locale ($hash)."
+        Write-Err2 "Il client rifiutera' l'installer scaricato. Forza re-upload o aspetta scadenza cache."
+    }
+} catch {
+    Write-Warn2 "Impossibile verificare manifest pubblico: $($_.Exception.Message)"
+}
 
 Write-Section 'Done'
 Write-Ok "Bookeeper $newVersion pubblicato sul canale '$Channel'"

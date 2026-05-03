@@ -18,6 +18,10 @@ export function DownloadUpdate() {
   return window['go']['main']['App']['DownloadUpdate']();
 }
 
+export function FetchCoverBytes(arg1) {
+  return window['go']['main']['App']['FetchCoverBytes'](arg1);
+}
+
 export function GetAppInfo() {
   return window['go']['main']['App']['GetAppInfo']();
 }

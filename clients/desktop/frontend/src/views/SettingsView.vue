@@ -882,6 +882,26 @@ async function checkUpdatesNow() {
 }
 :global(.dark) .update-state__icon { color: var(--p-primary-300); }
 
+/*
+ * Dark mode: --p-surface-0 resta bianco in PrimeVue, quindi il
+ * color-mix produceva un pannello quasi bianco anche su tema scuro.
+ * Forziamo un base scuro coerente con .settings__card (surface-800).
+ */
+:global(.dark) .update-state {
+    background: color-mix(in oklab, var(--p-primary-500) 12%, var(--p-surface-800));
+    border-color: color-mix(in oklab, var(--p-primary-500) 30%, transparent);
+    color: var(--p-surface-100);
+}
+:global(.dark) .update-state--available {
+    background: color-mix(in oklab, var(--p-primary-500) 18%, var(--p-surface-800));
+    border-color: color-mix(in oklab, var(--p-primary-500) 45%, transparent);
+}
+:global(.dark) .update-state--ready {
+    background: color-mix(in oklab, var(--p-primary-500) 24%, var(--p-surface-800));
+    border-color: color-mix(in oklab, var(--p-primary-500) 55%, transparent);
+}
+:global(.dark) .update-state__sub { color: var(--p-surface-300); }
+
 .settings {
     max-width: 880px;
     margin: 0 auto;

@@ -74,6 +74,20 @@ export namespace main {
 	        this.device_name = source["device_name"];
 	    }
 	}
+	export class CoverBytes {
+	    data: number[];
+	    contentType: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CoverBytes(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.data = source["data"];
+	        this.contentType = source["contentType"];
+	    }
+	}
 	export class LoginReq {
 	    email: string;
 	    password: string;
