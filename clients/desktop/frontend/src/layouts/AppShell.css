@@ -7,7 +7,12 @@
 .shell {
     display: grid;
     grid-template-columns: 248px 1fr;
-    min-height: 100dvh;
+    /* height (non min-height) + overflow:hidden ancorano la shell al
+     * viewport: la sidebar resta ferma e lo scroll avviene SOLO dentro
+     * `.shell__content`. Senza questo vincolo il grid cresceva con il
+     * contenuto e la colonna sidebar scrollava via insieme alla pagina. */
+    height: 100dvh;
+    overflow: hidden;
     background: var(--p-surface-50);
     color: var(--p-surface-800);
     transition: grid-template-columns 200ms ease;
@@ -26,6 +31,11 @@
     border-right: 1px solid var(--p-surface-200);
     position: relative;
     gap: 0.25rem;
+    /* La shell ha overflow:hidden e altezza viewport: qui consentiamo
+     * lo scroll interno solo se le voci di menu superano l'altezza
+     * disponibile (cataloghi futuri con sezioni aggiuntive). */
+    min-height: 0;
+    overflow-y: auto;
 }
 
 .shell__brand {
@@ -143,6 +153,10 @@
     display: flex;
     flex-direction: column;
     min-width: 0;
+    /* Necessario perché i flex/grid item rispettino overflow del figlio
+     * (.shell__content). Senza min-height:0 il contenuto può sfondare
+     * il contenitore e provocare scroll a livello pagina. */
+    min-height: 0;
 }
 
 .shell__topbar {

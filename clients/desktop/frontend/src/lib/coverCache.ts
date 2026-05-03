@@ -197,13 +197,16 @@ function blobToObjectUrl(isbn: string, blob: Blob): string {
 /**
  * Risolve l'URL di copertina via lookup metadata + probe candidati.
  * Restituisce l'URL pronto per essere passato a FetchCoverBytes.
+ *
+ * `fresh = true` salta la cache server (usato dal pulsante "ricarica").
  */
 async function resolveCoverUrl(
     isbn: string,
+    fresh = false,
 ): Promise<{ url: string; source: string } | null | 'transient'> {
     let info: Awaited<ReturnType<typeof lookupMetadata>> = null;
     try {
-        info = await lookupMetadata(isbn);
+        info = await lookupMetadata(isbn, fresh);
     } catch (e) {
         if (e instanceof MetadataTransientError) {
             if (import.meta.env.DEV) console.debug('[coverCache]', isbn, 'lookup transient', e.message);
@@ -242,24 +245,24 @@ async function resolveCoverUrl(
  *   memoria → IndexedDB (con migrazione lazy v8→v9 se manca il blob)
  *           → resolveCoverUrl + FetchCoverBytes → IDB
  */
-export async function getCover(rawIsbn: string | null | undefined): Promise<string | null> {
+export async function getCover(rawIsbn: string | null | undefined, fresh = false): Promise<string | null> {
     if (!rawIsbn) return null;
     const isbn = normalizeIsbn(rawIsbn);
     if (isbn.length < 10) return null;
 
     const live = liveUrls.get(isbn);
-    if (live) {
+    if (live && !fresh) {
         setStatus(isbn, 'cached');
         return live;
     }
 
-    if (negatives.has(isbn)) {
+    if (negatives.has(isbn) && !fresh) {
         setStatus(isbn, 'not-found');
         return null;
     }
 
     const pending = inFlight.get(isbn);
-    if (pending) return pending;
+    if (pending && !fresh) return pending;
 
     setStatus(isbn, 'fetching');
 
@@ -287,7 +290,7 @@ export async function getCover(rawIsbn: string | null | undefined): Promise<stri
                 sourceUrl = cached.url;
                 source = cached.source ?? 'unknown';
             } else {
-                const resolved = await resolveCoverUrl(isbn);
+                const resolved = await resolveCoverUrl(isbn, fresh);
                 if (resolved === null) {
                     negatives.add(isbn);
                     setStatus(isbn, 'not-found');
@@ -417,7 +420,7 @@ export async function forceRefetch(rawIsbn: string | null | undefined): Promise<
         if (import.meta.env.DEV) console.debug('[coverCache]', isbn, 'dbDelete err', e);
     }
     setStatus(isbn, 'idle');
-    return getCover(isbn);
+    return getCover(isbn, true);
 }
 
 /**

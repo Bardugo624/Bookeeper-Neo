@@ -19,6 +19,36 @@ pubblicata e la mostra nella dialog "Vedi novità". Sono supportati:
 
 - (in lavorazione)
 
+## [0.1.18] - 2026-05-03
+
+### Fixed
+
+- **Sidebar che scorreva via con la pagina**: la shell aveva
+  `min-height: 100dvh` invece di `height: 100dvh`, quindi cresceva
+  con il contenuto e la colonna grid della sidebar scrollava insieme
+  alla pagina. Ora la shell è ancorata al viewport e lo scroll
+  avviene solo all'interno dell'area contenuto, lasciando la sidebar
+  sempre visibile a lato.
+
+## [0.1.17] - 2026-05-03
+
+### Fixed
+
+- **Statistiche → Generi/Lingue: tooltip mostrava il rank invece del
+  conteggio**: sui bar chart orizzontali (`indexAxis: 'y'`), `parsed.y`
+  è l'indice di categoria, non il valore. Ora il callback usa
+  `ctx.raw`, che è sempre il dato sorgente, valido per tutti i tipi di
+  chart (bar verticale/orizzontale, line, doughnut).
+- **Statistiche → Riempimento scaffali sempre 0%** (server): la query
+  contava da `books.location_shelf`, campo che non viene mai aggiornato
+  dal flusso di assegnazione. Ora conta da `shelf_books` (la tabella
+  reale di placement).
+- **Statistiche → Generi mal aggregati** (server): la query
+  raggruppava sull'intero breadcrumb BISAC ("Fiction / Science Fiction
+  / Hard SF" come bucket unico), producendo decine di categorie con
+  count=1 invece di poche categorie con count alto. Ora estrae il
+  segmento finale (leaf) e fa il match case-insensitive.
+
 ## [0.1.16] - 2026-05-03
 
 ### Fixed

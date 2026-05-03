@@ -137,7 +137,17 @@ func (h *LookupHandlers) LookupMetadata(w http.ResponseWriter, r *http.Request) 
 	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
 	defer cancel()
 
-	info, err := h.metadata.Lookup(ctx, isbn)
+	// `?fresh=1` salta la cache server (positiva o negativa). Usato dal
+	// pulsante "ricarica copertina" del client per superare una negative
+	// entry da 24h che si e' formata per un fallimento transiente.
+	fresh := r.URL.Query().Get("fresh") == "1"
+	var info *lookup.Metadata
+	var err error
+	if fresh {
+		info, err = h.metadata.LookupFresh(ctx, isbn)
+	} else {
+		info, err = h.metadata.Lookup(ctx, isbn)
+	}
 	if err != nil {
 		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 			w.Header().Set("Cache-Control", "no-store")
@@ -150,11 +160,21 @@ func (h *LookupHandlers) LookupMetadata(w http.ResponseWriter, r *http.Request) 
 	}
 	if info == nil {
 		// Definitive miss: caching breve lato client per non rimartellare
-		// l'endpoint scrollando una lista di ISBN ignoti.
-		w.Header().Set("Cache-Control", "public, max-age=86400")
+		// l'endpoint scrollando una lista di ISBN ignoti. Per le richieste
+		// fresh non vogliamo HTTP cache: l'utente sta esplicitamente
+		// chiedendo un nuovo tentativo.
+		if fresh {
+			w.Header().Set("Cache-Control", "no-store")
+		} else {
+			w.Header().Set("Cache-Control", "public, max-age=86400")
+		}
 		writeErr(w, http.StatusNotFound, "isbn non trovato")
 		return
 	}
-	w.Header().Set("Cache-Control", "public, max-age=2592000")
+	if fresh {
+		w.Header().Set("Cache-Control", "no-store")
+	} else {
+		w.Header().Set("Cache-Control", "public, max-age=2592000")
+	}
 	writeJSON(w, http.StatusOK, info)
 }

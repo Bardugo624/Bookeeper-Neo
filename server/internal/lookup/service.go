@@ -69,13 +69,28 @@ func NormalizeISBN(s string) string {
 // stored. A transient failure leaves the cache untouched so a retry can
 // still win.
 func (s *Service) Lookup(ctx context.Context, rawISBN string) (*Metadata, error) {
+	return s.lookup(ctx, rawISBN, false)
+}
+
+// LookupFresh runs the chain skipping the cache GET. It still WRITES
+// the freshly fetched result into the cache so subsequent Lookup calls
+// benefit. Used by the explicit "force refresh" path on the client
+// (cover retry button) to bypass a poisoned 24h negative entry that
+// resulted from a transient provider failure.
+func (s *Service) LookupFresh(ctx context.Context, rawISBN string) (*Metadata, error) {
+	return s.lookup(ctx, rawISBN, true)
+}
+
+func (s *Service) lookup(ctx context.Context, rawISBN string, bypassCache bool) (*Metadata, error) {
 	isbn := NormalizeISBN(rawISBN)
 	if len(isbn) != 10 && len(isbn) != 13 {
 		return nil, nil
 	}
 
-	if hit, fresh := s.cacheGet(isbn); fresh {
-		return hit, nil // hit may be nil (negative)
+	if !bypassCache {
+		if hit, fresh := s.cacheGet(isbn); fresh {
+			return hit, nil // hit may be nil (negative)
+		}
 	}
 
 	merged := &Metadata{}

@@ -37,14 +37,17 @@ export function normalizeIsbn(s: string): string {
  * Lookup unificato. Ritorna `null` per "definitivamente non trovato"
  * (i chiamanti possono mettere in negative cache); rilancia
  * MetadataTransientError per fallimenti recuperabili.
+ *
+ * `fresh = true` chiede al server di saltare la cache (positiva e
+ * negativa). Usato dal pulsante "ricarica copertina".
  */
-export async function lookupMetadata(rawIsbn: string): Promise<MetadataInfo | null> {
+export async function lookupMetadata(rawIsbn: string, fresh = false): Promise<MetadataInfo | null> {
   const isbn = normalizeIsbn(rawIsbn);
   if (isbn.length !== 10 && isbn.length !== 13) {
     throw new Error('ISBN deve essere 10 o 13 cifre');
   }
   try {
-    const res = await wailsLookupMetadata(isbn);
+    const res = await wailsLookupMetadata(isbn, fresh);
     // Backend ritorna struct azzerata per "non trovato".
     if (!res || (!res.title && (!res.coverCandidates || res.coverCandidates.length === 0) && !res.coverUrl)) {
       return null;

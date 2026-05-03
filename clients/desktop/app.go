@@ -794,14 +794,18 @@ type MetadataInfo struct {
 //
 // Sempre struct azzerata + nil per "non trovato"; error solo per
 // fallimenti transienti (frontend NON deve metterli in negative cache).
-func (a *App) LookupMetadata(rawISBN string) (MetadataInfo, error) {
+func (a *App) LookupMetadata(rawISBN string, fresh bool) (MetadataInfo, error) {
 	// Path 1: server unificato (preferito).
 	a.mu.RLock()
 	cli := a.client
 	a.mu.RUnlock()
 	if cli != nil {
 		var resp MetadataInfo
-		err := cli.Do("GET", "/api/v1/lookup/metadata/"+rawISBN, nil, &resp)
+		path := "/api/v1/lookup/metadata/" + rawISBN
+		if fresh {
+			path += "?fresh=1"
+		}
+		err := cli.Do("GET", path, nil, &resp)
 		if err == nil {
 			return resp, nil
 		}

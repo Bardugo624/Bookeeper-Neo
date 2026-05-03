@@ -107,7 +107,13 @@ const baseOptions = computed(() => ({
       bodyFont: { size: 12 },
       callbacks: {
         label: (ctx: any) => {
-          const v = typeof ctx.parsed === 'object' ? (ctx.parsed.y ?? ctx.parsed.x) : ctx.parsed;
+          // `ctx.raw` è il dato originale (numero) sia per vertical/horizontal
+          // bar che per doughnut/line — `ctx.parsed.y` invece restituisce
+          // l'indice di categoria sui bar orizzontali (indexAxis: 'y'), che
+          // è la causa del bug "tooltip mostra il rank, non il count".
+          const v = typeof ctx.raw === 'number'
+            ? ctx.raw
+            : (typeof ctx.parsed === 'object' ? (ctx.parsed.x ?? ctx.parsed.y) : ctx.parsed);
           return ` ${ctx.dataset.label ?? ctx.label}: ${fmtNum(v)}`;
         },
       },
