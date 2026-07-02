@@ -233,7 +233,9 @@ function onDismiss() {
 }
 .update-banner__progress :deep(.p-progressbar-value) {
     background: var(--p-primary-500) !important;
-    transition: width 200ms ease-out;
+    /* Niente transition su width: PrimeVue aggiorna width inline a ogni
+     * evento di progresso (già fluido); animarla raddoppierebbe i layout. */
+    transition: none;
 }
 .update-banner__pct {
     font-variant-numeric: tabular-nums;

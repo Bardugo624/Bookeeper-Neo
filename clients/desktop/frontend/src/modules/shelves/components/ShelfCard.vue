@@ -125,14 +125,16 @@ function onPickSlot(payload: { rowIndex: number; slotIndex: number }): void {
   flex-direction: column;
   gap: 0.75rem;
   padding: 1rem 1.125rem 1.25rem;
-  background: var(--p-surface-0);
-  border: 1px solid var(--p-surface-200);
-  border-radius: 14px;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  background: var(--bk-surface);
+  border: 1px solid var(--bk-border);
+  border-radius: var(--bk-radius-lg);
+  transition:
+    border-color var(--bk-dur-fast) var(--bk-ease),
+    box-shadow var(--bk-dur) var(--bk-ease);
 }
 .shelf-card:hover {
   border-color: var(--p-primary-300);
-  box-shadow: 0 4px 16px #0000000a;
+  box-shadow: var(--bk-shadow-2);
 }
 .shelf-card__header {
   display: flex;
@@ -192,23 +194,33 @@ function onPickSlot(payload: { rowIndex: number; slotIndex: number }): void {
 }
 .shelf-card__svg-wrap {
   /* Cap su SVG molto grandi: max-height evita "muro" su scaffali con
-     molte mensole e poche colonne. */
+     molte mensole e poche colonne. Il mobile ha la sua ombra: poggia
+     sulla card, non ci galleggia. */
   max-height: 320px;
   overflow: hidden;
+  filter: drop-shadow(0 2px 4px rgb(24 22 19 / 0.18));
+  transition: filter var(--bk-dur) var(--bk-ease);
+}
+.shelf-card:hover .shelf-card__svg-wrap {
+  filter: drop-shadow(0 4px 10px rgb(24 22 19 / 0.24));
+}
+@media (prefers-reduced-motion: reduce) {
+  .shelf-card__svg-wrap {
+    transition: none;
+  }
 }
 </style>
 
 <style>
-html.dark .shelf-card {
-  background: var(--p-surface-800);
-  border-color: var(--p-surface-700);
-}
 html.dark .shelf-card:hover {
   border-color: var(--p-primary-500);
 }
 html.dark .shelf-card__range {
   background: color-mix(in srgb, var(--p-primary-500) 22%, transparent);
   color: var(--p-primary-200);
+}
+html.dark .shelf-card__svg-wrap {
+  filter: drop-shadow(0 2px 5px rgb(0 0 0 / 0.5));
 }
 .shelf-card__menu-danger .p-menuitem-text,
 .shelf-card__menu-danger .p-menuitem-icon {

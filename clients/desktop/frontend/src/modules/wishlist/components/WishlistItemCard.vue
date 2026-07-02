@@ -130,24 +130,25 @@ const createdAt = computed(() =>
   flex-direction: column;
   gap: 0.625rem;
   padding: 1rem 1.125rem 0.875rem;
-  background: var(--p-surface-0);
-  border: 1px solid var(--p-surface-200);
-  border-left: 4px solid var(--p-surface-300);
-  border-radius: 12px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  background: var(--bk-surface);
+  border: 1px solid var(--bk-border);
+  border-radius: var(--bk-radius);
+  box-shadow: var(--bk-shadow-1);
   transition:
-    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    box-shadow 180ms ease;
+    border-color var(--bk-dur) var(--bk-ease),
+    box-shadow var(--bk-dur) var(--bk-ease);
 }
 .wcard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--bk-shadow-2);
 }
+/* La priorità tinge il bordo intero (il Tag resta l'indicatore esplicito);
+ * l'alta priorità aggiunge una velatura di fondo. Niente barrette. */
 .wcard--prio-1 {
-  border-left-color: var(--p-amber-500, #f59e0b);
+  border-color: color-mix(in srgb, var(--p-amber-500) 40%, var(--bk-border));
 }
 .wcard--prio-2 {
-  border-left-color: var(--p-red-500, #dc2626);
+  border-color: color-mix(in srgb, var(--p-red-500) 40%, var(--bk-border));
+  background: color-mix(in srgb, var(--p-red-500) 3%, var(--bk-surface));
 }
 .wcard__head {
   display: flex;
@@ -161,7 +162,7 @@ const createdAt = computed(() =>
   font-weight: 600;
   margin: 0;
   line-height: 1.25;
-  color: var(--p-surface-900);
+  color: var(--bk-text-strong);
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -188,7 +189,7 @@ const createdAt = computed(() =>
 }
 .wcard__author {
   font-size: 0.82rem;
-  color: var(--p-surface-700);
+  color: var(--bk-text);
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
@@ -200,7 +201,7 @@ const createdAt = computed(() =>
 .wcard__muted {
   margin: 0;
   font-size: 0.82rem;
-  color: var(--p-surface-500);
+  color: var(--bk-text-muted);
   font-style: italic;
 }
 .wcard__meta {
@@ -217,13 +218,13 @@ const createdAt = computed(() =>
   margin: 0;
 }
 .wcard__meta-row dt {
-  color: var(--p-surface-500);
+  color: var(--bk-text-muted);
   font-weight: 500;
   margin: 0;
 }
 .wcard__meta-row dd {
   margin: 0;
-  color: var(--p-surface-800);
+  color: var(--bk-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -245,10 +246,10 @@ const createdAt = computed(() =>
 .wcard__notes {
   margin: 0;
   padding: 0.5rem 0.625rem;
-  background: var(--p-surface-50);
+  background: var(--bk-inset);
   border-radius: 6px;
   font-size: 0.82rem;
-  color: var(--p-surface-700);
+  color: var(--bk-text);
   line-height: 1.45;
   white-space: pre-wrap;
 }
@@ -258,7 +259,7 @@ const createdAt = computed(() =>
   gap: 0.375rem;
   margin-top: auto;
   padding-top: 0.5rem;
-  border-top: 1px dashed var(--p-surface-200);
+  border-top: 1px dashed var(--bk-border);
 }
 @media (prefers-reduced-motion: reduce) {
   .wcard,
@@ -269,43 +270,14 @@ const createdAt = computed(() =>
 }
 </style>
 
+<!-- Superfici/testi dai token (--bk-*): restano solo le eccezioni. -->
 <style>
-html.dark .wcard {
-  background: var(--p-surface-900);
-  border-color: var(--p-surface-700);
-  border-left-color: var(--p-surface-600);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-}
-html.dark .wcard:hover {
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
-}
 html.dark .wcard--prio-1 {
-  border-left-color: var(--p-amber-400, #fbbf24);
+  border-color: color-mix(in srgb, var(--p-amber-400) 45%, var(--bk-border));
 }
 html.dark .wcard--prio-2 {
-  border-left-color: var(--p-red-400, #f87171);
-}
-html.dark .wcard__title {
-  color: var(--p-surface-50);
-}
-html.dark .wcard__author {
-  color: var(--p-surface-200);
-}
-html.dark .wcard__muted {
-  color: var(--p-surface-400);
-}
-html.dark .wcard__meta-row dt {
-  color: var(--p-surface-400);
-}
-html.dark .wcard__meta-row dd {
-  color: var(--p-surface-100);
-}
-html.dark .wcard__notes {
-  background: var(--p-surface-800);
-  color: var(--p-surface-200);
-}
-html.dark .wcard__actions {
-  border-top-color: var(--p-surface-700);
+  border-color: color-mix(in srgb, var(--p-red-400) 45%, var(--bk-border));
+  background: color-mix(in srgb, var(--p-red-500) 6%, var(--bk-surface));
 }
 html.dark .wcard__link {
   color: var(--p-primary-300);

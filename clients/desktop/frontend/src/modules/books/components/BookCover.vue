@@ -34,20 +34,24 @@ const props = defineProps<{
 
 const initial = computed(() => (props.title?.[0] || '?').toUpperCase());
 
-// Hash deterministico → tonalità: stessa copertina → stesso colore.
-const hue = computed(() => {
+// Placeholder: tele-libro nei toni della palette (le stesse famiglie dei
+// colori scaffale), non HSL casuali. Hash deterministico titolo → tono:
+// stessa copertina → stesso colore, e la griglia resta armonica.
+const CLOTH_TONES = [
+  '#3e6252', // salvia profonda
+  '#9c5a3c', // terracotta
+  '#3a4a6b', // notte
+  '#6b3a5f', // prugna
+  '#7d5a2a', // ambra scura
+  '#4a4a4a', // grafite
+];
+const clothTone = computed(() => {
   let h = 0;
   for (let i = 0; i < props.title.length; i++) {
     h = (h * 31 + props.title.charCodeAt(i)) >>> 0;
   }
-  return h % 360;
+  return CLOTH_TONES[h % CLOTH_TONES.length];
 });
-
-const gradient = computed(
-  () => `linear-gradient(160deg,
-    hsl(${hue.value}deg 32% 38%) 0%,
-    hsl(${(hue.value + 24) % 360}deg 28% 22%) 100%)`,
-);
 
 const prefs = useCoverPrefsStore();
 const { enabled: coversEnabled } = storeToRefs(prefs);
@@ -135,7 +139,7 @@ watch(
   <div
     class="cover"
     :class="[`cover--${size ?? 'md'}`, { 'cover--has-isbn': canRetry }]"
-    :style="effectivePath ? undefined : { background: gradient }"
+    :style="effectivePath ? undefined : { background: clothTone }"
     role="img"
     :aria-label="`Copertina di ${title}`"
   >
@@ -189,15 +193,36 @@ watch(
 <style scoped>
 .cover {
   position: relative;
-  border-radius: 6px;
+  /* Il dorso (sinistra) è meno arrotondato del taglio: legge da libro. */
+  border-radius: 2px 5px 5px 2px;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   color: rgba(255, 255, 255, 0.92);
   font-family: 'Lora', Georgia, serif;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--bk-shadow-book);
   flex-shrink: 0;
+  transition: box-shadow var(--bk-dur) var(--bk-ease), transform var(--bk-dur) var(--bk-ease);
+}
+/* Piega del dorso + luce ambiente: si applica anche alle copertine vere.
+ * Solo overlay (pointer-events none), nessun impatto sulle interazioni. */
+.cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      90deg,
+      rgb(0 0 0 / 0.22) 0,
+      rgb(0 0 0 / 0.06) 3%,
+      rgb(255 255 255 / 0.14) 6.5%,
+      transparent 10%
+    ),
+    linear-gradient(165deg, rgb(255 255 255 / 0.08), transparent 45%, rgb(0 0 0 / 0.12));
+  z-index: 1;
 }
 .cover img {
   width: 100%;

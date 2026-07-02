@@ -1,0 +1,93 @@
+/* Bookeeper Neo — design tokens condivisi.
+ *
+ * Unica fonte per motion, ombre, raggi, superfici e z-index semantici.
+ * Le superfici sono definite QUI per light e dark: i componenti usano
+ * `var(--bk-surface)` / `var(--bk-border)` e non hanno più bisogno dei
+ * blocchi `html.dark .componente { ... }` duplicati ovunque.
+ *
+ * Convenzione: prefisso --bk- (Bookeeper) per distinguerli dai token
+ * PrimeVue (--p-*), che restano la fonte per la palette brand.
+ */
+
+:root {
+    /* ===== Motion =====
+     * Durate: 150 feedback istantaneo · 200 cambi di stato · 280 layout.
+     * Easing: ease-out esponenziali, mai bounce/elastic. */
+    --bk-dur-fast: 150ms;
+    --bk-dur: 200ms;
+    --bk-dur-slow: 280ms;
+    --bk-ease: cubic-bezier(0.25, 1, 0.5, 1);        /* out-quart */
+    --bk-ease-snappy: cubic-bezier(0.22, 1, 0.36, 1); /* out-quint */
+
+    /* ===== Radius ===== */
+    --bk-radius-sm: 8px;
+    --bk-radius: 12px;
+    --bk-radius-lg: 16px;
+
+    /* ===== Z-index semantici ===== */
+    --bk-z-sticky: 100;
+    --bk-z-dropdown: 1000;
+    --bk-z-overlay: 1100;   /* modal backdrop */
+    --bk-z-modal: 1200;
+    --bk-z-toast: 1300;
+    --bk-z-tooltip: 1400;
+
+    /* ===== Superfici (light) =====
+     * Tinte calde coerenti col brand: le ombre usano l'inchiostro caldo
+     * della palette (surface-800 #27241f), non nero puro. */
+    --bk-bg: var(--p-surface-50);            /* fondo app */
+    --bk-surface: var(--p-surface-0);        /* card, pannelli */
+    --bk-surface-raised: var(--p-surface-0); /* dialog, popover */
+    --bk-chrome: #f2efe9;                    /* sidebar/topbar: 2° neutro caldo */
+    --bk-inset: var(--p-surface-100);        /* incassi: track, nicchie, code */
+    --bk-border: var(--p-surface-200);
+    --bk-border-strong: var(--p-surface-300);
+    --bk-text: var(--p-surface-800);
+    --bk-text-strong: var(--p-surface-900);
+    --bk-text-muted: var(--p-surface-600);
+    --bk-text-faint: var(--p-surface-500);
+
+    /* ===== Ombre (light, tinte calde) ===== */
+    --bk-shadow-1: 0 1px 2px rgb(39 36 31 / 0.05), 0 1px 3px rgb(39 36 31 / 0.05);
+    --bk-shadow-2: 0 2px 4px rgb(39 36 31 / 0.04), 0 6px 16px rgb(39 36 31 / 0.07);
+    --bk-shadow-3: 0 4px 8px rgb(39 36 31 / 0.05), 0 14px 36px rgb(39 36 31 / 0.12);
+    /* Ombra "libro": corta e densa sotto, come un volume su una mensola. */
+    --bk-shadow-book: 0 1px 1px rgb(24 22 19 / 0.14), 0 3px 6px rgb(24 22 19 / 0.18);
+    --bk-shadow-book-lift: 0 2px 3px rgb(24 22 19 / 0.14), 0 8px 18px rgb(24 22 19 / 0.24);
+}
+
+html.dark {
+    --bk-bg: var(--p-surface-900);
+    --bk-surface: var(--p-surface-800);
+    --bk-surface-raised: #211f1b; /* fra surface-700 e 800: stacca dai pannelli */
+    --bk-chrome: #131210;         /* sidebar/topbar più fonde del contenuto */
+    --bk-inset: var(--p-surface-700);
+    --bk-border: var(--p-surface-700);
+    --bk-border-strong: var(--p-surface-600);
+    --bk-text: var(--p-surface-100);
+    --bk-text-strong: var(--p-surface-50);
+    --bk-text-muted: var(--p-surface-300);
+    --bk-text-faint: var(--p-surface-400);
+
+    --bk-shadow-1: 0 1px 2px rgb(0 0 0 / 0.3), 0 1px 3px rgb(0 0 0 / 0.25);
+    --bk-shadow-2: 0 2px 4px rgb(0 0 0 / 0.25), 0 6px 16px rgb(0 0 0 / 0.35);
+    --bk-shadow-3: 0 4px 8px rgb(0 0 0 / 0.3), 0 14px 36px rgb(0 0 0 / 0.5);
+    --bk-shadow-book: 0 1px 1px rgb(0 0 0 / 0.4), 0 3px 6px rgb(0 0 0 / 0.45);
+    --bk-shadow-book-lift: 0 2px 3px rgb(0 0 0 / 0.4), 0 8px 18px rgb(0 0 0 / 0.55);
+}
+
+/* ===== Entrance condivise =====
+ * Un solo vocabolario di ingresso: rise (fade+alza). Lo stagger si fa
+ * con `--i` sull'item: animation-delay: calc(var(--i, 0) * 30ms).
+ * Il default è visibile: l'animazione parte da from{}, quindi in
+ * ambienti senza animazioni il contenuto è comunque renderizzato. */
+@keyframes bk-rise {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    /* Il reset globale in style.css azzera già le durate; qui nulla. */
+}

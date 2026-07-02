@@ -43,18 +43,33 @@ defineProps<{ book: Book }>();
   display: flex;
   gap: 1rem;
   padding: 0.875rem;
-  border-radius: 12px;
-  background: var(--p-surface-0);
-  border: 1px solid var(--p-surface-200);
+  border-radius: var(--bk-radius);
+  background: var(--bk-surface);
+  border: 1px solid var(--bk-border);
   text-decoration: none;
   color: inherit;
-  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+  transition:
+    box-shadow var(--bk-dur) var(--bk-ease),
+    border-color var(--bk-dur) var(--bk-ease);
   min-height: 168px;
 }
 .book-card:hover {
-  transform: translateY(-1px);
   border-color: var(--p-primary-300);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--bk-shadow-2);
+}
+/* La star dell'hover è la copertina: si solleva come un libro sfilato
+ * dallo scaffale. La card resta ferma (niente doppio movimento). */
+.book-card :deep(.cover) {
+  transform-origin: bottom center;
+}
+.book-card:hover :deep(.cover) {
+  transform: translateY(-3px) rotate(-0.5deg);
+  box-shadow: var(--bk-shadow-book-lift);
+}
+@media (prefers-reduced-motion: reduce) {
+  .book-card:hover :deep(.cover) {
+    transform: none;
+  }
 }
 .book-card:focus-visible {
   outline: 2px solid var(--p-primary-500);
@@ -81,7 +96,7 @@ defineProps<{ book: Book }>();
 }
 .book-card__sub {
   font-size: 0.85rem;
-  color: var(--p-surface-600);
+  color: var(--bk-text-muted);
   margin: 0 0 0.375rem;
   display: -webkit-box;
   -webkit-line-clamp: 1;
@@ -90,7 +105,7 @@ defineProps<{ book: Book }>();
 }
 .book-card__authors {
   font-size: 0.875rem;
-  color: var(--p-surface-700);
+  color: var(--bk-text);
   margin: 0 0 auto;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -103,7 +118,7 @@ defineProps<{ book: Book }>();
   flex-wrap: wrap;
   gap: 0.375rem 0.5rem;
   font-size: 0.8rem;
-  color: var(--p-surface-500);
+  color: var(--bk-text-faint);
   margin: 0.5rem 0 0;
   /* Permetti shrink dei figli su righe strette */
   min-width: 0;
@@ -113,8 +128,8 @@ defineProps<{ book: Book }>();
   align-items: center;
   padding: 0.125rem 0.5rem;
   border-radius: 999px;
-  background: var(--p-surface-100);
-  color: var(--p-surface-700);
+  background: var(--bk-inset);
+  color: var(--bk-text-muted);
   font-size: 0.75rem;
   text-transform: capitalize;
   /* Tronca testi lunghi (es. genere multi-livello BISAC) per evitare
@@ -131,25 +146,12 @@ defineProps<{ book: Book }>();
 }
 </style>
 
-<!-- Vedi BooksListView.vue per la nota sul bug `:global(html.dark)`. -->
+<!-- Vedi BooksListView.vue per la nota sul bug `:global(html.dark)`.
+     Superfici/bordi ora arrivano dai token (--bk-*): qui restano solo
+     le eccezioni che i token non coprono. -->
 <style>
-html.dark .book-card {
-  background: var(--p-surface-800);
-  border-color: var(--p-surface-700);
-}
 html.dark .book-card:hover {
   border-color: var(--p-primary-500);
-}
-html.dark .book-card__sub,
-html.dark .book-card__detail {
-  color: var(--p-surface-400);
-}
-html.dark .book-card__authors {
-  color: var(--p-surface-200);
-}
-html.dark .book-card__chip {
-  background: var(--p-surface-700);
-  color: var(--p-surface-200);
 }
 html.dark .book-card__chip--genre {
   background: color-mix(in srgb, var(--p-primary-500) 28%, transparent);

@@ -217,7 +217,7 @@ function onPickSlot(payload: {
 }
 .shelves__sub {
   margin: 0.125rem 0 0;
-  color: var(--p-surface-500);
+  color: var(--bk-text-muted);
   font-size: 0.9rem;
 }
 .shelves__alert {
@@ -239,9 +239,9 @@ function onPickSlot(payload: {
   align-items: center;
   text-align: center;
   padding: 4rem 1.5rem;
-  background: var(--p-surface-50);
-  border: 1px dashed var(--p-surface-300);
-  border-radius: 16px;
+  background: var(--bk-surface);
+  border: 1px dashed var(--bk-border-strong);
+  border-radius: var(--bk-radius-lg);
   gap: 0.5rem;
 }
 .shelves__empty-icon {
@@ -254,24 +254,11 @@ function onPickSlot(payload: {
   font-size: 1.4rem;
   font-weight: 600;
   margin: 0;
-  color: var(--p-surface-900);
+  color: var(--bk-text-strong);
 }
 .shelves__empty-sub {
-  color: var(--p-surface-600);
+  color: var(--bk-text-muted);
   margin: 0 0 1rem;
   max-width: 420px;
-}
-</style>
-
-<style>
-html.dark .shelves__empty {
-  background: var(--p-surface-800);
-  border-color: var(--p-surface-700);
-}
-html.dark .shelves__empty-title {
-  color: var(--p-surface-50);
-}
-html.dark .shelves__empty-sub {
-  color: var(--p-surface-300);
 }
 </style>

@@ -182,25 +182,34 @@ function openBook(): void {
 <style scoped>
 .loan-card {
     --loan-accent: var(--p-primary-500);
-    background: var(--p-surface-0);
-    border: 1px solid var(--p-surface-200);
-    border-left: 4px solid var(--loan-accent);
-    border-radius: 0.75rem;
+    background: var(--bk-surface);
+    /* Lo stato colora l'intero bordo (sottile) e, per i ritardi, una
+     * velatura di fondo: niente barrette laterali. Il Tag di stato resta
+     * l'indicatore esplicito. */
+    border: 1px solid color-mix(in srgb, var(--loan-accent) 30%, var(--bk-border));
+    border-radius: var(--bk-radius);
     padding: 1.25rem;
     display: flex;
     flex-direction: column;
     gap: 0.875rem;
-    transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
-        box-shadow 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition:
+        border-color var(--bk-dur) var(--bk-ease),
+        box-shadow var(--bk-dur) var(--bk-ease);
 }
 
 .loan-card--active   { --loan-accent: var(--p-blue-500); }
-.loan-card--overdue  { --loan-accent: var(--p-red-500); }
-.loan-card--returned { --loan-accent: var(--p-green-500); }
+.loan-card--overdue  {
+    --loan-accent: var(--p-red-500);
+    background: color-mix(in srgb, var(--p-red-500) 4%, var(--bk-surface));
+}
+.loan-card--returned {
+    --loan-accent: var(--p-green-500);
+    border-color: var(--bk-border); /* chiuso: torna neutro */
+}
 
 .loan-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px -8px rgba(15, 23, 42, 0.18);
+    border-color: color-mix(in srgb, var(--loan-accent) 55%, var(--bk-border));
+    box-shadow: var(--bk-shadow-2);
 }
 
 .loan-card__head {
@@ -226,7 +235,7 @@ function openBook(): void {
     font-size: 1.0625rem;
     font-weight: 600;
     line-height: 1.3;
-    color: var(--p-surface-900);
+    color: var(--bk-text-strong);
     cursor: pointer;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -250,7 +259,7 @@ function openBook(): void {
 .loan-card__authors {
     margin: 0.25rem 0 0;
     font-size: 0.8125rem;
-    color: var(--p-surface-500);
+    color: var(--bk-text-muted);
     line-height: 1.4;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -268,16 +277,16 @@ function openBook(): void {
     align-items: center;
     gap: 0.5rem;
     padding: 0.375rem 0.625rem;
-    background: var(--p-surface-50);
+    background: var(--bk-inset);
     border-radius: 0.5rem;
     font-size: 0.875rem;
     font-weight: 500;
-    color: var(--p-surface-800);
+    color: var(--bk-text);
     align-self: flex-start;
 }
 
 .loan-card__borrower i {
-    color: var(--p-surface-500);
+    color: var(--bk-text-muted);
 }
 
 .loan-card__meta {
@@ -296,18 +305,18 @@ function openBook(): void {
 }
 
 .loan-card__meta-row dt {
-    color: var(--p-surface-500);
+    color: var(--bk-text-muted);
     font-weight: 500;
 }
 
 .loan-card__meta-row dd {
     margin: 0;
-    color: var(--p-surface-800);
+    color: var(--bk-text);
     font-variant-numeric: tabular-nums;
 }
 
 .loan-card__remaining {
-    color: var(--p-surface-500);
+    color: var(--bk-text-muted);
     font-size: 0.75rem;
 }
 
@@ -319,11 +328,11 @@ function openBook(): void {
 .loan-card__notes {
     margin: 0;
     padding: 0.625rem 0.75rem;
-    background: var(--p-surface-50);
+    background: var(--bk-inset);
     border-radius: 0.5rem;
     font-size: 0.8125rem;
     line-height: 1.5;
-    color: var(--p-surface-700);
+    color: var(--bk-text);
     white-space: pre-wrap;
 }
 
@@ -334,7 +343,7 @@ function openBook(): void {
     gap: 0.5rem;
     margin-top: auto;
     padding-top: 0.5rem;
-    border-top: 1px solid var(--p-surface-100);
+    border-top: 1px solid var(--bk-border);
 }
 
 .loan-card__delete {
@@ -346,62 +355,20 @@ function openBook(): void {
     .loan-card__title {
         transition: none;
     }
-    .loan-card:hover {
-        transform: none;
-    }
 }
 </style>
 
+<!-- Superfici/testi dai token (--bk-*): restano solo le eccezioni. -->
 <style>
-html.dark .loan-card {
-    background: var(--p-surface-900);
-    border-color: var(--p-surface-700);
-}
-
-html.dark .loan-card:hover {
-    box-shadow: 0 6px 16px -8px rgba(0, 0, 0, 0.6);
-}
-
-html.dark .loan-card__title {
-    color: var(--p-surface-50);
+html.dark .loan-card--overdue {
+    background: color-mix(in srgb, var(--p-red-500) 7%, var(--bk-surface));
 }
 
 html.dark .loan-card__title:hover {
     color: var(--p-primary-300);
 }
 
-html.dark .loan-card__authors,
-html.dark .loan-card__remaining {
-    color: var(--p-surface-400);
-}
-
-html.dark .loan-card__borrower {
-    background: var(--p-surface-800);
-    color: var(--p-surface-100);
-}
-
-html.dark .loan-card__borrower i {
-    color: var(--p-surface-400);
-}
-
-html.dark .loan-card__meta-row dt {
-    color: var(--p-surface-400);
-}
-
-html.dark .loan-card__meta-row dd {
-    color: var(--p-surface-100);
-}
-
 html.dark .loan-card__remaining--late {
     color: var(--p-red-400);
-}
-
-html.dark .loan-card__notes {
-    background: var(--p-surface-800);
-    color: var(--p-surface-200);
-}
-
-html.dark .loan-card__actions {
-    border-top-color: var(--p-surface-700);
 }
 </style>

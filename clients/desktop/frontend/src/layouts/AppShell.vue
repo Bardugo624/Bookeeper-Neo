@@ -59,11 +59,21 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.fade-enter-active,
-.fade-leave-active {
-    transition: opacity 180ms ease;
+/* Cambio vista: il contenuto nuovo sale di 8px mentre appare (out-quart),
+ * quello vecchio sfuma più in fretta (uscite ~75% delle entrate). Solo
+ * transform+opacity: niente layout thrash. */
+.fade-enter-active {
+    transition:
+        opacity var(--bk-dur) var(--bk-ease),
+        transform var(--bk-dur) var(--bk-ease);
 }
-.fade-enter-from,
+.fade-leave-active {
+    transition: opacity var(--bk-dur-fast) var(--bk-ease);
+}
+.fade-enter-from {
+    opacity: 0;
+    transform: translateY(8px);
+}
 .fade-leave-to {
     opacity: 0;
 }

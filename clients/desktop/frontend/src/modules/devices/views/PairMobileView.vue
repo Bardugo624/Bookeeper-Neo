@@ -325,7 +325,7 @@ function back(): void {
                             <div
                                 class="qr-card__bar-fill"
                                 :class="{ 'qr-card__bar-fill--warn': warning }"
-                                :style="{ width: `${remainingPct}%` }"
+                                :style="{ transform: `scaleX(${remainingPct / 100})` }"
                             />
                         </div>
                     </div>
@@ -579,8 +579,11 @@ function back(): void {
 
 .qr-card__bar-fill {
     height: 100%;
+    width: 100%;
     background: var(--p-primary-500);
-    transition: width 1s linear, background-color 240ms ease;
+    transform-origin: left center;
+    /* Countdown fluido: scaleX su compositor, tick da 1s interpolato. */
+    transition: transform 1s linear, background-color 240ms ease;
 }
 
 .qr-card__bar-fill--warn {

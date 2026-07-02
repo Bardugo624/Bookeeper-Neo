@@ -432,7 +432,7 @@ function openBook(id: string): void {
 }
 .shelf-detail__sub {
   margin: 0.125rem 0 0;
-  color: var(--p-surface-500);
+  color: var(--bk-text-muted);
   font-size: 0.875rem;
 }
 .shelf-detail__actions {
@@ -457,25 +457,33 @@ function openBook(id: string): void {
 }
 .shelf-detail__svg-card,
 .shelf-detail__books {
-  background: var(--p-surface-0);
-  border: 1px solid var(--p-surface-200);
-  border-radius: 14px;
+  background: var(--bk-surface);
+  border: 1px solid var(--bk-border);
+  border-radius: var(--bk-radius-lg);
   padding: 1rem 1.125rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
+/* La "stanza": il mobile poggia in una nicchia leggermente incassata,
+ * con la sua ombra portata (coerente con la dashboard). */
 .shelf-detail__svg {
-  background: var(--p-surface-50);
-  border-radius: 10px;
-  padding: 1rem;
+  background: var(--bk-inset);
+  border-radius: var(--bk-radius);
+  padding: 1.25rem;
   overflow: auto;
   max-height: 70vh;
+}
+.shelf-detail__svg .shelf {
+  filter: drop-shadow(0 3px 6px rgb(24 22 19 / 0.2));
+}
+html.dark .shelf-detail__svg .shelf {
+  filter: drop-shadow(0 3px 7px rgb(0 0 0 / 0.5));
 }
 .shelf-detail__hint {
   margin: 0;
   font-size: 0.8rem;
-  color: var(--p-surface-500);
+  color: var(--bk-text-muted);
   display: flex;
   align-items: center;
   gap: 0.375rem;
@@ -506,7 +514,7 @@ function openBook(id: string): void {
 .shelf-detail__pos {
   font-variant-numeric: tabular-nums;
   font-size: 0.8rem;
-  color: var(--p-surface-600);
+  color: var(--bk-text-muted);
 }
 .picker {
   display: flex;
@@ -516,12 +524,12 @@ function openBook(id: string): void {
 .picker__pos {
   margin: 0;
   font-size: 0.875rem;
-  color: var(--p-surface-700);
+  color: var(--bk-text);
 }
 .picker__label {
   font-size: 0.85rem;
   font-weight: 500;
-  color: var(--p-surface-700);
+  color: var(--bk-text);
 }
 .picker__select {
   width: 100%;
@@ -529,23 +537,7 @@ function openBook(id: string): void {
 </style>
 
 <style>
-html.dark .shelf-detail__svg-card,
-html.dark .shelf-detail__books {
-  background: var(--p-surface-800);
-  border-color: var(--p-surface-700);
-}
-html.dark .shelf-detail__svg {
-  background: var(--p-surface-900);
-}
-html.dark .shelf-detail__hint,
-html.dark .shelf-detail__pos {
-  color: var(--p-surface-400);
-}
 html.dark .shelf-detail__book-link {
   color: var(--p-primary-300);
-}
-html.dark .picker__pos,
-html.dark .picker__label {
-  color: var(--p-surface-200);
 }
 </style>

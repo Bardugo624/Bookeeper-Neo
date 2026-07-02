@@ -1,14 +1,32 @@
 /* Bookeeper Neo — LoginView styles.
- * Layout split-screen: pannello arte (a sinistra, brand) + form (a destra).
- * Su mobile diventa single-column con il form sopra.
+ * Layout split-screen: pannello arte (a sinistra, brand) + wizard (a destra).
+ * Su mobile diventa single-column con il wizard sopra.
+ *
+ * Wizard a due passi: scelta percorso (card) → form del percorso. Il morph
+ * fra i passi usa la View Transitions API: la card scelta e il chip di
+ * intestazione condividono lo stesso view-transition-name (vedi .vue).
+ * Superfici e motion dai token globali (--bk-*, theme/tokens.css).
  */
 
 .login {
     min-height: 100dvh;
     display: grid;
     grid-template-columns: 1.1fr 1fr;
-    background: var(--p-surface-0);
-    color: var(--p-surface-800);
+    background: var(--bk-surface);
+    color: var(--bk-text);
+}
+
+/* ===== View Transitions (morph fra i passi) =====
+ * Il gruppo nominato (card → chip) fa il morph; il resto fa un crossfade
+ * breve. reduced-motion è gestito a monte: withMorph() non avvia affatto
+ * la transizione. */
+::view-transition-group(*) {
+    animation-duration: 260ms;
+    animation-timing-function: var(--bk-ease-snappy);
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 180ms;
 }
 
 /* ===== Pannello brand ===== */
@@ -77,7 +95,7 @@
     flex-direction: column;
     justify-content: center;
     padding: 3rem 3.5rem;
-    background: var(--p-surface-0);
+    background: var(--bk-surface);
     position: relative;
 }
 
@@ -91,6 +109,9 @@
     width: 100%;
     max-width: 26rem;
     margin: 0 auto;
+    /* Benvenuto: sale dolcemente al primo paint. Default visibile
+     * (bk-rise anima solo `from`); reduced-motion lo azzera. */
+    animation: bk-rise var(--bk-dur-slow) var(--bk-ease) backwards;
 }
 
 .login__form-title {
@@ -99,15 +120,142 @@
     font-weight: 600;
     margin: 0 0 0.5rem;
     letter-spacing: -0.015em;
-    color: var(--p-surface-900);
+    color: var(--bk-text-strong);
 }
 .login__form-subtitle {
     font-size: 0.9375rem;
-    color: var(--p-surface-600);
+    color: var(--bk-text-muted);
     margin: 0 0 2rem;
     line-height: 1.55;
 }
+.login__form-subtitle--tight {
+    margin-bottom: 1.25rem;
+}
 
+/* ===== Card percorso (passo 1) ===== */
+.login__paths {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.login__path-card {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    width: 100%;
+    text-align: left;
+    padding: 1rem 1.125rem;
+    background: var(--bk-surface);
+    border: 1px solid var(--bk-border);
+    border-radius: var(--bk-radius);
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+    transition:
+        border-color var(--bk-dur-fast) var(--bk-ease),
+        box-shadow var(--bk-dur) var(--bk-ease),
+        transform var(--bk-dur-fast) var(--bk-ease);
+    /* Entrance a cascata: --i settato inline dal template. */
+    animation: bk-rise var(--bk-dur-slow) var(--bk-ease) backwards;
+    animation-delay: calc(var(--i, 0) * 60ms);
+}
+.login__path-card:hover {
+    border-color: var(--p-primary-300);
+    box-shadow: var(--bk-shadow-2);
+}
+.login__path-card:hover .login__path-arrow {
+    transform: translateX(3px);
+    opacity: 1;
+}
+.login__path-card:active {
+    transform: scale(0.99);
+}
+.login__path-card:focus-visible {
+    outline: 2px solid var(--p-primary-500);
+    outline-offset: 2px;
+}
+/* La prima card è il percorso consigliato: bordo già acceso. */
+.login__path-card--primary {
+    border-color: color-mix(in srgb, var(--p-primary-500) 45%, var(--bk-border));
+    background: color-mix(in srgb, var(--p-primary-500) 4%, var(--bk-surface));
+}
+
+.login__path-icon {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--p-primary-500) 12%, transparent);
+    color: var(--p-primary-700);
+    font-size: 1.125rem;
+    flex-shrink: 0;
+}
+.login__path-icon--sm {
+    width: 34px;
+    height: 34px;
+    font-size: 0.9375rem;
+    border-radius: 8px;
+}
+html.dark .login__path-icon {
+    background: color-mix(in srgb, var(--p-primary-500) 22%, transparent);
+    color: var(--p-primary-300);
+}
+
+.login__path-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
+    flex: 1;
+}
+.login__path-title {
+    font-weight: 600;
+    font-size: 0.9875rem;
+    color: var(--bk-text-strong);
+}
+.login__path-desc {
+    font-size: 0.8125rem;
+    color: var(--bk-text-muted);
+    line-height: 1.4;
+}
+.login__path-arrow {
+    color: var(--p-primary-600);
+    font-size: 0.875rem;
+    opacity: 0.35;
+    transition:
+        transform var(--bk-dur-fast) var(--bk-ease),
+        opacity var(--bk-dur-fast) var(--bk-ease);
+    flex-shrink: 0;
+}
+
+/* ===== Intestazione form (passo 2) ===== */
+.login__step-head {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin-bottom: 0.75rem;
+}
+.login__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.375rem 0.875rem 0.375rem 0.375rem;
+    border: 1px solid var(--bk-border);
+    border-radius: 999px;
+    background: var(--bk-surface);
+}
+.login__chip-title {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 1.1875rem;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.01em;
+    color: var(--bk-text-strong);
+    white-space: nowrap;
+}
+
+/* ===== Campi ===== */
 .login__field {
     display: flex;
     flex-direction: column;
@@ -117,12 +265,17 @@
 .login__label {
     font-size: 0.8125rem;
     font-weight: 500;
-    color: var(--p-surface-700);
+    color: var(--bk-text);
+}
+.login__optional {
+    font-weight: 400;
+    color: var(--bk-text-faint);
 }
 .login__hint {
     font-size: 0.75rem;
-    color: var(--p-surface-500);
+    color: var(--bk-text-muted);
     margin-top: 0.25rem;
+    line-height: 1.45;
 }
 .login__error {
     font-size: 0.8125rem;
@@ -132,92 +285,99 @@
     align-items: center;
     gap: 0.375rem;
 }
+html.dark .login__error {
+    color: var(--p-red-400, #f87171);
+}
 
+/* Opzioni avanzate (rete privata): fuori strada finché non serve. */
+.login__advanced {
+    border: 1px solid var(--bk-border);
+    border-radius: var(--bk-radius-sm);
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 1.25rem;
+}
+.login__advanced summary {
+    cursor: pointer;
+    font-size: 0.8125rem;
+    color: var(--bk-text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+.login__advanced summary i {
+    font-size: 0.75rem;
+}
+.login__advanced-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    margin-top: 0.625rem;
+}
+
+/* ===== Alert ===== */
 .login__alert {
     display: flex;
     align-items: flex-start;
     gap: 0.625rem;
     padding: 0.75rem 0.875rem;
-    border-radius: 8px;
+    border-radius: var(--bk-radius-sm);
     background: color-mix(in oklab, var(--p-red-500, #d04a4a) 12%, transparent);
     color: var(--p-red-700, #a32c2c);
     font-size: 0.875rem;
     margin-bottom: 1rem;
     border: 1px solid color-mix(in oklab, var(--p-red-500, #d04a4a) 30%, transparent);
 }
+html.dark .login__alert {
+    color: var(--p-red-300, #fca5a5);
+}
 
-/* Variante "warn" — sessione scaduta: ambra, non rossa, non sembra un fallimento. */
+/* "warn" — sessione scaduta: ambra, non sembra un fallimento. */
 .login__alert--warn {
     background: color-mix(in oklab, var(--p-amber-500, #f59e0b) 14%, transparent);
     color: var(--p-amber-800, #92400e);
     border-color: color-mix(in oklab, var(--p-amber-500, #f59e0b) 35%, transparent);
 }
+html.dark .login__alert--warn {
+    color: var(--p-amber-300, #fcd34d);
+}
 
-/* Variante "info" — logout volontario: tono neutro/primary. */
+/* "info" — logout volontario. */
 .login__alert--info {
     background: color-mix(in oklab, var(--p-primary-500) 10%, transparent);
     color: var(--p-primary-700);
     border-color: color-mix(in oklab, var(--p-primary-500) 28%, transparent);
 }
+html.dark .login__alert--info {
+    color: var(--p-primary-200);
+}
 
-/* Pannello-guida mostrato sopra ai campi del form di SETUP per
-   spiegare cosa sta facendo l'utente (cos'e' un tenant, ordine dei
-   passi, differenza fra password admin e password owner). */
-.login__guide {
-    background: color-mix(in oklab, var(--p-primary-500) 6%, transparent);
-    border: 1px solid color-mix(in oklab, var(--p-primary-500) 22%, transparent);
-    border-radius: 10px;
-    padding: 0.875rem 1rem;
-    margin-bottom: 1.25rem;
-    color: var(--p-text-color);
+/* "success" — libreria creata / codice rigenerato. */
+.login__alert--success {
+    background: color-mix(in oklab, var(--p-green-500, #22c55e) 12%, transparent);
+    color: var(--p-green-800, #166534);
+    border-color: color-mix(in oklab, var(--p-green-500, #22c55e) 32%, transparent);
 }
-.login__guide-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--p-primary-700);
-    font-size: 0.9375rem;
-    margin-bottom: 0.5rem;
+html.dark .login__alert--success {
+    color: var(--p-green-300, #86efac);
 }
-.login__guide-header i { font-size: 1rem; }
-.login__guide-text {
-    font-size: 0.8125rem;
-    line-height: 1.5;
-    margin: 0 0 0.625rem;
-    color: var(--p-text-color);
-}
-.login__guide-steps {
-    margin: 0 0 0.625rem;
-    padding-left: 1.25rem;
+.login__alert-body {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: 0.25rem;
+    flex: 1;
+    min-width: 0;
     font-size: 0.8125rem;
-    line-height: 1.4;
 }
-.login__guide-steps li strong { display: block; margin-bottom: 0.1rem; }
-.login__guide-steps li span { color: var(--p-text-muted-color); }
-.login__guide-warn {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.5rem;
-    margin: 0;
+.login__alert-fine {
     font-size: 0.75rem;
-    line-height: 1.45;
-    color: var(--p-text-muted-color);
-    padding-top: 0.5rem;
-    border-top: 1px dashed color-mix(in oklab, var(--p-primary-500) 22%, transparent);
+    opacity: 0.8;
 }
-.login__guide-warn i { color: var(--p-amber-600, #d97706); margin-top: 0.1rem; }
-html.dark .login__guide {
-    background: color-mix(in oklab, var(--p-primary-500) 12%, transparent);
-    border-color: color-mix(in oklab, var(--p-primary-500) 32%, transparent);
+.login__invite-code {
+    user-select: all;
+    font-family: ui-monospace, monospace;
 }
-html.dark .login__guide-header { color: var(--p-primary-300); }
 
-/* Link-button \"Hai perso il codice invito?\": piccolo, sotto-tono,
-   sempre visibile sotto al campo invite-code. Ridiventa pi\u00f9 visibile
-   in dark mode dove gli outline sono pi\u00f9 deboli. */
+/* Link-button (recovery, altro account). */
 .login__link-button {
     display: inline-flex;
     align-items: center;
@@ -240,9 +400,7 @@ html.dark .login__guide-header { color: var(--p-primary-300); }
 html.dark .login__link-button { color: var(--p-primary-300); }
 html.dark .login__link-button:hover:not(:disabled) { color: var(--p-primary-200); }
 
-/* Pannello inline di recupero invite. Non e' un modal: vive nel flusso
-   del form per non rompere il contesto e mantenere lo stesso stile dei
-   campi circostanti. */
+/* Pannello inline di recupero invite: vive nel flusso del form. */
 .login__recovery {
     display: flex;
     flex-direction: column;
@@ -250,7 +408,7 @@ html.dark .login__link-button:hover:not(:disabled) { color: var(--p-primary-200)
     padding: 0.875rem 1rem;
     margin: 0.25rem 0 1rem;
     border: 1px solid color-mix(in oklab, var(--p-primary-500) 25%, transparent);
-    border-radius: 10px;
+    border-radius: var(--bk-radius-sm);
     background: color-mix(in oklab, var(--p-primary-500) 5%, transparent);
 }
 .login__recovery-intro {
@@ -260,7 +418,7 @@ html.dark .login__link-button:hover:not(:disabled) { color: var(--p-primary-200)
     margin: 0;
     font-size: 0.8125rem;
     line-height: 1.45;
-    color: var(--p-text-color);
+    color: var(--bk-text);
 }
 .login__recovery-intro i {
     color: var(--p-primary-600);
@@ -278,82 +436,54 @@ html.dark .login__recovery-intro i { color: var(--p-primary-300); }
     justify-content: space-between;
     margin-bottom: 1.5rem;
 }
+.login__remember {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+}
 
 .login__submit {
     width: 100%;
+    transition:
+        background var(--bk-dur) var(--bk-ease),
+        border-color var(--bk-dur) var(--bk-ease),
+        box-shadow var(--bk-dur) var(--bk-ease);
 }
-
-.login__divider {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin: 1.5rem 0;
-    color: var(--p-surface-400);
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-}
-.login__divider::before,
-.login__divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--p-surface-200);
+/* Successo: il bottone si "chiude" in conferma verde prima del redirect. */
+.login__submit--success {
+    background: var(--p-green-600, #16a34a) !important;
+    border-color: var(--p-green-600, #16a34a) !important;
+    color: #fff !important;
+    opacity: 1 !important;
 }
 
 .login__alt {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    margin-top: 1rem;
 }
 
-.login__footer-text {
-    margin-top: 2rem;
-    font-size: 0.8125rem;
-    color: var(--p-surface-500);
-    text-align: center;
-}
-.login__footer-text a {
-    color: var(--p-primary-600);
-    text-decoration: none;
-    font-weight: 500;
-}
-.login__footer-text a:hover {
-    text-decoration: underline;
-}
-
-/* ===== Dark mode ===== */
-html.dark .login {
-    background: var(--p-surface-900);
-    color: var(--p-surface-100);
-}
-html.dark .login__form-panel {
-    background: var(--p-surface-900);
-}
-html.dark .login__form-title {
-    color: var(--p-surface-50);
-}
-html.dark .login__form-subtitle {
-    color: var(--p-surface-300);
-}
-html.dark .login__label {
-    color: var(--p-surface-200);
-}
-html.dark .login__hint {
-    color: var(--p-surface-400);
-}
-html.dark .login__divider {
-    color: var(--p-surface-500);
-}
-html.dark .login__divider::before,
-html.dark .login__divider::after {
-    background: var(--p-surface-700);
-}
+/* ===== Dark mode (solo ciò che i token non coprono) ===== */
 html.dark .login__brand {
     background:
         radial-gradient(circle at 20% 20%, color-mix(in oklab, var(--p-primary-400) 18%, transparent), transparent 60%),
         radial-gradient(circle at 80% 80%, color-mix(in oklab, var(--p-primary-600) 14%, transparent), transparent 55%),
         var(--p-surface-950, #060605);
+}
+/* In dark il pannello form usa il fondo app (più fondo delle card). */
+html.dark .login,
+html.dark .login__form-panel {
+    background: var(--bk-bg);
+}
+html.dark .login__path-card,
+html.dark .login__chip {
+    background: var(--bk-surface);
+}
+html.dark .login__path-card--primary {
+    background: color-mix(in srgb, var(--p-primary-500) 8%, var(--bk-surface));
 }
 
 /* ===== Responsive ===== */

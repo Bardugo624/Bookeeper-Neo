@@ -475,7 +475,7 @@ const lastFetchedLabel = computed(() => {
               <span class="rank-list__name">{{ a.key }}</span>
               <div
                 class="rank-list__bar"
-                :style="{ width: `${(a.count / maxAuthorCount) * 100}%` }"
+                :style="{ transform: `scaleX(${a.count / maxAuthorCount})` }"
                 aria-hidden="true"
               />
             </div>
@@ -504,7 +504,7 @@ const lastFetchedLabel = computed(() => {
                  :aria-valuenow="Math.round(s.pct * 100)" aria-valuemin="0" aria-valuemax="100">
               <div
                 class="shelf-list__fill"
-                :style="{ width: `${Math.min(s.pct * 100, 100)}%`, background: shelfPctColor(s.pct) }"
+                :style="{ transform: `scaleX(${Math.min(s.pct, 1)})`, background: shelfPctColor(s.pct) }"
               />
             </div>
           </li>
@@ -619,10 +619,13 @@ const lastFetchedLabel = computed(() => {
 }
 .rank-list__bar {
   height: 6px;
+  width: 100%;
   background: var(--p-primary-500);
   border-radius: 3px;
   opacity: .85;
-  transition: width 300ms cubic-bezier(.2,.8,.2,1);
+  /* scaleX su compositor (niente layout thrash); origine a sinistra. */
+  transform-origin: left center;
+  transition: transform var(--bk-dur-slow) var(--bk-ease-snappy);
 }
 .rank-list__count {
   font-size: 13px;
@@ -672,8 +675,10 @@ const lastFetchedLabel = computed(() => {
 }
 .shelf-list__fill {
   height: 100%;
+  width: 100%;
   border-radius: 4px;
-  transition: width 400ms cubic-bezier(.2,.8,.2,1);
+  transform-origin: left center;
+  transition: transform var(--bk-dur-slow) var(--bk-ease-snappy);
 }
 
 @media (prefers-reduced-motion: reduce) {

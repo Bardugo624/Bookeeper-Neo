@@ -432,6 +432,48 @@ func (a *App) GetLocalAdminPassword() (string, error) {
 	return loadOrCreateLocalAdminPassword()
 }
 
+// localTenantMarker persiste id+nome del tenant locale dopo la creazione.
+// Serve a rendere SetupLocal idempotente: un retry (pairing fallito a metà,
+// re-setup dopo un wipe) NON deve creare un secondo tenant vuoto nello
+// stesso DB — l'utente vedrebbe "libreria sparita". Con il marker + la
+// admin password locale recuperiamo un invite fresco e ri-associamo il
+// dispositivo al tenant esistente.
+type localTenantMarker struct {
+	TenantID   string `json:"tenant_id"`
+	TenantName string `json:"tenant_name"`
+}
+
+func localTenantMarkerPath() (string, error) {
+	dir, err := session.LocalServerDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, "tenant.json"), nil
+}
+
+func loadLocalTenantMarker() (localTenantMarker, error) {
+	var mk localTenantMarker
+	path, err := localTenantMarkerPath()
+	if err != nil {
+		return mk, err
+	}
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return mk, err
+	}
+	err = json.Unmarshal(b, &mk)
+	return mk, err
+}
+
+func saveLocalTenantMarker(mk localTenantMarker) {
+	path, err := localTenantMarkerPath()
+	if err != nil {
+		return
+	}
+	b, _ := json.Marshal(mk)
+	_ = os.WriteFile(path, b, 0o600)
+}
+
 // SetupLocalReq è tutto ciò che serve all'utente per la libreria locale.
 type SetupLocalReq struct {
 	LibraryName string `json:"library_name"`

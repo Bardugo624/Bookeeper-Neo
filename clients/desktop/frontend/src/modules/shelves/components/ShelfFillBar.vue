@@ -14,8 +14,9 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), { compact: false });
 
 const pctText = computed(() => `${Math.round(props.fill.pct * 100)}%`);
-const widthStyle = computed(() => ({
-  width: `${Math.min(100, props.fill.pct * 100)}%`,
+// scaleX invece di width: la barra anima su compositor, zero layout.
+const scaleStyle = computed(() => ({
+  transform: `scaleX(${Math.min(1, props.fill.pct)})`,
 }));
 </script>
 
@@ -30,7 +31,7 @@ const widthStyle = computed(() => ({
     :aria-label="`Riempimento: ${fill.filled} di ${fill.total} libri`"
   >
     <div class="fill-bar__track">
-      <div class="fill-bar__indicator" :style="widthStyle" />
+      <div class="fill-bar__indicator" :style="scaleStyle" />
     </div>
     <div v-if="!compact" class="fill-bar__label">
       <span class="fill-bar__count">{{ fill.filled }}/{{ fill.total }}</span>
@@ -48,14 +49,18 @@ const widthStyle = computed(() => ({
 }
 .fill-bar__track {
   height: 6px;
-  background: var(--p-surface-200);
+  background: var(--bk-inset);
   border-radius: 999px;
   overflow: hidden;
 }
 .fill-bar__indicator {
   height: 100%;
+  width: 100%;
   border-radius: 999px;
-  transition: width 250ms cubic-bezier(0.2, 0.8, 0.2, 1), background 200ms ease;
+  transform-origin: left center;
+  transition:
+    transform var(--bk-dur-slow) var(--bk-ease-snappy),
+    background var(--bk-dur) var(--bk-ease);
   background: var(--p-primary-500);
 }
 .fill-bar--warn .fill-bar__indicator {
@@ -68,7 +73,7 @@ const widthStyle = computed(() => ({
   display: flex;
   justify-content: space-between;
   font-size: 0.75rem;
-  color: var(--p-surface-600);
+  color: var(--bk-text-muted);
   font-variant-numeric: tabular-nums;
 }
 .fill-bar__pct {
@@ -78,14 +83,5 @@ const widthStyle = computed(() => ({
   .fill-bar__indicator {
     transition: none;
   }
-}
-</style>
-
-<style>
-html.dark .fill-bar__track {
-  background: var(--p-surface-700);
-}
-html.dark .fill-bar__label {
-  color: var(--p-surface-300);
 }
 </style>

@@ -13,7 +13,40 @@ pubblicata e la mostra nella dialog "Vedi novità". Sono supportati:
 - inline code `` ` ``
 - link `[text](https://...)`
 
-## [Unreleased]
+## [0.1.22]
+
+### Changed
+
+- **Restyle completo dell'interfaccia ("biblioteca moderna")**: palette e
+  funzioni invariate, nuovo sistema visivo condiviso (token per superfici,
+  ombre calde, motion 150–280ms ease-out, dark mode centralizzato).
+  - **Scaffali ridisegnati**: ora sono mobili veri — cornice in legno
+    colorato, fondale in ombra, mensole con spessore, dorsi con altezze
+    variabili che poggiano sulla mensola; al passaggio del mouse il libro
+    "si sfila" dallo scaffale. Ingresso animato dei dorsi a cascata.
+  - **Copertine da libro fisico**: piega del dorso e ombra da volume anche
+    sulle copertine scaricate; i segnaposto usano tinte tela-libro della
+    palette (non più colori casuali). In griglia, all'hover la copertina si
+    solleva.
+  - **Statistiche**: numeri che contano da zero all'apertura, schede KPI in
+    stile editoriale, barre fluide senza scatti.
+  - Sidebar su fondo caldo distinto dal contenuto, voce attiva a "pillola",
+    transizioni di pagina e micro-feedback sui pulsanti ovunque.
+  - Stati di prestiti/wishlist espressi con bordi e velature (via le
+    barrette laterali colorate); tutte le animazioni rispettano
+    "riduci movimento" di sistema.
+- **Schermata di accesso a percorsi guidati**: prima scegli cosa vuoi fare
+  (Crea la libreria qui / Crea su un server / Unisciti a una libreria /
+  Bentornato), poi vedi SOLO i campi di quel percorso, con spiegazioni
+  sotto ogni campo e senza gergo tecnico. Il passaggio tra le schermate è
+  un morphing fluido (View Transitions, con fallback automatico); alla
+  riuscita il pulsante si trasforma in conferma verde prima di entrare.
+  Le opzioni avanzate (rete privata/Tailscale) restano ripiegate finché
+  non servono; gli errori di campo si spengono mentre correggi.
+
+## [0.1.21] - 2026-05-03
+
+- **self hosting**: Al primo avvio l'app ora apre direttamente "Crea la tua libreria" con la scelta Questo computer / Server remoto. Scegliendo "Questo computer" bastano nome libreria, nome, email e password: un click e la sessione è attiva. Zero Docker, zero Caddy, zero configurazione.
 
 ### Added
 

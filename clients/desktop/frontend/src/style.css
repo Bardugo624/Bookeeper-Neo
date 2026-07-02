@@ -1,5 +1,6 @@
 /* Bookeeper Neo — global styles. Inter (UI) + Lora (titoli editoriali). */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@500;600;700&display=swap');
+@import './theme/tokens.css';
 
 :root {
     color-scheme: light dark;
@@ -27,13 +28,8 @@ body,
 }
 
 body {
-    background: var(--p-surface-50, #fbfaf8);
-    color: var(--p-surface-800, #27241f);
-}
-
-html.dark body {
-    background: var(--p-surface-900, #0e0d0b);
-    color: var(--p-surface-100, #d8d6d2);
+    background: var(--bk-bg);
+    color: var(--bk-text);
 }
 
 h1,
@@ -43,6 +39,40 @@ h4 {
     font-family: 'Lora', Georgia, serif;
     font-weight: 600;
     letter-spacing: -0.01em;
+    text-wrap: balance;
+}
+
+p {
+    text-wrap: pretty;
+}
+
+::selection {
+    background: color-mix(in srgb, var(--p-primary-500) 25%, transparent);
+}
+
+/* Scrollbar discrete, coerenti con le superfici calde. */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--bk-border-strong) transparent;
+}
+
+/* Feedback di pressione sui bottoni PrimeVue: breve, tattile, ovunque
+ * uguale. Solo transform → nessun layout thrash. */
+.p-button {
+    transition:
+        background var(--bk-dur-fast) var(--bk-ease),
+        color var(--bk-dur-fast) var(--bk-ease),
+        border-color var(--bk-dur-fast) var(--bk-ease),
+        box-shadow var(--bk-dur-fast) var(--bk-ease),
+        transform var(--bk-dur-fast) var(--bk-ease);
+}
+.p-button:not(:disabled):active {
+    transform: scale(0.97);
+}
+
+/* Dialog e popover: superficie rialzata + ombra profonda dai token. */
+.p-dialog {
+    box-shadow: var(--bk-shadow-3);
 }
 
 /* Respect reduced motion. */

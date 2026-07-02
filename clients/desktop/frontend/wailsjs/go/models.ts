@@ -59,7 +59,7 @@ export namespace main {
 	    admin_password: string;
 	    device_name: string;
 	    local: boolean;
-
+	
 	    static createFrom(source: any = {}) {
 	        return new BootstrapDesktopReq(source);
 	    }
@@ -229,11 +229,11 @@ export namespace main {
 	    owner_name: string;
 	    email: string;
 	    password: string;
-
+	
 	    static createFrom(source: any = {}) {
 	        return new SetupLocalReq(source);
 	    }
-
+	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.library_name = source["library_name"];
