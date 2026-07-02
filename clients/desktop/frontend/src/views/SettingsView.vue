@@ -92,10 +92,15 @@ const rotateOpen = ref(false);const rotatePassword = ref('');
 const rotating = ref(false);
 const rotateError = ref<string | null>(null);
 
-function openRotate() {
+async function openRotate() {
     rotatePassword.value = '';
     rotateError.value = null;
     rotateOpen.value = true;
+    // Libreria locale: la admin password è generata e custodita dall'app,
+    // l'utente non la conosce. Precompilala.
+    if (auth.session.local) {
+        try { rotatePassword.value = await keystore.localAdminPassword(); } catch { /* noop */ }
+    }
 }
 
 async function rotateInvite() {

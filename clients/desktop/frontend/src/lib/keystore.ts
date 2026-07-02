@@ -12,11 +12,13 @@
 
 import {
   GetSession,
+  GetLocalAdminPassword,
   BootstrapDesktop,
   Login,
   Logout,
   WipeIdentity,
   WhoAmI,
+  SetupLocal,
   SetupTenant,
   ReloadTrust,
   RecoverInvite,
@@ -49,6 +51,13 @@ export interface LoginInput {
   persist?: boolean
 }
 
+export interface SetupLocalInput {
+  libraryName: string
+  ownerName: string
+  email: string
+  password: string
+}
+
 export interface SetupTenantInput {
   serverUrl: string
   bootstrapUrl?: string
@@ -75,6 +84,23 @@ export interface RecoverInviteInput {
 export const keystore = {
   /** Stato corrente della sessione (has_session = false se nessun cert). */
   getSession: (): Promise<SessionInfo> => GetSession(),
+
+  /**
+   * One-click "libreria su questo computer": avvia il server embedded,
+   * crea il tenant (admin password generata lato Go) e fa il pairing.
+   */
+  setupLocal: (input: SetupLocalInput): Promise<SessionInfo> =>
+    SetupLocal(
+      new main.SetupLocalReq({
+        library_name: input.libraryName,
+        owner_name: input.ownerName,
+        email: input.email,
+        password: input.password,
+      }),
+    ),
+
+  /** Admin password generata per il tenant locale (solo modalità local). */
+  localAdminPassword: (): Promise<string> => GetLocalAdminPassword(),
 
   /** Crea il tenant + utente owner (chiama /setup/tenant non-mTLS). */
   setupTenant: (input: SetupTenantInput): Promise<SetupTenantResult> =>

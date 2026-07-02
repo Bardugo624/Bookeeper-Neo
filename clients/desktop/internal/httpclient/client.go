@@ -7,7 +7,9 @@ import (
 	"bytes"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"io"
@@ -23,6 +25,12 @@ import (
 type Client struct {
 	id      *session.Identity
 	httpCli *http.Client
+
+	// certHeader, se non vuoto, viene inviato come X-Client-Cert su ogni
+	// richiesta (modalità "libreria locale": niente Caddy che termina la
+	// mTLS, il client presenta da sé il proprio leaf cert in base64-DER;
+	// il server embedded ascolta solo su 127.0.0.1).
+	certHeader string
 
 	// OnRefresh, se non nil, viene invocato quando una chiamata
 	// autenticata riceve 401. Deve eseguire il flusso di refresh JWT
@@ -49,6 +57,20 @@ type Client struct {
 func New(id *session.Identity) (*Client, error) {
 	if id == nil {
 		return nil, errors.New("nil identity")
+	}
+	if id.Local {
+		// Modalità locale: server embedded su loopback, HTTP plain. Il leaf
+		// cert viaggia in X-Client-Cert (stesso formato base64-DER che Caddy
+		// inoltra nel deploy remoto), così il middleware Authn è identico.
+		block, _ := pem.Decode([]byte(id.CertPEM))
+		if block == nil {
+			return nil, errors.New("invalid local client cert")
+		}
+		return &Client{
+			id:         id,
+			httpCli:    &http.Client{Timeout: 30 * time.Second},
+			certHeader: base64.StdEncoding.EncodeToString(block.Bytes),
+		}, nil
 	}
 	cert, err := tls.X509KeyPair([]byte(id.CertPEM), []byte(id.KeyPEM))
 	if err != nil {
@@ -130,6 +152,9 @@ func (c *Client) do(method, path string, body any, out any, retried bool) error 
 		return err
 	}
 	req.Header.Set("Accept", "application/json")
+	if c.certHeader != "" {
+		req.Header.Set("X-Client-Cert", c.certHeader)
+	}
 	if bodyBytes != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}

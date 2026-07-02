@@ -20,6 +20,10 @@ import (
 // Identity è lo stato persistito: tutto serve a re-instanziare l'http
 // client mTLS senza richiedere all'utente di re-fare il pairing.
 type Identity struct {
+	// Local marca la modalità "libreria locale": il server Bookeeper gira
+	// embedded dentro l'app su 127.0.0.1 e le chiamate autenticate passano
+	// il cert client via header X-Client-Cert invece che via mTLS.
+	Local        bool   `json:"local,omitempty"`
 	ServerURL    string `json:"server_url"`
 	DeviceID     string `json:"device_id"`
 	UserID       string `json:"user_id,omitempty"`
@@ -76,6 +80,20 @@ func dataDir() (string, error) {
 		return "", fmt.Errorf("data dir: %w", err)
 	}
 	return dir, nil
+}
+
+// LocalServerDir restituisce (creandola) la directory dati del server
+// embedded per la modalità "libreria locale": <profilo>/local-server.
+func LocalServerDir() (string, error) {
+	dir, err := dataDir()
+	if err != nil {
+		return "", err
+	}
+	sub := filepath.Join(dir, "local-server")
+	if err := os.MkdirAll(sub, dirPerm); err != nil {
+		return "", err
+	}
+	return sub, nil
 }
 
 // Load deserializza l'identità dal disco. Restituisce ErrNoIdentity se il

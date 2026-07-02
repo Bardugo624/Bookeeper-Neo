@@ -104,7 +104,7 @@ func Load() (*Config, error) {
 	if s := os.Getenv("JWT_SECRET"); s != "" {
 		cfg.JWTSecret = []byte(s)
 	} else {
-		secret, err := loadOrGenSecret(filepath.Join(cfg.DataDir, "jwt.key"))
+		secret, err := LoadOrGenSecret(filepath.Join(cfg.DataDir, "jwt.key"))
 		if err != nil {
 			return nil, err
 		}
@@ -116,7 +116,9 @@ func Load() (*Config, error) {
 	return cfg, nil
 }
 
-func loadOrGenSecret(path string) ([]byte, error) {
+// LoadOrGenSecret returns the JWT secret persisted at path, generating a
+// fresh 48-byte one on first boot. Also used by the embedded (in-app) server.
+func LoadOrGenSecret(path string) ([]byte, error) {
 	if b, err := os.ReadFile(path); err == nil && len(b) >= 32 {
 		return b, nil
 	}

@@ -17,7 +17,19 @@ pubblicata e la mostra nella dialog "Vedi novità". Sono supportati:
 
 ### Added
 
-- (in lavorazione)
+- **Libreria locale (self-hosting embedded)**: al primo avvio l'app
+  propone "Crea la tua libreria" con scelta **Questo computer** /
+  **Server remoto**. In locale il server Bookeeper completo gira dentro
+  l'app (127.0.0.1, dati in `%APPDATA%/Bookeeper/local-server`): niente
+  Docker, Caddy o configurazione — nome libreria, nome, email, password
+  e un click. La admin password del tenant viene generata e custodita
+  dall'app (precompilata automaticamente dove serve, es. rigenerazione
+  invite code nelle Impostazioni).
+- **Creazione tenant one-click anche su server remoto**: il pairing del
+  dispositivo parte automaticamente dopo la creazione del tenant, senza
+  il secondo passaggio manuale con l'invite code (che resta consultabile
+  in Impostazioni → Tenant). Se il pairing automatico fallisce, il form
+  di associazione appare già precompilato.
 
 ## [0.1.19] - 2026-05-03
 

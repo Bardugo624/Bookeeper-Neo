@@ -14,11 +14,14 @@ import {
   type RecoverInviteInput,
   type RecoverInviteResult,
   type SessionInfo,
+  type SetupLocalInput,
   type SetupTenantInput,
   type SetupTenantResult,
 } from '../../keystore'
 
 export const authEndpoints = {
+  setupLocal: (input: SetupLocalInput): Promise<SessionInfo> => keystore.setupLocal(input),
+  localAdminPassword: (): Promise<string> => keystore.localAdminPassword(),
   setupTenant: (input: SetupTenantInput): Promise<SetupTenantResult> => keystore.setupTenant(input),
   bootstrap: (input: BootstrapInput): Promise<SessionInfo> => keystore.bootstrap(input),
   login: (input: LoginInput): Promise<SessionInfo> => keystore.login(input),

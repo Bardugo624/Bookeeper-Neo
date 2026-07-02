@@ -2,10 +2,13 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base32"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -17,6 +20,7 @@ import (
 	"desktop/internal/updater"
 	"desktop/internal/version"
 
+	"github.com/bookeeper/bookeeper-neo/server/embedded"
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -32,6 +36,10 @@ type App struct {
 	mu     sync.RWMutex
 	id     *session.Identity
 	client *httpclient.Client
+
+	// localSrv è il server Bookeeper embedded (modalità "libreria locale").
+	// Non-nil solo quando l'identità corrente è Local. Chiuso in shutdown.
+	localSrv *embedded.Server
 
 	// annas e' inizializzato lazy alla prima Lookup; e' un provider
 	// thread-safe per Anna's Archive (cache di sessione + rate limit).
@@ -64,6 +72,14 @@ func (a *App) startup(ctx context.Context) {
 	if err != nil {
 		// Nessuna sessione: stato "primo avvio".
 		return
+	}
+	// Modalità "libreria locale": il server deve girare prima che il
+	// client provi a parlarci. Se non parte (porta occupata, disco pieno)
+	// non blocchiamo l'avvio: le chiamate falliranno con un errore chiaro.
+	if id.Local {
+		if err := a.ensureLocalServer(); err != nil {
+			fmt.Fprintln(os.Stderr, "[startup] local server failed:", err)
+		}
 	}
 	cli, err := httpclient.New(id)
 	if err != nil {
@@ -155,6 +171,8 @@ type SessionInfo struct {
 	// anche se i tokens sono mancanti/scaduti. Permette alla LoginView
 	// di mostrare la modalità "login" invece di "pair".
 	HasCert   bool   `json:"has_cert"`
+	// Local indica la modalità "libreria locale" (server embedded).
+	Local     bool   `json:"local"`
 	ServerURL string `json:"server_url"`
 	Email     string `json:"email"`
 	UserID    string `json:"user_id"`
@@ -190,6 +208,7 @@ func (a *App) GetSession() SessionInfo {
 	return SessionInfo{
 		HasSession: hasTokens,
 		HasCert:    a.id.CertPEM != "" && a.id.KeyPEM != "",
+		Local:      a.id.Local,
 		ServerURL:  a.id.ServerURL,
 		Email:      a.id.Email,
 		UserID:     a.id.UserID,
@@ -208,6 +227,9 @@ type BootstrapDesktopReq struct {
 	Password      string `json:"password"`
 	AdminPassword string `json:"admin_password"`
 	DeviceName    string `json:"device_name"`
+	// Local: pairing verso il server embedded (settato da SetupLocal, non
+	// dalla UI). L'identità risultante parla HTTP+header su loopback.
+	Local bool `json:"local"`
 }
 
 type bootstrapResp struct {
@@ -254,6 +276,7 @@ func (a *App) BootstrapDesktop(req BootstrapDesktopReq) (SessionInfo, error) {
 		return SessionInfo{}, err
 	}
 	id := &session.Identity{
+		Local:        req.Local,
 		ServerURL:    req.ServerURL,
 		Email:        req.Email,
 		DeviceID:     resp.DeviceID,
@@ -323,6 +346,142 @@ func (a *App) SetupTenant(req SetupTenantReq) (SetupTenantResp, error) {
 		return SetupTenantResp{}, err
 	}
 	return resp, nil
+}
+
+// ============================================================================
+// Libreria locale (self-hosting embedded)
+// ============================================================================
+//
+// Il server Bookeeper gira in-process, bound a 127.0.0.1 (vedi
+// server/embedded). Un click: SetupLocal avvia il server, crea il tenant
+// con una admin password generata (salvata su disco accanto ai dati, tanto
+// chi può leggerla può leggere direttamente il DB SQLite) e fa il pairing
+// del dispositivo. L'utente inserisce solo: nome libreria, nome, email,
+// password.
+
+// ensureLocalServer avvia il server embedded se non già in esecuzione.
+func (a *App) ensureLocalServer() error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if a.localSrv != nil {
+		return nil
+	}
+	dir, err := session.LocalServerDir()
+	if err != nil {
+		return err
+	}
+	srv, err := embedded.Start(dir)
+	if err != nil {
+		return err
+	}
+	a.localSrv = srv
+	return nil
+}
+
+// shutdown è agganciato a Wails OnShutdown: chiude pulitamente il server
+// embedded (listener + SQLite).
+func (a *App) shutdown(_ context.Context) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if a.localSrv != nil {
+		a.localSrv.Close()
+		a.localSrv = nil
+	}
+}
+
+// localAdminPasswordPath: file con la admin password generata per il tenant
+// locale. Permessi 0600.
+func localAdminPasswordPath() (string, error) {
+	dir, err := session.LocalServerDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, "admin-password.txt"), nil
+}
+
+// loadOrCreateLocalAdminPassword genera (una volta) una admin password
+// casuale a 80 bit per il tenant locale e la persiste.
+func loadOrCreateLocalAdminPassword() (string, error) {
+	path, err := localAdminPasswordPath()
+	if err != nil {
+		return "", err
+	}
+	if b, err := os.ReadFile(path); err == nil && len(b) >= 12 {
+		return strings.TrimSpace(string(b)), nil
+	}
+	raw := make([]byte, 10)
+	if _, err := rand.Read(raw); err != nil {
+		return "", err
+	}
+	pwd := strings.ToUpper(base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(raw))
+	if err := os.WriteFile(path, []byte(pwd), 0o600); err != nil {
+		return "", err
+	}
+	return pwd, nil
+}
+
+// GetLocalAdminPassword espone alla UI la admin password del tenant locale
+// (Settings → Tenant la usa per rotate-invite ecc). Solo in modalità Local.
+func (a *App) GetLocalAdminPassword() (string, error) {
+	a.mu.RLock()
+	local := a.id != nil && a.id.Local
+	a.mu.RUnlock()
+	if !local {
+		return "", errors.New("not in local mode")
+	}
+	return loadOrCreateLocalAdminPassword()
+}
+
+// SetupLocalReq è tutto ciò che serve all'utente per la libreria locale.
+type SetupLocalReq struct {
+	LibraryName string `json:"library_name"`
+	OwnerName   string `json:"owner_name"`
+	Email       string `json:"email"`
+	Password    string `json:"password"`
+}
+
+// SetupLocal è il flusso one-click "libreria su questo computer":
+//  1. Avvia il server embedded (127.0.0.1).
+//  2. Genera/riusa una admin password locale.
+//  3. Crea il tenant (/setup/tenant) sul server embedded.
+//  4. Fa il pairing del dispositivo (CSR + cert) e apre la sessione.
+func (a *App) SetupLocal(req SetupLocalReq) (SessionInfo, error) {
+	if req.LibraryName == "" || req.OwnerName == "" || req.Email == "" || req.Password == "" {
+		return SessionInfo{}, errors.New("missing required fields")
+	}
+	if len(req.Password) < 8 {
+		return SessionInfo{}, errors.New("password too short (min 8)")
+	}
+	if err := a.ensureLocalServer(); err != nil {
+		return SessionInfo{}, fmt.Errorf("avvio server locale: %w", err)
+	}
+	adminPwd, err := loadOrCreateLocalAdminPassword()
+	if err != nil {
+		return SessionInfo{}, fmt.Errorf("admin password locale: %w", err)
+	}
+
+	setup, err := a.SetupTenant(SetupTenantReq{
+		ServerURL:     embedded.AuthURL,
+		BootstrapURL:  embedded.BootURL,
+		TenantName:    req.LibraryName,
+		AdminPassword: adminPwd,
+		OwnerEmail:    req.Email,
+		OwnerName:     req.OwnerName,
+		OwnerPassword: req.Password,
+	})
+	if err != nil {
+		return SessionInfo{}, fmt.Errorf("creazione libreria: %w", err)
+	}
+
+	return a.BootstrapDesktop(BootstrapDesktopReq{
+		ServerURL:     embedded.AuthURL,
+		BootstrapURL:  embedded.BootURL,
+		InviteCode:    setup.InviteCode,
+		Email:         req.Email,
+		Password:      req.Password,
+		AdminPassword: adminPwd,
+		Local:         true,
+	})
 }
 
 // RecoverInviteReq è il payload per riottenere un invite_code valido a

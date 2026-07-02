@@ -26,6 +26,10 @@ export function GetAppInfo() {
   return window['go']['main']['App']['GetAppInfo']();
 }
 
+export function GetLocalAdminPassword() {
+  return window['go']['main']['App']['GetLocalAdminPassword']();
+}
+
 export function GetSession() {
   return window['go']['main']['App']['GetSession']();
 }
@@ -56,6 +60,10 @@ export function RecoverInvite(arg1) {
 
 export function ReloadTrust(arg1) {
   return window['go']['main']['App']['ReloadTrust'](arg1);
+}
+
+export function SetupLocal(arg1) {
+  return window['go']['main']['App']['SetupLocal'](arg1);
 }
 
 export function SetupTenant(arg1) {

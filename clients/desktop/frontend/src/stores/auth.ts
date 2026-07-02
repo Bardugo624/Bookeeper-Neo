@@ -17,6 +17,7 @@ import type {
   RecoverInviteInput,
   RecoverInviteResult,
   SessionInfo,
+  SetupLocalInput,
   SetupTenantInput,
   SetupTenantResult,
 } from '@/lib/keystore'
@@ -24,6 +25,7 @@ import type {
 const EMPTY: SessionInfo = {
   has_session: false,
   has_cert: false,
+  local: false,
   server_url: '',
   email: '',
   user_id: '',
@@ -75,6 +77,20 @@ export const useAuthStore = defineStore('auth', () => {
     lastError.value = null
     try {
       update(await authEndpoints.bootstrap(input))
+    } catch (e) {
+      lastError.value = e instanceof Error ? e.message : String(e)
+      throw e
+    }
+  }
+
+  /**
+   * One-click "libreria su questo computer": server embedded + tenant +
+   * pairing in un colpo solo. Al ritorno la sessione è già attiva.
+   */
+  async function setupLocal(input: SetupLocalInput) {
+    lastError.value = null
+    try {
+      update(await authEndpoints.setupLocal(input))
     } catch (e) {
       lastError.value = e instanceof Error ? e.message : String(e)
       throw e
@@ -147,6 +163,7 @@ export const useAuthStore = defineStore('auth', () => {
     restore,
     refreshSession,
     bootstrap,
+    setupLocal,
     setupTenant,
     recoverInvite,
     login,

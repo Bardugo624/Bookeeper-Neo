@@ -37,6 +37,11 @@ const ui = useUiStore();
 
 const mode = ref<Mode>('login');
 
+// Dove vive la libreria in modalità SETUP: 'local' = server embedded su
+// questo PC (one-click, zero configurazione), 'remote' = server esterno.
+type SetupTarget = 'local' | 'remote';
+const setupTarget = ref<SetupTarget>('local');
+
 interface FormState {
     serverUrl: string;
     bootstrapUrl: string;
@@ -105,7 +110,7 @@ const themeIcon = computed(() => {
 
 const titleText = computed(() => {
     switch (mode.value) {
-        case 'setup': return 'Configura il tuo server';
+        case 'setup': return 'Crea la tua libreria';
         case 'pair':  return 'Associa questo dispositivo';
         default:      return 'Bentornato';
     }
@@ -113,7 +118,9 @@ const titleText = computed(() => {
 const subtitleText = computed(() => {
     switch (mode.value) {
         case 'setup':
-            return 'Primo avvio: crea il tenant e l\'utente proprietario. Questo dispositivo verrà associato in automatico.';
+            return setupTarget.value === 'local'
+                ? 'Tutto su questo computer: nessun server da configurare. Un click e sei dentro.'
+                : 'Crea la libreria su un server remoto. Questo dispositivo verrà associato in automatico.';
         case 'pair':
             return 'Genera un certificato client per il primo accesso al tuo server Bookeeper.';
         default:
@@ -122,7 +129,7 @@ const subtitleText = computed(() => {
 });
 const submitLabel = computed(() => {
     switch (mode.value) {
-        case 'setup': return 'Crea tenant';
+        case 'setup': return setupTarget.value === 'local' ? 'Crea la libreria' : 'Crea e associa';
         case 'pair':  return 'Associa e accedi';
         default:      return 'Accedi';
     }
@@ -153,11 +160,13 @@ watch(
 
 onMounted(() => {
     // Decidi la modalità iniziale in base allo stato della sessione:
-    //   - Nessun cert paired → PAIR (primo avvio o post-wipe).
+    //   - Nessun cert paired → SETUP con target "questo computer": è il
+    //     percorso plug-n-play del primo avvio. Chi ha già un server usa
+    //     "Ho già un tenant (associa)".
     //   - Cert presente (con o senza tokens validi) → LOGIN (l'utente
     //     deve solo riautenticarsi, niente nuovo pairing).
     if (!auth.session.has_cert) {
-        mode.value = 'pair';
+        mode.value = 'setup';
     } else {
         mode.value = 'login';
     }
@@ -199,7 +208,8 @@ function validate(): boolean {
         if (form.password.length < 8) { errors.password = 'Almeno 8 caratteri'; ok = false; }
     }
 
-    if (mode.value === 'pair' || mode.value === 'setup') {
+    const remoteSetup = mode.value === 'setup' && setupTarget.value === 'remote';
+    if (mode.value === 'pair' || remoteSetup) {
         if (!URL_RE.test(form.serverUrl.trim())) {
             errors.serverUrl = 'Inserisci un URL valido (https://...)';
             ok = false;
@@ -212,8 +222,9 @@ function validate(): boolean {
     }
 
     if (mode.value === 'setup') {
-        if (!form.tenantName.trim()) { errors.tenantName = 'Nome tenant obbligatorio'; ok = false; }
-        if (form.adminPassword.length < 12) {
+        if (!form.tenantName.trim()) { errors.tenantName = 'Nome libreria obbligatorio'; ok = false; }
+        // In locale la admin password viene generata e custodita dall'app.
+        if (remoteSetup && form.adminPassword.length < 12) {
             errors.adminPassword = 'Min 12 caratteri (cifra il CA del tenant)';
             ok = false;
         }
@@ -230,7 +241,16 @@ async function submit() {
     submitting.value = true;
     submitError.value = null;
     try {
-        if (mode.value === 'setup') {
+        if (mode.value === 'setup' && setupTarget.value === 'local') {
+            // One-click: server embedded + tenant + pairing, tutto lato Go.
+            await auth.setupLocal({
+                libraryName: form.tenantName.trim(),
+                ownerName: form.ownerName.trim(),
+                email: form.email.trim(),
+                password: form.password,
+            });
+            router.push('/');
+        } else if (mode.value === 'setup') {
             const res = await auth.setupTenant({
                 serverUrl: form.serverUrl.trim(),
                 bootstrapUrl: form.bootstrapUrl.trim() || undefined,
@@ -240,11 +260,28 @@ async function submit() {
                 ownerName: form.ownerName.trim(),
                 ownerPassword: form.password,
             });
-            // Setup riuscito → switch a PAIR pre-popolato.
+            // One-click: setup riuscito → pairing automatico con le stesse
+            // credenziali. L'invite code resta consultabile in Impostazioni
+            // → Tenant; se il pairing fallisce, ricadiamo sul form PAIR
+            // pre-popolato come prima.
             setupResult.value = { inviteCode: res.invite_code, tenantId: res.tenant_id };
             form.inviteCode = res.invite_code;
-            mode.value = 'pair';
-            // adminPassword resta in memoria perché serve subito al PAIR.
+            try {
+                await auth.bootstrap({
+                    serverUrl: form.serverUrl.trim(),
+                    bootstrapUrl: form.bootstrapUrl.trim() || undefined,
+                    inviteCode: res.invite_code,
+                    email: form.email.trim(),
+                    password: form.password,
+                    adminPassword: form.adminPassword,
+                    deviceName: form.deviceName.trim() || undefined,
+                });
+                router.push('/');
+            } catch {
+                mode.value = 'pair';
+                submitError.value =
+                    'Tenant creato, ma il pairing automatico è fallito. Riprova da qui: i campi sono già compilati.';
+            }
         } else if (mode.value === 'pair') {
             await auth.bootstrap({
                 serverUrl: form.serverUrl.trim(),
@@ -494,7 +531,31 @@ async function copyInvite() {
                      Visibile solo in SETUP: spiega cosa stiamo per fare,
                      l'ordine dei passi e la differenza tra le due password
                      (CA del tenant vs utente owner). -->
-                <aside v-if="mode === 'setup'" class="login__guide" aria-label="Guida alla creazione del tenant">
+                <!-- Scelta della destinazione: questo PC (embedded) o server remoto. -->
+                <div v-if="mode === 'setup'" class="login__field" role="radiogroup" aria-label="Dove creare la libreria">
+                    <label class="login__label">Dove vuoi la tua libreria?</label>
+                    <div style="display:flex;gap:0.5rem;">
+                        <Button
+                            type="button" icon="pi pi-desktop" label="Questo computer"
+                            style="flex:1;" :outlined="setupTarget !== 'local'"
+                            severity="secondary" :disabled="submitting"
+                            role="radio" :aria-checked="setupTarget === 'local'"
+                            @click="setupTarget = 'local'" />
+                        <Button
+                            type="button" icon="pi pi-server" label="Server remoto"
+                            style="flex:1;" :outlined="setupTarget !== 'remote'"
+                            severity="secondary" :disabled="submitting"
+                            role="radio" :aria-checked="setupTarget === 'remote'"
+                            @click="setupTarget = 'remote'" />
+                    </div>
+                    <span class="login__hint">
+                        {{ setupTarget === 'local'
+                            ? 'I dati restano su questo PC. Niente da installare o configurare.'
+                            : 'Serve un server Bookeeper già raggiungibile (NAS, VPS, Raspberry).' }}
+                    </span>
+                </div>
+
+                <aside v-if="mode === 'setup' && setupTarget === 'remote'" class="login__guide" aria-label="Guida alla creazione del tenant">
                     <header class="login__guide-header">
                         <i class="pi pi-info-circle" aria-hidden="true"></i>
                         <strong>Stai creando un nuovo tenant</strong>
@@ -532,8 +593,8 @@ async function copyInvite() {
                     </p>
                 </aside>
 
-                <!-- URL server: visibile sia in PAIR che in SETUP -->
-                <template v-if="mode === 'pair' || mode === 'setup'">
+                <!-- URL server: PAIR sempre, SETUP solo se remoto -->
+                <template v-if="mode === 'pair' || (mode === 'setup' && setupTarget === 'remote')">
                     <div class="login__field">
                         <label for="login-server" class="login__label">Server URL</label>
                         <InputText
@@ -577,7 +638,7 @@ async function copyInvite() {
                 <!-- Campi solo SETUP -->
                 <template v-if="mode === 'setup'">
                     <div class="login__field">
-                        <label for="setup-tenant" class="login__label">Nome tenant</label>
+                        <label for="setup-tenant" class="login__label">Nome libreria</label>
                         <InputText
                             id="setup-tenant" v-model="form.tenantName"
                             placeholder="Es. Casa Cremisi"
@@ -685,8 +746,9 @@ async function copyInvite() {
                     </div>
                 </template>
 
-                <!-- Admin password: SETUP la SCEGLIE, PAIR la CHIEDE -->
-                <template v-if="mode === 'pair' || mode === 'setup'">
+                <!-- Admin password: SETUP remoto la SCEGLIE, PAIR la CHIEDE.
+                     In locale viene generata e custodita dall'app. -->
+                <template v-if="mode === 'pair' || (mode === 'setup' && setupTarget === 'remote')">
                     <div class="login__field">
                         <label for="login-admin" class="login__label">
                             {{ mode === 'setup' ? 'Password amministratore tenant (≥12)' : 'Password amministratore tenant' }}
@@ -771,7 +833,7 @@ async function copyInvite() {
                         icon="pi pi-refresh" severity="secondary" outlined
                         @click="useAnotherAccount" :disabled="submitting" />
                     <Button v-if="mode === 'login'"
-                        type="button" label="Configura un nuovo server"
+                        type="button" label="Crea una nuova libreria"
                         icon="pi pi-cog" severity="secondary" outlined
                         @click="gotoSetup" :disabled="submitting" />
 
@@ -784,7 +846,7 @@ async function copyInvite() {
                         icon="pi pi-arrow-left" severity="secondary" outlined
                         @click="backToLogin" :disabled="submitting" />
                     <Button v-if="mode === 'pair'"
-                        type="button" label="Configura un nuovo server"
+                        type="button" label="Crea una nuova libreria"
                         icon="pi pi-cog" severity="secondary" outlined
                         @click="gotoSetup" :disabled="submitting" />
 

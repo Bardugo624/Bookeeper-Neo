@@ -58,7 +58,8 @@ export namespace main {
 	    password: string;
 	    admin_password: string;
 	    device_name: string;
-	
+	    local: boolean;
+
 	    static createFrom(source: any = {}) {
 	        return new BootstrapDesktopReq(source);
 	    }
@@ -72,6 +73,7 @@ export namespace main {
 	        this.password = source["password"];
 	        this.admin_password = source["admin_password"];
 	        this.device_name = source["device_name"];
+	        this.local = source["local"];
 	    }
 	}
 	export class CoverBytes {
@@ -199,6 +201,7 @@ export namespace main {
 	export class SessionInfo {
 	    has_session: boolean;
 	    has_cert: boolean;
+	    local: boolean;
 	    server_url: string;
 	    email: string;
 	    user_id: string;
@@ -213,11 +216,30 @@ export namespace main {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.has_session = source["has_session"];
 	        this.has_cert = source["has_cert"];
+	        this.local = source["local"];
 	        this.server_url = source["server_url"];
 	        this.email = source["email"];
 	        this.user_id = source["user_id"];
 	        this.tenant_id = source["tenant_id"];
 	        this.device_id = source["device_id"];
+	    }
+	}
+	export class SetupLocalReq {
+	    library_name: string;
+	    owner_name: string;
+	    email: string;
+	    password: string;
+
+	    static createFrom(source: any = {}) {
+	        return new SetupLocalReq(source);
+	    }
+
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.library_name = source["library_name"];
+	        this.owner_name = source["owner_name"];
+	        this.email = source["email"];
+	        this.password = source["password"];
 	    }
 	}
 	export class SetupTenantReq {

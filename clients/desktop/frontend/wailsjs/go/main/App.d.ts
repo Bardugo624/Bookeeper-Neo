@@ -14,6 +14,8 @@ export function FetchCoverBytes(arg1:string):Promise<main.CoverBytes>;
 
 export function GetAppInfo():Promise<main.AppInfo>;
 
+export function GetLocalAdminPassword():Promise<string>;
+
 export function GetSession():Promise<main.SessionInfo>;
 
 export function InstallUpdate():Promise<void>;
@@ -29,6 +31,8 @@ export function LookupMetadata(arg1:string,arg2:boolean):Promise<main.MetadataIn
 export function RecoverInvite(arg1:main.RecoverInviteReq):Promise<main.RecoverInviteResp>;
 
 export function ReloadTrust(arg1:main.ReloadTrustReq):Promise<void>;
+
+export function SetupLocal(arg1:main.SetupLocalReq):Promise<main.SessionInfo>;
 
 export function SetupTenant(arg1:main.SetupTenantReq):Promise<main.SetupTenantResp>;
 
