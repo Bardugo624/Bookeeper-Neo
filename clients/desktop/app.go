@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -360,6 +361,10 @@ func (a *App) SetupTenant(req SetupTenantReq) (SetupTenantResp, error) {
 // password.
 
 // ensureLocalServer avvia il server embedded se non già in esecuzione.
+//
+// Caso "app aperta due volte": la prima istanza detiene le porte; qui il
+// bind fallisce, ma se su quelle porte risponde un Bookeeper sano lo
+// riusiamo (stesso DB, stessa macchina) invece di fallire.
 func (a *App) ensureLocalServer() error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -372,10 +377,25 @@ func (a *App) ensureLocalServer() error {
 	}
 	srv, err := embedded.Start(dir)
 	if err != nil {
+		if localServerHealthy() {
+			return nil // un'altra istanza dell'app sta già servendo
+		}
 		return err
 	}
 	a.localSrv = srv
 	return nil
+}
+
+// localServerHealthy verifica che sulla porta bootstrap locale risponda
+// un Bookeeper (endpoint /healthz).
+func localServerHealthy() bool {
+	cli := &http.Client{Timeout: 2 * time.Second}
+	resp, err := cli.Get(embedded.BootURL + "/healthz")
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+	return resp.StatusCode == http.StatusOK
 }
 
 // shutdown è agganciato a Wails OnShutdown: chiude pulitamente il server
@@ -502,6 +522,34 @@ func (a *App) SetupLocal(req SetupLocalReq) (SessionInfo, error) {
 		return SessionInfo{}, fmt.Errorf("admin password locale: %w", err)
 	}
 
+	pairWith := func(inviteCode string) (SessionInfo, error) {
+		return a.BootstrapDesktop(BootstrapDesktopReq{
+			ServerURL:     embedded.AuthURL,
+			BootstrapURL:  embedded.BootURL,
+			InviteCode:    inviteCode,
+			Email:         req.Email,
+			Password:      req.Password,
+			AdminPassword: adminPwd,
+			Local:         true,
+		})
+	}
+
+	// Idempotenza: se un tenant locale esiste già (marker su disco),
+	// NON crearne un secondo — recupera un invite fresco e ri-associa.
+	// Copre il retry dopo un pairing fallito e il re-setup post-wipe:
+	// i dati esistenti restano la stessa libreria.
+	if mk, err := loadLocalTenantMarker(); err == nil && mk.TenantName != "" {
+		if rec, err := a.RecoverInvite(RecoverInviteReq{
+			ServerURL:     embedded.AuthURL,
+			BootstrapURL:  embedded.BootURL,
+			TenantName:    mk.TenantName,
+			AdminPassword: adminPwd,
+		}); err == nil {
+			return pairWith(rec.InviteCode)
+		}
+		// Marker orfano (DB cancellato a mano?): prosegui con la creazione.
+	}
+
 	setup, err := a.SetupTenant(SetupTenantReq{
 		ServerURL:     embedded.AuthURL,
 		BootstrapURL:  embedded.BootURL,
@@ -514,16 +562,9 @@ func (a *App) SetupLocal(req SetupLocalReq) (SessionInfo, error) {
 	if err != nil {
 		return SessionInfo{}, fmt.Errorf("creazione libreria: %w", err)
 	}
+	saveLocalTenantMarker(localTenantMarker{TenantID: setup.TenantID, TenantName: req.LibraryName})
 
-	return a.BootstrapDesktop(BootstrapDesktopReq{
-		ServerURL:     embedded.AuthURL,
-		BootstrapURL:  embedded.BootURL,
-		InviteCode:    setup.InviteCode,
-		Email:         req.Email,
-		Password:      req.Password,
-		AdminPassword: adminPwd,
-		Local:         true,
-	})
+	return pairWith(setup.InviteCode)
 }
 
 // RecoverInviteReq è il payload per riottenere un invite_code valido a

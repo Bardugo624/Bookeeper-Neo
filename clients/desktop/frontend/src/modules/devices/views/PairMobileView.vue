@@ -37,8 +37,15 @@ import Message from 'primevue/message';
 import Password from 'primevue/password';
 import { devicesEndpoints, type PairingToken } from '@/lib/api/endpoints/devices';
 import { ApiError } from '@/lib/api/client';
+import { useAuthStore } from '@/stores/auth';
 
 const router = useRouter();
+const auth = useAuthStore();
+
+// Modalità "libreria locale": il server gira su 127.0.0.1, che il telefono
+// non può raggiungere. Il QR sarebbe un vicolo cieco: meglio dirlo chiaro
+// e non generare nemmeno il token.
+const isLocal = computed(() => auth.session.local);
 
 const token = shallowRef<PairingToken | null>(null);
 const qrDataUrl = ref<string>('');
@@ -188,6 +195,10 @@ watch(expired, (isExpired) => {
 });
 
 onMounted(() => {
+    if (isLocal.value) {
+        loading.value = false;
+        return;
+    }
     tickInterval = setInterval(() => {
         now.value = Date.now();
     }, 1000);
@@ -222,7 +233,35 @@ function back(): void {
             </div>
         </header>
 
-        <div class="pair__layout">
+        <!-- Modalità libreria locale: il telefono non può raggiungere
+             127.0.0.1 — niente QR, spiegazione onesta e via d'uscita. -->
+        <div v-if="isLocal" class="pair__local-note" role="status">
+            <span class="pair__local-icon" aria-hidden="true">
+                <i class="pi pi-desktop"></i>
+            </span>
+            <div class="pair__local-body">
+                <h2 class="pair__local-title">Non disponibile con la libreria locale</h2>
+                <p class="pair__local-text">
+                    La tua libreria vive solo su questo computer
+                    (<code>127.0.0.1</code>): il telefono non può raggiungerla,
+                    quindi l'abbinamento mobile non funzionerebbe.
+                </p>
+                <p class="pair__local-text">
+                    Per usare Bookeeper dal telefono serve una libreria su un
+                    server raggiungibile in rete (NAS, Raspberry, VPS): vedi le
+                    guide in <code>deploy/</code> del progetto.
+                </p>
+                <Button
+                    label="Torna ai dispositivi"
+                    icon="pi pi-arrow-left"
+                    severity="secondary"
+                    outlined
+                    @click="back"
+                />
+            </div>
+        </div>
+
+        <div v-else class="pair__layout">
             <!-- QR card -->
             <section
                 class="qr-card"
@@ -429,6 +468,56 @@ function back(): void {
     grid-template-columns: minmax(320px, 380px) 1fr;
     gap: 2rem;
     align-items: start;
+}
+
+/* Pannello "non disponibile in locale": informativo, non un errore. */
+.pair__local-note {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    max-width: 560px;
+    padding: 1.25rem 1.375rem;
+    background: var(--bk-surface);
+    border: 1px solid var(--bk-border);
+    border-radius: var(--bk-radius-lg);
+}
+.pair__local-icon {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--p-primary-500) 12%, transparent);
+    color: var(--p-primary-700);
+    font-size: 1.125rem;
+    flex-shrink: 0;
+}
+html.dark .pair__local-icon {
+    background: color-mix(in srgb, var(--p-primary-500) 22%, transparent);
+    color: var(--p-primary-300);
+}
+.pair__local-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+}
+.pair__local-title {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--bk-text-strong);
+}
+.pair__local-text {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.55;
+    color: var(--bk-text-muted);
+    max-width: 46ch;
+}
+.pair__local-text code {
+    font-size: 0.8125rem;
 }
 
 @media (max-width: 720px) {

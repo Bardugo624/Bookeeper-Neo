@@ -13,6 +13,27 @@ pubblicata e la mostra nella dialog "Vedi novità". Sono supportati:
 - inline code `` ` ``
 - link `[text](https://...)`
 
+
+## [0.2.0]
+
+- restyle login, client-side hosting
+- refactoring backend stage 1
+
+### Fixed
+
+- **Libreria locale: il retry della creazione non duplica più la libreria**:
+  se il primo tentativo si interrompeva a metà (o si rifaceva il setup dopo
+  una disconnessione totale), un nuovo "Crea la libreria" creava un secondo
+  tenant vuoto nello stesso database e i libri sembravano spariti. Ora l'app
+  ricorda la libreria locale creata e vi ri-associa il dispositivo.
+- **Libreria locale: app aperta due volte**: la seconda istanza ora riusa il
+  server locale della prima invece di fallire con "porta occupata".
+- **Abbinamento mobile in modalità locale**: la pagina spiega chiaramente che
+  il telefono non può raggiungere una libreria che vive su 127.0.0.1, invece
+  di mostrare un QR che non avrebbe mai funzionato. Nascosto anche il
+  pannello "Diagnostica mTLS" (solo per deploy remoti con Caddy).
+
+
 ## [0.1.22]
 
 ### Changed

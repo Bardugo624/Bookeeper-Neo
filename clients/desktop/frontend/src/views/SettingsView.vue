@@ -485,7 +485,9 @@ async function checkUpdatesNow() {
                         </div>
                     </section>
 
-                    <section v-if="tenant && tenant.is_owner" class="settings__card" aria-labelledby="ten-trust-h">
+                    <!-- Solo deploy remoto: in modalità libreria locale non c'è
+                         Caddy né trust pool (il server risponderebbe 503). -->
+                    <section v-if="tenant && tenant.is_owner && !auth.session.local" class="settings__card" aria-labelledby="ten-trust-h">
                         <h2 id="ten-trust-h" class="settings__card-title">Diagnostica mTLS</h2>
                         <p class="settings__hint">
                             Forza Caddy a ricaricare la trust pool. Da usare se dopo aver creato un tenant

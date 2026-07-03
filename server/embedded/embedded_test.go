@@ -177,6 +177,14 @@ func TestLocalFlow(t *testing.T) {
 		"progressive_number": 1,
 		"notes":              "prima edizione",
 	}, nil)
+	// Ricerca FTS (il titolo aggiornato deve essere indicizzato).
+	var found struct {
+		Books []map[string]any `json:"books"`
+	}
+	c.mustDo("GET", AuthURL+"/api/v1/books/?q=rosa", nil, &found)
+	if len(found.Books) != 1 {
+		t.Fatalf("fts search: got %d, want 1", len(found.Books))
+	}
 	var next struct {
 		Next int `json:"next"`
 	}
