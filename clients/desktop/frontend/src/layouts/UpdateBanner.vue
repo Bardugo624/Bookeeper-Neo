@@ -10,6 +10,7 @@
  * rispettano prefers-reduced-motion.
  */
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import ProgressBar from 'primevue/progressbar';
 import { useUpdater } from '@/composables/useUpdater';
@@ -17,6 +18,7 @@ import UpdateChangelogDialog from './UpdateChangelogDialog.vue';
 
 const updater = useUpdater();
 const showChangelog = ref(false);
+const { t } = useI18n();
 
 const progressPct = computed(() => {
     const { downloaded, total } = updater.state.progress;
@@ -80,9 +82,9 @@ function formatSpeed(bps: number): string {
 }
 function formatEta(sec: number): string {
     if (!isFinite(sec) || sec <= 0) return '';
-    if (sec < 60) return `${Math.ceil(sec)}s rimanenti`;
+    if (sec < 60) return t('settings.banner.secRemaining', { n: Math.ceil(sec) });
     const m = Math.ceil(sec / 60);
-    return `${m} min rimanenti`;
+    return t('settings.banner.minRemaining', { n: m });
 }
 
 function onDismiss() {
@@ -111,18 +113,20 @@ function onDismiss() {
             <!-- Stato 1: disponibile -->
             <template v-if="updater.state.available && !updater.state.downloading && !updater.state.ready">
                 <div class="update-banner__text">
-                    <strong>Bookeeper {{ updater.state.info?.latest }}</strong> è disponibile
-                    <span class="update-banner__sub">· {{ sizeMb }} MB</span>
+                    <i18n-t keypath="settings.banner.availableMsg" tag="span">
+                        <template #name><strong>Bookeeper {{ updater.state.info?.latest }}</strong></template>
+                    </i18n-t>
+                    <span class="update-banner__sub">{{ t('settings.banner.sizeMb', { mb: sizeMb }) }}</span>
                 </div>
                 <div class="update-banner__actions">
-                    <Button text label="Vedi novità" icon="pi pi-book"
+                    <Button text :label="t('settings.banner.seeChangelog')" icon="pi pi-book"
                             @click="showChangelog = true" />
-                    <Button label="Scarica" icon="pi pi-download"
+                    <Button :label="t('settings.banner.download')" icon="pi pi-download"
                             @click="updater.startDownload()" />
                     <Button text severity="secondary" rounded
                             icon="pi pi-times"
-                            aria-label="Ignora questa versione"
-                            v-tooltip.bottom="'Ignora questa versione'"
+                            :aria-label="t('settings.banner.dismissAria')"
+                            v-tooltip.bottom="t('settings.banner.dismissTooltip')"
                             @click="onDismiss" />
                 </div>
             </template>
@@ -130,9 +134,11 @@ function onDismiss() {
             <!-- Stato 2: download in corso -->
             <template v-else-if="updater.state.downloading">
                 <div class="update-banner__text">
-                    Sto scaricando <strong>Bookeeper {{ updater.state.info?.latest }}</strong>
+                    <i18n-t keypath="settings.banner.downloadingMsg" tag="span">
+                        <template #name><strong>Bookeeper {{ updater.state.info?.latest }}</strong></template>
+                    </i18n-t>
                     <span v-if="speedText" class="update-banner__sub">
-                        · {{ speedText }}<span v-if="etaText"> · {{ etaText }}</span>
+                        {{ t('settings.banner.speedSep', { speed: speedText }) }}<span v-if="etaText">{{ ' ' + t('settings.banner.etaSep', { eta: etaText }) }}</span>
                     </span>
                 </div>
                 <div class="update-banner__progress-wrap">
@@ -145,11 +151,12 @@ function onDismiss() {
             <!-- Stato 3: pronto da installare -->
             <template v-else-if="updater.state.ready">
                 <div class="update-banner__text">
-                    <strong>Bookeeper {{ updater.state.info?.latest }}</strong> è pronto.
-                    L'app si chiuderà per completare l'installazione.
+                    <i18n-t keypath="settings.banner.readyMsg" tag="span">
+                        <template #name><strong>Bookeeper {{ updater.state.info?.latest }}</strong></template>
+                    </i18n-t>
                 </div>
                 <div class="update-banner__actions">
-                    <Button label="Installa e riavvia" icon="pi pi-refresh"
+                    <Button :label="t('settings.banner.installRestart')" icon="pi pi-refresh"
                             @click="updater.installNow()" />
                 </div>
             </template>

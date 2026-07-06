@@ -14,10 +14,36 @@ pubblicata e la mostra nella dialog "Vedi novità". Sono supportati:
 - link `[text](https://...)`
 
 
-## [0.2.0]
+## [0.2.1]
 
-- restyle login, client-side hosting
-- refactoring backend stage 1
+### Added
+
+- **Importa la tua libreria da Goodreads, Calibre o LibraryThing**: nuovo tab
+  Impostazioni → Dati. Scegli il file CSV/TSV esportato dal servizio,
+  Bookeeper mostra un'anteprima (nuovi, duplicati per ISBN, errori) e importa
+  solo dopo conferma. Riconoscimento automatico del formato.
+- **Esporta la libreria** in JSON (backup completo) o CSV (fogli di calcolo),
+  con salvataggio tramite dialog nativo.
+- **Backup & Ripristino** (Impostazioni → Dati): backup completo della
+  libreria in un file JSON (libri, scaffali, prestiti, wishlist). In modalità
+  locale il backup è anche automatico: ogni 3 giorni all'avvio, con rotazione
+  degli ultimi 5. Il ripristino è protetto dalla password amministratore e da
+  doppia conferma (va ricopiato il nome della libreria); al termine l'app si
+  ricarica con i dati del backup.
+
+- **Bookeeper ora parla anche inglese**: nuova impostazione Lingua
+  (Impostazioni → Account) con Italiano / English / Sistema ("Sistema"
+  segue la lingua del computer). Si applica subito, senza riavvio.
+  Tradotta l'intera app: navigazione, login, libri, scaffali, prestiti,
+  wishlist, statistiche, dispositivi/abbinamento mobile, impostazioni
+  e le notifiche di aggiornamento.
+
+- **Primo avvio guidato**: la vista Libri vuota accompagna all'aggiunta del
+  primo libro (col codice a barre sul retro fa tutto Bookeeper), con
+  scorciatoia per chi ha già un catalogo da importare. Alla prima aggiunta,
+  una piccola celebrazione suggerisce i prossimi passi (scaffale, import).
+  Suggerimenti contestuali one-shot su Scaffali e Prestiti, chiudibili e
+  che non tornano più.
 
 ### Fixed
 
@@ -33,6 +59,10 @@ pubblicata e la mostra nella dialog "Vedi novità". Sono supportati:
   di mostrare un QR che non avrebbe mai funzionato. Nascosto anche il
   pannello "Diagnostica mTLS" (solo per deploy remoti con Caddy).
 
+## [0.2.0]
+
+- restyle login, client-side hosting
+- refactoring backend stage 1
 
 ## [0.1.22]
 

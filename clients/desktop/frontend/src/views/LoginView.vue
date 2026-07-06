@@ -14,11 +14,15 @@
 // nell'intestazione del form via view-transition-name. Fallback: swap
 // istantaneo. prefers-reduced-motion salta del tutto la coreografia.
 //
-// La logica di autenticazione è identica a prima (store auth): setupLocal,
+// i18n: tutte le stringhe vengono da src/i18n (it/en); i computed che
+// le usano sono reattivi al cambio lingua.
+//
+// La logica di autenticazione è nello store auth: setupLocal,
 // setupTenant→bootstrap concatenati, bootstrap, login, recoverInvite.
 
 import { computed, nextTick, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import Password from 'primevue/password';
@@ -34,6 +38,7 @@ const router = useRouter();
 const route = useRoute();
 const auth = useAuthStore();
 const ui = useUiStore();
+const { t } = useI18n();
 
 const hasCert = computed(() => auth.session.has_cert);
 
@@ -77,28 +82,30 @@ const pathCards = computed<PathCard[]>(() => {
     cards.push({
       id: 'login',
       icon: 'pi pi-sign-in',
-      title: 'Bentornato',
-      desc: `Rientra${auth.session.email ? ` come ${auth.session.email}` : ''} con la tua password.`,
+      title: t('login.path.loginTitle'),
+      desc: auth.session.email
+        ? t('login.path.loginDesc', { email: auth.session.email })
+        : t('login.path.loginDescNoEmail'),
     });
   }
   cards.push(
     {
       id: 'local',
       icon: 'pi pi-desktop',
-      title: 'Crea la tua libreria qui',
-      desc: 'Tutto su questo computer: nessun server, un solo passaggio.',
+      title: t('login.path.localTitle'),
+      desc: t('login.path.localDesc'),
     },
     {
       id: 'remote',
       icon: 'pi pi-server',
-      title: 'Crea su un server',
-      desc: 'Hai un Bookeeper self-hosted (NAS, Raspberry, VPS) ancora vuoto.',
+      title: t('login.path.remoteTitle'),
+      desc: t('login.path.remoteDesc'),
     },
     {
       id: 'pair',
       icon: 'pi pi-key',
-      title: 'Unisciti a una libreria',
-      desc: 'La libreria esiste già: associa questo computer col codice invito.',
+      title: t('login.path.pairTitle'),
+      desc: t('login.path.pairDesc'),
     },
   );
   return cards;
@@ -155,7 +162,7 @@ const errors = reactive<Partial<Record<keyof FormState, string>>>({});
 const submitError = ref<string | null>(null);
 // Notice (info/warn) separato dall'errore di submit: "sessione scaduta",
 // "disconnesso". Ambra/azzurro, non rosso: non è un fallimento del form.
-interface LoginNotice { kind: 'info' | 'warn'; icon: string; text: string }
+interface LoginNotice { kind: 'info' | 'warn'; icon: string; key: string }
 const notice = ref<LoginNotice | null>(null);
 const submitting = ref(false);
 // success: il bottone si trasforma in conferma prima del redirect.
@@ -192,17 +199,9 @@ watch(hasCert, (v) => {
 
 // Banner da query (?expired=1 / ?loggedout=1).
 if (route.query.expired === '1') {
-  notice.value = {
-    kind: 'warn',
-    icon: 'pi pi-clock',
-    text: 'La tua sessione è scaduta. Reinserisci la password per continuare.',
-  };
+  notice.value = { kind: 'warn', icon: 'pi pi-clock', key: 'login.notice.expired' };
 } else if (route.query.loggedout === '1') {
-  notice.value = {
-    kind: 'info',
-    icon: 'pi pi-sign-out',
-    text: 'Disconnesso. Inserisci la password per rientrare.',
-  };
+  notice.value = { kind: 'info', icon: 'pi pi-sign-out', key: 'login.notice.loggedOut' };
 }
 if (auth.session.email) form.email = auth.session.email;
 if (auth.serverURL) form.serverUrl = auth.serverURL;
@@ -242,28 +241,28 @@ function validate(): boolean {
   let ok = true;
   const p = path.value;
 
-  if (!EMAIL_RE.test(form.email)) { errors.email = 'Email non valida'; ok = false; }
-  if (form.password.length < 8) { errors.password = 'Almeno 8 caratteri'; ok = false; }
+  if (!EMAIL_RE.test(form.email)) { errors.email = t('login.field.emailError'); ok = false; }
+  if (form.password.length < 8) { errors.password = t('login.field.passwordError'); ok = false; }
 
   if (p === 'remote' || p === 'pair') {
     if (!URL_RE.test(form.serverUrl.trim())) {
-      errors.serverUrl = 'Inserisci un URL valido (https://…)';
+      errors.serverUrl = t('login.field.serverError');
       ok = false;
     }
   }
   if (p === 'local' || p === 'remote') {
-    if (!form.tenantName.trim()) { errors.tenantName = 'Dai un nome alla libreria'; ok = false; }
-    if (!form.ownerName.trim()) { errors.ownerName = 'Come ti chiami?'; ok = false; }
+    if (!form.tenantName.trim()) { errors.tenantName = t('login.field.libraryError'); ok = false; }
+    if (!form.ownerName.trim()) { errors.ownerName = t('login.field.ownerError'); ok = false; }
   }
   if (p === 'remote') {
     if (form.adminPassword.length < 12) {
-      errors.adminPassword = 'Minimo 12 caratteri: protegge la chiave della libreria';
+      errors.adminPassword = t('login.field.adminErrorRemote');
       ok = false;
     }
   }
   if (p === 'pair') {
-    if (!form.inviteCode.trim()) { errors.inviteCode = 'Serve il codice invito della libreria'; ok = false; }
-    if (form.adminPassword.length < 8) { errors.adminPassword = 'Almeno 8 caratteri'; ok = false; }
+    if (!form.inviteCode.trim()) { errors.inviteCode = t('login.field.inviteError'); ok = false; }
+    if (form.adminPassword.length < 8) { errors.adminPassword = t('login.field.adminErrorPair'); ok = false; }
   }
   return ok;
 }
@@ -321,8 +320,7 @@ async function submit() {
         await finishAndEnter();
       } catch {
         withMorph(() => { path.value = 'pair'; });
-        submitError.value =
-          'Libreria creata, ma l\'associazione automatica è fallita. Riprova da qui: i campi sono già compilati.';
+        submitError.value = t('login.error.pairAfterSetup');
       }
     } else if (path.value === 'pair') {
       await auth.bootstrap({
@@ -358,10 +356,7 @@ async function submit() {
       !form.bootstrapUrl.trim() &&
       looksLikeMtlsHost
     ) {
-      msg =
-        'Il server non risponde su questo indirizzo (il dominio pubblico è mTLS-only). ' +
-        'Apri "Il server è su rete privata?" e inserisci l\'host che espone il pairing ' +
-        '(es. https://bookeeper.tail22adce.ts.net).';
+      msg = t('login.error.mtlsHost');
       if (bootstrapDetails.value) {
         bootstrapDetails.value.open = true;
         requestAnimationFrame(() => {
@@ -371,7 +366,7 @@ async function submit() {
         });
       }
     }
-    submitError.value = msg || 'Errore di autenticazione';
+    submitError.value = msg || t('login.error.generic');
     console.error('[LoginView] submit failed:', e);
   } finally {
     submitting.value = false;
@@ -379,13 +374,8 @@ async function submit() {
 }
 
 const submitLabel = computed(() => {
-  if (success.value) return 'Benvenuto!';
-  switch (path.value) {
-    case 'local':  return 'Crea la libreria';
-    case 'remote': return 'Crea e associa';
-    case 'pair':   return 'Associa e accedi';
-    default:       return 'Accedi';
-  }
+  if (success.value) return t('login.submit.success');
+  return t(`login.submit.${path.value}`);
 });
 const submitIcon = computed(() => {
   if (success.value) return 'pi pi-check';
@@ -437,15 +427,15 @@ async function submitRecovery() {
   const serverUrl = form.serverUrl.trim();
   const tenantName = recoveryForm.tenantName.trim();
   if (!URL_RE.test(serverUrl)) {
-    recoveryError.value = 'Compila prima l\'indirizzo del server qui sopra.';
+    recoveryError.value = t('login.recovery.errServer');
     return;
   }
   if (!tenantName) {
-    recoveryError.value = 'Indica il nome della libreria.';
+    recoveryError.value = t('login.recovery.errName');
     return;
   }
   if (recoveryForm.adminPassword.length < 12) {
-    recoveryError.value = 'La password amministratore ha almeno 12 caratteri.';
+    recoveryError.value = t('login.recovery.errPwd');
     return;
   }
   recoveryLoading.value = true;
@@ -458,8 +448,7 @@ async function submitRecovery() {
     });
     form.inviteCode = res.invite_code;
     form.adminPassword = recoveryForm.adminPassword;
-    recoverySuccess.value =
-      `Nuovo codice generato per “${res.tenant_name}”. Quello vecchio non funziona più.`;
+    recoverySuccess.value = t('login.recovery.success', { name: res.tenant_name });
     recoveryForm.adminPassword = '';
     setTimeout(() => {
       recoveryOpen.value = false;
@@ -471,9 +460,9 @@ async function submitRecovery() {
     else if (typeof e === 'string') msg = e;
     else { try { msg = JSON.stringify(e); } catch { msg = String(e); } }
     if (/401|invalid credentials|unauthor/i.test(msg)) {
-      recoveryError.value = 'Nome libreria o password amministratore non corretti.';
+      recoveryError.value = t('login.recovery.errCredentials');
     } else {
-      recoveryError.value = msg || 'Recupero fallito.';
+      recoveryError.value = msg || t('login.recovery.errGeneric');
     }
   } finally {
     recoveryLoading.value = false;
@@ -495,14 +484,12 @@ async function copyInvite() {
         <span>Bookeeper</span>
       </div>
       <blockquote class="login__brand-quote">
-        <p class="login__brand-quote-text">
-          "Sapeva leggere. Fu la scoperta più importante di tutta la sua vita. Sapeva leggere. Possedeva l’antidoto contro il terribile veleno della vecchiaia."
-        </p>
-        <p class="login__brand-quote-attr">— Luis Sepúlveda</p>
+        <p class="login__brand-quote-text">{{ t('login.brandQuote') }}</p>
+        <p class="login__brand-quote-attr">{{ t('login.brandQuoteAttr') }}</p>
       </blockquote>
       <div class="login__brand-footer">
-        <span>self-hosted</span>
-        <span>la tua libreria, a casa tua</span>
+        <span>{{ t('login.brandFooterLeft') }}</span>
+        <span>{{ t('login.brandFooterRight') }}</span>
       </div>
     </aside>
 
@@ -512,20 +499,20 @@ async function copyInvite() {
         <Button
           text rounded severity="secondary"
           :icon="themeIcon"
-          :aria-label="`Cambia tema (corrente: ${ui.mode})`"
+          :aria-label="t('common.theme.toggleAria', { mode: ui.mode })"
           @click="ui.toggle()"
         />
       </div>
 
       <!-- ================= STEP 1: scelta percorso ================= -->
       <div v-if="step === 'welcome'" class="login__form" aria-labelledby="login-title">
-        <h1 id="login-title" class="login__form-title">Benvenuto in Bookeeper</h1>
-        <p class="login__form-subtitle">La tua libreria di casa. Da dove vuoi iniziare?</p>
+        <h1 id="login-title" class="login__form-title">{{ t('login.welcomeTitle') }}</h1>
+        <p class="login__form-subtitle">{{ t('login.welcomeSubtitle') }}</p>
 
         <div v-if="notice" class="login__alert" :class="`login__alert--${notice.kind}`"
              role="status" aria-live="polite">
           <i :class="notice.icon" aria-hidden="true"></i>
-          <span>{{ notice.text }}</span>
+          <span>{{ t(notice.key) }}</span>
         </div>
 
         <div class="login__paths">
@@ -553,7 +540,7 @@ async function copyInvite() {
         <header class="login__step-head">
           <Button
             text rounded severity="secondary" icon="pi pi-arrow-left"
-            aria-label="Torna alla scelta"
+            :aria-label="t('login.backAria')"
             :disabled="submitting || success"
             @click="goWelcome"
           />
@@ -570,35 +557,29 @@ async function copyInvite() {
         </header>
 
         <p class="login__form-subtitle login__form-subtitle--tight">
-          <template v-if="path === 'local'">
-            Nessun server, nessuna configurazione: i dati restano su questo PC.
-          </template>
-          <template v-else-if="path === 'remote'">
-            Creo la libreria sul tuo server e associo subito questo computer.
-          </template>
-          <template v-else-if="path === 'pair'">
-            Ti servono il codice invito e la password amministratore della libreria.
+          <template v-if="path === 'login'">
+            {{ t('login.subtitle.login', { server: auth.serverURL || t('login.subtitle.loginFallbackServer') }) }}
           </template>
           <template v-else>
-            Accedi al server {{ auth.serverURL || 'configurato' }}.
+            {{ t(`login.subtitle.${path}`) }}
           </template>
         </p>
 
         <div v-if="notice" class="login__alert" :class="`login__alert--${notice.kind}`"
              role="status" aria-live="polite">
           <i :class="notice.icon" aria-hidden="true"></i>
-          <span>{{ notice.text }}</span>
+          <span>{{ t(notice.key) }}</span>
         </div>
 
         <div v-if="setupResult" class="login__alert login__alert--success" role="status" aria-live="polite">
           <i class="pi pi-check-circle" aria-hidden="true"></i>
           <div class="login__alert-body">
-            <strong>Libreria creata.</strong>
-            <span>Codice invito: <code class="login__invite-code">{{ setupResult.inviteCode }}</code></span>
-            <span class="login__alert-fine">Salvalo: serve per associare altri dispositivi.</span>
+            <strong>{{ t('login.created.title') }}</strong>
+            <span>{{ t('login.created.invite') }} <code class="login__invite-code">{{ setupResult.inviteCode }}</code></span>
+            <span class="login__alert-fine">{{ t('login.created.save') }}</span>
           </div>
           <Button text rounded severity="secondary" icon="pi pi-copy"
-                  aria-label="Copia invite code" @click="copyInvite" />
+                  :aria-label="t('login.created.copyAria')" @click="copyInvite" />
         </div>
 
         <div v-if="submitError" class="login__alert" role="alert" aria-live="assertive">
@@ -609,7 +590,7 @@ async function copyInvite() {
         <!-- ---- Server (remote + pair) ---- -->
         <template v-if="path === 'remote' || path === 'pair'">
           <div class="login__field">
-            <label for="login-server" class="login__label">Indirizzo del server</label>
+            <label for="login-server" class="login__label">{{ t('login.field.server') }}</label>
             <InputText
               id="login-server" v-model="form.serverUrl"
               type="url" autocomplete="url" spellcheck="false"
@@ -618,7 +599,7 @@ async function copyInvite() {
               :disabled="submitting || success"
             />
             <span v-if="!errors.serverUrl" id="login-server-hint" class="login__hint">
-              Es. https://bookeeper.tuodominio.it
+              {{ t('login.field.serverHint') }}
             </span>
             <span v-else id="login-server-err" class="login__error">
               <i class="pi pi-times-circle" aria-hidden="true"></i>{{ errors.serverUrl }}
@@ -628,19 +609,17 @@ async function copyInvite() {
           <details ref="bootstrapDetails" class="login__advanced">
             <summary>
               <i class="pi pi-cog" aria-hidden="true"></i>
-              Il server è su rete privata (Tailscale, VPN)?
+              {{ t('login.field.advancedSummary') }}
             </summary>
             <div class="login__advanced-body">
-              <label for="login-bootstrap" class="login__label">Indirizzo alternativo per il pairing</label>
+              <label for="login-bootstrap" class="login__label">{{ t('login.field.advancedLabel') }}</label>
               <InputText
                 id="login-bootstrap" v-model="form.bootstrapUrl"
                 type="url" autocomplete="url" spellcheck="false"
                 placeholder="https://bookeeper.tail22adce.ts.net"
                 :disabled="submitting || success"
               />
-              <span class="login__hint">
-                Lascia vuoto nella maggior parte dei casi. Se sbagli, te lo segnalo al primo tentativo.
-              </span>
+              <span class="login__hint">{{ t('login.field.advancedHint') }}</span>
             </div>
           </details>
         </template>
@@ -648,26 +627,26 @@ async function copyInvite() {
         <!-- ---- Libreria + owner (local + remote) ---- -->
         <template v-if="path === 'local' || path === 'remote'">
           <div class="login__field">
-            <label for="setup-tenant" class="login__label">Nome della libreria</label>
+            <label for="setup-tenant" class="login__label">{{ t('login.field.libraryName') }}</label>
             <InputText
               id="setup-tenant" v-model="form.tenantName"
-              placeholder="Es. Casa Cremisi"
+              :placeholder="t('login.field.libraryPlaceholder')"
               :invalid="!!errors.tenantName"
               :aria-describedby="errors.tenantName ? 'setup-tenant-err' : 'setup-tenant-hint'"
               :disabled="submitting || success"
             />
             <span v-if="!errors.tenantName" id="setup-tenant-hint" class="login__hint">
-              Solo un'etichetta: puoi cambiarla quando vuoi.
+              {{ t('login.field.libraryHint') }}
             </span>
             <span v-else id="setup-tenant-err" class="login__error">
               <i class="pi pi-times-circle" aria-hidden="true"></i>{{ errors.tenantName }}
             </span>
           </div>
           <div class="login__field">
-            <label for="setup-owner-name" class="login__label">Il tuo nome</label>
+            <label for="setup-owner-name" class="login__label">{{ t('login.field.ownerName') }}</label>
             <InputText
               id="setup-owner-name" v-model="form.ownerName"
-              autocomplete="name" placeholder="Es. Lorenzo"
+              autocomplete="name" :placeholder="t('login.field.ownerPlaceholder')"
               :invalid="!!errors.ownerName"
               :aria-describedby="errors.ownerName ? 'setup-owner-name-err' : undefined"
               :disabled="submitting || success"
@@ -681,7 +660,7 @@ async function copyInvite() {
         <!-- ---- Codice invito + recovery (pair) ---- -->
         <template v-if="path === 'pair'">
           <div class="login__field">
-            <label for="login-invite" class="login__label">Codice invito</label>
+            <label for="login-invite" class="login__label">{{ t('login.field.invite') }}</label>
             <InputText
               id="login-invite" v-model="form.inviteCode"
               autocomplete="off" spellcheck="false"
@@ -690,7 +669,7 @@ async function copyInvite() {
               :disabled="submitting || success"
             />
             <span v-if="!errors.inviteCode" id="login-invite-hint" class="login__hint">
-              Lo trovi in Impostazioni → Libreria su un dispositivo già associato.
+              {{ t('login.field.inviteHint') }}
             </span>
             <span v-else id="login-invite-err" class="login__error">
               <i class="pi pi-times-circle" aria-hidden="true"></i>{{ errors.inviteCode }}
@@ -698,25 +677,26 @@ async function copyInvite() {
             <button type="button" class="login__link-button"
                     :disabled="submitting || success" @click="toggleRecovery">
               <i class="pi pi-shield" aria-hidden="true"></i>
-              {{ recoveryOpen ? 'Annulla recupero' : 'Hai perso il codice invito?' }}
+              {{ recoveryOpen ? t('login.recovery.close') : t('login.recovery.open') }}
             </button>
           </div>
 
-          <div v-if="recoveryOpen" class="login__recovery" role="region" aria-label="Recupero codice invito">
+          <div v-if="recoveryOpen" class="login__recovery" role="region" :aria-label="t('login.recovery.open')">
             <p class="login__recovery-intro">
               <i class="pi pi-info-circle" aria-hidden="true"></i>
-              Se conosci la <strong>password amministratore</strong> ne genero uno nuovo
-              (il vecchio smette di funzionare).
+              <i18n-t keypath="login.recovery.intro" tag="span">
+                <template #strong><strong>{{ t('login.recovery.introStrong') }}</strong></template>
+              </i18n-t>
             </p>
             <div class="login__field">
-              <label for="recovery-tenant" class="login__label">Nome della libreria</label>
+              <label for="recovery-tenant" class="login__label">{{ t('login.recovery.libraryLabel') }}</label>
               <InputText
                 id="recovery-tenant" v-model="recoveryForm.tenantName"
-                placeholder="Es. Casa Cremisi" :disabled="recoveryLoading"
+                :placeholder="t('login.field.libraryPlaceholder')" :disabled="recoveryLoading"
               />
             </div>
             <div class="login__field">
-              <label for="recovery-admin" class="login__label">Password amministratore</label>
+              <label for="recovery-admin" class="login__label">{{ t('login.recovery.adminLabel') }}</label>
               <Password
                 input-id="recovery-admin" v-model="recoveryForm.adminPassword"
                 :feedback="false" toggle-mask autocomplete="off"
@@ -733,18 +713,17 @@ async function copyInvite() {
               <i class="pi pi-check-circle" aria-hidden="true"></i>
               <span>{{ recoverySuccess }}</span>
             </div>
-            <Button type="button" label="Recupera codice"
+            <Button type="button" :label="t('login.recovery.submit')"
                     icon="pi pi-refresh" severity="secondary"
                     :loading="recoveryLoading" @click="submitRecovery" />
           </div>
-
         </template>
 
         <!-- ---- Password amministratore (remote la sceglie, pair la chiede) ---- -->
         <template v-if="path === 'remote' || path === 'pair'">
           <div class="login__field">
             <label for="login-admin" class="login__label">
-              {{ path === 'remote' ? 'Scegli la password amministratore' : 'Password amministratore' }}
+              {{ path === 'remote' ? t('login.field.adminChoose') : t('login.field.adminAsk') }}
             </label>
             <Password
               input-id="login-admin" v-model="form.adminPassword"
@@ -756,12 +735,10 @@ async function copyInvite() {
               :pt="{ root: { style: 'width: 100%' } }"
             />
             <span v-if="!errors.adminPassword" id="login-admin-hint" class="login__hint">
-              <template v-if="path === 'remote'">
-                Minimo 12 caratteri. Protegge la chiave della libreria: <strong>non è recuperabile</strong>, salvala in un password manager.
-              </template>
-              <template v-else>
-                Quella scelta da chi ha creato la libreria.
-              </template>
+              <i18n-t v-if="path === 'remote'" keypath="login.field.adminHintRemote" tag="span">
+                <template #strong><strong>{{ t('login.field.adminHintRemoteStrong') }}</strong></template>
+              </i18n-t>
+              <template v-else>{{ t('login.field.adminHintPair') }}</template>
             </span>
             <span v-else id="login-admin-err" class="login__error">
               <i class="pi pi-times-circle" aria-hidden="true"></i>{{ errors.adminPassword }}
@@ -771,7 +748,7 @@ async function copyInvite() {
 
         <!-- ---- Email + password (tutti i percorsi) ---- -->
         <div class="login__field">
-          <label for="login-email" class="login__label">Email</label>
+          <label for="login-email" class="login__label">{{ t('login.field.email') }}</label>
           <InputText
             id="login-email" v-model="form.email"
             type="email" autocomplete="username"
@@ -786,7 +763,7 @@ async function copyInvite() {
 
         <div class="login__field">
           <label for="login-pwd" class="login__label">
-            {{ path === 'login' || path === 'pair' ? 'Password' : 'Scegli la tua password' }}
+            {{ path === 'login' || path === 'pair' ? t('login.field.password') : t('login.field.passwordChoose') }}
           </label>
           <Password
             input-id="login-pwd" v-model="form.password"
@@ -804,10 +781,10 @@ async function copyInvite() {
         </div>
 
         <div v-if="path === 'pair'" class="login__field">
-          <label for="login-device" class="login__label">Nome di questo dispositivo <span class="login__optional">(facoltativo)</span></label>
+          <label for="login-device" class="login__label">{{ t('login.field.deviceName') }} <span class="login__optional">{{ t('login.field.optional') }}</span></label>
           <InputText
             id="login-device" v-model="form.deviceName"
-            autocomplete="off" placeholder="Es. PC studio"
+            autocomplete="off" :placeholder="t('login.field.devicePlaceholder')"
             :disabled="submitting || success"
           />
         </div>
@@ -815,7 +792,7 @@ async function copyInvite() {
         <div v-if="path === 'login'" class="login__row">
           <label class="login__remember">
             <Checkbox v-model="form.remember" :binary="true" input-id="login-remember" />
-            <span>Ricordami su questo dispositivo</span>
+            <span>{{ t('login.field.remember') }}</span>
           </label>
         </div>
 
@@ -833,7 +810,7 @@ async function copyInvite() {
           <button type="button" class="login__link-button"
                   :disabled="submitting || success" @click="useAnotherAccount">
             <i class="pi pi-refresh" aria-hidden="true"></i>
-            Usa un altro account o un'altra libreria
+            {{ t('login.anotherAccount') }}
           </button>
         </div>
       </form>

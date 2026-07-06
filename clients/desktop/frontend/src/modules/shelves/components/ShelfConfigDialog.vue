@@ -7,6 +7,7 @@
  * pubblicate in `types.ts` per evitare drift.
  */
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
@@ -43,7 +44,12 @@ const emit = defineEmits<{
   (e: 'submit', input: ShelfInput): void;
 }>();
 
+const { t } = useI18n();
 const form = ref<ShelfInput>({ ...EMPTY_SHELF_INPUT });
+
+const colorOptions = computed(() =>
+  SHELF_COLOR_OPTIONS.map((o) => ({ ...o, label: t(`shelves.color.${o.value}`) })),
+);
 
 watch(
   () => [props.visible, props.initial],
@@ -62,13 +68,13 @@ const isEdit = computed(() => !!props.initial);
 
 const validationError = computed<string | null>(() => {
   const f = form.value;
-  if (!f.name.trim()) return 'Inserisci un nome';
+  if (!f.name.trim()) return t('shelves.config.errName');
   if (f.rows < SHELF_ROWS_MIN || f.rows > SHELF_ROWS_MAX)
-    return `Mensole consentite: ${SHELF_ROWS_MIN}-${SHELF_ROWS_MAX}`;
+    return t('shelves.config.errRows', { min: SHELF_ROWS_MIN, max: SHELF_ROWS_MAX });
   if (f.slots_per_row < SHELF_SLOTS_MIN || f.slots_per_row > SHELF_SLOTS_MAX)
-    return `Slot per mensola: ${SHELF_SLOTS_MIN}-${SHELF_SLOTS_MAX}`;
+    return t('shelves.config.errSlots', { min: SHELF_SLOTS_MIN, max: SHELF_SLOTS_MAX });
   if (capacity.value > SHELF_CAPACITY_MAX)
-    return `Capacità massima: ${SHELF_CAPACITY_MAX} slot`;
+    return t('shelves.config.errCapacity', { max: SHELF_CAPACITY_MAX });
   return null;
 });
 
@@ -91,7 +97,7 @@ function pickColor(c: ShelfColor): void {
     :closable="!saving"
     :dismissable-mask="!saving"
     :style="{ width: '520px', maxWidth: '95vw' }"
-    :header="isEdit ? 'Modifica scaffale' : 'Nuovo scaffale'"
+    :header="isEdit ? t('shelves.config.editTitle') : t('shelves.config.createTitle')"
     @update:visible="emit('update:visible', $event)"
   >
     <form class="shelf-form" @submit.prevent="submit">
@@ -105,20 +111,20 @@ function pickColor(c: ShelfColor): void {
       </Message>
 
       <div class="shelf-form__field">
-        <label for="shelf-name" class="shelf-form__label">Nome</label>
+        <label for="shelf-name" class="shelf-form__label">{{ t('shelves.config.name') }}</label>
         <InputText
           id="shelf-name"
           v-model="form.name"
           autocomplete="off"
           required
           maxlength="80"
-          placeholder="Es. Salotto, Studio, Camera ragazzi…"
+          :placeholder="t('shelves.config.namePlaceholder')"
         />
       </div>
 
       <div class="shelf-form__row">
         <div class="shelf-form__field">
-          <label for="shelf-rows" class="shelf-form__label">Mensole</label>
+          <label for="shelf-rows" class="shelf-form__label">{{ t('shelves.config.rows') }}</label>
           <InputNumber
             id="shelf-rows"
             v-model="form.rows"
@@ -135,7 +141,7 @@ function pickColor(c: ShelfColor): void {
         </div>
 
         <div class="shelf-form__field">
-          <label for="shelf-slots" class="shelf-form__label">Slot per mensola</label>
+          <label for="shelf-slots" class="shelf-form__label">{{ t('shelves.config.slots') }}</label>
           <InputNumber
             id="shelf-slots"
             v-model="form.slots_per_row"
@@ -154,14 +160,14 @@ function pickColor(c: ShelfColor): void {
 
       <div class="shelf-form__capacity" aria-live="polite">
         <i class="pi pi-database" aria-hidden="true" />
-        Capacità totale: <strong>{{ capacity }}</strong> slot
+        {{ t('shelves.config.capacity') }} <strong>{{ capacity }}</strong> {{ t('shelves.config.capacityUnit') }}
       </div>
 
       <div class="shelf-form__field">
-        <span class="shelf-form__label">Colore</span>
-        <div class="shelf-form__swatches" role="radiogroup" aria-label="Colore scaffale">
+        <span class="shelf-form__label">{{ t('shelves.config.color') }}</span>
+        <div class="shelf-form__swatches" role="radiogroup" :aria-label="t('shelves.config.colorAria')">
           <button
-            v-for="opt in SHELF_COLOR_OPTIONS"
+            v-for="opt in colorOptions"
             :key="opt.value"
             type="button"
             class="shelf-form__swatch"
@@ -189,9 +195,9 @@ function pickColor(c: ShelfColor): void {
     </form>
 
     <template #footer>
-      <Button label="Annulla" severity="secondary" text :disabled="saving" @click="close" />
+      <Button :label="t('common.cancel')" severity="secondary" text :disabled="saving" @click="close" />
       <Button
-        :label="isEdit ? 'Salva' : 'Crea scaffale'"
+        :label="isEdit ? t('common.save') : t('shelves.config.create')"
         :loading="saving"
         :disabled="!!validationError"
         @click="submit"

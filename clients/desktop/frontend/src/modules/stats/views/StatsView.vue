@@ -17,6 +17,7 @@
  *   • empty state per ogni chart, skeleton per il primo load
  */
 import { computed, onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import Skeleton from 'primevue/skeleton';
 import Chart from 'primevue/chart';
@@ -25,14 +26,23 @@ import StatCard from '../components/StatCard.vue';
 import ChartCard from '../components/ChartCard.vue';
 import { useStatsStore } from '../store';
 import {
-  fmtFormat,
-  fmtLanguage,
   fmtMonthLabel,
   fmtNum,
   fmtPct,
 } from '../types';
 
 const store = useStatsStore();
+const { t, te, locale } = useI18n();
+
+/** Traduce una chiave format/lingua nota; fallback alla chiave grezza. */
+function trFormat(key: string): string {
+  const k = key.toLowerCase();
+  return te(`stats.formatLabel.${k}`) ? t(`stats.formatLabel.${k}`) : key;
+}
+function trLang(key: string): string {
+  const k = key.toLowerCase();
+  return te(`stats.langLabel.${k}`) ? t(`stats.langLabel.${k}`) : key;
+}
 
 /* ---------- Chart theme: risolve i token CSS PrimeVue ---------- */
 
@@ -136,7 +146,7 @@ const additionsData = computed(() => {
   return {
     labels: rows.map((r) => fmtMonthLabel(r.ym)),
     datasets: [{
-      label: 'Libri aggiunti',
+      label: t('stats.view.seriesAdded'),
       data: rows.map((r) => r.count),
       borderColor: theme.value.primary,
       backgroundColor: theme.value.primary + '33',
@@ -157,7 +167,7 @@ const additionsOpts = computed(() => ({
 const formatData = computed(() => {
   const rows = store.data?.by_format ?? [];
   return {
-    labels: rows.map((r) => fmtFormat(r.key)),
+    labels: rows.map((r) => trFormat(r.key)),
     datasets: [{
       data: rows.map((r) => r.count),
       backgroundColor: rows.map((_, i) => theme.value.series[i % theme.value.series.length]),
@@ -175,9 +185,9 @@ const formatOpts = computed(() => ({
 const languageData = computed(() => {
   const rows = store.data?.by_language ?? [];
   return {
-    labels: rows.map((r) => fmtLanguage(r.key)),
+    labels: rows.map((r) => trLang(r.key)),
     datasets: [{
-      label: 'Libri',
+      label: t('stats.view.seriesBooks'),
       data: rows.map((r) => r.count),
       backgroundColor: theme.value.primary + 'cc',
       borderRadius: 4,
@@ -199,7 +209,7 @@ const genreData = computed(() => {
   return {
     labels: rows.map((r) => r.key),
     datasets: [{
-      label: 'Libri',
+      label: t('stats.view.seriesBooks'),
       data: rows.map((r) => r.count),
       backgroundColor: rows.map((_, i) => theme.value.series[i % theme.value.series.length] + 'cc'),
       borderRadius: 4,
@@ -219,7 +229,7 @@ const decadeData = computed(() => {
   return {
     labels: rows.map((r) => r.key),
     datasets: [{
-      label: 'Libri',
+      label: t('stats.view.seriesBooks'),
       data: rows.map((r) => r.count),
       backgroundColor: theme.value.series[2] + 'cc',
       borderRadius: 4,
@@ -239,7 +249,7 @@ const loansData = computed(() => {
     labels: rows.map((r) => fmtMonthLabel(r.ym)),
     datasets: [
       {
-        label: 'Prestati',
+        label: t('stats.view.seriesLent'),
         data: rows.map((r) => r.lent),
         borderColor: theme.value.series[1],
         backgroundColor: theme.value.series[1] + '22',
@@ -248,7 +258,7 @@ const loansData = computed(() => {
         pointRadius: 3,
       },
       {
-        label: 'Restituiti',
+        label: t('stats.view.seriesReturned'),
         data: rows.map((r) => r.returned),
         borderColor: theme.value.series[5],
         backgroundColor: theme.value.series[5] + '22',
@@ -298,7 +308,7 @@ const ov = computed(() => store.data?.overview ?? null);
 const isInitialLoad = computed(() => store.loading && !store.data);
 const lastFetchedLabel = computed(() => {
   if (!store.lastFetched) return '';
-  return new Intl.DateTimeFormat('it-IT', { hour: '2-digit', minute: '2-digit' })
+  return new Intl.DateTimeFormat(locale.value === 'en' ? 'en-US' : 'it-IT', { hour: '2-digit', minute: '2-digit' })
     .format(new Date(store.lastFetched));
 });
 </script>
@@ -308,18 +318,18 @@ const lastFetchedLabel = computed(() => {
     <!-- Header -->
     <header class="stats-view__header">
       <div>
-        <h1 class="stats-view__title">Statistiche</h1>
+        <h1 class="stats-view__title">{{ t('stats.view.title') }}</h1>
         <p class="stats-view__subtitle">
-          Dashboard letture, generi, autori e attività della libreria.
+          {{ t('stats.view.subtitle') }}
         </p>
       </div>
       <div class="stats-view__actions">
         <span v-if="lastFetchedLabel" class="stats-view__last">
-          Aggiornato alle {{ lastFetchedLabel }}
+          {{ t('stats.view.updatedAt', { time: lastFetchedLabel }) }}
         </span>
         <Button
           icon="pi pi-refresh"
-          label="Aggiorna"
+          :label="t('stats.view.refresh')"
           severity="secondary"
           outlined
           :loading="store.loading"
@@ -333,20 +343,20 @@ const lastFetchedLabel = computed(() => {
     </Message>
 
     <!-- KPI grid -->
-    <section class="stats-view__kpis" aria-label="Indicatori principali">
+    <section class="stats-view__kpis" :aria-label="t('stats.view.kpiAria')">
       <template v-if="isInitialLoad">
         <Skeleton v-for="i in 6" :key="i" height="92px" border-radius="12px" />
       </template>
       <template v-else-if="ov">
-        <StatCard icon="pi pi-book"        label="Libri in collezione" :value="ov.total_books" />
-        <StatCard icon="pi pi-user-edit"   label="Autori unici"        :value="ov.total_authors" tone="info" />
-        <StatCard icon="pi pi-th-large"    label="Scaffali"            :value="ov.total_shelves" />
-        <StatCard icon="pi pi-file"        label="Pagine totali"       :value="ov.total_pages"
-                  :hint="ov.total_books > 0 ? `media ${fmtNum(Math.round(ov.total_pages / Math.max(ov.total_books, 1)))} pagine/libro` : undefined" />
-        <StatCard icon="pi pi-share-alt"   label="Prestiti attivi"     :value="ov.active_loans"
+        <StatCard icon="pi pi-book"        :label="t('stats.view.kpiBooks')" :value="ov.total_books" />
+        <StatCard icon="pi pi-user-edit"   :label="t('stats.view.kpiAuthors')" :value="ov.total_authors" tone="info" />
+        <StatCard icon="pi pi-th-large"    :label="t('stats.view.kpiShelves')" :value="ov.total_shelves" />
+        <StatCard icon="pi pi-file"        :label="t('stats.view.kpiPages')" :value="ov.total_pages"
+                  :hint="ov.total_books > 0 ? t('stats.view.kpiPagesHint', { n: fmtNum(Math.round(ov.total_pages / Math.max(ov.total_books, 1))) }) : undefined" />
+        <StatCard icon="pi pi-share-alt"   :label="t('stats.view.kpiActiveLoans')" :value="ov.active_loans"
                   :tone="ov.overdue_loans > 0 ? 'warn' : 'default'"
-                  :hint="ov.overdue_loans > 0 ? `${ov.overdue_loans} in ritardo` : undefined" />
-        <StatCard icon="pi pi-bookmark"    label="Wishlist"            :value="ov.wishlist_count" tone="info" />
+                  :hint="ov.overdue_loans > 0 ? t('stats.view.kpiOverdueHint', { n: ov.overdue_loans }) : undefined" />
+        <StatCard icon="pi pi-bookmark"    :label="t('stats.view.kpiWishlist')" :value="ov.wishlist_count" tone="info" />
       </template>
     </section>
 
@@ -357,30 +367,30 @@ const lastFetchedLabel = computed(() => {
       :closable="false"
       class="stats-view__empty"
     >
-      La libreria è ancora vuota: aggiungi qualche libro per iniziare a vedere statistiche significative.
+      {{ t('stats.view.emptyLibrary') }}
     </Message>
 
     <!-- Charts grid -->
     <section v-if="!isInitialLoad && !store.isEmpty" class="stats-view__charts">
       <ChartCard
-        title="Aggiunte mensili"
-        subtitle="Libri inseriti negli ultimi 12 mesi"
+        :title="t('stats.view.chartAdditionsTitle')"
+        :subtitle="t('stats.view.chartAdditionsSub')"
         :empty="!additionsData.datasets[0].data.some((v) => v > 0)"
-        empty-text="Nessun libro aggiunto negli ultimi 12 mesi"
+        :empty-text="t('stats.view.chartAdditionsEmpty')"
         :height="260"
       >
         <Chart
           type="line"
           :data="additionsData"
           :options="additionsOpts"
-          aria-label="Grafico a linee delle aggiunte mensili negli ultimi 12 mesi"
+          :aria-label="t('stats.view.chartAdditionsAria')"
           style="height: 260px"
         />
       </ChartCard>
 
       <ChartCard
-        title="Formati"
-        subtitle="Distribuzione per tipo di edizione"
+        :title="t('stats.view.chartFormatTitle')"
+        :subtitle="t('stats.view.chartFormatSub')"
         :empty="formatData.labels.length === 0"
         :height="260"
       >
@@ -388,14 +398,14 @@ const lastFetchedLabel = computed(() => {
           type="doughnut"
           :data="formatData"
           :options="formatOpts"
-          aria-label="Grafico a ciambella della distribuzione per formato libro"
+          :aria-label="t('stats.view.chartFormatAria')"
           style="height: 260px"
         />
       </ChartCard>
 
       <ChartCard
-        title="Lingue"
-        subtitle="Numero di libri per lingua"
+        :title="t('stats.view.chartLangTitle')"
+        :subtitle="t('stats.view.chartLangSub')"
         :empty="languageData.labels.length === 0"
         :height="280"
       >
@@ -403,30 +413,30 @@ const lastFetchedLabel = computed(() => {
           type="bar"
           :data="languageData"
           :options="languageOpts"
-          aria-label="Grafico a barre orizzontali del numero di libri per lingua"
+          :aria-label="t('stats.view.chartLangAria')"
           style="height: 280px"
         />
       </ChartCard>
 
       <ChartCard
-        title="Generi"
-        subtitle="Top 12 generi più presenti in libreria"
+        :title="t('stats.view.chartGenreTitle')"
+        :subtitle="t('stats.view.chartGenreSub')"
         :empty="genreData.labels.length === 0"
-        empty-text="Nessun genere assegnato ai libri"
+        :empty-text="t('stats.view.chartGenreEmpty')"
         :height="280"
       >
         <Chart
           type="bar"
           :data="genreData"
           :options="genreOpts"
-          aria-label="Grafico a barre orizzontali dei generi più presenti"
+          :aria-label="t('stats.view.chartGenreAria')"
           style="height: 280px"
         />
       </ChartCard>
 
       <ChartCard
-        title="Decadi di pubblicazione"
-        subtitle="Distribuzione cronologica delle opere"
+        :title="t('stats.view.chartDecadeTitle')"
+        :subtitle="t('stats.view.chartDecadeSub')"
         :empty="decadeData.labels.length === 0"
         :height="280"
       >
@@ -434,16 +444,16 @@ const lastFetchedLabel = computed(() => {
           type="bar"
           :data="decadeData"
           :options="decadeOpts"
-          aria-label="Grafico a barre verticali del numero di libri per decade di pubblicazione"
+          :aria-label="t('stats.view.chartDecadeAria')"
           style="height: 280px"
         />
       </ChartCard>
 
       <ChartCard
-        title="Attività prestiti"
-        subtitle="Prestati vs restituiti, ultimi 12 mesi"
+        :title="t('stats.view.chartLoansTitle')"
+        :subtitle="t('stats.view.chartLoansSub')"
         :empty="!loansData.datasets.some((d) => d.data.some((v) => v > 0))"
-        empty-text="Nessuna attività di prestito registrata"
+        :empty-text="t('stats.view.chartLoansEmpty')"
         :height="280"
         class="stats-view__chart--wide"
       >
@@ -451,7 +461,7 @@ const lastFetchedLabel = computed(() => {
           type="line"
           :data="loansData"
           :options="loansOpts"
-          aria-label="Grafico a linee dell'attività di prestito mensile"
+          :aria-label="t('stats.view.chartLoansAria')"
           style="height: 280px"
         />
       </ChartCard>
@@ -463,12 +473,12 @@ const lastFetchedLabel = computed(() => {
       class="stats-view__lists"
     >
       <ChartCard
-        title="Autori più presenti"
-        subtitle="Top 10 per numero di opere in libreria"
+        :title="t('stats.view.topAuthorsTitle')"
+        :subtitle="t('stats.view.topAuthorsSub')"
         :empty="topAuthors.length === 0"
         :height="0"
       >
-        <ol class="rank-list" aria-label="Classifica degli autori più presenti">
+        <ol class="rank-list" :aria-label="t('stats.view.topAuthorsAria')">
           <li v-for="(a, i) in topAuthors" :key="a.key" class="rank-list__item">
             <span class="rank-list__pos">{{ i + 1 }}</span>
             <div class="rank-list__bar-wrap">
@@ -485,13 +495,13 @@ const lastFetchedLabel = computed(() => {
       </ChartCard>
 
       <ChartCard
-        title="Riempimento scaffali"
-        subtitle="Capienza utilizzata per ogni scaffale"
+        :title="t('stats.view.shelfFillTitle')"
+        :subtitle="t('stats.view.shelfFillSub')"
         :empty="shelfFill.length === 0"
-        empty-text="Nessuno scaffale configurato"
+        :empty-text="t('stats.view.shelfFillEmpty')"
         :height="0"
       >
-        <ul class="shelf-list" aria-label="Stato di riempimento degli scaffali">
+        <ul class="shelf-list" :aria-label="t('stats.view.shelfFillAria')">
           <li v-for="s in shelfFill" :key="s.id" class="shelf-list__item">
             <div class="shelf-list__head">
               <span class="shelf-list__name">{{ s.name }}</span>

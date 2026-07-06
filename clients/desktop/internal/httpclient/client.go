@@ -186,6 +186,12 @@ func (c *Client) do(method, path string, body any, out any, retried bool) error 
 		return &APIError{Status: resp.StatusCode, Body: string(respBody)}
 	}
 	if out != nil && len(respBody) > 0 {
+		// Escape hatch per risposte binarie (PDF etichette): con
+		// out = *[]byte i bytes passano intatti, senza decode JSON.
+		if raw, ok := out.(*[]byte); ok {
+			*raw = respBody
+			return nil
+		}
 		if err := json.Unmarshal(respBody, out); err != nil {
 			return fmt.Errorf("decode response: %w", err)
 		}

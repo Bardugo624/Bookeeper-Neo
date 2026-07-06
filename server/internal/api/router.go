@@ -111,6 +111,18 @@ func AuthenticatedRouter(d Deps) http.Handler {
 
 		r.Get("/stats", d.Stats.Get)
 
+		// Import/Export (roadmap 1.1) — solo desktop: mutazioni di massa.
+		r.Post("/import", d.Books.Import)
+		r.Get("/export", d.Books.Export)
+
+		// Backup & Restore (roadmap 1.2). Il restore è distruttivo e
+		// verifica l'admin_password nel body.
+		r.Post("/backup", d.Tenant.Backup)
+		r.Post("/restore", d.Tenant.Restore)
+
+		// Etichette segnatura stampabili (DataMatrix + PDF).
+		r.Post("/labels/pdf", d.Books.LabelsPDF)
+
 		// Lookup esterni (Anna's Archive). Anche il desktop puo' usare
 		// questo endpoint quando il client Wails non e' disponibile
 		// (es. browser locale puntato direttamente al server).

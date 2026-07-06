@@ -14,6 +14,7 @@
  */
 import { onBeforeUnmount, onMounted, ref, watch, computed } from 'vue';
 import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import InputText from 'primevue/inputtext';
@@ -28,12 +29,35 @@ import BookGrid from '../components/BookGrid.vue';
 import BookListTable from '../components/BookListTable.vue';
 import BookCreateDialog from '../components/BookCreateDialog.vue';
 import MoveToShelfDialog from '../components/MoveToShelfDialog.vue';
+import FirstBookCelebration from '@/components/FirstBookCelebration.vue';
+import { useOnboarding } from '@/composables/useOnboarding';
+import { labelsApi } from '@/lib/api/endpoints/importexport';
 import type { Book } from '../types';
 
 const store = useBooksStore();
+const onb = useOnboarding();
+const showCelebration = ref(false);
+
+// Libri già presenti (import, restore, altro device): onboarding silenziato.
+watch(
+  () => store.items.length,
+  (n) => {
+    if (n > 0 && !showCelebration.value) onb.autoComplete();
+  },
+);
+
+function onCreated(): void {
+  const isFirst = onb.showFirstBook() && store.items.length === 0;
+  store.fetchList();
+  if (isFirst) {
+    onb.completeFirstBook();
+    showCelebration.value = true;
+  }
+}
 const { input, isPending, clear } = useBookSearch();
 const confirm = useConfirm();
 const toast = useToast();
+const { t } = useI18n();
 
 const viewMode = ref<'grid' | 'table'>('grid');
 const viewOptions = [
@@ -71,14 +95,14 @@ function openBatchMove(): void {
 
 function onAssigned(p: { placed: number; skippedAlreadyPlaced: number; skippedNoSpace: number }): void {
   const parts: string[] = [];
-  if (p.placed > 0) parts.push(`${p.placed} libri spostati`);
+  if (p.placed > 0) parts.push(t('books.list.movedPart', p.placed));
   if (p.skippedAlreadyPlaced > 0)
-    parts.push(`${p.skippedAlreadyPlaced} già su altri scaffali`);
-  if (p.skippedNoSpace > 0) parts.push(`${p.skippedNoSpace} senza spazio`);
+    parts.push(t('books.list.skippedPlaced', { n: p.skippedAlreadyPlaced }));
+  if (p.skippedNoSpace > 0) parts.push(t('books.list.skippedNoSpace', { n: p.skippedNoSpace }));
   toast.add({
     severity: p.placed > 0 ? 'success' : 'warn',
-    summary: p.placed > 0 ? 'Operazione completata' : 'Nessun libro spostato',
-    detail: parts.join(' · ') || 'Nessuna modifica effettuata.',
+    summary: p.placed > 0 ? t('books.list.movedOk') : t('books.list.movedNone'),
+    detail: parts.join(' · ') || t('books.list.movedNoneDetail'),
     life: 4000,
   });
   // Se l'azione era batch (no rowMoveTarget) puliamo la selezione.
@@ -90,11 +114,11 @@ function onBatchDelete(): void {
   const count = selection.value.length;
   if (count === 0) return;
   confirm.require({
-    header: 'Conferma cancellazione',
-    message: `Eliminare definitivamente ${count} ${count === 1 ? 'libro' : 'libri'}? L'operazione non è reversibile.`,
+    header: t('books.list.confirmDeleteHeader'),
+    message: t('books.list.confirmDeleteMsg', count),
     icon: 'pi pi-exclamation-triangle',
-    acceptLabel: 'Elimina',
-    rejectLabel: 'Annulla',
+    acceptLabel: t('common.delete'),
+    rejectLabel: t('common.cancel'),
     acceptProps: { severity: 'danger' },
     accept: async () => {
       try {
@@ -102,15 +126,15 @@ function onBatchDelete(): void {
         const deleted = await store.batchDelete(ids);
         toast.add({
           severity: 'success',
-          summary: 'Eliminazione completata',
-          detail: `${deleted} ${deleted === 1 ? 'libro eliminato' : 'libri eliminati'}.`,
+          summary: t('books.list.deleteOk'),
+          detail: t('books.list.deleteOkDetail', deleted),
           life: 3500,
         });
         selection.value = [];
       } catch (e) {
         toast.add({
           severity: 'error',
-          summary: 'Errore',
+          summary: t('common.error'),
           detail: (e as Error).message,
           life: 5000,
         });
@@ -120,7 +144,33 @@ function onBatchDelete(): void {
 }
 
 function onPlacementWarning(message: string): void {
-  toast.add({ severity: 'warn', summary: 'Attenzione', detail: message, life: 5000 });
+  toast.add({ severity: 'warn', summary: t('common.warning'), detail: message, life: 5000 });
+}
+
+const makingLabels = ref(false);
+async function onPrintLabels(): Promise<void> {
+  if (selection.value.length === 0 || makingLabels.value) return;
+  makingLabels.value = true;
+  try {
+    const res = await labelsApi.savePdf(selection.value.map((b) => b.id));
+    if (!res.path) return; // annullato
+    toast.add({
+      severity: 'success',
+      summary: t('books.labels.savedTitle'),
+      detail: res.path,
+      life: 5000,
+    });
+    selection.value = [];
+  } catch (e) {
+    toast.add({
+      severity: 'error',
+      summary: t('common.error'),
+      detail: (e as Error).message,
+      life: 6000,
+    });
+  } finally {
+    makingLabels.value = false;
+  }
 }
 
 // Polling ogni 30s mentre la libreria e' in primo piano: cattura
@@ -151,14 +201,14 @@ async function manualSync(): Promise<void> {
     lastSyncAt.value = Date.now();
     toast.add({
       severity: 'success',
-      summary: 'Libreria aggiornata',
-      detail: `${store.items.length} ${store.items.length === 1 ? 'libro sincronizzato' : 'libri sincronizzati'}.`,
+      summary: t('books.list.syncOk'),
+      detail: t('books.list.syncOkDetail', store.items.length),
       life: 2500,
     });
   } catch (e) {
     toast.add({
       severity: 'error',
-      summary: 'Sincronizzazione fallita',
+      summary: t('books.list.syncFail'),
       detail: (e as Error).message,
       life: 4000,
     });
@@ -223,12 +273,12 @@ const lastSyncLabel = computed<string>(() => {
   const now = nowTick.value; // dipendenza esplicita per ricalcolo
   if (lastSyncAt.value === 0) return '';
   const diffSec = Math.max(0, Math.round((now - lastSyncAt.value) / 1000));
-  if (diffSec < 10) return 'aggiornata adesso';
-  if (diffSec < 60) return `aggiornata ${diffSec}s fa`;
+  if (diffSec < 10) return t('books.list.syncNow');
+  if (diffSec < 60) return t('books.list.syncSec', { s: diffSec });
   const m = Math.round(diffSec / 60);
-  if (m < 60) return `aggiornata ${m} min fa`;
+  if (m < 60) return t('books.list.syncMin', { m });
   const h = Math.round(m / 60);
-  return `aggiornata ${h}h fa`;
+  return t('books.list.syncHour', { h });
 });
 onMounted(() => {
   labelTimer = window.setInterval(() => { nowTick.value = Date.now(); }, 30_000);
@@ -242,10 +292,10 @@ onBeforeUnmount(() => {
   <section class="books" aria-labelledby="books-title">
     <header class="books__header">
       <div>
-        <h1 id="books-title" class="books__title">Libreria</h1>
+        <h1 id="books-title" class="books__title">{{ t('nav.books') }}</h1>
         <p class="books__sub">
-          {{ store.items.length }} {{ store.items.length === 1 ? 'libro' : 'libri' }}
-          <span v-if="store.isSearching"> (filtrati)</span>
+          {{ t('books.list.count', store.items.length) }}
+          <span v-if="store.isSearching"> {{ t('books.list.filtered') }}</span>
           <span v-if="lastSyncLabel" class="books__sync-label"> · {{ lastSyncLabel }}</span>
         </p>
       </div>
@@ -254,14 +304,14 @@ onBeforeUnmount(() => {
           icon="pi pi-sync"
           severity="secondary"
           outlined
-          aria-label="Sincronizza libreria"
-          title="Sincronizza con il server"
+          :aria-label="t('books.list.syncAria')"
+          :title="t('books.list.syncTitle')"
           :loading="store.loadingList"
           @click="manualSync"
         />
         <Button
           icon="pi pi-plus"
-          label="Nuovo libro"
+          :label="t('books.list.newBook')"
           severity="primary"
           @click="showCreate = true"
         />
@@ -273,8 +323,8 @@ onBeforeUnmount(() => {
         <InputIcon :class="isPending ? 'pi pi-spin pi-spinner' : 'pi pi-search'" />
         <InputText
           v-model="input"
-          placeholder="Cerca per titolo, autore, ISBN…"
-          :pt="{ root: { 'aria-label': 'Cerca nella libreria' } }"
+          :placeholder="t('books.list.searchPlaceholder')"
+          :pt="{ root: { 'aria-label': t('books.list.searchAria') } }"
         />
       </IconField>
       <Button
@@ -282,7 +332,7 @@ onBeforeUnmount(() => {
         icon="pi pi-times"
         text
         severity="secondary"
-        aria-label="Cancella ricerca"
+        :aria-label="t('books.list.clearSearch')"
         @click="clear"
       />
       <SelectButton
@@ -291,10 +341,10 @@ onBeforeUnmount(() => {
         option-label="label"
         option-value="value"
         :allow-empty="false"
-        aria-label="Modalità di visualizzazione"
+        :aria-label="t('books.list.viewModeAria')"
       >
         <template #option="{ option }">
-          <i :class="option.icon" :aria-label="option.value === 'grid' ? 'Griglia' : 'Tabella'"></i>
+          <i :class="option.icon" :aria-label="option.value === 'grid' ? t('books.list.gridAria') : t('books.list.tableAria')"></i>
         </template>
       </SelectButton>
     </div>
@@ -306,28 +356,54 @@ onBeforeUnmount(() => {
     <div v-else-if="store.error" class="books__error" role="alert">
       <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
       <div>
-        <strong>Impossibile caricare la libreria.</strong>
+        <strong>{{ t('books.list.loadError') }}</strong>
         <p>{{ store.error }}</p>
       </div>
-      <Button label="Riprova" icon="pi pi-refresh" severity="secondary" @click="store.fetchList()" />
+      <Button :label="t('common.retry')" icon="pi pi-refresh" severity="secondary" @click="store.fetchList()" />
+    </div>
+
+    <!-- Primo avvio: flusso guidato "il tuo primo libro" -->
+    <div
+      v-else-if="store.isEmpty && !store.isSearching && onb.showFirstBook()"
+      class="books__firstrun"
+    >
+      <div class="books__firstrun-isbn" aria-hidden="true">
+        <span v-for="(w, i) in [3, 1, 2, 1, 3, 2, 1, 3, 1, 2, 3, 1]" :key="i"
+              class="books__firstrun-bar"
+              :style="{ width: w * 2 + 'px', animationDelay: (i * 60) + 'ms' }" />
+      </div>
+      <h2 class="books__empty-title">{{ t('onboarding.firstBook.title') }}</h2>
+      <p class="books__empty-sub books__firstrun-sub">
+        {{ t('onboarding.firstBook.body') }}
+      </p>
+      <Button
+        icon="pi pi-plus"
+        size="large"
+        :label="t('onboarding.firstBook.cta')"
+        @click="showCreate = true"
+      />
+      <div class="books__firstrun-alt">
+        <RouterLink :to="{ path: '/settings', query: { tab: 'data' } }" class="books__firstrun-link">
+          {{ t('onboarding.firstBook.importLink') }}
+        </RouterLink>
+        <span aria-hidden="true">·</span>
+        <button type="button" class="books__firstrun-link books__firstrun-link--muted" @click="onb.skip()">
+          {{ t('onboarding.firstBook.skip') }}
+        </button>
+      </div>
     </div>
 
     <div v-else-if="store.isEmpty" class="books__empty">
       <i class="pi pi-book books__empty-icon" aria-hidden="true"></i>
-      <h2 v-if="store.isSearching" class="books__empty-title">Nessun risultato</h2>
-      <h2 v-else class="books__empty-title">La tua libreria è vuota</h2>
+      <h2 v-if="store.isSearching" class="books__empty-title">{{ t('books.list.emptySearchTitle') }}</h2>
+      <h2 v-else class="books__empty-title">{{ t('books.list.emptyTitle') }}</h2>
       <p class="books__empty-sub">
-        <template v-if="store.isSearching">
-          Prova un altro termine o cancella la ricerca.
-        </template>
-        <template v-else>
-          Aggiungi il primo libro per iniziare a costruire il tuo catalogo.
-        </template>
+        {{ store.isSearching ? t('books.list.emptySearchSub') : t('books.list.emptySub') }}
       </p>
       <Button
         v-if="!store.isSearching"
         icon="pi pi-plus"
-        label="Aggiungi libro"
+        :label="t('books.list.addBook')"
         @click="showCreate = true"
       />
     </div>
@@ -345,21 +421,28 @@ onBeforeUnmount(() => {
         v-if="viewMode === 'table' && selection.length > 0"
         class="books__batch"
         role="toolbar"
-        :aria-label="`${selection.length} libri selezionati\u2014azioni batch`"
+        :aria-label="t('books.list.batchAria', { n: selection.length })"
       >
         <span class="books__batch-count">
           <i class="pi pi-check-circle" aria-hidden="true" />
-          {{ selection.length }} {{ selection.length === 1 ? 'selezionato' : 'selezionati' }}
+          {{ t('books.list.batchCount', selection.length) }}
         </span>
         <div class="books__batch-actions">
           <Button
-            label="Sposta su scaffale"
+            :label="t('books.list.moveToShelf')"
             icon="pi pi-bookmark"
             severity="secondary"
             @click="openBatchMove"
           />
           <Button
-            label="Elimina"
+            :label="t('books.labels.action')"
+            icon="pi pi-qrcode"
+            severity="secondary"
+            :loading="makingLabels"
+            @click="onPrintLabels"
+          />
+          <Button
+            :label="t('common.delete')"
             icon="pi pi-trash"
             severity="danger"
             outlined
@@ -370,7 +453,7 @@ onBeforeUnmount(() => {
             icon="pi pi-times"
             text
             severity="secondary"
-            aria-label="Annulla selezione"
+            :aria-label="t('books.list.clearSelection')"
             @click="selection = []"
           />
         </div>
@@ -379,9 +462,10 @@ onBeforeUnmount(() => {
 
     <BookCreateDialog
       v-model:visible="showCreate"
-      @created="() => store.fetchList()"
+      @created="onCreated"
       @placement-warning="onPlacementWarning"
     />
+    <FirstBookCelebration v-model:visible="showCelebration" />
     <MoveToShelfDialog
       v-model:visible="showMoveDialog"
       :book-ids="moveTargetIds"
@@ -474,6 +558,74 @@ onBeforeUnmount(() => {
   border-radius: 16px;
   gap: 0.5rem;
 }
+/* --- Primo avvio: empty state guidato (roadmap 1.4) --- */
+.books__firstrun {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 4.5rem 1rem;
+  gap: 0.75rem;
+}
+/* ISBN stilizzato: barre che "si stampano" una dopo l'altra. */
+.books__firstrun-isbn {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 44px;
+  margin-bottom: 0.75rem;
+  padding: 0 10px;
+  border: 1px solid var(--p-surface-300);
+  border-radius: 6px;
+  background: var(--p-surface-0);
+}
+.books__firstrun-bar {
+  height: 26px;
+  background: var(--p-primary-800);
+  animation: bar-print 360ms ease-out backwards;
+}
+@keyframes bar-print {
+  from { transform: scaleY(0); opacity: 0; }
+  to   { transform: scaleY(1); opacity: 1; }
+}
+.books__firstrun-sub {
+  max-width: 46ch;
+}
+.books__firstrun-alt {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--p-text-muted-color);
+}
+.books__firstrun-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  color: var(--p-primary-700);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.books__firstrun-link--muted {
+  color: var(--p-text-muted-color);
+}
+html.dark .books__firstrun-isbn {
+  background: var(--p-surface-800);
+  border-color: var(--p-surface-600);
+}
+html.dark .books__firstrun-bar {
+  background: var(--p-primary-200);
+}
+html.dark .books__firstrun-link {
+  color: var(--p-primary-300);
+}
+@media (prefers-reduced-motion: reduce) {
+  .books__firstrun-bar { animation: none; }
+}
+
 .books__empty-icon {
   font-size: 3rem;
   color: var(--p-primary-500);

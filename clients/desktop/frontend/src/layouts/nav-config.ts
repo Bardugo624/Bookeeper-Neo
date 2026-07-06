@@ -5,7 +5,7 @@
 export interface NavItem {
     /** Nome route Vue Router. */
     name: string;
-    /** Etichetta i18n-ready (per ora hard-coded it-IT). */
+    /** Chiave i18n dell'etichetta (tradotta da chi renderizza). */
     label: string;
     /** Classe icona PrimeIcons (es. `pi pi-book`). */
     icon: string;
@@ -14,11 +14,11 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS: NavItem[] = [
-    { name: 'books', label: 'Libreria', icon: 'pi pi-book', section: 'main' },
-    { name: 'shelves', label: 'Scaffali', icon: 'pi pi-th-large', section: 'main' },
-    { name: 'loans', label: 'Prestiti', icon: 'pi pi-share-alt', section: 'main' },
-    { name: 'wishlist', label: 'Wishlist', icon: 'pi pi-heart', section: 'main' },
-    { name: 'stats', label: 'Statistiche', icon: 'pi pi-chart-bar', section: 'main' },
-    { name: 'devices', label: 'Dispositivi', icon: 'pi pi-mobile', section: 'system' },
-    { name: 'settings', label: 'Impostazioni', icon: 'pi pi-cog', section: 'system' },
+    { name: 'books', label: 'nav.books', icon: 'pi pi-book', section: 'main' },
+    { name: 'shelves', label: 'nav.shelves', icon: 'pi pi-th-large', section: 'main' },
+    { name: 'loans', label: 'nav.loans', icon: 'pi pi-share-alt', section: 'main' },
+    { name: 'wishlist', label: 'nav.wishlist', icon: 'pi pi-heart', section: 'main' },
+    { name: 'stats', label: 'nav.stats', icon: 'pi pi-chart-bar', section: 'main' },
+    { name: 'devices', label: 'nav.devices', icon: 'pi pi-mobile', section: 'system' },
+    { name: 'settings', label: 'nav.settings', icon: 'pi pi-cog', section: 'system' },
 ];

@@ -13,6 +13,7 @@
  *     attraverso la paginazione.
  */
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import DataTable, { type DataTableRowClickEvent } from 'primevue/datatable';
 import Column from 'primevue/column';
 import Button from 'primevue/button';
@@ -30,6 +31,7 @@ const emit = defineEmits<{
 }>();
 
 const router = useRouter();
+const { t } = useI18n();
 
 function open(b: Book): void {
   void router.push({ name: 'book-detail', params: { id: b.id } });
@@ -81,7 +83,7 @@ function onRowClick(e: DataTableRowClickEvent): void {
         <span v-else class="book-table__progressive book-table__progressive--empty">—</span>
       </template>
     </Column>
-    <Column field="title" header="Titolo" sortable>
+    <Column field="title" :header="t('books.table.title')" sortable>
       <template #body="{ data }">
         <div class="book-table__title-cell">
           <span class="book-table__title">{{ (data as Book).title }}</span>
@@ -91,13 +93,13 @@ function onRowClick(e: DataTableRowClickEvent): void {
         </div>
       </template>
     </Column>
-    <Column header="Autori">
+    <Column :header="t('books.table.authors')">
       <template #body="{ data }">
         {{ (data as Book).authors.join(', ') || '—' }}
       </template>
     </Column>
-    <Column field="published_year" header="Anno" sortable style="width: 7rem" />
-    <Column field="format" header="Formato" sortable style="width: 9rem">
+    <Column field="published_year" :header="t('books.table.year')" sortable style="width: 7rem" />
+    <Column field="format" :header="t('books.table.format')" sortable style="width: 9rem">
       <template #body="{ data }">
         <span class="book-table__chip">{{ (data as Book).format || '—' }}</span>
       </template>
@@ -109,8 +111,8 @@ function onRowClick(e: DataTableRowClickEvent): void {
           text
           rounded
           size="small"
-          aria-label="Sposta su scaffale"
-          title="Sposta su scaffale"
+          :aria-label="t('books.list.moveToShelf')"
+          :title="t('books.list.moveToShelf')"
           @click.stop="emit('move', data as Book)"
         />
       </template>

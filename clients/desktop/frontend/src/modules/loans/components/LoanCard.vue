@@ -11,6 +11,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import Tag from 'primevue/tag';
 import Button from 'primevue/button';
 import {
@@ -39,34 +40,35 @@ const emit = defineEmits<{
 const router = useRouter();
 
 const status = computed(() => deriveStatus(props.loan, props.nowSec));
-const meta = computed(() => statusMeta(status.value));
+const meta = computed(() => ({ ...statusMeta(status.value), label: t(`loans.status.${status.value}`) }));
 const authorsArr = computed(() => parseAuthors(props.loan.book_authors));
 const remaining = computed(() => daysRemaining(props.loan, props.nowSec));
 
 const remainingLabel = computed(() => {
     const r = remaining.value;
     if (r === null) return null;
-    if (r < 0) return `${Math.abs(r)} ${Math.abs(r) === 1 ? 'giorno' : 'giorni'} di ritardo`;
-    if (r === 0) return 'Scade oggi';
-    if (r === 1) return 'Scade domani';
-    return `Scade tra ${r} giorni`;
+    if (r < 0) return t('loans.card.overdueDays', Math.abs(r));
+    if (r === 0) return t('loans.card.dueToday');
+    if (r === 1) return t('loans.card.dueTomorrow');
+    return t('loans.card.dueInDays', { n: r });
 });
 
-const dateFmt = new Intl.DateTimeFormat('it-IT', {
+const { t, locale } = useI18n();
+const dateFmt = computed(() => new Intl.DateTimeFormat(locale.value === 'en' ? 'en-US' : 'it-IT', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
-});
+}));
 
-const lentLabel = computed(() => dateFmt.format(new Date(props.loan.lent_at * 1000)));
+const lentLabel = computed(() => dateFmt.value.format(new Date(props.loan.lent_at * 1000)));
 const dueLabel = computed(() =>
     props.loan.due_at && props.loan.due_at > 0
-        ? dateFmt.format(new Date(props.loan.due_at * 1000))
+        ? dateFmt.value.format(new Date(props.loan.due_at * 1000))
         : null,
 );
 const returnedLabel = computed(() =>
     props.loan.returned_at && props.loan.returned_at > 0
-        ? dateFmt.format(new Date(props.loan.returned_at * 1000))
+        ? dateFmt.value.format(new Date(props.loan.returned_at * 1000))
         : null,
 );
 
@@ -79,17 +81,17 @@ function openBook(): void {
     <article
         class="loan-card"
         :class="`loan-card--${status}`"
-        :aria-label="`Prestito di ${loan.book_title || 'libro sconosciuto'} a ${loan.borrower_name}`"
+        :aria-label="t('loans.card.ariaLabel', { title: loan.book_title || t('loans.card.unknownBook'), name: loan.borrower_name })"
     >
         <header class="loan-card__head">
             <div class="loan-card__title-block">
                 <button
                     type="button"
                     class="loan-card__title"
-                    :title="loan.book_title || 'Libro non disponibile'"
+                    :title="loan.book_title || t('loans.card.unavailableTitle')"
                     @click="openBook"
                 >
-                    {{ loan.book_title || '— Libro non più disponibile —' }}
+                    {{ loan.book_title || t('loans.card.unavailable') }}
                 </button>
                 <p v-if="authorsArr.length" class="loan-card__authors">
                     {{ authorsArr.join(', ') }}
@@ -110,11 +112,11 @@ function openBook(): void {
 
         <dl class="loan-card__meta">
             <div class="loan-card__meta-row">
-                <dt>Prestato</dt>
+                <dt>{{ t('loans.card.borrowedOn') }}</dt>
                 <dd>{{ lentLabel }}</dd>
             </div>
             <div v-if="dueLabel" class="loan-card__meta-row">
-                <dt>Scadenza</dt>
+                <dt>{{ t('loans.card.dueOn') }}</dt>
                 <dd>
                     {{ dueLabel }}
                     <span
@@ -127,7 +129,7 @@ function openBook(): void {
                 </dd>
             </div>
             <div v-if="returnedLabel" class="loan-card__meta-row">
-                <dt>Restituito</dt>
+                <dt>{{ t('loans.card.returnedOn') }}</dt>
                 <dd>{{ returnedLabel }}</dd>
             </div>
         </dl>
@@ -137,7 +139,7 @@ function openBook(): void {
         <footer class="loan-card__actions">
             <template v-if="status !== 'returned'">
                 <Button
-                    label="Restituito"
+                    :label="t('loans.card.return')"
                     icon="pi pi-check"
                     severity="success"
                     size="small"
@@ -145,7 +147,7 @@ function openBook(): void {
                     @click="emit('return', loan)"
                 />
                 <Button
-                    label="Modifica"
+                    :label="t('loans.card.edit')"
                     icon="pi pi-pencil"
                     severity="secondary"
                     outlined
@@ -156,7 +158,7 @@ function openBook(): void {
             </template>
             <template v-else>
                 <Button
-                    label="Riapri"
+                    :label="t('loans.card.reopen')"
                     icon="pi pi-undo"
                     severity="secondary"
                     outlined
@@ -166,7 +168,7 @@ function openBook(): void {
                 />
             </template>
             <Button
-                label="Elimina"
+                :label="t('loans.card.delete')"
                 icon="pi pi-trash"
                 severity="danger"
                 text

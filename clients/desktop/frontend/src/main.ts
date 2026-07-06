@@ -10,12 +10,14 @@ import { router } from './router';
 import { registerGuards } from './router/guards';
 import { useAuthStore } from './stores/auth';
 import { BookeeperPreset } from './theme';
+import { i18n } from './i18n';
 
 const pinia = createPinia();
 
 const app = createApp(App)
     .use(pinia)
     .use(router)
+    .use(i18n)
     .use(PrimeVue, {
         theme: {
             preset: BookeeperPreset,

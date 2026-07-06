@@ -6,6 +6,7 @@
  */
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import Skeleton from 'primevue/skeleton';
 import { useConfirm } from 'primevue/useconfirm';
@@ -22,6 +23,7 @@ const store = useBooksStore();
 const shelvesStore = useShelvesStore();
 const router = useRouter();
 const confirm = useConfirm();
+const { t } = useI18n();
 
 const assignVisible = ref(false);
 
@@ -67,11 +69,11 @@ function onEdit(): void {
 
 function onDelete(): void {
   confirm.require({
-    message: 'Sei sicuro di voler eliminare questo libro? L\'operazione è irreversibile.',
-    header: 'Elimina libro',
+    message: t('books.detail.deleteConfirm'),
+    header: t('books.detail.deleteHeader'),
     icon: 'pi pi-exclamation-triangle',
-    acceptLabel: 'Elimina',
-    rejectLabel: 'Annulla',
+    acceptLabel: t('common.delete'),
+    rejectLabel: t('common.cancel'),
     acceptProps: { severity: 'danger', icon: 'pi pi-trash' },
     rejectProps: { severity: 'secondary', text: true },
     accept: async () => {
@@ -89,7 +91,7 @@ function onDelete(): void {
     <Button
       class="book-detail__back"
       icon="pi pi-arrow-left"
-      label="Libreria"
+      :label="t('books.detail.backToLibrary')"
       text
       severity="secondary"
       @click="router.push({ name: 'books' })"
@@ -108,7 +110,7 @@ function onDelete(): void {
     <div v-else-if="store.error" class="book-detail__error" role="alert">
       <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
       <p>{{ store.error }}</p>
-      <Button label="Riprova" severity="secondary" @click="load" />
+      <Button :label="t('common.retry')" severity="secondary" @click="load" />
     </div>
 
     <article v-else-if="store.current" class="book-detail__body">
@@ -125,32 +127,32 @@ function onDelete(): void {
           {{ store.current.subtitle }}
         </p>
         <p v-if="store.current.authors.length" class="book-detail__authors">
-          di <strong>{{ store.current.authors.join(', ') }}</strong>
+          {{ t('books.detail.by') }} <strong>{{ store.current.authors.join(', ') }}</strong>
         </p>
 
         <dl class="book-detail__facts">
           <template v-if="store.current.publisher">
-            <dt>Editore</dt>
+            <dt>{{ t('books.detail.facts.publisher') }}</dt>
             <dd>{{ store.current.publisher }}</dd>
           </template>
           <template v-if="store.current.published_year">
-            <dt>Anno</dt>
+            <dt>{{ t('books.detail.facts.year') }}</dt>
             <dd>{{ store.current.published_year }}</dd>
           </template>
           <template v-if="store.current.format">
-            <dt>Formato</dt>
+            <dt>{{ t('books.detail.facts.format') }}</dt>
             <dd class="book-detail__capitalize">{{ store.current.format }}</dd>
           </template>
           <template v-if="store.current.genre">
-            <dt>Genere</dt>
+            <dt>{{ t('books.detail.facts.genre') }}</dt>
             <dd>{{ store.current.genre }}</dd>
           </template>
           <template v-if="store.current.language">
-            <dt>Lingua</dt>
+            <dt>{{ t('books.detail.facts.language') }}</dt>
             <dd>{{ store.current.language }}</dd>
           </template>
           <template v-if="store.current.page_count">
-            <dt>Pagine</dt>
+            <dt>{{ t('books.detail.facts.pages') }}</dt>
             <dd>{{ store.current.page_count }}</dd>
           </template>
           <template v-if="store.current.isbn_13">
@@ -164,27 +166,27 @@ function onDelete(): void {
         </dl>
 
         <section v-if="store.current.description" class="book-detail__section">
-          <h2 class="book-detail__section-title">Descrizione</h2>
+          <h2 class="book-detail__section-title">{{ t('books.detail.description') }}</h2>
           <p>{{ store.current.description }}</p>
         </section>
 
         <section v-if="store.current.notes" class="book-detail__section">
-          <h2 class="book-detail__section-title">Note personali</h2>
+          <h2 class="book-detail__section-title">{{ t('books.detail.notes') }}</h2>
           <p>{{ store.current.notes }}</p>
         </section>
 
         <div class="book-detail__actions">
-          <Button icon="pi pi-pencil" label="Modifica" @click="onEdit" />
+          <Button icon="pi pi-pencil" :label="t('books.detail.edit')" @click="onEdit" />
           <Button
             icon="pi pi-th-large"
-            :label="placement ? 'Cambia posizione' : 'Posiziona su scaffale'"
+            :label="placement ? t('books.detail.changePosition') : t('books.detail.placeOnShelf')"
             severity="secondary"
             outlined
             @click="assignVisible = true"
           />
           <Button
             icon="pi pi-trash"
-            label="Elimina"
+            :label="t('books.detail.delete')"
             severity="danger"
             text
             :loading="store.deleting"
@@ -194,10 +196,10 @@ function onDelete(): void {
 
         <p v-if="placement && placementShelf" class="book-detail__placement">
           <i class="pi pi-map-marker" aria-hidden="true" />
-          Su <router-link :to="{ name: 'shelf-detail', params: { id: placementShelf.id } }">
+          {{ t('books.detail.placementOn') }} <router-link :to="{ name: 'shelf-detail', params: { id: placementShelf.id } }">
             {{ placementShelf.name }}
           </router-link>
-          · Mensola {{ placement.row_index + 1 }}, slot {{ placement.slot_index + 1 }}
+          · {{ t('books.detail.placementShelf', { row: placement.row_index + 1, slot: placement.slot_index + 1 }) }}
         </p>
       </div>
     </article>

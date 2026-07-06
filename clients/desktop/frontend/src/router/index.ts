@@ -12,7 +12,7 @@ const routes: RouteRecordRaw[] = [
         path: '/login',
         name: 'login',
         component: () => import('../views/LoginView.vue'),
-        meta: { title: 'Accedi', public: true },
+        meta: { title: 'nav.login', public: true },
     },
     {
         path: '/',
@@ -25,7 +25,7 @@ const routes: RouteRecordRaw[] = [
             ...wishlistRoutes,
             ...statsRoutes,
             ...devicesRoutes,
-            { path: 'settings', name: 'settings', component: () => import('../views/SettingsView.vue'), meta: { title: 'Impostazioni' } },
+            { path: 'settings', name: 'settings', component: () => import('../views/SettingsView.vue'), meta: { title: 'nav.settings' } },
         ],
     },
 ];

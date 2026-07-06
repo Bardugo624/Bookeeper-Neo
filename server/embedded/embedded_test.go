@@ -193,6 +193,50 @@ func TestLocalFlow(t *testing.T) {
 		t.Fatalf("next-progressive: got %d, want 2", next.Next)
 	}
 
+	// ---- Import/Export (roadmap 1.1) -------------------------------------
+	// Il CSV Goodreads contiene un duplicato (stesso ISBN del libro sopra)
+	// e un libro nuovo: il dry-run li distingue, il commit importa solo 1.
+	grCSV := "Title,Author,ISBN,ISBN13,Publisher,Binding,Number of Pages,Year Published,Exclusive Shelf\n" +
+		"Il nome della rosa,Umberto Eco,,\"=\"\"9788845292613\"\"\",Bompiani,Paperback,512,1980,read\n" +
+		"Il pendolo di Foucault,Umberto Eco,,\"=\"\"9788845213366\"\"\",Bompiani,Hardcover,509,1988,read\n"
+	var imp struct {
+		New        int `json:"new"`
+		Duplicates int `json:"duplicates"`
+		Imported   int `json:"imported"`
+	}
+	c.mustDo("POST", AuthURL+"/api/v1/import", map[string]any{
+		"format": "auto", "content": grCSV, "dry_run": true,
+	}, &imp)
+	if imp.New != 1 || imp.Duplicates != 1 || imp.Imported != 0 {
+		t.Fatalf("import dry-run: %+v", imp)
+	}
+	c.mustDo("POST", AuthURL+"/api/v1/import", map[string]any{
+		"format": "auto", "content": grCSV, "dry_run": false,
+	}, &imp)
+	if imp.Imported != 1 {
+		t.Fatalf("import commit: %+v", imp)
+	}
+	var exp struct {
+		Books []map[string]any `json:"books"`
+	}
+	c.mustDo("GET", AuthURL+"/api/v1/export", nil, &exp)
+	if len(exp.Books) != 2 {
+		t.Fatalf("export: got %d books, want 2", len(exp.Books))
+	}
+	// Il libro importato è cercabile via FTS (mirror aggiornato).
+	var impFound struct {
+		Books []map[string]any `json:"books"`
+	}
+	c.mustDo("GET", AuthURL+"/api/v1/books/?q=pendolo", nil, &impFound)
+	if len(impFound.Books) != 1 {
+		t.Fatalf("fts after import: got %d, want 1", len(impFound.Books))
+	}
+	// Pulizia: rimuovi il libro importato per non alterare i conteggi a valle.
+	impID, _ := impFound.Books[0]["id"].(string)
+	c.mustDo("POST", AuthURL+"/api/v1/books/batch/delete", map[string]any{
+		"ids": []string{impID},
+	}, nil)
+
 	// ---- Scaffali: create, assign, list books ---------------------------
 	var shelf struct {
 		ID string `json:"id"`
@@ -250,6 +294,56 @@ func TestLocalFlow(t *testing.T) {
 	}, &rotated)
 	if rotated.InviteCode == setup.InviteCode {
 		t.Fatal("rotate-invite: code unchanged")
+	}
+
+	// ---- Backup & Restore (roadmap 1.2) -----------------------------------
+	// Snapshot → cancella il libro → restore (admin password) → il libro
+	// torna, cercabile via FTS. Password sbagliata → 401 senza toccare i dati.
+	var beforeBk struct {
+		Books []map[string]any `json:"books"`
+	}
+	c.mustDo("GET", AuthURL+"/api/v1/books/", nil, &beforeBk)
+	nBefore := len(beforeBk.Books)
+	var snap map[string]any
+	c.mustDo("POST", AuthURL+"/api/v1/backup", nil, &snap)
+	if snap["app"] != "bookeeper" {
+		t.Fatalf("backup: bad manifest %v", snap["app"])
+	}
+	if st := c.do("POST", AuthURL+"/api/v1/restore", map[string]any{
+		"admin_password": "password-sbagliata!", "data": snap,
+	}, nil); st != 401 {
+		t.Fatalf("restore wrong pwd: status %d, want 401", st)
+	}
+	c.mustDo("POST", AuthURL+"/api/v1/books/batch/delete", map[string]any{
+		"ids": []string{book.ID},
+	}, nil)
+	var afterDel struct {
+		Books []map[string]any `json:"books"`
+	}
+	c.mustDo("GET", AuthURL+"/api/v1/books/", nil, &afterDel)
+	if len(afterDel.Books) != nBefore-1 {
+		t.Fatalf("pre-restore: %d books, want %d", len(afterDel.Books), nBefore-1)
+	}
+	var restored struct {
+		Rows int `json:"restored_rows"`
+	}
+	c.mustDo("POST", AuthURL+"/api/v1/restore", map[string]any{
+		"admin_password": adminPwd, "data": snap,
+	}, &restored)
+	if restored.Rows == 0 {
+		t.Fatal("restore: 0 rows")
+	}
+	var afterRestore struct {
+		Books []map[string]any `json:"books"`
+	}
+	c.mustDo("GET", AuthURL+"/api/v1/books/?q=rosa", nil, &afterRestore)
+	if len(afterRestore.Books) != 1 {
+		t.Fatalf("fts after restore: got %d, want 1", len(afterRestore.Books))
+	}
+	// Anche il posizionamento a scaffale deve essere tornato.
+	c.mustDo("GET", AuthURL+"/api/v1/shelves/"+shelf.ID+"/books", nil, &shelfBooks)
+	if len(shelfBooks.Books) != 1 {
+		t.Fatalf("shelf after restore: got %d, want 1", len(shelfBooks.Books))
 	}
 
 	// ---- Dispositivi: list + pairing token (CA sbloccata in memoria) ------

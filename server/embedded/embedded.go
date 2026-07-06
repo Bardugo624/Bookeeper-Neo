@@ -104,7 +104,7 @@ func Start(dataDir string) (*Server, error) {
 		},
 		// TrustPool nil: no Caddy to feed. Setup handlers skip it.
 		Setup:  &api.SetupHandlers{DB: database, Audit: auditMW, CAStore: caStore, ServerKey: serverKey},
-		Tenant: &api.TenantHandlers{DB: database},
+		Tenant: &api.TenantHandlers{DB: database, Audit: auditMW},
 		Lookup: api.NewLookupHandlers("Bookeeper-embedded/1.0 (+https://github.com/Bardugo624/Bookeeper-Neo)"),
 	}
 

@@ -8,6 +8,7 @@
 -->
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
@@ -48,6 +49,7 @@ const emit = defineEmits<{
     (e: 'submit', input: LoanInput): void;
 }>();
 
+const { t } = useI18n();
 const form = ref<LoanInput>({ ...EMPTY_LOAN_INPUT });
 const lentDate = ref<Date | null>(null);
 const dueDate = ref<Date | null>(null);
@@ -58,9 +60,9 @@ const searching = ref(false);
 let searchHandle: ReturnType<typeof setTimeout> | null = null;
 
 const titleText = computed(() =>
-    props.mode === 'edit' ? 'Modifica prestito' : 'Nuovo prestito',
+    props.mode === 'edit' ? t('loans.form.editTitle') : t('loans.form.createTitle'),
 );
-const submitLabel = computed(() => (props.mode === 'edit' ? 'Salva' : 'Crea prestito'));
+const submitLabel = computed(() => (props.mode === 'edit' ? t('common.save') : t('loans.form.submit')));
 
 watch(
     () => props.visible,
@@ -135,13 +137,13 @@ const canSubmit = computed(() => {
             </Message>
 
             <div class="loan-form__field loan-form__field--full">
-                <label for="loan-book">Libro <span aria-hidden="true">*</span></label>
+                <label for="loan-book">{{ t('loans.form.book') }} <span aria-hidden="true">*</span></label>
                 <AutoComplete
                     id="loan-book"
                     v-model="selectedBook"
                     :suggestions="bookSuggestions"
                     option-label="title"
-                    placeholder="Cerca per titolo, autore o ISBN..."
+                    :placeholder="t('loans.form.bookSearchPlaceholder')"
                     :loading="searching"
                     force-selection
                     fluid
@@ -156,22 +158,22 @@ const canSubmit = computed(() => {
                         </div>
                     </template>
                 </AutoComplete>
-                <small class="loan-form__hint">Inizia a scrivere per cercare nella libreria.</small>
+                <small class="loan-form__hint">{{ t('loans.form.bookHint') }}</small>
             </div>
 
             <div class="loan-form__field loan-form__field--full">
-                <label for="loan-borrower">A chi <span aria-hidden="true">*</span></label>
+                <label for="loan-borrower">{{ t('loans.form.borrower') }} <span aria-hidden="true">*</span></label>
                 <InputText
                     id="loan-borrower"
                     v-model="form.borrower_name"
-                    placeholder="Es. Marco, Nonna Lia, Scuola..."
+                    :placeholder="t('loans.form.borrowerPlaceholder')"
                     autocomplete="off"
                     fluid
                 />
             </div>
 
             <div class="loan-form__field">
-                <label for="loan-lent">Data prestito <span aria-hidden="true">*</span></label>
+                <label for="loan-lent">{{ t('loans.form.lentDate') }} <span aria-hidden="true">*</span></label>
                 <DatePicker
                     id="loan-lent"
                     v-model="lentDate"
@@ -183,7 +185,7 @@ const canSubmit = computed(() => {
             </div>
 
             <div class="loan-form__field">
-                <label for="loan-due">Scadenza</label>
+                <label for="loan-due">{{ t('loans.form.dueDate') }}</label>
                 <DatePicker
                     id="loan-due"
                     v-model="dueDate"
@@ -194,17 +196,17 @@ const canSubmit = computed(() => {
                     :min-date="lentDate ?? undefined"
                     fluid
                 />
-                <small class="loan-form__hint">Lascia vuoto se nessuna scadenza.</small>
+                <small class="loan-form__hint">{{ t('loans.form.dueDateHint') }}</small>
             </div>
 
             <div class="loan-form__field loan-form__field--full">
-                <label for="loan-notes">Note</label>
+                <label for="loan-notes">{{ t('loans.form.notes') }}</label>
                 <Textarea
                     id="loan-notes"
                     v-model="form.notes"
                     rows="3"
                     auto-resize
-                    placeholder="Promemoria, condizioni, contatto..."
+                    :placeholder="t('loans.form.notesPlaceholder')"
                     fluid
                 />
             </div>
@@ -212,7 +214,7 @@ const canSubmit = computed(() => {
 
         <template #footer>
             <Button
-                label="Annulla"
+                :label="t('common.cancel')"
                 text
                 :disabled="saving"
                 @click="close"

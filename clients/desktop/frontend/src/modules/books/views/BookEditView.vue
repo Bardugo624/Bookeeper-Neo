@@ -6,6 +6,7 @@
  */
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import Skeleton from 'primevue/skeleton';
 import { useBooksStore } from '../store';
@@ -16,6 +17,7 @@ const props = defineProps<{ id: string }>();
 
 const store = useBooksStore();
 const router = useRouter();
+const { t } = useI18n();
 
 const ready = ref(false);
 const submitting = ref(false);
@@ -52,13 +54,13 @@ function onCancel(): void {
     <header class="book-edit__header">
       <Button
         icon="pi pi-arrow-left"
-        label="Annulla"
+        :label="t('books.edit.cancel')"
         text
         severity="secondary"
         :disabled="submitting"
         @click="onCancel"
       />
-      <h1 class="book-edit__title">Modifica libro</h1>
+      <h1 class="book-edit__title">{{ t('books.edit.title') }}</h1>
     </header>
 
     <div v-if="!ready" class="book-edit__skel">
@@ -77,7 +79,7 @@ function onCancel(): void {
       />
       <div class="book-edit__actions">
         <Button
-          label="Annulla"
+          :label="t('books.edit.cancel')"
           severity="secondary"
           text
           :disabled="submitting"
@@ -85,7 +87,7 @@ function onCancel(): void {
         />
         <Button
           icon="pi pi-check"
-          label="Salva modifiche"
+          :label="t('books.edit.save')"
           :loading="submitting"
           :disabled="!form.title.trim()"
           @click="onSave"

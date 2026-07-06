@@ -5,17 +5,19 @@
  * Tutta la card è cliccabile (router-link che avvolge il contenuto).
  */
 import { RouterLink } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import BookCover from './BookCover.vue';
 import type { Book } from '../types';
 
 defineProps<{ book: Book }>();
+const { t } = useI18n();
 </script>
 
 <template>
   <RouterLink
     :to="{ name: 'book-detail', params: { id: book.id } }"
     class="book-card"
-    :aria-label="`Apri ${book.title}`"
+    :aria-label="t('books.card.openAria', { title: book.title })"
   >
     <BookCover
       :title="book.title"

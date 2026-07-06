@@ -1,24 +1,26 @@
 <script setup lang="ts">
 // AppTopbar — titolo pagina + azioni globali (toggle tema).
+// `route.meta.title` è una CHIAVE i18n (es. 'nav.books'), tradotta qui.
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useUiStore } from '../stores/ui';
 
 const route = useRoute();
 const ui = useUiStore();
+const { t } = useI18n();
 
-const pageTitle = computed(() => (route.meta?.title as string) ?? 'Bookeeper');
+const pageTitle = computed(() => {
+    const key = route.meta?.title as string | undefined;
+    return key ? t(key) : 'Bookeeper';
+});
 
 const themeIcon = computed(() => {
     if (ui.mode === 'system') return 'pi pi-desktop';
     return ui.isDark ? 'pi pi-sun' : 'pi pi-moon';
 });
 
-const themeLabel = computed(() => {
-    if (ui.mode === 'system') return 'Tema: sistema (clicca per chiaro)';
-    if (ui.mode === 'dark') return 'Tema: scuro (clicca per sistema)';
-    return 'Tema: chiaro (clicca per scuro)';
-});
+const themeLabel = computed(() => t(`common.theme.${ui.mode}`));
 </script>
 
 <template>

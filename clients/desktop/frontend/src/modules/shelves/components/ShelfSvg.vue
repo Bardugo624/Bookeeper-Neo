@@ -20,6 +20,7 @@
  * un role="button" focusabile con `<title>` (tooltip nativo + SR).
  */
 import { computed, toRef } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { Shelf, ShelfBook } from '../types';
 import { spineColorFromTitle, SHELF_COLOR_OPTIONS } from '../types';
 import { useShelfLayout } from '../composables/useShelfLayout';
@@ -51,9 +52,13 @@ const { layout } = useShelfLayout(shelfRef);
 // condividere gli id dei gradienti (url(#...) è globale nel documento).
 const uid = Math.random().toString(36).slice(2, 8);
 
-const ariaLabel = computed(
-  () =>
-    `Scaffale ${props.shelf.name}: ${props.books.length} di ${props.shelf.rows * props.shelf.slots_per_row} libri`,
+const { t } = useI18n();
+const ariaLabel = computed(() =>
+  t('shelves.svg.ariaLabel', {
+    name: props.shelf.name,
+    n: props.books.length,
+    total: props.shelf.rows * props.shelf.slots_per_row,
+  }),
 );
 
 const colorSwatch = computed(() => {
@@ -279,7 +284,7 @@ function onShelfClick(ev: MouseEvent): void {
         :data-row="sl.rowIndex"
         :data-slot="sl.slotIndex"
         :tabindex="interactive ? 0 : -1"
-        :aria-label="interactive ? `Slot vuoto riga ${sl.rowIndex + 1} posizione ${sl.slotIndex + 1}` : undefined"
+        :aria-label="interactive ? t('shelves.svg.emptySlotAria', { row: sl.rowIndex + 1, slot: sl.slotIndex + 1 }) : undefined"
         @click.stop="onEmptyClick(sl.rowIndex, sl.slotIndex)"
         @keydown.enter.prevent="onEmptyClick(sl.rowIndex, sl.slotIndex)"
         @keydown.space.prevent="onEmptyClick(sl.rowIndex, sl.slotIndex)"
@@ -300,7 +305,7 @@ function onShelfClick(ev: MouseEvent): void {
           rx="1.2"
           :tabindex="interactive ? 0 : -1"
           role="button"
-          :aria-label="`Apri dettaglio libro ${sl.occupied.title}`"
+          :aria-label="t('shelves.svg.openBookAria', { title: sl.occupied.title })"
           @click.stop="onSpineClick(sl.occupied)"
           @keydown="onSpineKey(sl.occupied, $event)"
         />

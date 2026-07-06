@@ -9,13 +9,13 @@ export const shelvesRoutes: RouteRecordRaw[] = [
     path: 'shelves',
     name: 'shelves',
     component: () => import('./views/ShelvesDashboardView.vue'),
-    meta: { title: 'Scaffali' },
+    meta: { title: 'nav.shelves' },
   },
   {
     path: 'shelves/:id',
     name: 'shelf-detail',
     component: () => import('./views/ShelfDetailView.vue'),
     props: true,
-    meta: { title: 'Dettaglio scaffale' },
+    meta: { title: 'nav.shelfDetail' },
   },
 ];

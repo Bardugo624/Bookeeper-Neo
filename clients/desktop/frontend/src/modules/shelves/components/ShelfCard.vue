@@ -4,6 +4,7 @@
  * count, menu azioni), barra di riempimento e SVG dello scaffale.
  */
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Menu from 'primevue/menu';
 import Button from 'primevue/button';
 import type { Shelf, ShelfBook } from '../types';
@@ -24,6 +25,7 @@ const emit = defineEmits<{
   (e: 'delete', shelf: Shelf): void;
 }>();
 
+const { t } = useI18n();
 const shelfRef = computed(() => props.shelf);
 const booksRef = computed(() => props.books);
 const { fill } = useShelfFill(shelfRef, booksRef);
@@ -44,12 +46,12 @@ const progressiveRange = computed<string | null>(() => {
 const menu = ref<InstanceType<typeof Menu> | null>(null);
 const menuItems = computed(() => [
   {
-    label: 'Apri',
+    label: t('shelves.card.open'),
     icon: 'pi pi-arrow-right',
     command: () => emit('open-shelf', props.shelf.id),
   },
   {
-    label: 'Modifica',
+    label: t('shelves.card.edit'),
     icon: 'pi pi-pencil',
     command: () => emit('edit', props.shelf),
   },
@@ -57,7 +59,7 @@ const menuItems = computed(() => [
     separator: true,
   },
   {
-    label: 'Elimina',
+    label: t('shelves.card.delete'),
     icon: 'pi pi-trash',
     class: 'shelf-card__menu-danger',
     command: () => emit('delete', props.shelf),
@@ -88,7 +90,7 @@ function onPickSlot(payload: { rowIndex: number; slotIndex: number }): void {
       <span
         v-if="progressiveRange"
         class="shelf-card__range"
-        :title="`Numeri progressivi presenti su questo scaffale: ${progressiveRange}`"
+        :title="t('shelves.card.progressiveTitle', { range: progressiveRange })"
       >
         <i class="pi pi-hashtag shelf-card__range-icon" aria-hidden="true" />
         {{ progressiveRange }}
@@ -99,7 +101,7 @@ function onPickSlot(payload: { rowIndex: number; slotIndex: number }): void {
         rounded
         severity="secondary"
         size="small"
-        aria-label="Azioni scaffale"
+        :aria-label="t('shelves.card.actionsAria')"
         @click.stop="toggleMenu"
       />
       <Menu ref="menu" :model="menuItems" :popup="true" />

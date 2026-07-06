@@ -9,6 +9,7 @@
  */
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -24,6 +25,7 @@ import { ApiError } from '@/lib/api/client';
 const router = useRouter();
 const confirm = useConfirm();
 const toast = useToast();
+const { t, locale } = useI18n();
 
 const devices = ref<DeviceSummary[]>([]);
 const loading = ref(true);
@@ -38,7 +40,7 @@ async function fetchDevices(silent = false): Promise<void> {
     try {
         devices.value = await devicesEndpoints.list();
     } catch (err: unknown) {
-        error.value = err instanceof ApiError ? err.body : 'errore di rete';
+        error.value = err instanceof ApiError ? err.body : t('devices.list.networkError');
     } finally {
         loading.value = false;
     }
@@ -84,7 +86,7 @@ function pairMobile(): void {
 function fmtDate(ts: number | undefined): string {
     if (!ts) return '—';
     const d = new Date(ts * 1000);
-    return d.toLocaleString('it-IT', {
+    return d.toLocaleString(locale.value === 'en' ? 'en-US' : 'it-IT', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
@@ -107,9 +109,9 @@ function kindIcon(kind: string): string {
 function kindLabel(kind: string): string {
     switch (kind) {
         case 'mobile':
-            return 'Mobile';
+            return t('devices.list.kindMobile');
         case 'desktop':
-            return 'Desktop';
+            return t('devices.list.kindDesktop');
         default:
             return kind || '—';
     }
@@ -122,11 +124,11 @@ function shortFp(fp: string): string {
 
 function confirmRevoke(d: DeviceSummary): void {
     confirm.require({
-        message: `Revocare il dispositivo "${d.name}"? Non potrà più accedere finché non viene riabbinato.`,
-        header: 'Conferma revoca',
+        message: t('devices.list.revokeConfirm', { name: d.name }),
+        header: t('devices.list.revokeHeader'),
         icon: 'pi pi-exclamation-triangle',
-        acceptLabel: 'Revoca',
-        rejectLabel: 'Annulla',
+        acceptLabel: t('devices.list.revoke'),
+        rejectLabel: t('common.cancel'),
         acceptClass: 'p-button-danger',
         accept: () => {
             void revoke(d);
@@ -140,7 +142,7 @@ async function revoke(d: DeviceSummary): Promise<void> {
         await devicesEndpoints.revoke(d.id);
         toast.add({
             severity: 'success',
-            summary: 'Dispositivo revocato',
+            summary: t('devices.list.revokedOk'),
             detail: d.name,
             life: 2500,
         });
@@ -148,8 +150,8 @@ async function revoke(d: DeviceSummary): Promise<void> {
     } catch (err: unknown) {
         toast.add({
             severity: 'error',
-            summary: 'Revoca fallita',
-            detail: err instanceof ApiError ? err.body : 'errore di rete',
+            summary: t('devices.list.revokeFailed'),
+            detail: err instanceof ApiError ? err.body : t('devices.list.networkError'),
             life: 4000,
         });
     } finally {
@@ -162,9 +164,9 @@ async function revoke(d: DeviceSummary): Promise<void> {
     <div class="page">
         <header class="page__header">
             <div>
-                <h1 class="page__title">Dispositivi</h1>
+                <h1 class="page__title">{{ t('devices.list.title') }}</h1>
                 <p class="page__sub">
-                    Gestisci i client che possono accedere alla tua libreria.
+                    {{ t('devices.list.subtitle') }}
                 </p>
             </div>
             <div class="page__actions">
@@ -172,12 +174,12 @@ async function revoke(d: DeviceSummary): Promise<void> {
                     icon="pi pi-refresh"
                     text
                     rounded
-                    aria-label="Aggiorna"
+                    :aria-label="t('devices.list.refreshAria')"
                     :disabled="loading"
                     @click="() => fetchDevices()"
                 />
                 <Button
-                    label="Abbina mobile"
+                    :label="t('devices.list.pairMobile')"
                     icon="pi pi-qrcode"
                     @click="pairMobile"
                 />
@@ -197,10 +199,9 @@ async function revoke(d: DeviceSummary): Promise<void> {
             class="page__placeholder"
         >
             <i class="pi pi-mobile" aria-hidden="true" />
-            <p>Nessun dispositivo aggiuntivo abbinato.</p>
+            <p>{{ t('devices.list.emptyTitle') }}</p>
             <small>
-                Genera un QR per aggiungere il companion mobile e gestire la libreria
-                anche dal telefono.
+                {{ t('devices.list.emptySub') }}
             </small>
         </section>
 
@@ -212,7 +213,7 @@ async function revoke(d: DeviceSummary): Promise<void> {
             striped-rows
             :row-class="(d: DeviceSummary) => (d.revoked ? 'row--revoked' : '')"
         >
-            <Column field="name" header="Nome">
+            <Column field="name" :header="t('devices.list.colName')">
                 <template #body="{ data }: { data: DeviceSummary }">
                     <div class="cell-name">
                         <i :class="kindIcon(data.kind)" aria-hidden="true" />
@@ -220,36 +221,36 @@ async function revoke(d: DeviceSummary): Promise<void> {
                     </div>
                 </template>
             </Column>
-            <Column field="kind" header="Tipo" style="width: 110px">
+            <Column field="kind" :header="t('devices.list.colKind')" style="width: 110px">
                 <template #body="{ data }: { data: DeviceSummary }">
                     {{ kindLabel(data.kind) }}
                 </template>
             </Column>
-            <Column header="Stato" style="width: 130px">
+            <Column :header="t('devices.list.colStatus')" style="width: 130px">
                 <template #body="{ data }: { data: DeviceSummary }">
                     <Tag
                         v-if="data.revoked"
                         severity="danger"
-                        value="Revocato"
+                        :value="t('devices.list.statusRevoked')"
                     />
                     <Tag
                         v-else
                         severity="success"
-                        value="Attivo"
+                        :value="t('devices.list.statusActive')"
                     />
                 </template>
             </Column>
-            <Column field="paired_at" header="Abbinato il" style="width: 180px">
+            <Column field="paired_at" :header="t('devices.list.colPairedAt')" style="width: 180px">
                 <template #body="{ data }: { data: DeviceSummary }">
                     {{ fmtDate(data.paired_at) }}
                 </template>
             </Column>
-            <Column field="last_seen" header="Ultimo accesso" style="width: 180px">
+            <Column field="last_seen" :header="t('devices.list.colLastSeen')" style="width: 180px">
                 <template #body="{ data }: { data: DeviceSummary }">
                     {{ fmtDate(data.last_seen) }}
                 </template>
             </Column>
-            <Column header="Fingerprint" style="width: 180px">
+            <Column :header="t('devices.list.colFingerprint')" style="width: 180px">
                 <template #body="{ data }: { data: DeviceSummary }">
                     <code class="cell-fp" :title="data.cert_fingerprint">
                         {{ shortFp(data.cert_fingerprint) }}
@@ -260,7 +261,7 @@ async function revoke(d: DeviceSummary): Promise<void> {
                 <template #body="{ data }: { data: DeviceSummary }">
                     <Button
                         v-if="!data.revoked"
-                        label="Revoca"
+                        :label="t('devices.list.revoke')"
                         severity="danger"
                         text
                         size="small"

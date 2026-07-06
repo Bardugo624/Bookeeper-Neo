@@ -5,6 +5,6 @@ export const statsRoutes: RouteRecordRaw[] = [
     path: 'stats',
     name: 'stats',
     component: () => import('./views/StatsView.vue'),
-    meta: { title: 'Statistiche' },
+    meta: { title: 'nav.stats' },
   },
 ];

@@ -9,6 +9,7 @@
  * rimuove l'autore corrispondente dalla raw.
  */
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import InputText from 'primevue/inputtext';
 import Textarea from 'primevue/textarea';
 import InputNumber from 'primevue/inputnumber';
@@ -35,6 +36,13 @@ const emit = defineEmits<{
   (e: 'update:form', v: BookInput): void;
   (e: 'update:authorsRaw', v: string): void;
 }>();
+
+const { t } = useI18n();
+
+// Etichette formato tradotte (i value restano quelli del server).
+const formatOptions = computed(() =>
+  FORMAT_OPTIONS.map((o) => ({ ...o, label: t(`books.format.${o.value}`) })),
+);
 
 /** Parsing identico a useBookForm.syncAuthors per coerenza visuale. */
 const parsedAuthors = computed<string[]>(() =>
@@ -67,8 +75,8 @@ async function doLookup(): Promise<void> {
   if (!isbn) {
     toast.add({
       severity: 'warn',
-      summary: 'ISBN mancante',
-      detail: 'Inserisci un ISBN-13 o ISBN-10 valido prima del lookup.',
+      summary: t('books.form.isbnMissing'),
+      detail: t('books.form.isbnMissingDetail'),
       life: 3500,
     });
     return;
@@ -86,8 +94,8 @@ async function doLookup(): Promise<void> {
       if (!(e instanceof MetadataTransientError)) throw e;
       toast.add({
         severity: 'warn',
-        summary: 'Fonti momentaneamente irraggiungibili',
-        detail: 'Riprova tra poco.',
+        summary: t('books.form.transient'),
+        detail: t('books.form.transientDetail'),
         life: 3500,
       });
       return;
@@ -96,8 +104,8 @@ async function doLookup(): Promise<void> {
     if (!info) {
       toast.add({
         severity: 'info',
-        summary: 'Nessun risultato',
-        detail: `Nessuna fonte conosce l'ISBN ${isbn}.`,
+        summary: t('books.form.noResult'),
+        detail: t('books.form.noResultDetail', { isbn }),
         life: 3500,
       });
       return;
@@ -127,15 +135,15 @@ async function doLookup(): Promise<void> {
     }
     toast.add({
       severity: 'success',
-      summary: 'Metadati importati',
-      detail: info.title || 'Lookup completato',
+      summary: t('books.form.imported'),
+      detail: info.title || t('books.form.importedFallback'),
       life: 2500,
     });
   } catch (err) {
     toast.add({
       severity: 'error',
-      summary: 'Lookup fallito',
-      detail: err instanceof Error ? err.message : 'errore di rete',
+      summary: t('books.form.lookupFailed'),
+      detail: err instanceof Error ? err.message : t('books.form.networkError'),
       life: 4000,
     });
   } finally {
@@ -148,7 +156,7 @@ async function doLookup(): Promise<void> {
   <form class="book-form" @submit.prevent>
     <div class="book-form__row book-form__row--full">
       <label class="book-form__label" for="bf-title">
-        Titolo <span aria-hidden="true" class="book-form__req">*</span>
+        {{ t('books.form.title') }} <span aria-hidden="true" class="book-form__req">*</span>
       </label>
       <InputText
         id="bf-title"
@@ -161,7 +169,7 @@ async function doLookup(): Promise<void> {
     </div>
 
     <div class="book-form__row book-form__row--full">
-      <label class="book-form__label" for="bf-subtitle">Sottotitolo</label>
+      <label class="book-form__label" for="bf-subtitle">{{ t('books.form.subtitle') }}</label>
       <InputText
         id="bf-subtitle"
         :model-value="form.subtitle"
@@ -171,7 +179,7 @@ async function doLookup(): Promise<void> {
 
     <div class="book-form__row book-form__row--full">
       <label class="book-form__label" for="bf-authors">
-        Autori <span class="book-form__hint">(separa con virgola o invio)</span>
+        {{ t('books.form.authors') }} <span class="book-form__hint">{{ t('books.form.authorsHint') }}</span>
       </label>
       <Textarea
         id="bf-authors"
@@ -188,7 +196,7 @@ async function doLookup(): Promise<void> {
         name="chip"
         class="book-form__chips"
         aria-live="polite"
-        :aria-label="`${parsedAuthors.length} autori riconosciuti`"
+        :aria-label="t('books.form.authorsCountAria', { n: parsedAuthors.length })"
       >
         <li
           v-for="(name, idx) in parsedAuthors"
@@ -200,7 +208,7 @@ async function doLookup(): Promise<void> {
           <button
             type="button"
             class="book-form__chip-remove"
-            :aria-label="`Rimuovi ${name}`"
+            :aria-label="t('books.form.removeAuthor', { name })"
             @click="removeAuthor(idx)"
           >
             <i class="pi pi-times" aria-hidden="true" />
@@ -208,7 +216,7 @@ async function doLookup(): Promise<void> {
         </li>
       </TransitionGroup>
       <p v-else class="book-form__chips-empty">
-        Nessun autore inserito.
+        {{ t('books.form.noAuthors') }}
       </p>
     </div>
 
@@ -226,13 +234,13 @@ async function doLookup(): Promise<void> {
         <Button
           type="button"
           icon="pi pi-search"
-          label="Lookup"
+          :label="t('books.form.lookup')"
           severity="secondary"
           outlined
           size="small"
           :loading="lookupLoading"
           :disabled="!lookupIsbnValue || lookupLoading"
-          title="Recupera titolo, autori, editore... da Google Libri"
+          :title="t('books.form.lookupTitle')"
           @click="doLookup"
         />
       </div>
@@ -249,7 +257,7 @@ async function doLookup(): Promise<void> {
     </div>
 
     <div class="book-form__row">
-      <label class="book-form__label" for="bf-publisher">Editore</label>
+      <label class="book-form__label" for="bf-publisher">{{ t('books.form.publisher') }}</label>
       <InputText
         id="bf-publisher"
         :model-value="form.publisher"
@@ -258,7 +266,7 @@ async function doLookup(): Promise<void> {
     </div>
 
     <div class="book-form__row">
-      <label class="book-form__label" for="bf-year">Anno</label>
+      <label class="book-form__label" for="bf-year">{{ t('books.form.year') }}</label>
       <InputNumber
         id="bf-year"
         :model-value="form.published_year || null"
@@ -270,22 +278,22 @@ async function doLookup(): Promise<void> {
     </div>
 
     <div class="book-form__row">
-      <label class="book-form__label" for="bf-format">Formato</label>
+      <label class="book-form__label" for="bf-format">{{ t('books.form.formatLabel') }}</label>
       <Select
         id="bf-format"
         :model-value="form.format"
         @update:model-value="(v) => $emit('update:form', { ...form, format: String(v ?? '') })"
-        :options="FORMAT_OPTIONS"
+        :options="formatOptions"
         option-label="label"
         option-value="value"
-        placeholder="Seleziona…"
+        :placeholder="t('books.form.selectPlaceholder')"
         show-clear
       />
     </div>
 
     <div class="book-form__row">
       <label class="book-form__label" for="bf-genre">
-        Genere <span class="book-form__hint">(es. Romanzo, Saggio, Fantasy)</span>
+        {{ t('books.form.genre') }} <span class="book-form__hint">{{ t('books.form.genreHint') }}</span>
       </label>
       <InputText
         id="bf-genre"
@@ -297,7 +305,7 @@ async function doLookup(): Promise<void> {
     </div>
 
     <div class="book-form__row">
-      <label class="book-form__label" for="bf-language">Lingua</label>
+      <label class="book-form__label" for="bf-language">{{ t('books.form.language') }}</label>
       <InputText
         id="bf-language"
         :model-value="form.language"
@@ -308,7 +316,7 @@ async function doLookup(): Promise<void> {
     </div>
 
     <div class="book-form__row">
-      <label class="book-form__label" for="bf-pages">Pagine</label>
+      <label class="book-form__label" for="bf-pages">{{ t('books.form.pages') }}</label>
       <InputNumber
         id="bf-pages"
         :model-value="form.page_count || null"
@@ -320,8 +328,8 @@ async function doLookup(): Promise<void> {
 
     <div class="book-form__row">
       <label class="book-form__label" for="bf-progressive">
-        N° progressivo
-        <span class="book-form__hint">(univoco — vuoto = nessuno)</span>
+        {{ t('books.form.progressive') }}
+        <span class="book-form__hint">{{ t('books.form.progressiveHint') }}</span>
       </label>
       <div class="book-form__progressive">
         <InputNumber
@@ -342,17 +350,17 @@ async function doLookup(): Promise<void> {
           v-if="suggestedProgressive != null && form.progressive_number !== suggestedProgressive"
           type="button"
           class="book-form__suggest"
-          :aria-label="`Suggerisci numero ${suggestedProgressive}`"
+          :aria-label="t('books.form.suggestAria', { n: suggestedProgressive })"
           @click="$emit('update:form', { ...form, progressive_number: suggestedProgressive })"
         >
           <i class="pi pi-bolt" aria-hidden="true" />
-          Usa #{{ suggestedProgressive }}
+          {{ t('books.form.useSuggest', { n: suggestedProgressive }) }}
         </button>
       </div>
     </div>
 
     <div class="book-form__row book-form__row--full">
-      <label class="book-form__label" for="bf-desc">Descrizione</label>
+      <label class="book-form__label" for="bf-desc">{{ t('books.form.description') }}</label>
       <Textarea
         id="bf-desc"
         :model-value="form.description"
@@ -363,7 +371,7 @@ async function doLookup(): Promise<void> {
     </div>
 
     <div class="book-form__row book-form__row--full">
-      <label class="book-form__label" for="bf-notes">Note personali</label>
+      <label class="book-form__label" for="bf-notes">{{ t('books.form.notes') }}</label>
       <Textarea
         id="bf-notes"
         :model-value="form.notes"

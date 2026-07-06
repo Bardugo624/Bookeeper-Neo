@@ -5,6 +5,6 @@ export const loansRoutes: RouteRecordRaw[] = [
     path: 'loans',
     name: 'loans',
     component: () => import('./views/LoansListView.vue'),
-    meta: { title: 'Prestiti' },
+    meta: { title: 'nav.loans' },
   },
 ];

@@ -11,6 +11,7 @@
  */
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import Skeleton from 'primevue/skeleton';
 import Message from 'primevue/message';
@@ -37,6 +38,7 @@ const store = useWishlistStore();
 const router = useRouter();
 const confirm = useConfirm();
 const toast = useToast();
+const { t } = useI18n();
 
 const quickAdd = ref<InstanceType<typeof WishlistQuickAdd> | null>(null);
 
@@ -49,10 +51,11 @@ const dialogError = ref<string | null>(null);
 const filterPriority = ref<number | null>(null);
 const filterText = ref('');
 
-const filterPriorityOptions = [
-  { value: null, label: 'Tutte le priorità' },
-  ...WISHLIST_PRIORITIES.map((p) => ({ value: p.value, label: p.label })),
-];
+const priorityKeys = ['low', 'medium', 'high'] as const;
+const filterPriorityOptions = computed(() => [
+  { value: null, label: t('wishlist.priority.all') },
+  ...WISHLIST_PRIORITIES.map((p) => ({ value: p.value, label: t(`wishlist.priority.${priorityKeys[p.value]}`) })),
+]);
 
 const filteredItems = computed<WishlistItem[]>(() => {
   const txt = filterText.value.trim().toLowerCase();
@@ -90,7 +93,7 @@ async function onQuickAdd(input: WishlistInput): Promise<void> {
     await store.create(input);
     toast.add({
       severity: 'success',
-      summary: 'Aggiunta alla wishlist',
+      summary: t('wishlist.view.addedOk'),
       detail: input.title,
       life: 2500,
     });
@@ -98,7 +101,7 @@ async function onQuickAdd(input: WishlistInput): Promise<void> {
   } catch (e) {
     toast.add({
       severity: 'error',
-      summary: 'Errore',
+      summary: t('common.error'),
       detail: (e as Error).message,
       life: 4500,
     });
@@ -126,7 +129,7 @@ async function onSubmitDialog(input: WishlistInput): Promise<void> {
       await store.update(editTarget.value.id, input);
       toast.add({
         severity: 'success',
-        summary: 'Voce aggiornata',
+        summary: t('wishlist.view.updatedOk'),
         detail: input.title,
         life: 2500,
       });
@@ -134,7 +137,7 @@ async function onSubmitDialog(input: WishlistInput): Promise<void> {
       await store.create(input);
       toast.add({
         severity: 'success',
-        summary: 'Aggiunta alla wishlist',
+        summary: t('wishlist.view.addedOk'),
         detail: input.title,
         life: 2500,
       });
@@ -147,25 +150,25 @@ async function onSubmitDialog(input: WishlistInput): Promise<void> {
 
 function onDelete(item: WishlistItem): void {
   confirm.require({
-    header: 'Elimina dalla wishlist',
-    message: `Eliminare "${item.title}"? L'azione è irreversibile.`,
+    header: t('wishlist.view.deleteHeader'),
+    message: t('wishlist.view.deleteConfirm', { title: item.title }),
     icon: 'pi pi-exclamation-triangle',
-    acceptLabel: 'Elimina',
-    rejectLabel: 'Annulla',
+    acceptLabel: t('common.delete'),
+    rejectLabel: t('common.cancel'),
     acceptClass: 'p-button-danger',
     accept: async () => {
       try {
         await store.remove(item.id);
         toast.add({
           severity: 'info',
-          summary: 'Voce eliminata',
+          summary: t('wishlist.view.deletedOk'),
           detail: item.title,
           life: 2500,
         });
       } catch (e) {
         toast.add({
           severity: 'error',
-          summary: 'Errore',
+          summary: t('common.error'),
           detail: (e as Error).message,
           life: 4500,
         });
@@ -176,17 +179,17 @@ function onDelete(item: WishlistItem): void {
 
 function onConvert(item: WishlistItem): void {
   confirm.require({
-    header: 'Aggiungi alla libreria',
-    message: `Promuovi "${item.title}" da wishlist a libro nella tua libreria? La voce verrà rimossa dalla wishlist.`,
+    header: t('wishlist.view.convertHeader'),
+    message: t('wishlist.view.convertConfirm', { title: item.title }),
     icon: 'pi pi-check-circle',
-    acceptLabel: 'Aggiungi',
-    rejectLabel: 'Annulla',
+    acceptLabel: t('wishlist.view.convertAccept'),
+    rejectLabel: t('common.cancel'),
     accept: async () => {
       try {
         const bookId = await store.convert(item.id);
         toast.add({
           severity: 'success',
-          summary: 'Aggiunto alla libreria',
+          summary: t('wishlist.view.convertedOk'),
           detail: item.title,
           life: 3000,
         });
@@ -197,7 +200,7 @@ function onConvert(item: WishlistItem): void {
       } catch (e) {
         toast.add({
           severity: 'error',
-          summary: 'Errore conversione',
+          summary: t('wishlist.view.convertError'),
           detail: (e as Error).message,
           life: 4500,
         });
@@ -216,15 +219,14 @@ function clearFilters(): void {
   <section class="wlist" aria-labelledby="wlist-title">
     <header class="wlist__header">
       <div>
-        <h1 id="wlist-title" class="wlist__title">Wishlist</h1>
+        <h1 id="wlist-title" class="wlist__title">{{ t('wishlist.view.title') }}</h1>
         <p class="wlist__sub">
-          Libri che vuoi leggere o regalare. Aggiungili al volo e promuovili in
-          libreria quando li acquisti.
+          {{ t('wishlist.view.subtitle') }}
         </p>
       </div>
       <div class="wlist__head-actions">
         <Button
-          label="Nuova voce"
+          :label="t('wishlist.view.newEntry')"
           icon="pi pi-plus"
           severity="secondary"
           outlined
@@ -254,10 +256,9 @@ function clearFilters(): void {
     >
       <span class="wlist__count">
         <i class="pi pi-heart-fill" aria-hidden="true" />
-        {{ store.items.length }}
-        {{ store.items.length === 1 ? 'voce' : 'voci' }}
+        {{ t('wishlist.view.count', store.items.length) }}
         <span v-if="filteredItems.length !== store.items.length">
-          · {{ filteredItems.length }} mostrate
+          {{ t('wishlist.view.shown', { n: filteredItems.length }) }}
         </span>
       </span>
       <div class="wlist__filter-controls">
@@ -272,7 +273,7 @@ function clearFilters(): void {
           <i class="pi pi-search" />
           <InputText
             v-model="filterText"
-            placeholder="Cerca titolo, autore, ISBN…"
+            :placeholder="t('wishlist.view.searchPlaceholder')"
           />
         </span>
         <Button
@@ -280,7 +281,7 @@ function clearFilters(): void {
           icon="pi pi-times"
           severity="secondary"
           text
-          aria-label="Azzera filtri"
+          :aria-label="t('wishlist.view.clearFiltersAria')"
           @click="clearFilters"
         />
       </div>
@@ -295,10 +296,9 @@ function clearFilters(): void {
 
     <div v-else-if="store.isEmpty" class="wlist__empty">
       <i class="pi pi-heart wlist__empty-icon" aria-hidden="true" />
-      <h2 class="wlist__empty-title">La tua wishlist è vuota</h2>
+      <h2 class="wlist__empty-title">{{ t('wishlist.view.emptyTitle') }}</h2>
       <p class="wlist__empty-sub">
-        Inizia ad aggiungere libri che vorresti leggere o regalare. Usa la barra
-        sopra per un add rapido, o "Nuova voce" per inserire link e note.
+        {{ t('wishlist.view.emptySub') }}
       </p>
     </div>
 
@@ -307,10 +307,10 @@ function clearFilters(): void {
       class="wlist__empty wlist__empty--filter"
     >
       <i class="pi pi-filter-slash wlist__empty-icon" aria-hidden="true" />
-      <h2 class="wlist__empty-title">Nessuna voce corrisponde ai filtri</h2>
-      <p class="wlist__empty-sub">Modifica priorità o ricerca per vedere altre voci.</p>
+      <h2 class="wlist__empty-title">{{ t('wishlist.view.emptyFilteredTitle') }}</h2>
+      <p class="wlist__empty-sub">{{ t('wishlist.view.emptyFilteredSub') }}</p>
       <Button
-        label="Azzera filtri"
+        :label="t('wishlist.view.clearFilters')"
         icon="pi pi-times"
         severity="secondary"
         outlined

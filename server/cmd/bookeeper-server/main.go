@@ -114,7 +114,7 @@ func main() {
 			ServerKey: caServerKey,
 		},
 		Setup:  &api.SetupHandlers{DB: database, Audit: auditMW, TrustPool: trustMgr, CAStore: caStore, ServerKey: caServerKey},
-		Tenant: &api.TenantHandlers{DB: database},
+		Tenant: &api.TenantHandlers{DB: database, Audit: auditMW},
 		WellKnown: &api.WellKnownHandlers{
 			// PWA-only deployment: a stub Team-prefixed appID keeps AASA
 			// well-formed; iOS uses the domain match for web fallback.

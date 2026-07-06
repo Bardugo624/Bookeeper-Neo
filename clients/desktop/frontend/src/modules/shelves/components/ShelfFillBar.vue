@@ -4,6 +4,7 @@
  * Soglie semantiche: ok (verde), warn (ambra), danger (rosso).
  */
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { ShelfFill } from '../composables/useShelfFill';
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
   compact?: boolean;
 }
 const props = withDefaults(defineProps<Props>(), { compact: false });
+const { t } = useI18n();
 
 const pctText = computed(() => `${Math.round(props.fill.pct * 100)}%`);
 // scaleX invece di width: la barra anima su compositor, zero layout.
@@ -28,7 +30,7 @@ const scaleStyle = computed(() => ({
     :aria-valuenow="Math.round(fill.pct * 100)"
     aria-valuemin="0"
     aria-valuemax="100"
-    :aria-label="`Riempimento: ${fill.filled} di ${fill.total} libri`"
+    :aria-label="t('shelves.fillbar.ariaLabel', { filled: fill.filled, total: fill.total })"
   >
     <div class="fill-bar__track">
       <div class="fill-bar__indicator" :style="scaleStyle" />

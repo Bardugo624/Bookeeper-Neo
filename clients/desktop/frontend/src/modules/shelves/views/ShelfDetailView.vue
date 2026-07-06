@@ -17,6 +17,7 @@
  */
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import Skeleton from 'primevue/skeleton';
 import Message from 'primevue/message';
@@ -34,11 +35,15 @@ import ShelfSvg from '../components/ShelfSvg.vue';
 import ShelfFillBar from '../components/ShelfFillBar.vue';
 import ShelfConfigDialog from '../components/ShelfConfigDialog.vue';
 import { useShelfFill } from '../composables/useShelfFill';
+import { useToast } from 'primevue/usetoast';
+import { labelsApi } from '@/lib/api/endpoints/importexport';
 
 const props = defineProps<{ id: string }>();
+const toast = useToast();
 const route = useRoute();
 const router = useRouter();
 const confirm = useConfirm();
+const { t } = useI18n();
 
 const shelvesStore = useShelvesStore();
 const booksStore = useBooksStore();
@@ -115,6 +120,32 @@ function openEdit(): void {
   editError.value = null;
   editVisible.value = true;
 }
+
+const makingLabels = ref(false);
+async function onPrintLabels(): Promise<void> {
+  if (books.value.length === 0 || makingLabels.value) return;
+  makingLabels.value = true;
+  try {
+    // Etichette per tutti i libri posizionati su questo scaffale.
+    const res = await labelsApi.savePdf(books.value.map((b) => b.book_id));
+    if (!res.path) return; // annullato
+    toast.add({
+      severity: 'success',
+      summary: t('books.labels.savedTitle'),
+      detail: res.path,
+      life: 5000,
+    });
+  } catch (e) {
+    toast.add({
+      severity: 'error',
+      summary: t('common.error'),
+      detail: (e as Error).message,
+      life: 6000,
+    });
+  } finally {
+    makingLabels.value = false;
+  }
+}
 async function onSubmitEdit(input: ShelfInput): Promise<void> {
   if (!shelf.value) return;
   editError.value = null;
@@ -129,14 +160,14 @@ function onDelete(): void {
   if (!shelf.value) return;
   const sh = shelf.value;
   confirm.require({
-    header: 'Elimina scaffale',
+    header: t('shelves.dashboard.deleteHeader'),
     message:
       sh.book_count > 0
-        ? `“${sh.name}” contiene ${sh.book_count} libri. Saranno rimossi i posizionamenti, ma i libri restano in libreria. Procedere?`
-        : `Eliminare “${sh.name}”?`,
+        ? t('shelves.dashboard.deleteWithBooks', { name: sh.name, n: sh.book_count })
+        : t('shelves.dashboard.deleteEmpty', { name: sh.name }),
     icon: 'pi pi-exclamation-triangle',
-    acceptLabel: 'Elimina',
-    rejectLabel: 'Annulla',
+    acceptLabel: t('common.delete'),
+    rejectLabel: t('common.cancel'),
     acceptClass: 'p-button-danger',
     accept: async () => {
       try {
@@ -232,21 +263,20 @@ function openBook(id: string): void {
         icon="pi pi-arrow-left"
         text
         severity="secondary"
-        aria-label="Torna agli scaffali"
+        :aria-label="t('shelves.detail.backAria')"
         @click="backToList"
       />
       <div class="shelf-detail__title-wrap">
         <h1 id="shelf-detail-title" class="shelf-detail__title">
-          {{ shelf?.name ?? 'Scaffale' }}
+          {{ shelf?.name ?? t('shelves.detail.fallbackName') }}
         </h1>
         <p v-if="shelf" class="shelf-detail__sub">
-          {{ shelf.rows }} mensole × {{ shelf.slots_per_row }} slot ·
-          {{ shelf.book_count }}/{{ shelf.capacity }} libri
+          {{ t('shelves.detail.dims', { rows: shelf.rows, slots: shelf.slots_per_row, used: shelf.book_count, cap: shelf.capacity }) }}
         </p>
       </div>
       <div class="shelf-detail__actions">
         <Button
-          label="Modifica"
+          :label="t('shelves.detail.edit')"
           icon="pi pi-pencil"
           severity="secondary"
           outlined
@@ -254,7 +284,16 @@ function openBook(id: string): void {
           @click="openEdit"
         />
         <Button
-          label="Elimina"
+          :label="t('books.labels.actionShelf')"
+          icon="pi pi-qrcode"
+          severity="secondary"
+          outlined
+          :disabled="!shelf || books.length === 0"
+          :loading="makingLabels"
+          @click="onPrintLabels"
+        />
+        <Button
+          :label="t('shelves.detail.delete')"
           icon="pi pi-trash"
           severity="danger"
           outlined
@@ -291,29 +330,29 @@ function openBook(id: string): void {
         </div>
         <p class="shelf-detail__hint">
           <i class="pi pi-info-circle" aria-hidden="true" />
-          Clicca uno slot vuoto per assegnarvi un libro.
+          {{ t('shelves.detail.hint') }}
         </p>
       </div>
 
       <aside class="shelf-detail__books">
-        <h2 class="shelf-detail__books-title">Libri assegnati</h2>
+        <h2 class="shelf-detail__books-title">{{ t('shelves.detail.assignedBooks') }}</h2>
         <DataTable
           :value="books"
           data-key="book_id"
-          :empty-message="'Nessun libro su questo scaffale'"
+          :empty-message="t('shelves.detail.noBooksOnShelf')"
           striped-rows
           size="small"
           scrollable
           scroll-height="60vh"
         >
-          <Column field="title" header="Titolo">
+          <Column field="title" :header="t('shelves.detail.colTitle')">
             <template #body="{ data }: { data: ShelfBook }">
               <button class="shelf-detail__book-link" @click="openBook(data.book_id)">
                 {{ data.title }}
               </button>
             </template>
           </Column>
-          <Column header="Pos." style="width: 90px">
+          <Column :header="t('shelves.detail.colPos')" style="width: 90px">
             <template #body="{ data }: { data: ShelfBook }">
               <span class="shelf-detail__pos">
                 M{{ data.row_index + 1 }} · S{{ data.slot_index + 1 }}
@@ -328,7 +367,7 @@ function openBook(id: string): void {
                 rounded
                 severity="danger"
                 size="small"
-                aria-label="Rimuovi dal scaffale"
+                :aria-label="t('shelves.detail.removeAria')"
                 @click="removePlacement(data)"
               />
             </template>
@@ -338,7 +377,7 @@ function openBook(id: string): void {
     </div>
 
     <Message v-else severity="warn" :closable="false">
-      Scaffale non trovato.
+      {{ t('shelves.detail.notFound') }}
     </Message>
 
     <ShelfConfigDialog
@@ -354,7 +393,7 @@ function openBook(id: string): void {
       :modal="true"
       :closable="!shelvesStore.saving"
       :style="{ width: '460px' }"
-      header="Assegna libro a questo slot"
+      :header="t('shelves.detail.pickerHeader')"
       @hide="closePicker"
     >
       <div class="picker">
@@ -366,9 +405,9 @@ function openBook(id: string): void {
           {{ pickerError }}
         </Message>
         <p class="picker__pos" v-if="pickerSlot">
-          Posizione: <strong>Mensola {{ pickerSlot.row + 1 }}, slot {{ pickerSlot.slot + 1 }}</strong>
+          {{ t('shelves.detail.pickerPos') }} <strong>{{ t('shelves.detail.pickerShelfSlot', { row: pickerSlot.row + 1, slot: pickerSlot.slot + 1 }) }}</strong>
         </p>
-        <label class="picker__label" for="picker-book">Libro</label>
+        <label class="picker__label" for="picker-book">{{ t('shelves.detail.pickerBookLabel') }}</label>
         <Select
           id="picker-book"
           v-model="pickerBookId"
@@ -376,21 +415,21 @@ function openBook(id: string): void {
           option-label="label"
           option-value="value"
           filter
-          placeholder="Seleziona un libro non posizionato"
-          empty-message="Tutti i libri sono già posizionati"
+          :placeholder="t('shelves.detail.pickerPlaceholder')"
+          :empty-message="t('shelves.detail.pickerEmpty')"
           class="picker__select"
         />
       </div>
       <template #footer>
         <Button
-          label="Annulla"
+          :label="t('common.cancel')"
           severity="secondary"
           text
           :disabled="shelvesStore.saving"
           @click="closePicker"
         />
         <Button
-          label="Assegna"
+          :label="t('shelves.detail.assign')"
           icon="pi pi-check"
           :disabled="!pickerBookId"
           :loading="shelvesStore.saving"

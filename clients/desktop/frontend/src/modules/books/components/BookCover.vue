@@ -20,6 +20,7 @@
  * IndexedDB locale (vedi `lib/coverCache.ts`).
  */
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { getCover, getCoverStatus, forceRefetch, markBad, type CoverStatus } from '@/lib/coverCache';
 import { useCoverPrefsStore } from '@/stores/coverPrefs';
@@ -31,6 +32,8 @@ const props = defineProps<{
   isbn?: string | null;
   size?: 'sm' | 'md' | 'lg';
 }>();
+
+const { t } = useI18n();
 
 const initial = computed(() => (props.title?.[0] || '?').toUpperCase());
 
@@ -141,12 +144,12 @@ watch(
     :class="[`cover--${size ?? 'md'}`, { 'cover--has-isbn': canRetry }]"
     :style="effectivePath ? undefined : { background: clothTone }"
     role="img"
-    :aria-label="`Copertina di ${title}`"
+    :aria-label="t('books.cover.alt', { title })"
   >
     <img
       v-if="effectivePath"
       :src="effectivePath"
-      :alt="`Copertina di ${title}`"
+      :alt="t('books.cover.alt', { title })"
       loading="lazy"
       referrerpolicy="no-referrer"
       @error="onImgError"
@@ -159,14 +162,14 @@ watch(
       class="cover__badge"
       :class="`cover__badge--${status}`"
       :title="
-        status === 'fetching' ? 'Sto scaricando la copertina...'
-        : status === 'failed'  ? 'Download fallito — clicca ricarica per riprovare'
-        : 'Copertina non disponibile su Google Libri / OpenLibrary'
+        status === 'fetching' ? t('books.cover.fetching')
+        : status === 'failed'  ? t('books.cover.failed')
+        : t('books.cover.notFound')
       "
       :aria-label="
-        status === 'fetching' ? 'Download copertina in corso'
-        : status === 'failed'  ? 'Download copertina fallito'
-        : 'Copertina non trovata'
+        status === 'fetching' ? t('books.cover.fetchingAria')
+        : status === 'failed'  ? t('books.cover.failedAria')
+        : t('books.cover.notFoundAria')
       "
     >
       <i v-if="status === 'fetching'" class="pi pi-spin pi-spinner" aria-hidden="true" />
@@ -181,8 +184,8 @@ watch(
       class="cover__retry"
       :class="{ 'cover__retry--persistent': status === 'failed' || status === 'not-found' }"
       :disabled="retrying"
-      :title="status === 'cached' || effectivePath ? 'Riscarica copertina' : 'Cerca copertina'"
-      :aria-label="status === 'cached' || effectivePath ? 'Riscarica copertina' : 'Cerca copertina'"
+      :title="status === 'cached' || effectivePath ? t('books.cover.refetch') : t('books.cover.fetch')"
+      :aria-label="status === 'cached' || effectivePath ? t('books.cover.refetch') : t('books.cover.fetch')"
       @click="onRetry"
     >
       <i :class="retrying ? 'pi pi-spin pi-spinner' : 'pi pi-refresh'" aria-hidden="true" />

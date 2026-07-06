@@ -5,7 +5,8 @@
  * Pattern v-model:visible, slot footer custom con submit/cancel.
  * Stato form locale, sincronizzato a `initial` ad ogni apertura.
  */
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
@@ -30,6 +31,11 @@ const emit = defineEmits<{
   (e: 'submit', input: WishlistInput): void;
 }>();
 
+const { t } = useI18n();
+const priorityKeys = ['low', 'medium', 'high'] as const;
+const priorityOptions = computed(() =>
+  WISHLIST_PRIORITIES.map((p) => ({ ...p, label: t(`wishlist.priority.${priorityKeys[p.value]}`) })),
+);
 const form = ref<WishlistInput>({ ...EMPTY_WISHLIST_INPUT });
 
 watch(
@@ -61,7 +67,7 @@ function onSubmit(): void {
   <Dialog
     :visible="visible"
     @update:visible="(v) => emit('update:visible', v)"
-    :header="isEdit() ? 'Modifica voce wishlist' : 'Nuova voce wishlist'"
+    :header="isEdit() ? t('wishlist.editDialog.editTitle') : t('wishlist.editDialog.createTitle')"
     modal
     :style="{ width: '560px', maxWidth: '95vw' }"
     :closable="!saving"
@@ -79,7 +85,7 @@ function onSubmit(): void {
 
       <div class="wedit__row wedit__row--full">
         <label class="wedit__label" for="we-title">
-          Titolo <span aria-hidden="true" class="wedit__req">*</span>
+          {{ t('wishlist.editDialog.title') }} <span aria-hidden="true" class="wedit__req">*</span>
         </label>
         <InputText
           id="we-title"
@@ -92,18 +98,18 @@ function onSubmit(): void {
 
       <div class="wedit__row wedit__row--full">
         <label class="wedit__label" for="we-authors">
-          Autori
-          <span class="wedit__hint">(separa con virgola)</span>
+          {{ t('wishlist.editDialog.authors') }}
+          <span class="wedit__hint">{{ t('wishlist.editDialog.authorsHint') }}</span>
         </label>
         <InputText
           id="we-authors"
           v-model="form.authors"
-          placeholder="es. Italo Calvino, Umberto Eco"
+          :placeholder="t('wishlist.editDialog.authorsPlaceholder')"
         />
       </div>
 
       <div class="wedit__row">
-        <label class="wedit__label" for="we-isbn">ISBN</label>
+        <label class="wedit__label" for="we-isbn">{{ t('wishlist.editDialog.isbn') }}</label>
         <InputText
           id="we-isbn"
           v-model="form.isbn"
@@ -113,11 +119,11 @@ function onSubmit(): void {
       </div>
 
       <div class="wedit__row">
-        <label class="wedit__label" for="we-prio">Priorità</label>
+        <label class="wedit__label" for="we-prio">{{ t('wishlist.editDialog.priority') }}</label>
         <Select
           id="we-prio"
           v-model="form.priority"
-          :options="WISHLIST_PRIORITIES"
+          :options="priorityOptions"
           option-label="label"
           option-value="value"
         >
@@ -131,38 +137,38 @@ function onSubmit(): void {
       </div>
 
       <div class="wedit__row wedit__row--full">
-        <label class="wedit__label" for="we-source">Link fonte</label>
+        <label class="wedit__label" for="we-source">{{ t('wishlist.editDialog.sourceUrl') }}</label>
         <InputText
           id="we-source"
           v-model="form.source_url"
-          placeholder="https://..."
+          :placeholder="t('wishlist.editDialog.sourceUrlPlaceholder')"
           inputmode="url"
           autocomplete="off"
         />
       </div>
 
       <div class="wedit__row wedit__row--full">
-        <label class="wedit__label" for="we-notes">Note</label>
+        <label class="wedit__label" for="we-notes">{{ t('wishlist.editDialog.notes') }}</label>
         <Textarea
           id="we-notes"
           v-model="form.notes"
           rows="3"
           auto-resize
-          placeholder="es. regalo per Marco / cercare in usato / firmato"
+          :placeholder="t('wishlist.editDialog.notesPlaceholder')"
         />
       </div>
     </form>
 
     <template #footer>
       <Button
-        label="Annulla"
+        :label="t('common.cancel')"
         severity="secondary"
         text
         :disabled="saving"
         @click="close"
       />
       <Button
-        :label="isEdit() ? 'Salva' : 'Aggiungi'"
+        :label="isEdit() ? t('wishlist.editDialog.save') : t('wishlist.editDialog.add')"
         icon="pi pi-check"
         :disabled="!form.title.trim()"
         :loading="saving"

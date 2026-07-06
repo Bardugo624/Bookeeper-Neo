@@ -13,6 +13,7 @@
  */
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import ConfirmDialog from 'primevue/confirmdialog';
 import { useConfirm } from 'primevue/useconfirm';
@@ -23,10 +24,12 @@ import type { Shelf, ShelfInput } from '../types';
 import { shelfToInput } from '../types';
 import ShelfCard from '../components/ShelfCard.vue';
 import ShelfConfigDialog from '../components/ShelfConfigDialog.vue';
+import OnboardingHint from '@/components/OnboardingHint.vue';
 
 const store = useShelvesStore();
 const router = useRouter();
 const confirm = useConfirm();
+const { t } = useI18n();
 
 const dialogVisible = ref(false);
 const editTarget = ref<Shelf | null>(null);
@@ -86,13 +89,13 @@ async function onSubmitDialog(input: ShelfInput): Promise<void> {
 function onDelete(shelf: Shelf): void {
   const hasBooks = shelf.book_count > 0;
   confirm.require({
-    header: 'Elimina scaffale',
+    header: t('shelves.dashboard.deleteHeader'),
     message: hasBooks
-      ? `“${shelf.name}” contiene ${shelf.book_count} libri. Saranno rimossi i posizionamenti, ma i libri restano in libreria. Procedere?`
-      : `Eliminare “${shelf.name}”?`,
+      ? t('shelves.dashboard.deleteWithBooks', { name: shelf.name, n: shelf.book_count })
+      : t('shelves.dashboard.deleteEmpty', { name: shelf.name }),
     icon: 'pi pi-exclamation-triangle',
-    acceptLabel: 'Elimina',
-    rejectLabel: 'Annulla',
+    acceptLabel: t('common.delete'),
+    rejectLabel: t('common.cancel'),
     acceptClass: 'p-button-danger',
     accept: async () => {
       try {
@@ -128,17 +131,19 @@ function onPickSlot(payload: {
   <section class="shelves" aria-labelledby="shelves-title">
     <header class="shelves__header">
       <div>
-        <h1 id="shelves-title" class="shelves__title">Scaffali</h1>
+        <h1 id="shelves-title" class="shelves__title">{{ t('shelves.dashboard.title') }}</h1>
         <p class="shelves__sub">
-          Visualizza e organizza la tua libreria fisica con scaffali interattivi.
+          {{ t('shelves.dashboard.subtitle') }}
         </p>
       </div>
       <Button
-        label="Nuovo scaffale"
+        :label="t('shelves.dashboard.newShelf')"
         icon="pi pi-plus"
         @click="openCreate"
       />
     </header>
+
+    <OnboardingHint name="shelves" i18n-root="onboarding.hints.shelves" />
 
     <Message
       v-if="store.error"
@@ -155,12 +160,12 @@ function onPickSlot(payload: {
 
     <div v-else-if="store.isEmpty" class="shelves__empty">
       <i class="pi pi-th-large shelves__empty-icon" aria-hidden="true" />
-      <h2 class="shelves__empty-title">Non hai ancora scaffali</h2>
+      <h2 class="shelves__empty-title">{{ t('shelves.dashboard.emptyTitle') }}</h2>
       <p class="shelves__empty-sub">
-        Crea il tuo primo scaffale per iniziare a organizzare i libri visivamente.
+        {{ t('shelves.dashboard.emptySub') }}
       </p>
       <Button
-        label="Crea scaffale"
+        :label="t('shelves.dashboard.createShelf')"
         icon="pi pi-plus"
         @click="openCreate"
       />

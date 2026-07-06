@@ -12,6 +12,7 @@
  * libro a questo scaffale" via picker libreria — fuori scope qui).
  */
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Dialog from 'primevue/dialog';
 import Select from 'primevue/select';
 import Button from 'primevue/button';
@@ -36,6 +37,7 @@ const emit = defineEmits<{
 }>();
 
 const store = useShelvesStore();
+const { t } = useI18n();
 
 const selectedShelfId = ref<string | null>(null);
 const submitting = ref(false);
@@ -131,7 +133,7 @@ function close(): void {
     :closable="!submitting"
     :dismissable-mask="!submitting"
     :style="{ width: '720px', maxWidth: '95vw' }"
-    :header="`Posiziona “${bookTitle}”`"
+    :header="t('shelves.assign.header', { title: bookTitle })"
     @update:visible="emit('update:visible', $event)"
   >
     <div class="assign">
@@ -147,23 +149,23 @@ function close(): void {
         severity="info"
         :closable="false"
       >
-        Clicca uno slot vuoto per posizionare il libro. Gli slot grigi sono già occupati.
+        {{ t('shelves.assign.hint') }}
       </Message>
 
       <div class="assign__controls">
-        <label for="assign-shelf" class="assign__label">Scaffale</label>
+        <label for="assign-shelf" class="assign__label">{{ t('shelves.assign.shelfLabel') }}</label>
         <Select
           id="assign-shelf"
           v-model="selectedShelfId"
           :options="shelfOptions"
           option-label="label"
           option-value="value"
-          placeholder="Seleziona uno scaffale"
+          :placeholder="t('shelves.assign.shelfPlaceholder')"
           class="assign__select"
         />
         <Button
           v-if="currentPlacement"
-          label="Rimuovi posizionamento"
+          :label="t('shelves.assign.removePlacement')"
           icon="pi pi-times-circle"
           severity="danger"
           text
@@ -174,7 +176,7 @@ function close(): void {
 
       <div v-if="selectedShelf && !hasFreeSlot" class="assign__warning">
         <i class="pi pi-exclamation-triangle" aria-hidden="true" />
-        Lo scaffale è pieno. Scegli un altro scaffale o libera uno slot.
+        {{ t('shelves.assign.full') }}
       </div>
 
       <div v-if="store.loadingBooks" class="assign__loading">
@@ -191,13 +193,13 @@ function close(): void {
       </div>
 
       <p v-else class="assign__empty">
-        Nessuno scaffale ancora. Crea prima uno scaffale dalla pagina Scaffali.
+        {{ t('shelves.assign.empty') }}
       </p>
     </div>
 
     <template #footer>
       <Button
-        label="Chiudi"
+        :label="t('shelves.assign.close')"
         severity="secondary"
         text
         :disabled="submitting"

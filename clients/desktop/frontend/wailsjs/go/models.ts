@@ -50,6 +50,38 @@ export namespace main {
 	        this.channel = source["channel"];
 	    }
 	}
+	export class BackupConfig {
+	    enabled: boolean;
+	    every_days: number;
+	    last_at: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new BackupConfig(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.enabled = source["enabled"];
+	        this.every_days = source["every_days"];
+	        this.last_at = source["last_at"];
+	    }
+	}
+	export class BackupEntry {
+	    name: string;
+	    size: number;
+	    mod_time: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new BackupEntry(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.size = source["size"];
+	        this.mod_time = source["mod_time"];
+	    }
+	}
 	export class BootstrapDesktopReq {
 	    server_url: string;
 	    bootstrap_url: string;
@@ -148,6 +180,20 @@ export namespace main {
 	        this.sources = source["sources"];
 	    }
 	}
+	export class PickedFile {
+	    name: string;
+	    content: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new PickedFile(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.content = source["content"];
+	    }
+	}
 	export class RecoverInviteReq {
 	    server_url: string;
 	    bootstrap_url: string;
@@ -180,6 +226,34 @@ export namespace main {
 	        this.tenant_id = source["tenant_id"];
 	        this.tenant_name = source["tenant_name"];
 	        this.invite_code = source["invite_code"];
+	    }
+	}
+	export class SaveLabelsReq {
+	    book_ids: string[];
+
+	    static createFrom(source: any = {}) {
+	        return new SaveLabelsReq(source);
+	    }
+
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.book_ids = source["book_ids"];
+	    }
+	}
+	export class SaveLabelsResult {
+	    path: string;
+	    skipped: number;
+	    count: number;
+
+	    static createFrom(source: any = {}) {
+	        return new SaveLabelsResult(source);
+	    }
+
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.path = source["path"];
+	        this.skipped = source["skipped"];
+	        this.count = source["count"];
 	    }
 	}
 	export class ReloadTrustReq {

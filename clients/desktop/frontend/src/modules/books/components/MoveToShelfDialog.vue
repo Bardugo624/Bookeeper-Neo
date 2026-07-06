@@ -12,6 +12,7 @@
  * (skipped_no_space). Mostriamo entrambi i contatori al ritorno.
  */
 import { ref, watch, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
 import Select from 'primevue/select';
@@ -29,6 +30,7 @@ const emit = defineEmits<{
 }>();
 
 const shelvesStore = useShelvesStore();
+const { t } = useI18n();
 const targetShelfId = ref<string | null>(null);
 const submitting = ref(false);
 const errorMessage = ref<string | null>(null);
@@ -58,7 +60,7 @@ watch(
     errorMessage.value = null;
     if (shelvesStore.items.length === 0) {
       shelvesStore.fetchList().catch(() => {
-        errorMessage.value = 'Impossibile caricare la lista degli scaffali.';
+        errorMessage.value = t('books.move.loadShelvesError');
       });
     }
   },
@@ -93,14 +95,13 @@ function close(): void {
     :visible="visible"
     @update:visible="(v) => emit('update:visible', v)"
     modal
-    :header="bookIds.length === 1 ? 'Sposta libro su scaffale' : `Sposta ${bookIds.length} libri su scaffale`"
+    :header="bookIds.length === 1 ? t('books.move.headerOne') : t('books.move.headerMany', { n: bookIds.length })"
     :style="{ width: 'min(520px, 92vw)' }"
     :closable="!submitting"
   >
     <div class="move-shelf">
       <p class="move-shelf__intro">
-        Seleziona uno scaffale: i libri verranno collocati nei primi slot liberi
-        in ordine di riga. Verranno saltati i libri già presenti su altri scaffali.
+        {{ t('books.move.intro') }}
       </p>
 
       <Select
@@ -108,9 +109,9 @@ function close(): void {
         :options="shelvesStore.items"
         option-label="name"
         option-value="id"
-        placeholder="Seleziona scaffale…"
+        :placeholder="t('books.move.selectPlaceholder')"
         :loading="shelvesStore.loadingList"
-        :empty-message="shelvesStore.loadingList ? 'Caricamento…' : 'Nessuno scaffale disponibile'"
+        :empty-message="shelvesStore.loadingList ? t('common.loading') : t('books.create.noShelves')"
         fluid
         :disabled="submitting"
       >
@@ -125,7 +126,7 @@ function close(): void {
       </Select>
 
       <div v-if="targetShelf" class="move-shelf__capacity">
-        <span class="move-shelf__capacity-label">Slot liberi:</span>
+        <span class="move-shelf__capacity-label">{{ t('books.move.freeSlots') }}</span>
         <strong class="move-shelf__capacity-value">{{ freeSlots }}</strong>
         <span class="move-shelf__capacity-sep">/</span>
         <span>{{ targetShelf.capacity }}</span>
@@ -137,9 +138,7 @@ function close(): void {
         :closable="false"
         class="move-shelf__warn"
       >
-        Lo scaffale ha {{ freeSlots }} slot liberi ma stai cercando di spostare
-        {{ bookIds.length }} libri. I primi {{ freeSlots }} verranno collocati,
-        gli altri verranno saltati.
+        {{ t('books.move.overflow', { free: freeSlots, n: bookIds.length }) }}
       </Message>
 
       <Message
@@ -154,14 +153,14 @@ function close(): void {
 
     <template #footer>
       <Button
-        label="Annulla"
+        :label="t('common.cancel')"
         severity="secondary"
         text
         :disabled="submitting"
         @click="close"
       />
       <Button
-        label="Sposta"
+        :label="t('books.move.submit')"
         icon="pi pi-arrow-right"
         :loading="submitting"
         :disabled="!targetShelfId || bookIds.length === 0"

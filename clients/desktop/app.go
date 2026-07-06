@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -93,6 +94,11 @@ func (a *App) startup(ctx context.Context) {
 	a.id = id
 	a.client = cli
 	a.wireAuthHooks()
+	// Backup automatico della libreria locale (roadmap 1.2): best-effort,
+	// mai bloccante per l'avvio.
+	if id.Local {
+		go a.maybeAutoBackup()
+	}
 }
 
 // wireAuthHooks collega il refresh JWT automatico e l'evento di
@@ -1104,3 +1110,261 @@ func isHTTPNotFound(err error) bool {
 		strings.Contains(strings.ToLower(msg), "not found")
 }
 
+
+// --- Import/Export (roadmap 1.1) --------------------------------------------
+
+// PickedFile e' il risultato del file picker nativo per l'import.
+type PickedFile struct {
+	Name    string `json:"name"`
+	Content string `json:"content"`
+}
+
+// PickImportFile apre il dialog nativo e ritorna nome+contenuto del file
+// scelto (CSV/TSV). Name vuoto = utente ha annullato.
+func (a *App) PickImportFile() (PickedFile, error) {
+	path, err := wailsruntime.OpenFileDialog(a.ctx, wailsruntime.OpenDialogOptions{
+		Title: "Seleziona il file da importare",
+		Filters: []wailsruntime.FileFilter{
+			{DisplayName: "CSV / TSV", Pattern: "*.csv;*.tsv;*.txt"},
+			{DisplayName: "Tutti i file", Pattern: "*.*"},
+		},
+	})
+	if err != nil {
+		return PickedFile{}, err
+	}
+	if path == "" {
+		return PickedFile{}, nil
+	}
+	// ponytail: 32 MB cap, stesso limite del server.
+	fi, err := os.Stat(path)
+	if err != nil {
+		return PickedFile{}, err
+	}
+	if fi.Size() > 32<<20 {
+		return PickedFile{}, errors.New("file troppo grande (max 32 MB)")
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return PickedFile{}, err
+	}
+	return PickedFile{Name: filepath.Base(path), Content: string(data)}, nil
+}
+
+// SaveExportFile apre il dialog di salvataggio e scrive content. Ritorna il
+// path scelto, o "" se l'utente ha annullato.
+func (a *App) SaveExportFile(defaultName, content string) (string, error) {
+	path, err := wailsruntime.SaveFileDialog(a.ctx, wailsruntime.SaveDialogOptions{
+		Title:           "Salva export",
+		DefaultFilename: defaultName,
+	})
+	if err != nil {
+		return "", err
+	}
+	if path == "" {
+		return "", nil
+	}
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		return "", err
+	}
+	return path, nil
+}
+
+// --- Backup automatico locale (roadmap 1.2) ----------------------------------
+
+// BackupConfig governa il backup automatico della libreria locale.
+// Vive in local-server/backup-config.json.
+type BackupConfig struct {
+	Enabled   bool  `json:"enabled"`
+	EveryDays int   `json:"every_days"`
+	LastAt    int64 `json:"last_at"` // unix; 0 = mai fatto
+}
+
+// BackupEntry descrive un file di backup su disco per la UI.
+type BackupEntry struct {
+	Name    string `json:"name"`
+	Size    int64  `json:"size"`
+	ModTime int64  `json:"mod_time"`
+}
+
+const backupKeep = 5
+
+func backupConfigPath() (string, error) {
+	dir, err := session.LocalServerDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, "backup-config.json"), nil
+}
+
+func backupsDir() (string, error) {
+	dir, err := session.LocalServerDir()
+	if err != nil {
+		return "", err
+	}
+	d := filepath.Join(dir, "backups")
+	return d, os.MkdirAll(d, 0o700)
+}
+
+// GetBackupConfig ritorna la config corrente (default: attivo, ogni 3 giorni).
+func (a *App) GetBackupConfig() (BackupConfig, error) {
+	cfg := BackupConfig{Enabled: true, EveryDays: 3}
+	p, err := backupConfigPath()
+	if err != nil {
+		return cfg, err
+	}
+	data, err := os.ReadFile(p)
+	if err != nil {
+		return cfg, nil // mai salvata: default
+	}
+	_ = json.Unmarshal(data, &cfg)
+	if cfg.EveryDays <= 0 {
+		cfg.EveryDays = 3
+	}
+	return cfg, nil
+}
+
+// SetBackupConfig persiste la config (preservando LastAt già registrato).
+func (a *App) SetBackupConfig(cfg BackupConfig) error {
+	cur, _ := a.GetBackupConfig()
+	cfg.LastAt = cur.LastAt
+	if cfg.EveryDays <= 0 {
+		cfg.EveryDays = 3
+	}
+	p, err := backupConfigPath()
+	if err != nil {
+		return err
+	}
+	data, _ := json.MarshalIndent(cfg, "", "  ")
+	return os.WriteFile(p, data, 0o600)
+}
+
+// ListLocalBackups elenca i backup automatici, dal più recente.
+func (a *App) ListLocalBackups() ([]BackupEntry, error) {
+	dir, err := backupsDir()
+	if err != nil {
+		return nil, err
+	}
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+	out := []BackupEntry{}
+	for _, e := range entries {
+		if e.IsDir() || !strings.HasSuffix(e.Name(), ".json") {
+			continue
+		}
+		fi, err := e.Info()
+		if err != nil {
+			continue
+		}
+		out = append(out, BackupEntry{Name: e.Name(), Size: fi.Size(), ModTime: fi.ModTime().Unix()})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].ModTime > out[j].ModTime })
+	return out, nil
+}
+
+// RunLocalBackup esegue subito un backup automatico (usato anche dalla UI
+// per il bottone in modalità locale) e applica la rotazione.
+func (a *App) RunLocalBackup() (BackupEntry, error) {
+	raw, err := a.ApiRequest("POST", "/api/v1/backup", "")
+	if err != nil {
+		return BackupEntry{}, err
+	}
+	dir, err := backupsDir()
+	if err != nil {
+		return BackupEntry{}, err
+	}
+	name := "bookeeper-backup-" + time.Now().Format("20060102-150405") + ".json"
+	path := filepath.Join(dir, name)
+	if err := os.WriteFile(path, []byte(raw), 0o600); err != nil {
+		return BackupEntry{}, err
+	}
+	// Rotazione: tieni gli ultimi backupKeep.
+	if list, err := a.ListLocalBackups(); err == nil && len(list) > backupKeep {
+		for _, old := range list[backupKeep:] {
+			_ = os.Remove(filepath.Join(dir, old.Name))
+		}
+	}
+	// Registra LastAt.
+	if cfg, err := a.GetBackupConfig(); err == nil {
+		cfg.LastAt = time.Now().Unix()
+		if p, err := backupConfigPath(); err == nil {
+			data, _ := json.MarshalIndent(cfg, "", "  ")
+			_ = os.WriteFile(p, data, 0o600)
+		}
+	}
+	fi, _ := os.Stat(path)
+	var size int64
+	if fi != nil {
+		size = fi.Size()
+	}
+	return BackupEntry{Name: name, Size: size, ModTime: time.Now().Unix()}, nil
+}
+
+// maybeAutoBackup gira in background all'avvio in modalità locale: se il
+// backup automatico è attivo ed è passato l'intervallo, ne fa uno.
+func (a *App) maybeAutoBackup() {
+	cfg, err := a.GetBackupConfig()
+	if err != nil || !cfg.Enabled {
+		return
+	}
+	if time.Since(time.Unix(cfg.LastAt, 0)) < time.Duration(cfg.EveryDays)*24*time.Hour {
+		return
+	}
+	// Il server locale può metterci un attimo ad accettare richieste.
+	time.Sleep(2 * time.Second)
+	if _, err := a.RunLocalBackup(); err != nil {
+		fmt.Fprintln(os.Stderr, "[backup] auto backup failed:", err)
+	}
+}
+
+// --- Etichette segnatura (PDF) ----------------------------------------------
+
+// SaveLabelsReq: gli id dei libri per cui generare le etichette.
+type SaveLabelsReq struct {
+	BookIDs []string `json:"book_ids"`
+}
+
+// SaveLabelsResult: esito con path scelto (vuoto = annullato) e conteggio
+// di libri saltati perché privi di numero progressivo.
+type SaveLabelsResult struct {
+	Path    string `json:"path"`
+	Skipped int    `json:"skipped"`
+	Count   int    `json:"count"`
+}
+
+// SaveLabelsPdf chiama POST /api/v1/labels/pdf, salva il PDF via dialog
+// nativo e ritorna il path scelto. Il PDF è binario: usa *[]byte come out.
+func (a *App) SaveLabelsPdf(req SaveLabelsReq) (SaveLabelsResult, error) {
+	a.mu.RLock()
+	cli := a.client
+	a.mu.RUnlock()
+	if cli == nil {
+		return SaveLabelsResult{}, errors.New("no session")
+	}
+	if len(req.BookIDs) == 0 {
+		return SaveLabelsResult{}, errors.New("nessun libro selezionato")
+	}
+	var pdf []byte
+	if err := cli.Do("POST", "/api/v1/labels/pdf",
+		map[string]any{"book_ids": req.BookIDs}, &pdf); err != nil {
+		return SaveLabelsResult{}, err
+	}
+	path, err := wailsruntime.SaveFileDialog(a.ctx, wailsruntime.SaveDialogOptions{
+		Title:           "Salva etichette PDF",
+		DefaultFilename: "bookeeper-etichette.pdf",
+		Filters: []wailsruntime.FileFilter{
+			{DisplayName: "PDF", Pattern: "*.pdf"},
+		},
+	})
+	if err != nil {
+		return SaveLabelsResult{}, err
+	}
+	if path == "" {
+		return SaveLabelsResult{}, nil // annullato
+	}
+	if err := os.WriteFile(path, pdf, 0o644); err != nil {
+		return SaveLabelsResult{}, err
+	}
+	return SaveLabelsResult{Path: path, Count: len(req.BookIDs)}, nil
+}

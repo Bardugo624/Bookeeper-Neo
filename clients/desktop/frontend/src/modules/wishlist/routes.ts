@@ -5,6 +5,6 @@ export const wishlistRoutes: RouteRecordRaw[] = [
     path: 'wishlist',
     name: 'wishlist',
     component: () => import('./views/WishlistView.vue'),
-    meta: { title: 'Wishlist' },
+    meta: { title: 'nav.wishlist' },
   },
 ];

@@ -26,6 +26,10 @@ export function GetAppInfo() {
   return window['go']['main']['App']['GetAppInfo']();
 }
 
+export function GetBackupConfig() {
+  return window['go']['main']['App']['GetBackupConfig']();
+}
+
 export function GetLocalAdminPassword() {
   return window['go']['main']['App']['GetLocalAdminPassword']();
 }
@@ -36,6 +40,10 @@ export function GetSession() {
 
 export function InstallUpdate() {
   return window['go']['main']['App']['InstallUpdate']();
+}
+
+export function ListLocalBackups() {
+  return window['go']['main']['App']['ListLocalBackups']();
 }
 
 export function Login(arg1) {
@@ -54,12 +62,32 @@ export function LookupMetadata(arg1, arg2) {
   return window['go']['main']['App']['LookupMetadata'](arg1, arg2);
 }
 
+export function PickImportFile() {
+  return window['go']['main']['App']['PickImportFile']();
+}
+
 export function RecoverInvite(arg1) {
   return window['go']['main']['App']['RecoverInvite'](arg1);
 }
 
 export function ReloadTrust(arg1) {
   return window['go']['main']['App']['ReloadTrust'](arg1);
+}
+
+export function RunLocalBackup() {
+  return window['go']['main']['App']['RunLocalBackup']();
+}
+
+export function SaveExportFile(arg1, arg2) {
+  return window['go']['main']['App']['SaveExportFile'](arg1, arg2);
+}
+
+export function SaveLabelsPdf(arg1) {
+  return window['go']['main']['App']['SaveLabelsPdf'](arg1);
+}
+
+export function SetBackupConfig(arg1) {
+  return window['go']['main']['App']['SetBackupConfig'](arg1);
 }
 
 export function SetupLocal(arg1) {

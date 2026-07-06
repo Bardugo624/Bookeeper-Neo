@@ -8,9 +8,12 @@
  * per una feature usata raramente.
  */
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
 import type { main } from '../../wailsjs/go/models';
+
+const { t, locale } = useI18n();
 
 const props = defineProps<{
     visible: boolean;
@@ -117,7 +120,7 @@ const formattedDate = computed(() => {
     const d = props.info?.release_date;
     if (!d) return '';
     try {
-        return new Date(d).toLocaleDateString('it-IT', {
+        return new Date(d).toLocaleDateString(locale.value === 'en' ? 'en-US' : 'it-IT', {
             day: 'numeric', month: 'long', year: 'numeric',
         });
     } catch { return d; }
@@ -134,7 +137,7 @@ const formattedDate = computed(() => {
                     <i class="pi pi-sparkles"></i>
                 </div>
                 <div class="changelog__header-text">
-                    <span class="changelog__eyebrow">Novità disponibili</span>
+                    <span class="changelog__eyebrow">{{ t('settings.changelog.eyebrow') }}</span>
                     <h2 class="changelog__title">Bookeeper {{ props.info?.latest ?? '' }}</h2>
                 </div>
             </div>
@@ -143,15 +146,15 @@ const formattedDate = computed(() => {
         <div class="changelog">
             <p v-if="formattedDate" class="changelog__meta">
                 <i class="pi pi-calendar" aria-hidden="true"></i>
-                Pubblicato il {{ formattedDate }}
+                {{ t('settings.changelog.publishedOn', { date: formattedDate }) }}
             </p>
             <div class="changelog__body" v-html="renderedNotes"></div>
         </div>
 
         <template #footer>
-            <Button text label="Più tardi" severity="secondary"
+            <Button text :label="t('settings.changelog.later')" severity="secondary"
                     @click="close(false)" />
-            <Button label="Scarica" icon="pi pi-download"
+            <Button :label="t('settings.changelog.download')" icon="pi pi-download"
                     @click="emit('download')" />
         </template>
     </Dialog>

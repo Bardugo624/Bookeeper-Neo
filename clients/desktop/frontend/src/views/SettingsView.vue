@@ -12,7 +12,7 @@
  * distruttiva separata e confermata.
  */
 import { computed, onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import Tabs from 'primevue/tabs';
 import TabList from 'primevue/tablist';
 import Tab from 'primevue/tab';
@@ -25,8 +25,11 @@ import Dialog from 'primevue/dialog';
 import Message from 'primevue/message';
 import Skeleton from 'primevue/skeleton';
 import ToggleSwitch from 'primevue/toggleswitch';
+import SelectButton from 'primevue/selectbutton';
 import { useToast } from 'primevue/usetoast';
 import { useConfirm } from 'primevue/useconfirm';
+import { useI18n } from 'vue-i18n';
+import { readLocaleMode, setLocaleMode, type LocaleMode } from '@/i18n';
 import { useAuthStore } from '@/stores/auth';
 import { useCoverPrefsStore } from '@/stores/coverPrefs';
 import { cacheStats, clearCovers } from '@/lib/coverCache';
@@ -34,14 +37,38 @@ import { tenantEndpoints, type TenantInfo } from '@/lib/api/endpoints/tenant';
 import { keystore } from '@/lib/keystore';
 import { useUpdater } from '@/composables/useUpdater';
 import UpdateChangelogDialog from '@/layouts/UpdateChangelogDialog.vue';
+import ImportExportPanel from '@/views/settings/ImportExportPanel.vue';
+import BackupPanel from '@/views/settings/BackupPanel.vue';
 import { GetAppInfo } from '../../wailsjs/go/main/App';
 import type { main } from '../../wailsjs/go/models';
 
 const auth = useAuthStore();
 const coverPrefs = useCoverPrefsStore();
 const router = useRouter();
+const route = useRoute();
+// Deep-link a un tab specifico (es. /settings?tab=data dall'onboarding).
+const VALID_TABS = ['account', 'tenant', 'covers', 'data', 'info'];
+const initialTab = VALID_TABS.includes(String(route.query.tab)) ? String(route.query.tab) : 'account';
 const toast = useToast();
 const confirm = useConfirm();
+const { t, locale } = useI18n();
+
+// ---------- Lingua ----------
+// v-model diretto sulla modalità persistita: il set applica subito la
+// lingua (vedi i18n/setLocaleMode), nessun riavvio.
+const localeModeRef = ref<LocaleMode>(readLocaleMode());
+const localeMode = computed<LocaleMode>({
+    get: () => localeModeRef.value,
+    set: (m) => {
+        localeModeRef.value = m;
+        setLocaleMode(m);
+    },
+});
+const localeOptions = computed(() => [
+    { label: t('settings.language.it'), value: 'it' as LocaleMode },
+    { label: t('settings.language.en'), value: 'en' as LocaleMode },
+    { label: t('settings.language.system'), value: 'system' as LocaleMode },
+]);
 
 // ---------- Tenant tab ----------
 const tenant = ref<TenantInfo | null>(null);
@@ -55,7 +82,7 @@ async function loadTenant() {
     try {
         tenant.value = await tenantEndpoints.get();
     } catch (e) {
-        tenantError.value = e instanceof Error ? e.message : 'Errore caricamento tenant';
+        tenantError.value = e instanceof Error ? e.message : t('settings.tenant.tenantErrorFallback');
     } finally {
         tenantLoading.value = false;
     }
@@ -75,15 +102,15 @@ const fingerprintShort = computed(() => {
 
 function fmtDate(unix: number): string {
     if (!unix) return '\u2014';
-    return new Date(unix * 1000).toLocaleString();
+    return new Date(unix * 1000).toLocaleString(locale.value === 'en' ? 'en-US' : 'it-IT');
 }
 
 async function copyText(text: string, label: string) {
     try {
         await navigator.clipboard.writeText(text);
-        toast.add({ severity: 'success', summary: 'Copiato', detail: label, life: 2000 });
+        toast.add({ severity: 'success', summary: t('settings.account.copiedOk'), detail: label, life: 2000 });
     } catch {
-        toast.add({ severity: 'warn', summary: 'Copia non riuscita', life: 2500 });
+        toast.add({ severity: 'warn', summary: t('settings.account.copyFailed'), life: 2500 });
     }
 }
 
@@ -106,7 +133,7 @@ async function openRotate() {
 async function rotateInvite() {
     rotateError.value = null;
     if (rotatePassword.value.length < 12) {
-        rotateError.value = 'La password admin deve avere almeno 12 caratteri.';
+        rotateError.value = t('settings.tenant.adminPwdShort');
         return;
     }
     rotating.value = true;
@@ -117,12 +144,12 @@ async function rotateInvite() {
         rotateOpen.value = false;
         toast.add({
             severity: 'success',
-            summary: 'Invite code rigenerato',
-            detail: 'Aggiorna i dispositivi che dovranno fare pairing.',
+            summary: t('settings.tenant.inviteRegeneratedOk'),
+            detail: t('settings.tenant.inviteRegeneratedDetail'),
             life: 4000,
         });
     } catch (e) {
-        rotateError.value = e instanceof Error ? e.message : 'Errore rigenerazione';
+        rotateError.value = e instanceof Error ? e.message : t('settings.tenant.regenerateFailed');
     } finally {
         rotating.value = false;
         rotatePassword.value = '';
@@ -148,7 +175,7 @@ function openReload() {
 async function doReloadTrust() {
     reloadError.value = null;
     if (reloadPassword.value.length < 12) {
-        reloadError.value = 'Password admin almeno 12 caratteri.';
+        reloadError.value = t('settings.tenant.reloadPwdShort');
         return;
     }
     reloading.value = true;
@@ -160,8 +187,8 @@ async function doReloadTrust() {
         reloadOpen.value = false;
         toast.add({
             severity: 'success',
-            summary: 'Trust pool ricaricato',
-            detail: 'Caddy ha riletto i certificati. Ritenta il login.',
+            summary: t('settings.tenant.reloadOk'),
+            detail: t('settings.tenant.reloadOkDetail'),
             life: 4000,
         });
     } catch (e) {
@@ -181,8 +208,8 @@ async function doLogout() {
         await auth.logout();
         toast.add({
             severity: 'info',
-            summary: 'Logout effettuato',
-            detail: 'Il certificato e stato mantenuto: potrai rientrare con email + password.',
+            summary: t('settings.account.logoutOk'),
+            detail: t('settings.account.logoutOkDetail'),
             life: 3000,
         });
         router.push({ path: '/login', query: { loggedout: '1' } });
@@ -193,20 +220,18 @@ async function doLogout() {
 
 function confirmWipe() {
     confirm.require({
-        header: 'Rimuovere questo dispositivo?',
-        message:
-            'Verranno cancellati certificato, chiave privata e token di sessione. ' +
-            'Per rientrare dovrai ri-fare il pairing con un nuovo invite code.',
+        header: t('settings.account.wipeHeader'),
+        message: t('settings.account.wipeMessage'),
         icon: 'pi pi-exclamation-triangle',
-        acceptLabel: 'Rimuovi',
-        rejectLabel: 'Annulla',
+        acceptLabel: t('settings.account.wipeAccept'),
+        rejectLabel: t('common.cancel'),
         acceptProps: { severity: 'danger', icon: 'pi pi-trash' },
         rejectProps: { severity: 'secondary', outlined: true },
         accept: async () => {
             await auth.wipe();
             toast.add({
                 severity: 'success',
-                summary: 'Dispositivo rimosso',
+                summary: t('settings.account.wipedOk'),
                 life: 2500,
             });
             router.push('/login');
@@ -235,7 +260,7 @@ async function doClearCovers() {
         await loadCoverStats();
         toast.add({
             severity: 'success',
-            summary: 'Cache copertine svuotata',
+            summary: t('settings.covers.clearedOk'),
             life: 2500,
         });
     } finally {
@@ -264,9 +289,9 @@ async function loadAppInfo() {
 
 const formattedBuildDate = computed(() => {
     const d = appInfo.value?.build_date;
-    if (!d) return 'sviluppo locale';
+    if (!d) return t('settings.info.devBuild');
     try {
-        return new Date(d).toLocaleString('it-IT', {
+        return new Date(d).toLocaleString(locale.value === 'en' ? 'en-US' : 'it-IT', {
             dateStyle: 'medium', timeStyle: 'short',
         });
     } catch { return d; }
@@ -274,17 +299,17 @@ const formattedBuildDate = computed(() => {
 
 // "Ultimo controllo": legge il timestamp persistito da useUpdater.
 const lastCheckText = computed(() => {
-    if (updater.state.checking) return 'controllo in corso\u2026';
+    if (updater.state.checking) return t('settings.info.lastCheckNow');
     const raw = localStorage.getItem('bookeeper:lastUpdateCheck');
-    if (!raw) return 'mai';
-    const t = Number(raw);
-    if (!isFinite(t) || t <= 0) return 'mai';
-    const diffMin = (Date.now() - t) / 60000;
-    if (diffMin < 1) return 'pochi secondi fa';
-    if (diffMin < 60) return `${Math.round(diffMin)} minuti fa`;
+    if (!raw) return t('settings.info.lastCheckNever');
+    const ts = Number(raw);
+    if (!isFinite(ts) || ts <= 0) return t('settings.info.lastCheckNever');
+    const diffMin = (Date.now() - ts) / 60000;
+    if (diffMin < 1) return t('settings.info.lastCheckSecondsAgo');
+    if (diffMin < 60) return t('settings.info.lastCheckMinutesAgo', { n: Math.round(diffMin) });
     const diffH = diffMin / 60;
-    if (diffH < 24) return `${Math.round(diffH)} ore fa`;
-    return new Date(t).toLocaleString('it-IT', {
+    if (diffH < 24) return t('settings.info.lastCheckHoursAgo', { n: Math.round(diffH) });
+    return new Date(ts).toLocaleString(locale.value === 'en' ? 'en-US' : 'it-IT', {
         dateStyle: 'medium', timeStyle: 'short',
     });
 });
@@ -294,8 +319,8 @@ async function checkUpdatesNow() {
     if (!info) {
         toast.add({
             severity: 'error',
-            summary: 'Controllo non riuscito',
-            detail: updater.state.error || 'Verifica la connessione e riprova.',
+            summary: t('settings.info.checkFailed'),
+            detail: updater.state.error || t('settings.info.checkFailedDetail'),
             life: 4000,
         });
         return;
@@ -303,8 +328,8 @@ async function checkUpdatesNow() {
     if (!info.available) {
         toast.add({
             severity: 'success',
-            summary: 'Sei aggiornato',
-            detail: `Stai usando l'ultima versione (${info.current}).`,
+            summary: t('settings.info.upToDate'),
+            detail: t('settings.info.upToDateDetail', { v: info.current }),
             life: 3000,
         });
     }
@@ -314,59 +339,75 @@ async function checkUpdatesNow() {
 <template>
     <div class="settings">
         <header class="settings__header">
-            <h1 class="settings__title">Impostazioni</h1>
+            <h1 class="settings__title">{{ t('settings.header.title') }}</h1>
             <p class="settings__subtitle">
-                Gestione account, tenant, copertine e sicurezza del dispositivo.
+                {{ t('settings.header.subtitle') }}
             </p>
         </header>
 
-        <Tabs value="account" class="settings__tabs">
+        <Tabs :value="initialTab" class="settings__tabs">
             <TabList>
-                <Tab value="account"><i class="pi pi-user" aria-hidden="true" />&nbsp;Account</Tab>
-                <Tab value="tenant"><i class="pi pi-building" aria-hidden="true" />&nbsp;Tenant</Tab>
-                <Tab value="covers"><i class="pi pi-image" aria-hidden="true" />&nbsp;Copertine</Tab>
-                <Tab value="info"><i class="pi pi-info-circle" aria-hidden="true" />&nbsp;Info</Tab>
+                <Tab value="account"><i class="pi pi-user" aria-hidden="true" />&nbsp;{{ t('settings.tabs.account') }}</Tab>
+                <Tab value="tenant"><i class="pi pi-building" aria-hidden="true" />&nbsp;{{ t('settings.tabs.tenant') }}</Tab>
+                <Tab value="covers"><i class="pi pi-image" aria-hidden="true" />&nbsp;{{ t('settings.tabs.covers') }}</Tab>
+                <Tab value="data"><i class="pi pi-database" aria-hidden="true" />&nbsp;{{ t('settings.tabs.data') }}</Tab>
+                <Tab value="info"><i class="pi pi-info-circle" aria-hidden="true" />&nbsp;{{ t('settings.tabs.info') }}</Tab>
             </TabList>
 
             <TabPanels>
                 <!-- ===================== ACCOUNT ===================== -->
                 <TabPanel value="account">
                     <section class="settings__card" aria-labelledby="acc-h">
-                        <h2 id="acc-h" class="settings__card-title">Sessione corrente</h2>
+                        <h2 id="acc-h" class="settings__card-title">{{ t('settings.account.sessionTitle') }}</h2>
                         <dl class="settings__kv">
-                            <dt>Email</dt>
+                            <dt>{{ t('settings.account.email') }}</dt>
                             <dd>{{ auth.session.email || '\u2014' }}</dd>
 
-                            <dt>Server URL</dt>
+                            <dt>{{ t('settings.account.serverUrl') }}</dt>
                             <dd>
                                 <code>{{ auth.session.server_url || '\u2014' }}</code>
                             </dd>
 
-                            <dt>Device ID</dt>
+                            <dt>{{ t('settings.account.deviceId') }}</dt>
                             <dd>
                                 <code>{{ auth.session.device_id || '\u2014' }}</code>
                                 <Button
                                     v-if="auth.session.device_id"
                                     text rounded size="small"
                                     icon="pi pi-copy"
-                                    aria-label="Copia device ID"
-                                    @click="copyText(auth.session.device_id, 'device ID')"
+                                    :aria-label="t('settings.account.copyDeviceIdAria')"
+                                    @click="copyText(auth.session.device_id, t('settings.account.copyDeviceIdLabel'))"
                                 />
                             </dd>
 
-                            <dt>User ID</dt>
+                            <dt>{{ t('settings.account.userId') }}</dt>
                             <dd><code>{{ auth.session.user_id || '\u2014' }}</code></dd>
 
-                            <dt>Tenant ID</dt>
+                            <dt>{{ t('settings.account.tenantId') }}</dt>
                             <dd><code>{{ auth.session.tenant_id || '\u2014' }}</code></dd>
                         </dl>
                     </section>
 
+                    <section class="settings__card" aria-labelledby="acc-lang-h">
+                        <h2 id="acc-lang-h" class="settings__card-title">{{ t('settings.language.title') }}</h2>
+                        <div class="settings__actions">
+                            <SelectButton
+                                v-model="localeMode"
+                                :options="localeOptions"
+                                option-label="label"
+                                option-value="value"
+                                :allow-empty="false"
+                                aria-labelledby="acc-lang-h"
+                            />
+                            <p class="settings__hint">{{ t('settings.language.hint') }}</p>
+                        </div>
+                    </section>
+
                     <section class="settings__card" aria-labelledby="acc-actions-h">
-                        <h2 id="acc-actions-h" class="settings__card-title">Azioni</h2>
+                        <h2 id="acc-actions-h" class="settings__card-title">{{ t('settings.account.actionsTitle') }}</h2>
                         <div class="settings__actions">
                             <Button
-                                label="Logout"
+                                :label="t('settings.account.logout')"
                                 icon="pi pi-sign-out"
                                 severity="secondary"
                                 outlined
@@ -374,24 +415,22 @@ async function checkUpdatesNow() {
                                 @click="doLogout"
                             />
                             <p class="settings__hint">
-                                Mantiene il certificato di questo dispositivo: potrai rientrare con email + password,
-                                senza nuovo pairing.
+                                {{ t('settings.account.logoutHint') }}
                             </p>
                         </div>
                     </section>
 
                     <section class="settings__card settings__card--danger" aria-labelledby="acc-danger-h">
-                        <h2 id="acc-danger-h" class="settings__card-title">Zona pericolosa</h2>
+                        <h2 id="acc-danger-h" class="settings__card-title">{{ t('settings.account.dangerTitle') }}</h2>
                         <div class="settings__actions">
                             <Button
-                                label="Rimuovi questo dispositivo"
+                                :label="t('settings.account.removeDevice')"
                                 icon="pi pi-trash"
                                 severity="danger"
                                 @click="confirmWipe"
                             />
                             <p class="settings__hint">
-                                Cancella certificato, chiave privata e token. Richiede nuovo pairing
-                                (con invite code) per rientrare.
+                                {{ t('settings.account.removeDeviceHint') }}
                             </p>
                         </div>
                     </section>
@@ -404,7 +443,7 @@ async function checkUpdatesNow() {
                     </Message>
 
                     <section class="settings__card" aria-labelledby="ten-h">
-                        <h2 id="ten-h" class="settings__card-title">Tenant</h2>
+                        <h2 id="ten-h" class="settings__card-title">{{ t('settings.tenant.title') }}</h2>
 
                         <template v-if="tenantLoading && !tenant">
                             <Skeleton width="60%" height="1.25rem" class="settings__skl" />
@@ -413,46 +452,45 @@ async function checkUpdatesNow() {
                         </template>
 
                         <dl v-else-if="tenant" class="settings__kv">
-                            <dt>Nome</dt>
+                            <dt>{{ t('settings.tenant.name') }}</dt>
                             <dd>{{ tenant.name }}</dd>
 
-                            <dt>ID</dt>
+                            <dt>{{ t('settings.tenant.id') }}</dt>
                             <dd><code>{{ tenant.id }}</code></dd>
 
-                            <dt>Creato il</dt>
+                            <dt>{{ t('settings.tenant.createdAt') }}</dt>
                             <dd>{{ fmtDate(tenant.created_at) }}</dd>
 
-                            <dt>Sei owner</dt>
+                            <dt>{{ t('settings.tenant.isOwner') }}</dt>
                             <dd>
                                 <span v-if="tenant.is_owner" class="settings__badge settings__badge--ok">
-                                    <i class="pi pi-check" aria-hidden="true" />&nbsp;Si
+                                    <i class="pi pi-check" aria-hidden="true" />&nbsp;{{ t('settings.tenant.yes') }}
                                 </span>
-                                <span v-else class="settings__badge">No</span>
+                                <span v-else class="settings__badge">{{ t('settings.tenant.no') }}</span>
                             </dd>
 
                             <template v-if="tenant.owner_email">
-                                <dt>Owner email</dt>
+                                <dt>{{ t('settings.tenant.ownerEmail') }}</dt>
                                 <dd>{{ tenant.owner_email }}</dd>
                             </template>
 
-                            <dt>CA fingerprint</dt>
+                            <dt>{{ t('settings.tenant.caFingerprint') }}</dt>
                             <dd>
                                 <code :title="tenant.ca_fingerprint">{{ fingerprintShort }}</code>
                                 <Button
                                     text rounded size="small"
                                     icon="pi pi-copy"
-                                    aria-label="Copia fingerprint CA"
-                                    @click="copyText(tenant.ca_fingerprint, 'fingerprint CA')"
+                                    :aria-label="t('settings.tenant.copyFingerprintAria')"
+                                    @click="copyText(tenant.ca_fingerprint, t('settings.account.copyFingerprintLabel'))"
                                 />
                             </dd>
                         </dl>
                     </section>
 
                     <section v-if="tenant" class="settings__card" aria-labelledby="ten-invite-h">
-                        <h2 id="ten-invite-h" class="settings__card-title">Codice invito</h2>
+                        <h2 id="ten-invite-h" class="settings__card-title">{{ t('settings.tenant.inviteTitle') }}</h2>
                         <p class="settings__hint">
-                            Serve, insieme alla password admin, per associare nuovi dispositivi
-                            (PC o mobile) a questo tenant.
+                            {{ t('settings.tenant.inviteHint') }}
                         </p>
 
                         <div class="settings__invite">
@@ -460,27 +498,26 @@ async function checkUpdatesNow() {
                             <Button
                                 text rounded
                                 :icon="inviteVisible ? 'pi pi-eye-slash' : 'pi pi-eye'"
-                                :aria-label="inviteVisible ? 'Nascondi codice' : 'Mostra codice'"
+                                :aria-label="inviteVisible ? t('settings.tenant.hideCode') : t('settings.tenant.showCode')"
                                 @click="inviteVisible = !inviteVisible"
                             />
                             <Button
                                 text rounded icon="pi pi-copy"
-                                aria-label="Copia codice invito"
-                                @click="copyText(tenant.invite_code, 'codice invito')"
+                                :aria-label="t('settings.tenant.copyInviteAria')"
+                                @click="copyText(tenant.invite_code, t('settings.account.copyInviteLabel'))"
                             />
                         </div>
 
                         <div v-if="tenant.is_owner" class="settings__actions" style="margin-top: 1rem;">
                             <Button
-                                label="Rigenera codice invito"
+                                :label="t('settings.tenant.regenerateInvite')"
                                 icon="pi pi-refresh"
                                 severity="warn"
                                 outlined
                                 @click="openRotate"
                             />
                             <p class="settings__hint">
-                                Il vecchio codice smettera di funzionare immediatamente.
-                                Richiede la password amministratore del tenant.
+                                {{ t('settings.tenant.regenerateInviteHint') }}
                             </p>
                         </div>
                     </section>
@@ -488,15 +525,13 @@ async function checkUpdatesNow() {
                     <!-- Solo deploy remoto: in modalità libreria locale non c'è
                          Caddy né trust pool (il server risponderebbe 503). -->
                     <section v-if="tenant && tenant.is_owner && !auth.session.local" class="settings__card" aria-labelledby="ten-trust-h">
-                        <h2 id="ten-trust-h" class="settings__card-title">Diagnostica mTLS</h2>
-                        <p class="settings__hint">
-                            Forza Caddy a ricaricare la trust pool. Da usare se dopo aver creato un tenant
-                            o associato un nuovo dispositivo le chiamate falliscono con <code>EOF</code>
-                            o errori TLS (significa che il reload automatico non e' andato a buon fine).
-                        </p>
+                        <h2 id="ten-trust-h" class="settings__card-title">{{ t('settings.tenant.mtlsTitle') }}</h2>
+                        <i18n-t keypath="settings.tenant.mtlsHint" tag="p" class="settings__hint">
+                            <template #eof><code>EOF</code></template>
+                        </i18n-t>
                         <div class="settings__actions" style="margin-top: 0.75rem;">
                             <Button
-                                label="Forza reload trust su Caddy"
+                                :label="t('settings.tenant.forceReload')"
                                 icon="pi pi-bolt"
                                 severity="secondary"
                                 outlined
@@ -509,12 +544,9 @@ async function checkUpdatesNow() {
                 <!-- ===================== COVERS ===================== -->
                 <TabPanel value="covers">
                     <section class="settings__card" aria-labelledby="cov-h">
-                        <h2 id="cov-h" class="settings__card-title">Copertine da Google Libri</h2>
+                        <h2 id="cov-h" class="settings__card-title">{{ t('settings.covers.sourceTitle') }}</h2>
                         <p class="settings__hint">
-                            Quando attivo, l'app cerca automaticamente le copertine dei tuoi libri
-                            su Google Libri (per ISBN) e le salva in una cache locale di questo
-                            dispositivo. Nessuna copertina passa o viene salvata sul server: la
-                            cache vive solo qui dentro.
+                            {{ t('settings.covers.sourceHint') }}
                         </p>
 
                         <div class="settings__toggle-row">
@@ -524,20 +556,18 @@ async function checkUpdatesNow() {
                                 aria-describedby="cov-enabled-hint"
                             />
                             <label for="cov-enabled" class="settings__toggle-label">
-                                Scarica copertine automaticamente
+                                {{ t('settings.covers.autoDownload') }}
                             </label>
                         </div>
                         <p id="cov-enabled-hint" class="settings__hint" style="margin-top: 0.5rem;">
-                            Disattivando, l'app non contattera' piu' Google Libri e i libri
-                            mostreranno il placeholder editoriale. Le copertine gia' in cache
-                            restano disponibili finche' non svuoti la cache.
+                            {{ t('settings.covers.autoDownloadHint') }}
                         </p>
                     </section>
 
                     <section class="settings__card" aria-labelledby="cov-cache-h">
-                        <h2 id="cov-cache-h" class="settings__card-title">Cache locale</h2>
+                        <h2 id="cov-cache-h" class="settings__card-title">{{ t('settings.covers.cacheTitle') }}</h2>
                         <dl class="settings__kv">
-                            <dt>Copertine salvate</dt>
+                            <dt>{{ t('settings.covers.savedCovers') }}</dt>
                             <dd>
                                 <template v-if="coverStatsLoading">
                                     <Skeleton width="3rem" height="1rem" />
@@ -547,7 +577,7 @@ async function checkUpdatesNow() {
                         </dl>
                         <div class="settings__actions" style="margin-top: 0.75rem;">
                             <Button
-                                label="Aggiorna statistiche"
+                                :label="t('settings.covers.refreshStats')"
                                 icon="pi pi-refresh"
                                 severity="secondary"
                                 outlined
@@ -556,7 +586,7 @@ async function checkUpdatesNow() {
                                 @click="loadCoverStats"
                             />
                             <Button
-                                label="Svuota cache copertine"
+                                :label="t('settings.covers.clearCache')"
                                 icon="pi pi-trash"
                                 severity="danger"
                                 outlined
@@ -565,11 +595,16 @@ async function checkUpdatesNow() {
                                 @click="doClearCovers"
                             />
                             <p class="settings__hint">
-                                Dopo lo svuotamento, le copertine verranno riscaricate al
-                                bisogno (se l'opzione qui sopra e' attiva).
+                                {{ t('settings.covers.clearCacheHint') }}
                             </p>
                         </div>
                     </section>
+                </TabPanel>
+
+                <!-- ===================== DATI (import/export) ===================== -->
+                <TabPanel value="data">
+                    <ImportExportPanel />
+                    <BackupPanel />
                 </TabPanel>
 
                 <!-- ===================== INFO ===================== -->
@@ -580,9 +615,9 @@ async function checkUpdatesNow() {
                             <i class="pi pi-book"></i>
                         </div>
                         <div class="info-hero__body">
-                            <p class="info-hero__eyebrow">Bookeeper</p>
+                            <p class="info-hero__eyebrow">{{ t('settings.info.eyebrow') }}</p>
                             <h2 id="info-h" class="info-hero__version">
-                                Versione {{ appInfo?.version || '\u2014' }}
+                                {{ t('settings.info.version', { v: appInfo?.version || '\u2014' }) }}
                             </h2>
                             <p class="info-hero__meta">
                                 <span class="info-hero__chip">
@@ -590,14 +625,14 @@ async function checkUpdatesNow() {
                                     {{ appInfo?.channel || 'stable' }}
                                 </span>
                                 <span class="info-hero__dot" aria-hidden="true">·</span>
-                                <span>Build {{ formattedBuildDate }}</span>
+                                <span>{{ t('settings.info.buildLabel', { date: formattedBuildDate }) }}</span>
                             </p>
                         </div>
                     </section>
 
                     <!-- Stato aggiornamenti: brand, single primary action -->
                     <section class="settings__card" aria-labelledby="info-upd-h">
-                        <h2 id="info-upd-h" class="settings__card-title">Aggiornamenti</h2>
+                        <h2 id="info-upd-h" class="settings__card-title">{{ t('settings.info.updatesTitle') }}</h2>
 
                         <Message v-if="updater.state.error" severity="error" :closable="false" class="settings__alert">
                             {{ updater.state.error }}
@@ -615,31 +650,30 @@ async function checkUpdatesNow() {
                                 'pi-clock': !updater.state.info,
                             }" aria-hidden="true"></i>
                             <div class="update-state__text">
-                                <template v-if="updater.state.ready">
-                                    <strong>Bookeeper {{ updater.state.info?.latest }}</strong> è pronto da installare.
-                                </template>
-                                <template v-else-if="updater.state.downloading">
-                                    Sto scaricando <strong>Bookeeper {{ updater.state.info?.latest }}</strong>…
-                                </template>
-                                <template v-else-if="updater.state.available && updater.state.info">
-                                    <strong>Bookeeper {{ updater.state.info.latest }}</strong> è disponibile.
-                                </template>
+                                <i18n-t v-if="updater.state.ready" keypath="settings.info.readyMsg" tag="span">
+                                    <template #name><strong>Bookeeper {{ updater.state.info?.latest }}</strong></template>
+                                </i18n-t>
+                                <i18n-t v-else-if="updater.state.downloading" keypath="settings.info.downloadingMsg" tag="span">
+                                    <template #name><strong>Bookeeper {{ updater.state.info?.latest }}</strong></template>
+                                </i18n-t>
+                                <i18n-t v-else-if="updater.state.available && updater.state.info" keypath="settings.info.availableMsg" tag="span">
+                                    <template #name><strong>Bookeeper {{ updater.state.info.latest }}</strong></template>
+                                </i18n-t>
                                 <template v-else-if="updater.state.info">
-                                    Stai usando l'ultima versione disponibile.
+                                    {{ t('settings.info.upToDateMsg') }}
                                 </template>
                                 <template v-else>
-                                    Bookeeper controlla in automatico le novità all'avvio,
-                                    al massimo una volta al giorno.
+                                    {{ t('settings.info.idleMsg') }}
                                 </template>
                                 <span class="update-state__sub">
-                                    Ultimo controllo: {{ lastCheckText }}
+                                    {{ t('settings.info.lastCheck', { when: lastCheckText }) }}
                                 </span>
                             </div>
                         </div>
 
                         <div class="settings__actions" style="margin-top: 0.875rem;">
                             <Button
-                                label="Controlla ora"
+                                :label="t('settings.info.checkNow')"
                                 icon="pi pi-refresh"
                                 severity="secondary"
                                 outlined
@@ -648,7 +682,7 @@ async function checkUpdatesNow() {
                             />
                             <Button
                                 v-if="updater.state.available && updater.state.info"
-                                label="Vedi novità"
+                                :label="t('settings.info.seeChangelog')"
                                 icon="pi pi-book"
                                 severity="secondary"
                                 text
@@ -656,14 +690,14 @@ async function checkUpdatesNow() {
                             />
                             <Button
                                 v-if="updater.state.available && !updater.state.downloading && !updater.state.ready"
-                                label="Scarica aggiornamento"
+                                :label="t('settings.info.download')"
                                 icon="pi pi-download"
                                 :loading="updater.state.downloading"
                                 @click="updater.startDownload()"
                             />
                             <Button
                                 v-if="updater.state.ready"
-                                label="Installa e riavvia"
+                                :label="t('settings.info.installRestart')"
                                 icon="pi pi-refresh"
                                 @click="updater.installNow()"
                             />
@@ -683,16 +717,15 @@ async function checkUpdatesNow() {
         <Dialog
             v-model:visible="rotateOpen"
             modal
-            header="Rigenera codice invito"
+            :header="t('settings.dialogs.rotateHeader')"
             :style="{ width: 'min(420px, 92vw)' }"
             :closable="!rotating"
         >
             <div style="display: flex; flex-direction: column; gap: 0.75rem;">
                 <p style="margin: 0; font-size: 0.875rem;">
-                    Inserisci la password amministratore del tenant per generare un nuovo
-                    invite code. Il precedente sara revocato all'istante.
+                    {{ t('settings.dialogs.rotateIntro') }}
                 </p>
-                <label for="rotate-pwd" class="settings__label">Password admin</label>
+                <label for="rotate-pwd" class="settings__label">{{ t('settings.dialogs.adminPwdLabel') }}</label>
                 <Password
                     input-id="rotate-pwd"
                     v-model="rotatePassword"
@@ -710,14 +743,14 @@ async function checkUpdatesNow() {
             </div>
             <template #footer>
                 <Button
-                    label="Annulla"
+                    :label="t('common.cancel')"
                     severity="secondary"
                     text
                     :disabled="rotating"
                     @click="rotateOpen = false"
                 />
                 <Button
-                    label="Rigenera"
+                    :label="t('settings.dialogs.regenerate')"
                     icon="pi pi-refresh"
                     severity="warn"
                     :loading="rotating"
@@ -730,16 +763,15 @@ async function checkUpdatesNow() {
         <Dialog
             v-model:visible="reloadOpen"
             modal
-            header="Forza reload trust su Caddy"
+            :header="t('settings.dialogs.reloadHeader')"
             :style="{ width: 'min(460px, 92vw)' }"
             :closable="!reloading"
         >
             <div style="display: flex; flex-direction: column; gap: 0.75rem;">
                 <p style="margin: 0; font-size: 0.875rem;">
-                    Caddy rigenera la trust pool dal database e ricarica la sua configurazione.
-                    Nessun downtime per le connessioni in corso.
+                    {{ t('settings.dialogs.reloadIntro') }}
                 </p>
-                <label for="reload-boot" class="settings__label">URL bootstrap</label>
+                <label for="reload-boot" class="settings__label">{{ t('settings.dialogs.bootstrapUrlLabel') }}</label>
                 <InputText
                     id="reload-boot"
                     v-model="reloadBootstrapUrl"
@@ -748,10 +780,9 @@ async function checkUpdatesNow() {
                     :disabled="reloading"
                 />
                 <span class="settings__hint">
-                    Stesso host del Server URL se il bootstrap e' esposto pubblicamente,
-                    altrimenti l'host tailnet/VPN.
+                    {{ t('settings.dialogs.bootstrapUrlHint') }}
                 </span>
-                <label for="reload-pwd" class="settings__label">Password admin</label>
+                <label for="reload-pwd" class="settings__label">{{ t('settings.dialogs.adminPwdLabel') }}</label>
                 <Password
                     input-id="reload-pwd"
                     v-model="reloadPassword"
@@ -769,14 +800,14 @@ async function checkUpdatesNow() {
             </div>
             <template #footer>
                 <Button
-                    label="Annulla"
+                    :label="t('common.cancel')"
                     severity="secondary"
                     text
                     :disabled="reloading"
                     @click="reloadOpen = false"
                 />
                 <Button
-                    label="Ricarica"
+                    :label="t('settings.dialogs.reload')"
                     icon="pi pi-bolt"
                     :loading="reloading"
                     @click="doReloadTrust"

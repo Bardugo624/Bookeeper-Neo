@@ -9,6 +9,7 @@
  * inserimenti consecutivi (UX rule: progressive-disclosure + speed).
  */
 import { computed, nextTick, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import Select from 'primevue/select';
@@ -27,6 +28,11 @@ const emit = defineEmits<{
   (e: 'submit', input: WishlistInput): void;
 }>();
 
+const { t } = useI18n();
+const priorityKeys = ['low', 'medium', 'high'] as const;
+const priorityOptions = computed(() =>
+  WISHLIST_PRIORITIES.map((p) => ({ ...p, label: t(`wishlist.priority.${priorityKeys[p.value]}`) })),
+);
 const titleInput = ref<InstanceType<typeof InputText> | null>(null);
 const title = ref('');
 const isbn = ref('');
@@ -68,18 +74,18 @@ defineExpose({ reset });
   <form class="wquick" @submit.prevent="onSubmit">
     <div class="wquick__row">
       <div class="wquick__field wquick__field--grow">
-        <label for="wquick-title" class="wquick__label">Titolo</label>
+        <label for="wquick-title" class="wquick__label">{{ t('wishlist.quickAdd.title') }}</label>
         <InputText
           id="wquick-title"
           ref="titleInput"
           v-model="title"
-          placeholder="es. Le città invisibili — Italo Calvino"
+          :placeholder="t('wishlist.quickAdd.titlePlaceholder')"
           autocomplete="off"
           :invalid="title.length > 0 && title.trim().length === 0"
         />
       </div>
       <div class="wquick__field wquick__field--isbn">
-        <label for="wquick-isbn" class="wquick__label">ISBN</label>
+        <label for="wquick-isbn" class="wquick__label">{{ t('wishlist.quickAdd.isbn') }}</label>
         <InputText
           id="wquick-isbn"
           v-model="isbn"
@@ -89,11 +95,11 @@ defineExpose({ reset });
         />
       </div>
       <div class="wquick__field wquick__field--prio">
-        <label for="wquick-prio" class="wquick__label">Priorità</label>
+        <label for="wquick-prio" class="wquick__label">{{ t('wishlist.quickAdd.priority') }}</label>
         <Select
           id="wquick-prio"
           v-model="priority"
-          :options="WISHLIST_PRIORITIES"
+          :options="priorityOptions"
           option-label="label"
           option-value="value"
         >
@@ -109,17 +115,15 @@ defineExpose({ reset });
         <Button
           type="submit"
           icon="pi pi-plus"
-          label="Aggiungi"
+          :label="t('wishlist.quickAdd.add')"
           :disabled="!canSubmit"
           :loading="saving"
         />
       </div>
     </div>
-    <p class="wquick__hint">
-      <i class="pi pi-info-circle" aria-hidden="true" />
-      Premi <kbd>Invio</kbd> per aggiungere alla wishlist; modifica autori, link
-      e note dopo dall'elenco sotto.
-    </p>
+    <i18n-t keypath="wishlist.quickAdd.hint" tag="p" class="wquick__hint">
+      <template #kbd><kbd>Invio</kbd></template>
+    </i18n-t>
   </form>
 </template>
 

@@ -17,7 +17,8 @@ import (
 // "Settings → Tenant" del client desktop (visualizzazione invite_code,
 // rotazione invite_code, fingerprint del CA, info owner).
 type TenantHandlers struct {
-	DB *sql.DB
+	DB    *sql.DB
+	Audit *mw.Audit
 }
 
 type tenantInfoResp struct {

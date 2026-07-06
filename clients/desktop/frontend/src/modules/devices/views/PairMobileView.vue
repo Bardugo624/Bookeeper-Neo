@@ -31,6 +31,7 @@ import {
     watch,
 } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import QRCode from 'qrcode';
 import Button from 'primevue/button';
 import Message from 'primevue/message';
@@ -41,6 +42,7 @@ import { useAuthStore } from '@/stores/auth';
 
 const router = useRouter();
 const auth = useAuthStore();
+const { t } = useI18n();
 
 // Modalità "libreria locale": il server gira su 127.0.0.1, che il telefono
 // non può raggiungere. Il QR sarebbe un vicolo cieco: meglio dirlo chiaro
@@ -127,7 +129,7 @@ async function generate(): Promise<void> {
             qrDataUrl.value = '';
         } else {
             error.value =
-                e instanceof Error ? e.message : 'Impossibile generare il QR.';
+                e instanceof Error ? e.message : t('devices.pair.generateFailed');
             token.value = null;
             qrDataUrl.value = '';
         }
@@ -147,10 +149,10 @@ async function unlockCA(): Promise<void> {
         await generate();
     } catch (e) {
         if (e instanceof ApiError && e.status === 401) {
-            unlockError.value = 'Admin password non valida.';
+            unlockError.value = t('devices.pair.unlockInvalid');
         } else {
             unlockError.value =
-                e instanceof Error ? e.message : 'Sblocco fallito.';
+                e instanceof Error ? e.message : t('devices.pair.unlockFailed');
         }
     } finally {
         unlocking.value = false;
@@ -160,12 +162,12 @@ async function unlockCA(): Promise<void> {
 function startPolling(): void {
     stopPolling();
     pollInterval = setInterval(async () => {
-        const t = token.value;
-        if (!t || expired.value) return;
+        const tok = token.value;
+        if (!tok || expired.value) return;
         try {
-            const status = await devicesEndpoints.getPairingTokenStatus(t.token);
+            const status = await devicesEndpoints.getPairingTokenStatus(tok.token);
             if (status.used) {
-                pairedDeviceName.value = status.device_name ?? 'Dispositivo';
+                pairedDeviceName.value = status.device_name ?? t('devices.pair.pairedFallback');
                 stopPolling();
                 closeTimeout = setTimeout(() => {
                     router.replace({ name: 'devices' });
@@ -222,13 +224,13 @@ function back(): void {
                 icon="pi pi-arrow-left"
                 text
                 rounded
-                aria-label="Indietro"
+                :aria-label="t('devices.pair.backAria')"
                 @click="back"
             />
             <div>
-                <h1 class="pair__title">Abbina mobile</h1>
+                <h1 class="pair__title">{{ t('devices.pair.title') }}</h1>
                 <p class="pair__sub">
-                    Scansiona il QR con la fotocamera del telefono.
+                    {{ t('devices.pair.subtitle') }}
                 </p>
             </div>
         </header>
@@ -240,19 +242,15 @@ function back(): void {
                 <i class="pi pi-desktop"></i>
             </span>
             <div class="pair__local-body">
-                <h2 class="pair__local-title">Non disponibile con la libreria locale</h2>
-                <p class="pair__local-text">
-                    La tua libreria vive solo su questo computer
-                    (<code>127.0.0.1</code>): il telefono non può raggiungerla,
-                    quindi l'abbinamento mobile non funzionerebbe.
-                </p>
-                <p class="pair__local-text">
-                    Per usare Bookeeper dal telefono serve una libreria su un
-                    server raggiungibile in rete (NAS, Raspberry, VPS): vedi le
-                    guide in <code>deploy/</code> del progetto.
-                </p>
+                <h2 class="pair__local-title">{{ t('devices.pair.localTitle') }}</h2>
+                <i18n-t keypath="devices.pair.localText1" tag="p" class="pair__local-text">
+                    <template #host><code>127.0.0.1</code></template>
+                </i18n-t>
+                <i18n-t keypath="devices.pair.localText2" tag="p" class="pair__local-text">
+                    <template #dir><code>deploy/</code></template>
+                </i18n-t>
                 <Button
-                    label="Torna ai dispositivi"
+                    :label="t('devices.pair.backToDevices')"
                     icon="pi pi-arrow-left"
                     severity="secondary"
                     outlined
@@ -282,9 +280,9 @@ function back(): void {
                             />
                         </svg>
                     </div>
-                    <p class="qr-card__success-title">Dispositivo abbinato</p>
+                    <p class="qr-card__success-title">{{ t('devices.pair.pairedTitle') }}</p>
                     <p class="qr-card__success-name">{{ pairedDeviceName }}</p>
-                    <small>Apertura lista in corso…</small>
+                    <small>{{ t('devices.pair.pairedOpening') }}</small>
                 </div>
 
                 <!-- CA bloccata: prompt admin password (one-shot per tenant) -->
@@ -292,16 +290,14 @@ function back(): void {
                     <div class="qr-card__lock-icon" aria-hidden="true">
                         <i class="pi pi-lock" />
                     </div>
-                    <p class="qr-card__locked-title">Sblocca la CA del tenant</p>
+                    <p class="qr-card__locked-title">{{ t('devices.pair.unlockTitle') }}</p>
                     <p class="qr-card__locked-sub">
-                        Operazione necessaria una sola volta dopo l'aggiornamento
-                        del server. Da ora in poi qualsiasi utente potrà
-                        abbinare un dispositivo mobile senza inserire password.
+                        {{ t('devices.pair.unlockSub') }}
                     </p>
                     <form class="qr-card__locked-form" @submit.prevent="unlockCA">
                         <Password
                             v-model="adminPassword"
-                            placeholder="Admin password"
+                            :placeholder="t('devices.pair.unlockPlaceholder')"
                             :feedback="false"
                             toggle-mask
                             :disabled="unlocking"
@@ -310,7 +306,7 @@ function back(): void {
                         />
                         <Button
                             type="submit"
-                            label="Sblocca"
+                            :label="t('devices.pair.unlock')"
                             icon="pi pi-key"
                             :loading="unlocking"
                             :disabled="!adminPassword || unlocking"
@@ -332,7 +328,7 @@ function back(): void {
                         <img
                             v-if="qrDataUrl"
                             :src="qrDataUrl"
-                            alt="QR di abbinamento mobile"
+                            :alt="t('devices.pair.qrAlt')"
                             class="qr-card__qr"
                             :class="{ 'qr-card__qr--blur': expired }"
                             draggable="false"
@@ -342,9 +338,9 @@ function back(): void {
                         <!-- Overlay scaduto -->
                         <div v-if="expired" class="qr-card__expired" role="status">
                             <i class="pi pi-clock" aria-hidden="true" />
-                            <strong>QR scaduto</strong>
+                            <strong>{{ t('devices.pair.expired') }}</strong>
                             <Button
-                                label="Genera nuovo QR"
+                                :label="t('devices.pair.newQr')"
                                 icon="pi pi-refresh"
                                 @click="generate"
                             />
@@ -358,7 +354,7 @@ function back(): void {
                             <span :class="{ 'qr-card__time--warn': warning, 'qr-card__time--exp': expired }">
                                 {{ expired ? '0:00' : countdownLabel }}
                             </span>
-                            <small>tempo rimasto</small>
+                            <small>{{ t('devices.pair.timeLeft') }}</small>
                         </div>
                         <div class="qr-card__bar">
                             <div
@@ -370,7 +366,7 @@ function back(): void {
                     </div>
 
                     <Button
-                        label="Rigenera"
+                        :label="t('devices.pair.regenerate')"
                         icon="pi pi-refresh"
                         severity="secondary"
                         text
@@ -383,29 +379,25 @@ function back(): void {
 
             <!-- Istruzioni -->
             <section class="pair__steps">
-                <h2>Come funziona</h2>
+                <h2>{{ t('devices.pair.howItWorks') }}</h2>
                 <ol>
                     <li>
                         <span class="pair__step-num">1</span>
-                        <span>
-                            Apri la <strong>fotocamera</strong> del telefono e
-                            inquadra il QR.
-                        </span>
+                        <i18n-t keypath="devices.pair.step1" tag="span">
+                            <template #strong><strong>{{ t('devices.pair.step1Strong') }}</strong></template>
+                        </i18n-t>
                     </li>
                     <li>
                         <span class="pair__step-num">2</span>
-                        <span>
-                            Tocca il link che appare in sovrimpressione: si aprirà
-                            <strong>Bookeeper Mobile</strong> nel browser.
-                        </span>
+                        <i18n-t keypath="devices.pair.step2" tag="span">
+                            <template #strong><strong>{{ t('devices.pair.step2Strong') }}</strong></template>
+                        </i18n-t>
                     </li>
                     <li>
                         <span class="pair__step-num">3</span>
-                        <span>
-                            L'app si abbina automaticamente. Da
-                            <strong>Account</strong> potrai installarla nella
-                            schermata home.
-                        </span>
+                        <i18n-t keypath="devices.pair.step3" tag="span">
+                            <template #strong><strong>{{ t('devices.pair.step3Strong') }}</strong></template>
+                        </i18n-t>
                     </li>
                 </ol>
 
@@ -415,9 +407,10 @@ function back(): void {
                     class="pair__sec"
                     icon="pi pi-shield"
                 >
-                    Il codice è valido <strong>10 minuti</strong> e funziona
-                    <strong>una sola volta</strong>. Se qualcuno lo intercetta dopo
-                    l'uso, è già inutilizzabile.
+                    <i18n-t keypath="devices.pair.security" tag="span">
+                        <template #min><strong>{{ t('devices.pair.securityMinutes') }}</strong></template>
+                        <template #once><strong>{{ t('devices.pair.securityOnce') }}</strong></template>
+                    </i18n-t>
                 </Message>
 
                 <Message

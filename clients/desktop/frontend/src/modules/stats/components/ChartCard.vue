@@ -5,6 +5,8 @@
  * Standardizza titolo + sottotitolo + slot grafico + stato vuoto, con la
  * stessa identità visiva delle StatCard (border, radius, hover sottile).
  */
+import { useI18n } from 'vue-i18n';
+
 interface Props {
   title: string;
   subtitle?: string;
@@ -15,9 +17,10 @@ interface Props {
 }
 const props = withDefaults(defineProps<Props>(), {
   empty: false,
-  emptyText: 'Nessun dato disponibile',
+  emptyText: undefined,
   height: 240,
 });
+const { t } = useI18n();
 </script>
 
 <template>
@@ -32,7 +35,7 @@ const props = withDefaults(defineProps<Props>(), {
     >
       <div v-if="empty" class="chart-card__empty" role="status">
         <i class="pi pi-chart-bar" aria-hidden="true" />
-        <span>{{ emptyText }}</span>
+        <span>{{ emptyText ?? t('stats.view.noDataDefault') }}</span>
       </div>
       <slot v-else />
     </div>

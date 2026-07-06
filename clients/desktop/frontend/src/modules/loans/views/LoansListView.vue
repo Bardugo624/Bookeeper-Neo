@@ -20,6 +20,7 @@
 -->
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Button from 'primevue/button';
 import Skeleton from 'primevue/skeleton';
 import Message from 'primevue/message';
@@ -34,6 +35,7 @@ import { useToast } from 'primevue/usetoast';
 
 import LoanCard from '../components/LoanCard.vue';
 import LoanCreateDialog from '../components/LoanCreateDialog.vue';
+import OnboardingHint from '@/components/OnboardingHint.vue';
 import { useLoansStore } from '../store';
 import {
     EMPTY_LOAN_INPUT,
@@ -48,6 +50,7 @@ import {
 const store = useLoansStore();
 const confirm = useConfirm();
 const toast = useToast();
+const { t } = useI18n();
 
 type StatusFilter = 'all' | LoanStatus;
 
@@ -60,10 +63,10 @@ const statusFilter = ref<StatusFilter>('all');
 const search = ref('');
 
 const filterOptions = computed<FilterOption[]>(() => [
-    { value: 'all', label: `Tutti (${store.items.length})` },
-    { value: 'active', label: `In corso (${store.countByStatus.active})` },
-    { value: 'overdue', label: `In ritardo (${store.countByStatus.overdue})` },
-    { value: 'returned', label: `Restituiti (${store.countByStatus.returned})` },
+    { value: 'all', label: t('loans.list.filterAll', { n: store.items.length }) },
+    { value: 'active', label: t('loans.list.filterActive', { n: store.countByStatus.active }) },
+    { value: 'overdue', label: t('loans.list.filterOverdue', { n: store.countByStatus.overdue }) },
+    { value: 'returned', label: t('loans.list.filterReturned', { n: store.countByStatus.returned }) },
 ]);
 
 const filteredItems = computed<Loan[]>(() => {
@@ -122,15 +125,15 @@ async function onSubmitDialog(input: LoanInput): Promise<void> {
             await store.create(input);
             toast.add({
                 severity: 'success',
-                summary: 'Prestito registrato',
-                detail: `${input.borrower_name} ha preso il libro in prestito.`,
+                summary: t('loans.list.createdOk'),
+                detail: t('loans.list.createdDetail', { name: input.borrower_name }),
                 life: 3000,
             });
         } else if (dialogTarget.value) {
             await store.update(dialogTarget.value.id, input);
             toast.add({
                 severity: 'success',
-                summary: 'Prestito aggiornato',
+                summary: t('loans.list.updatedOk'),
                 life: 2500,
             });
         }
@@ -142,11 +145,11 @@ async function onSubmitDialog(input: LoanInput): Promise<void> {
 
 function onReturn(loan: Loan): void {
     confirm.require({
-        message: `Confermi che “${loan.book_title || 'il libro'}” è stato restituito da ${loan.borrower_name}?`,
-        header: 'Segna come restituito',
+        message: t('loans.list.returnConfirm', { title: loan.book_title || t('loans.list.fallbackBook'), name: loan.borrower_name }),
+        header: t('loans.list.returnHeader'),
         icon: 'pi pi-check-circle',
-        acceptLabel: 'Sì, restituito',
-        rejectLabel: 'Annulla',
+        acceptLabel: t('loans.list.returnYes'),
+        rejectLabel: t('common.cancel'),
         acceptProps: { severity: 'success' },
         rejectProps: { severity: 'secondary', text: true },
         accept: async () => {
@@ -155,14 +158,14 @@ function onReturn(loan: Loan): void {
                 await store.markReturned(loan.id);
                 toast.add({
                     severity: 'success',
-                    summary: 'Restituito',
-                    detail: 'Bentornato a casa per questo libro.',
+                    summary: t('loans.list.returnedOk'),
+                    detail: t('loans.list.returnedDetail'),
                     life: 2500,
                 });
             } catch (e) {
                 toast.add({
                     severity: 'error',
-                    summary: 'Errore',
+                    summary: t('common.error'),
                     detail: (e as Error).message,
                     life: 4000,
                 });
@@ -179,13 +182,13 @@ async function onReopen(loan: Loan): Promise<void> {
         await store.reopen(loan.id);
         toast.add({
             severity: 'info',
-            summary: 'Prestito riaperto',
+            summary: t('loans.list.reopenedOk'),
             life: 2500,
         });
     } catch (e) {
         toast.add({
             severity: 'error',
-            summary: 'Errore',
+            summary: t('common.error'),
             detail: (e as Error).message,
             life: 4000,
         });
@@ -196,11 +199,11 @@ async function onReopen(loan: Loan): Promise<void> {
 
 function onDelete(loan: Loan): void {
     confirm.require({
-        message: `Eliminare il prestito di “${loan.book_title || 'libro'}” a ${loan.borrower_name}? L'operazione non è reversibile.`,
-        header: 'Elimina prestito',
+        message: t('loans.list.deleteConfirm', { title: loan.book_title || t('loans.list.fallbackBookShort'), name: loan.borrower_name }),
+        header: t('loans.list.deleteHeader'),
         icon: 'pi pi-exclamation-triangle',
-        acceptLabel: 'Elimina',
-        rejectLabel: 'Annulla',
+        acceptLabel: t('common.delete'),
+        rejectLabel: t('common.cancel'),
         acceptProps: { severity: 'danger' },
         rejectProps: { severity: 'secondary', text: true },
         accept: async () => {
@@ -209,13 +212,13 @@ function onDelete(loan: Loan): void {
                 await store.remove(loan.id);
                 toast.add({
                     severity: 'success',
-                    summary: 'Prestito eliminato',
+                    summary: t('loans.list.deletedOk'),
                     life: 2500,
                 });
             } catch (e) {
                 toast.add({
                     severity: 'error',
-                    summary: 'Errore',
+                    summary: t('common.error'),
                     detail: (e as Error).message,
                     life: 4000,
                 });
@@ -256,17 +259,19 @@ onBeforeUnmount(() => {
 
         <header class="loans-view__header">
             <div class="loans-view__heading">
-                <h1>Prestiti</h1>
+                <h1>{{ t('loans.list.title') }}</h1>
                 <p class="loans-view__sub">
-                    Tieni traccia di chi ha preso in prestito quale libro e quando deve restituirlo.
+                    {{ t('loans.list.subtitle') }}
                 </p>
             </div>
             <Button
-                label="Nuovo prestito"
+                :label="t('loans.list.newLoan')"
                 icon="pi pi-plus"
                 @click="openCreate"
             />
         </header>
+
+        <OnboardingHint name="loans" i18n-root="onboarding.hints.loans" />
 
         <Message
             v-if="store.error && !store.loadingList"
@@ -277,26 +282,26 @@ onBeforeUnmount(() => {
             {{ store.error }}
         </Message>
 
-        <section class="loans-view__filters" aria-label="Filtri prestiti">
+        <section class="loans-view__filters" :aria-label="t('loans.list.filtersAria')">
             <SelectButton
                 v-model="statusFilter"
                 :options="filterOptions"
                 option-label="label"
                 option-value="value"
                 :allow-empty="false"
-                aria-label="Filtra per stato"
+                :aria-label="t('loans.list.statusFilterAria')"
             />
             <IconField class="loans-view__search">
                 <InputIcon class="pi pi-search" />
                 <InputText
                     v-model="search"
-                    placeholder="Cerca per titolo, persona o nota..."
-                    aria-label="Cerca prestiti"
+                    :placeholder="t('loans.list.searchPlaceholder')"
+                    :aria-label="t('loans.list.searchAria')"
                 />
             </IconField>
             <Button
                 v-if="hasActiveFilters"
-                label="Pulisci"
+                :label="t('loans.list.clear')"
                 icon="pi pi-times"
                 severity="secondary"
                 text
@@ -322,13 +327,12 @@ onBeforeUnmount(() => {
             role="status"
         >
             <i class="pi pi-share-alt loans-view__empty-icon" aria-hidden="true" />
-            <h2>Nessun prestito ancora registrato</h2>
+            <h2>{{ t('loans.list.emptyTitle') }}</h2>
             <p>
-                Quando presti un libro, registralo qui per ricordare chi lo ha
-                e quando dovrebbe tornare a casa.
+                {{ t('loans.list.emptySub') }}
             </p>
             <Button
-                label="Registra il primo prestito"
+                :label="t('loans.list.emptyCta')"
                 icon="pi pi-plus"
                 @click="openCreate"
             />
@@ -341,10 +345,10 @@ onBeforeUnmount(() => {
             role="status"
         >
             <i class="pi pi-filter-slash loans-view__empty-icon" aria-hidden="true" />
-            <h2>Nessun prestito corrisponde ai filtri</h2>
-            <p>Prova a cambiare lo stato selezionato o a svuotare la ricerca.</p>
+            <h2>{{ t('loans.list.emptyFilteredTitle') }}</h2>
+            <p>{{ t('loans.list.emptyFilteredSub') }}</p>
             <Button
-                label="Pulisci filtri"
+                :label="t('loans.list.clearFilters')"
                 icon="pi pi-times"
                 severity="secondary"
                 outlined

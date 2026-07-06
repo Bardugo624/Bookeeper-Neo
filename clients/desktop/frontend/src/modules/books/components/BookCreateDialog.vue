@@ -13,6 +13,7 @@
  *    perche' sarebbe peggio far fallire l'intera operazione.
  */
 import { ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
 import Select from 'primevue/select';
@@ -31,6 +32,7 @@ const emit = defineEmits<{
 
 const { form, authorsRaw, submitError, submit, reset } = useBookForm(null);
 const submitting = ref(false);
+const { t } = useI18n();
 
 const shelvesStore = useShelvesStore();
 const targetShelfId = ref<string | null>(null);
@@ -71,16 +73,10 @@ async function onSave(): Promise<void> {
       try {
         const r = await shelvesStore.batchAssign(targetShelfId.value, [id]);
         if (r.skipped_no_space > 0) {
-          emit(
-            'placementWarning',
-            'Libro creato ma lo scaffale selezionato è pieno: nessuno slot libero.',
-          );
+          emit('placementWarning', t('books.create.warnFull'));
         }
       } catch (e) {
-        emit(
-          'placementWarning',
-          `Libro creato ma assegnazione allo scaffale fallita: ${(e as Error).message}`,
-        );
+        emit('placementWarning', t('books.create.warnAssign', { msg: (e as Error).message }));
       }
     }
     emit('created', id);
@@ -102,7 +98,7 @@ function close(): void {
     :visible="visible"
     @update:visible="(v) => emit('update:visible', v)"
     modal
-    header="Nuovo libro"
+    :header="t('books.create.header')"
     :style="{ width: 'min(720px, 92vw)' }"
     :closable="!submitting"
   >
@@ -118,8 +114,8 @@ function close(): void {
     <div class="book-create__shelf">
       <label class="book-create__shelf-label" for="bf-target-shelf">
         <i class="pi pi-bookmark" aria-hidden="true" />
-        Aggiungi a uno scaffale
-        <span class="book-create__shelf-hint">(opzionale)</span>
+        {{ t('books.create.addToShelf') }}
+        <span class="book-create__shelf-hint">{{ t('common.optional') }}</span>
       </label>
       <Select
         id="bf-target-shelf"
@@ -127,10 +123,10 @@ function close(): void {
         :options="shelvesStore.items"
         option-label="name"
         option-value="id"
-        placeholder="Nessuno scaffale"
+        :placeholder="t('books.create.noShelf')"
         show-clear
         :loading="shelvesStore.loadingList"
-        :empty-message="shelvesStore.loadingList ? 'Caricamento…' : 'Nessuno scaffale disponibile'"
+        :empty-message="shelvesStore.loadingList ? t('common.loading') : t('books.create.noShelves')"
         fluid
       >
         <template #option="{ option }">
@@ -143,14 +139,14 @@ function close(): void {
         </template>
       </Select>
       <p class="book-create__shelf-help">
-        Il libro verrà collocato nel primo slot libero dello scaffale.
+        {{ t('books.create.shelfHelp') }}
       </p>
     </div>
 
     <template #footer>
-      <Button label="Annulla" severity="secondary" text :disabled="submitting" @click="close" />
+      <Button :label="t('common.cancel')" severity="secondary" text :disabled="submitting" @click="close" />
       <Button
-        label="Salva"
+        :label="t('common.save')"
         icon="pi pi-check"
         :loading="submitting"
         :disabled="!form.title.trim()"

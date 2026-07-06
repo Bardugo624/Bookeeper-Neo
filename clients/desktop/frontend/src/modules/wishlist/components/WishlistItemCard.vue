@@ -8,6 +8,7 @@
  * Eventi: edit, delete, convert (promuove a libro reale).
  */
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Tag from 'primevue/tag';
 import Button from 'primevue/button';
 import { priorityMeta, splitAuthorsRaw, type WishlistItem } from '../types';
@@ -23,7 +24,12 @@ const emit = defineEmits<{
   (e: 'convert', item: WishlistItem): void;
 }>();
 
-const prio = computed(() => priorityMeta(props.item.priority));
+const { t, locale } = useI18n();
+const priorityKeys = ['low', 'medium', 'high'] as const;
+const prio = computed(() => {
+  const m = priorityMeta(props.item.priority);
+  return { ...m, label: t(`wishlist.priority.${priorityKeys[props.item.priority]}`) };
+});
 const authors = computed(() => splitAuthorsRaw(props.item.authors ?? ''));
 
 const sourceHost = computed<string | null>(() => {
@@ -37,7 +43,7 @@ const sourceHost = computed<string | null>(() => {
 });
 
 const createdAt = computed(() =>
-  new Date(props.item.created_at * 1000).toLocaleDateString('it-IT', {
+  new Date(props.item.created_at * 1000).toLocaleDateString(locale.value === 'en' ? 'en-US' : 'it-IT', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -49,7 +55,7 @@ const createdAt = computed(() =>
   <article
     class="wcard"
     :class="`wcard--prio-${item.priority}`"
-    :aria-label="`${item.title}, priorità ${prio.label}`"
+    :aria-label="t('wishlist.card.ariaLabel', { title: item.title, priority: prio.label })"
   >
     <header class="wcard__head">
       <h3 class="wcard__title" :title="item.title">{{ item.title }}</h3>
@@ -66,15 +72,15 @@ const createdAt = computed(() =>
         <i class="pi pi-user" aria-hidden="true" />{{ name }}
       </li>
     </ul>
-    <p v-else class="wcard__muted">— Autore non specificato —</p>
+    <p v-else class="wcard__muted">{{ t('wishlist.card.noAuthor') }}</p>
 
     <dl class="wcard__meta">
       <div v-if="item.isbn" class="wcard__meta-row">
-        <dt>ISBN</dt>
+        <dt>{{ t('wishlist.card.isbn') }}</dt>
         <dd class="wcard__mono">{{ item.isbn }}</dd>
       </div>
       <div v-if="sourceHost" class="wcard__meta-row">
-        <dt>Fonte</dt>
+        <dt>{{ t('wishlist.card.source') }}</dt>
         <dd>
           <a
             :href="item.source_url ?? '#'"
@@ -88,7 +94,7 @@ const createdAt = computed(() =>
         </dd>
       </div>
       <div class="wcard__meta-row">
-        <dt>Aggiunto</dt>
+        <dt>{{ t('wishlist.card.added') }}</dt>
         <dd>{{ createdAt }}</dd>
       </div>
     </dl>
@@ -98,7 +104,7 @@ const createdAt = computed(() =>
     <footer class="wcard__actions">
       <Button
         icon="pi pi-check"
-        label="Acquistato"
+        :label="t('wishlist.card.buy')"
         size="small"
         severity="success"
         :loading="converting"
@@ -106,7 +112,7 @@ const createdAt = computed(() =>
       />
       <Button
         icon="pi pi-pencil"
-        label="Modifica"
+        :label="t('wishlist.card.edit')"
         size="small"
         severity="secondary"
         outlined
@@ -114,7 +120,7 @@ const createdAt = computed(() =>
       />
       <Button
         icon="pi pi-trash"
-        aria-label="Elimina dalla wishlist"
+        :aria-label="t('wishlist.card.deleteAria')"
         size="small"
         severity="danger"
         text

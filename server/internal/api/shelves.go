@@ -153,11 +153,14 @@ func (h *ShelfHandlers) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	shelfID := uuid.NewString()
 	now := time.Now().Unix()
+	// label_code: ordinale stabile per le etichette stampabili (zzzz).
+	// MAX+1 nell'INSERT stesso: atomico grazie al lock di scrittura SQLite.
 	if _, err := h.DB.ExecContext(r.Context(), `
-		INSERT INTO shelves (id, tenant_id, name, rows, slots_per_row, color, icon, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+		INSERT INTO shelves (id, tenant_id, name, rows, slots_per_row, color, icon, created_at, updated_at, label_code)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,
+		        (SELECT COALESCE(MAX(label_code), 0) + 1 FROM shelves WHERE tenant_id = ?))
 	`, shelfID, id.TenantID, req.Name, req.Rows, req.SlotsPerRow,
-		req.Color, nullable(req.Icon), now, now); err != nil {
+		req.Color, nullable(req.Icon), now, now, id.TenantID); err != nil {
 		writeErr(w, http.StatusInternalServerError, "insert failed")
 		return
 	}
