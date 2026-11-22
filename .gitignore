@@ -5,6 +5,7 @@ server/dist/
 
 # Node / npm workspaces
 node_modules/
+apps/*/dist/
 clients/*/dist/
 clients/*/frontend/dist/
 clients/mobile-web/dev-dist/
