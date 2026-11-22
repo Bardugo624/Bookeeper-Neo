@@ -3,9 +3,19 @@ use axum::{
     response::{IntoResponse, Response},
     Json,
 };
-use serde_json::json;
+use serde::Serialize;
+use utoipa::ToSchema;
 
 use crate::db::DbError;
+
+/// JSON body of every API error response.
+#[derive(Debug, Clone, Serialize, ToSchema)]
+pub struct ApiErrorBody {
+    /// Stable, machine-readable `snake_case` code.
+    pub error_code: String,
+    /// Human-readable description.
+    pub message: String,
+}
 
 /// Error returned by API handlers. Serialized as `{"error_code", "message"}`.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -69,7 +79,10 @@ impl ApiError {
 
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
-        let body = json!({ "error_code": self.code, "message": self.message });
+        let body = ApiErrorBody {
+            error_code: self.code.to_string(),
+            message: self.message,
+        };
         (self.status, Json(body)).into_response()
     }
 }
