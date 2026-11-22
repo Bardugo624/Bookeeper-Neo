@@ -36,3 +36,6 @@ coverage.txt
 .forge/*
 !.forge/plans/
 !.forge/memory/
+
+# Rust
+target/
