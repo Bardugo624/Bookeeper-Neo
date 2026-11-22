@@ -1,0 +1,82 @@
+use axum::{
+    http::StatusCode,
+    response::{IntoResponse, Response},
+    Json,
+};
+use serde_json::json;
+
+use crate::db::DbError;
+
+/// Error returned by API handlers. Serialized as `{"error_code", "message"}`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ApiError {
+    pub status: StatusCode,
+    pub code: &'static str,
+    pub message: String,
+}
+
+pub type ApiResult<T> = Result<T, ApiError>;
+
+impl ApiError {
+    pub fn new(status: StatusCode, code: &'static str, message: impl Into<String>) -> ApiError {
+        ApiError {
+            status,
+            code,
+            message: message.into(),
+        }
+    }
+
+    pub fn not_found() -> ApiError {
+        Self::new(StatusCode::NOT_FOUND, "not_found", "Resource not found")
+    }
+
+    pub fn bad_request(msg: impl Into<String>) -> ApiError {
+        Self::new(StatusCode::BAD_REQUEST, "bad_request", msg)
+    }
+
+    pub fn unauthorized() -> ApiError {
+        Self::new(
+            StatusCode::UNAUTHORIZED,
+            "unauthorized",
+            "Authentication required",
+        )
+    }
+
+    pub fn forbidden() -> ApiError {
+        Self::new(StatusCode::FORBIDDEN, "forbidden", "Access denied")
+    }
+
+    pub fn conflict(code: &'static str, msg: impl Into<String>) -> ApiError {
+        Self::new(StatusCode::CONFLICT, code, msg)
+    }
+
+    pub fn internal() -> ApiError {
+        Self::new(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "internal",
+            "Internal server error",
+        )
+    }
+
+    pub(crate) fn method_not_allowed() -> ApiError {
+        Self::new(
+            StatusCode::METHOD_NOT_ALLOWED,
+            "method_not_allowed",
+            "Method not allowed",
+        )
+    }
+}
+
+impl IntoResponse for ApiError {
+    fn into_response(self) -> Response {
+        let body = json!({ "error_code": self.code, "message": self.message });
+        (self.status, Json(body)).into_response()
+    }
+}
+
+impl From<DbError> for ApiError {
+    fn from(err: DbError) -> ApiError {
+        tracing::error!(error = %err, "database error");
+        ApiError::internal()
+    }
+}
