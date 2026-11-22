@@ -24,6 +24,15 @@ fn bad_request(message: &str) -> ApiResponse {
     error(StatusCode::BAD_REQUEST, "bad_request", message)
 }
 
+/// The only methods the `Transport` contract can send.
+const ALLOWED_METHODS: [Method; 5] = [
+    Method::GET,
+    Method::POST,
+    Method::PATCH,
+    Method::PUT,
+    Method::DELETE,
+];
+
 /// Calls the core router in-process, without opening a socket.
 pub async fn dispatch(
     router: Router,
@@ -31,8 +40,9 @@ pub async fn dispatch(
     path: &str,
     body: Option<String>,
 ) -> ApiResponse {
-    let Ok(method) = Method::from_bytes(method.as_bytes()) else {
-        return bad_request("Invalid HTTP method");
+    let method = match Method::from_bytes(method.as_bytes()) {
+        Ok(m) if ALLOWED_METHODS.contains(&m) => m,
+        _ => return bad_request("Invalid HTTP method"),
     };
     if !path.starts_with("/api/") {
         return bad_request("Path must start with /api/");
@@ -94,6 +104,37 @@ mod tests {
     #[tokio::test]
     async fn passes_core_errors_through() {
         let r = dispatch(test_router(), "GET", "/api/v1/nope", None).await;
+        assert_eq!(r.status, 404);
+        assert!(r.body.contains("not_found"));
+    }
+
+    #[tokio::test]
+    async fn rejects_methods_outside_the_transport_contract() {
+        for method in ["TRACE", "CONNECT", "get", "FOO"] {
+            let r = dispatch(test_router(), method, "/api/v1/health", None).await;
+            assert_eq!(r.status, 400, "{method}");
+        }
+    }
+
+    #[tokio::test]
+    async fn rejects_malformed_paths_without_panicking() {
+        for path in ["/api/v1/he alth", "/api/\u{0}"] {
+            let r = dispatch(test_router(), "GET", path, None).await;
+            assert_eq!(r.status, 400, "{path:?}");
+            assert!(r.body.contains("bad_request"));
+        }
+    }
+
+    #[tokio::test]
+    async fn non_ascii_paths_reach_the_core() {
+        let r = dispatch(test_router(), "GET", "/api/v1/libreria/città", None).await;
+        assert_eq!(r.status, 404);
+        assert!(r.body.contains("not_found"));
+    }
+
+    #[tokio::test]
+    async fn dot_segments_never_leave_the_api() {
+        let r = dispatch(test_router(), "GET", "/api/../etc/passwd", None).await;
         assert_eq!(r.status, 404);
         assert!(r.body.contains("not_found"));
     }

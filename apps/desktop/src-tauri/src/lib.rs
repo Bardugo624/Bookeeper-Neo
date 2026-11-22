@@ -15,6 +15,7 @@ async fn api_request(
     path: String,
     body: Option<String>,
 ) -> Result<ApiResponse, ()> {
+    // Never `Err`: transport failures are reported inside `ApiResponse`.
     Ok(dispatch(router.0.clone(), &method, &path, body).await)
 }
 
