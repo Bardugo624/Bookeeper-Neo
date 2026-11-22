@@ -24,12 +24,14 @@ pub struct Db {
     conn: Arc<Mutex<Connection>>,
 }
 
-fn migrations() -> Migrations<'static> {
-    Migrations::new(vec![M::up(include_str!("migrations/0001_schema.sql"))])
-}
+const MIGRATIONS: &[&str] = &[include_str!("migrations/0001_schema.sql")];
 
-/// Number of migrations known to this build.
-const SUPPORTED_VERSION: usize = 1;
+/// Highest schema version this build understands.
+const SUPPORTED_VERSION: usize = MIGRATIONS.len();
+
+fn migrations() -> Migrations<'static> {
+    Migrations::new(MIGRATIONS.iter().map(|sql| M::up(sql)).collect())
+}
 
 impl Db {
     /// Opens (or creates) the database file. Does not create missing directories.
