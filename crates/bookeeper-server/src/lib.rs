@@ -2,10 +2,11 @@
 
 use std::io;
 use std::net::{IpAddr, SocketAddr};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use bookeeper_core::{router, AppState, Db, DbError, SetupPolicy, VERSION};
-use clap::Parser;
+use bookeeper_core::api::setup::{library_count, new_setup_code};
+use clap::{Parser, Subcommand};
 use tokio::net::TcpListener;
 
 mod web;
@@ -26,6 +27,26 @@ pub struct Config {
     pub port: u16,
 }
 
+/// Command line: the startup flags plus an optional subcommand.
+#[derive(Debug, Clone, Parser)]
+#[command(name = "bookeeper-server", version = VERSION)]
+pub struct Cli {
+    #[command(flatten)]
+    pub config: Config,
+    #[command(subcommand)]
+    pub command: Option<Command>,
+}
+
+#[derive(Debug, Clone, Subcommand)]
+pub enum Command {
+    /// Generate and print a new setup code, then exit (no port is opened).
+    SetupCode {
+        /// Directory holding the database (created if missing).
+        #[arg(long, env = "BOOKEEPER_DATA", default_value = "./data")]
+        data_dir: PathBuf,
+    },
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum StartError {
     #[error("cannot use data directory {}: {source}", path.display())]
@@ -36,13 +57,36 @@ pub enum StartError {
     Db(#[from] DbError),
 }
 
-/// Creates the data directory if missing, opens the database and builds the router.
-pub fn build(cfg: &Config) -> Result<axum::Router, StartError> {
-    std::fs::create_dir_all(&cfg.data_dir).map_err(|source| StartError::DataDir {
-        path: cfg.data_dir.clone(),
+/// Opens (or creates) the database of the data directory.
+pub fn open_db(data_dir: &Path) -> Result<Db, StartError> {
+    std::fs::create_dir_all(data_dir).map_err(|source| StartError::DataDir {
+        path: data_dir.to_path_buf(),
         source,
     })?;
-    let db = Db::open(&cfg.data_dir.join("bookeeper.sqlite"))?;
+    Ok(Db::open(&data_dir.join("bookeeper.sqlite"))?)
+}
+
+/// `Some(code)` if no library exists yet, otherwise `None`.
+pub fn startup_setup_code(db: &Db) -> Result<Option<String>, StartError> {
+    if db.with(library_count)? == 0 {
+        Ok(Some(issue_setup_code(db)?))
+    } else {
+        Ok(None)
+    }
+}
+
+/// Always generates a new setup code, replacing the previous one.
+pub fn issue_setup_code(db: &Db) -> Result<String, StartError> {
+    Ok(db.with(new_setup_code)?)
+}
+
+/// Creates the data directory if missing, opens the database and builds the router.
+pub fn build(cfg: &Config) -> Result<axum::Router, StartError> {
+    build_with_db(open_db(&cfg.data_dir)?)
+}
+
+/// Builds the router on an already opened database.
+pub fn build_with_db(db: Db) -> Result<axum::Router, StartError> {
     // The core router already has a JSON fallback and `merge` panics when both sides
     // have one: drop the core's so `web_routes()` carries the only fallback (which
     // still answers `/api/*` with the JSON 404).
