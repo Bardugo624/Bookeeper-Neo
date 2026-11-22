@@ -17,6 +17,8 @@ pub enum DbError {
     Sqlite(#[from] rusqlite::Error),
     #[error("migration failed: {0}")]
     Migration(String),
+    #[error("database task failed: {0}")]
+    Task(String),
 }
 
 #[derive(Clone, Debug)]
@@ -113,14 +115,29 @@ impl Db {
         &self,
         f: impl FnOnce(&mut Connection) -> rusqlite::Result<R>,
     ) -> Result<R, DbError> {
-        let mut conn = self.conn.lock().unwrap_or_else(|poisoned| {
+        Ok(f(&mut self.lock())?)
+    }
+
+    /// Like [`Db::with`], but runs `f` on a blocking thread so the async runtime
+    /// is never stalled by SQLite.
+    pub async fn run<R: Send + 'static>(
+        &self,
+        f: impl FnOnce(&mut Connection) -> rusqlite::Result<R> + Send + 'static,
+    ) -> Result<R, DbError> {
+        let db = self.clone();
+        tokio::task::spawn_blocking(move || db.with(f))
+            .await
+            .map_err(|e| DbError::Task(e.to_string()))?
+    }
+
+    fn lock(&self) -> std::sync::MutexGuard<'_, Connection> {
+        self.conn.lock().unwrap_or_else(|poisoned| {
             // A panic inside `f` may have left a manual transaction open.
             let conn = poisoned.into_inner();
             if !conn.is_autocommit() {
                 let _ = conn.execute_batch("ROLLBACK");
             }
             conn
-        });
-        Ok(f(&mut conn)?)
+        })
     }
 }

@@ -1,6 +1,6 @@
 mod dispatch;
 
-use bookeeper_core::{AppState, Db};
+use bookeeper_core::{AppState, Db, SetupPolicy};
 use tauri::Manager;
 
 pub use dispatch::{dispatch, ApiResponse};
@@ -25,10 +25,7 @@ pub fn run() {
             let dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&dir)?;
             let db = Db::open(&dir.join("bookeeper.sqlite"))?;
-            let state = AppState {
-                version: bookeeper_core::VERSION,
-                db,
-            };
+            let state = AppState::open(db, SetupPolicy::Open)?;
             app.manage(CoreRouter(bookeeper_core::router(state)));
             Ok(())
         })

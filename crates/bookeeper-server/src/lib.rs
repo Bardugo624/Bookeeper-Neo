@@ -4,7 +4,7 @@ use std::io;
 use std::net::{IpAddr, SocketAddr};
 use std::path::PathBuf;
 
-use bookeeper_core::{router, AppState, Db, DbError, VERSION};
+use bookeeper_core::{router, AppState, Db, DbError, SetupPolicy, VERSION};
 use clap::Parser;
 use tokio::net::TcpListener;
 
@@ -46,12 +46,9 @@ pub fn build(cfg: &Config) -> Result<axum::Router, StartError> {
     // The core router already has a JSON fallback and `merge` panics when both sides
     // have one: drop the core's so `web_routes()` carries the only fallback (which
     // still answers `/api/*` with the JSON 404).
-    Ok(router(AppState {
-        version: VERSION,
-        db,
-    })
-    .reset_fallback()
-    .merge(web_routes()))
+    Ok(router(AppState::open(db, SetupPolicy::CodeRequired)?)
+        .reset_fallback()
+        .merge(web_routes()))
 }
 
 /// Binds the TCP listener on the configured address and port.
