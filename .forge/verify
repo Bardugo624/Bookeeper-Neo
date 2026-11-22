@@ -1,0 +1,7 @@
+set -e
+cargo fmt --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace
+npm ci --no-audit --no-fund
+npm run typecheck
+npm test

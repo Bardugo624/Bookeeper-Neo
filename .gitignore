@@ -33,10 +33,13 @@ coverage.txt
 *.sqlite-wal
 *.sqlite-shm
 
-# Forge: stato locale di esecuzione
+# Forge: si versionano memoria, registro e comando di verifica; il resto è stato locale
 .forge/*
 !.forge/plans/
 !.forge/memory/
+!.forge/memory.md
+!.forge/ledger.tsv
+!.forge/verify
 
 # Rust
 target/

@@ -1,0 +1,13 @@
+# id	deps	difficulty	files	dwarf	qa	title
+plumbing	-	medium	crates/bookeeper-core/Cargo.toml,Cargo.lock,crates/bookeeper-core/src/lib.rs,crates/bookeeper-core/src/db/mod.rs,crates/bookeeper-core/src/state.rs,crates/bookeeper-core/tests/plumbing.rs,crates/bookeeper-server/src/lib.rs,apps/desktop/src-tauri/src/lib.rs	-	-	Fondamenta: dipendenze, database asincrono, stato dell'app
+skeleton	plumbing	medium	crates/bookeeper-core/src/lib.rs,crates/bookeeper-core/src/error.rs,crates/bookeeper-core/src/extract.rs,crates/bookeeper-core/src/openapi.rs,crates/bookeeper-core/src/api,crates/bookeeper-core/src/auth,crates/bookeeper-core/tests/openapi.rs,crates/bookeeper-core/tests/skeleton.rs,.github/workflows/ci.yml	-	-	Scheletro: moduli vuoti, errori, estrattore JSON, OpenAPI per modulo
+primitives	skeleton	medium	crates/bookeeper-core/src/auth/password.rs,crates/bookeeper-core/src/auth/tokens.rs,crates/bookeeper-core/tests/auth_primitives.rs	-	-	Primitive: password, token di accesso, codici
+sessions	primitives	high	crates/bookeeper-core/src/auth/sessions.rs,crates/bookeeper-core/tests/sessions.rs,crates/bookeeper-core/tests/common/mod.rs	-	-	Sessioni: creazione, rotazione, riuso, revoca
+guard	primitives	high	crates/bookeeper-core/src/auth/guard.rs,crates/bookeeper-core/tests/guard.rs	-	-	Guardia: estrattore AuthUser e ruoli
+setup	sessions	high	crates/bookeeper-core/src/api/setup.rs,crates/bookeeper-core/tests/setup_api.rs	-	-	Setup: creare una libreria
+login	sessions,guard,setup	high	crates/bookeeper-core/src/api/auth.rs,crates/bookeeper-core/tests/auth_api.rs	-	-	Accesso: login, rinnovo, uscita, password, profilo
+pairing	sessions,guard,setup	medium	crates/bookeeper-core/src/api/pairing.rs,crates/bookeeper-core/tests/pairing_api.rs	-	-	Abbinamento: codici monouso
+devices	sessions,guard	medium	crates/bookeeper-core/src/api/devices.rs,crates/bookeeper-core/tests/devices_api.rs	-	-	Dispositivi: elenco, rinomina, revoca
+setup-code	setup	medium	crates/bookeeper-server/src/lib.rs,crates/bookeeper-server/src/main.rs,crates/bookeeper-server/tests/setup_code.rs	-	-	Server: codice di setup all'avvio e da riga di comando
+limits	setup,login,pairing	high	crates/bookeeper-core/src/auth/limit.rs,crates/bookeeper-core/src/state.rs,crates/bookeeper-core/src/api/setup.rs,crates/bookeeper-core/src/api/auth.rs,crates/bookeeper-core/src/api/pairing.rs,crates/bookeeper-core/tests/limits.rs	-	-	Limiti di tentativi su login, abbinamento e setup
+api-client	devices,limits,setup-code	medium	packages/api/openapi.json,packages/api/src/schema.d.ts,packages/api/src/transport.ts,packages/api/src/client.ts,packages/api/src/index.ts,packages/api/src/client.test.ts,packages/api/src/auth.test.ts	-	-	Client TypeScript: istantanea, tipi, metodi
