@@ -94,3 +94,49 @@ fn opening_in_missing_directory_names_the_path() {
         .to_string()
         .contains("/nonexistent-dir/x/bookeeper.sqlite"));
 }
+
+#[test]
+fn concurrent_first_opens_all_succeed() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("bookeeper.sqlite");
+    let handles: Vec<_> = (0..8)
+        .map(|_| {
+            let path = path.clone();
+            std::thread::spawn(move || Db::open(&path).map(|_| ()))
+        })
+        .collect();
+    for h in handles {
+        h.join().unwrap().unwrap();
+    }
+    let n: i64 = Db::open(&path)
+        .unwrap()
+        .with(|c| {
+            c.query_row(
+                "SELECT count(*) FROM sqlite_master WHERE name = 'books'",
+                [],
+                |r| r.get(0),
+            )
+        })
+        .unwrap();
+    assert_eq!(n, 1);
+}
+
+#[test]
+fn a_panic_inside_with_does_not_leave_a_transaction_open() {
+    let db = Db::open_in_memory().unwrap();
+    let db2 = db.clone();
+    let _ = std::thread::spawn(move || {
+        let _ = db2.with(|c| {
+            c.execute_batch("BEGIN; INSERT INTO libraries VALUES ('l','Casa',0);")?;
+            panic!("boom");
+            #[allow(unreachable_code)]
+            Ok(())
+        });
+    })
+    .join();
+    let n: i64 = db
+        .with(|c| c.query_row("SELECT count(*) FROM libraries", [], |r| r.get(0)))
+        .unwrap();
+    assert_eq!(n, 0);
+    assert!(db.with(|c| Ok(c.is_autocommit())).unwrap());
+}

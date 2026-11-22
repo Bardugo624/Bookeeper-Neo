@@ -1,8 +1,8 @@
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
 
-use rusqlite::Connection;
-use rusqlite_migration::{Migrations, M};
+use rusqlite::{Connection, TransactionBehavior};
 
 #[derive(Debug, thiserror::Error)]
 pub enum DbError {
@@ -29,24 +29,65 @@ const MIGRATIONS: &[&str] = &[include_str!("migrations/0001_schema.sql")];
 /// Highest schema version this build understands.
 const SUPPORTED_VERSION: usize = MIGRATIONS.len();
 
-fn migrations() -> Migrations<'static> {
-    Migrations::new(MIGRATIONS.iter().map(|sql| M::up(sql)).collect())
+/// How long an opener waits for another process holding the database.
+const BUSY_TIMEOUT: Duration = Duration::from_secs(10);
+
+fn is_busy(e: &rusqlite::Error) -> bool {
+    matches!(
+        e.sqlite_error_code(),
+        Some(rusqlite::ErrorCode::DatabaseBusy | rusqlite::ErrorCode::DatabaseLocked)
+    )
+}
+
+fn schema_version(conn: &Connection) -> rusqlite::Result<usize> {
+    conn.pragma_query_value(None, "user_version", |r| r.get(0))
+}
+
+fn refuse_newer(found: usize) -> Result<(), DbError> {
+    if found > SUPPORTED_VERSION {
+        return Err(DbError::NewerSchema {
+            found,
+            supported: SUPPORTED_VERSION,
+        });
+    }
+    Ok(())
+}
+
+/// Applies pending migrations under a write lock, so two processes opening the
+/// same fresh file (double launch) cannot both run the same migration.
+fn migrate(conn: &mut Connection) -> Result<(), DbError> {
+    let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
+    let current = schema_version(&tx)?;
+    refuse_newer(current)?;
+    for (index, sql) in MIGRATIONS.iter().enumerate().skip(current) {
+        tx.execute_batch(sql)
+            .map_err(|e| DbError::Migration(format!("migration {}: {e}", index + 1)))?;
+        tx.pragma_update(None, "user_version", index + 1)?;
+    }
+    tx.commit()?;
+    Ok(())
 }
 
 impl Db {
     /// Opens (or creates) the database file. Does not create missing directories.
     pub fn open(path: &Path) -> Result<Db, DbError> {
-        let conn = Connection::open(path).map_err(|source| DbError::Open {
+        let open_error = |source| DbError::Open {
             path: path.to_path_buf(),
             source,
-        })?;
-        Self::init(conn, true).map_err(|e| match e {
-            DbError::Sqlite(source) => DbError::Open {
-                path: path.to_path_buf(),
-                source,
-            },
-            other => other,
-        })
+        };
+        // Switching a fresh file to WAL needs an exclusive lock that SQLite's busy
+        // handler does not wait for, so a concurrent first open is retried here.
+        let deadline = Instant::now() + BUSY_TIMEOUT;
+        loop {
+            let conn = Connection::open(path).map_err(open_error)?;
+            match Self::init(conn, true) {
+                Err(DbError::Sqlite(e)) if is_busy(&e) && Instant::now() < deadline => {
+                    std::thread::sleep(Duration::from_millis(25));
+                }
+                Err(DbError::Sqlite(source)) => return Err(open_error(source)),
+                other => return other,
+            }
+        }
     }
 
     pub fn open_in_memory() -> Result<Db, DbError> {
@@ -54,21 +95,15 @@ impl Db {
     }
 
     fn init(mut conn: Connection, wal: bool) -> Result<Db, DbError> {
+        // Wait for a concurrent opener instead of failing with SQLITE_BUSY.
+        conn.busy_timeout(BUSY_TIMEOUT)?;
         conn.pragma_update(None, "foreign_keys", true)?;
         // Refuse newer schemas before any write (including the journal mode switch).
-        let found: usize = conn.pragma_query_value(None, "user_version", |r| r.get(0))?;
-        if found > SUPPORTED_VERSION {
-            return Err(DbError::NewerSchema {
-                found,
-                supported: SUPPORTED_VERSION,
-            });
-        }
+        refuse_newer(schema_version(&conn)?)?;
         if wal {
             conn.pragma_update(None, "journal_mode", "WAL")?;
         }
-        migrations()
-            .to_latest(&mut conn)
-            .map_err(|e| DbError::Migration(e.to_string()))?;
+        migrate(&mut conn)?;
         Ok(Db {
             conn: Arc::new(Mutex::new(conn)),
         })
@@ -78,7 +113,14 @@ impl Db {
         &self,
         f: impl FnOnce(&mut Connection) -> rusqlite::Result<R>,
     ) -> Result<R, DbError> {
-        let mut conn = self.conn.lock().unwrap_or_else(|p| p.into_inner());
+        let mut conn = self.conn.lock().unwrap_or_else(|poisoned| {
+            // A panic inside `f` may have left a manual transaction open.
+            let conn = poisoned.into_inner();
+            if !conn.is_autocommit() {
+                let _ = conn.execute_batch("ROLLBACK");
+            }
+            conn
+        });
         Ok(f(&mut conn)?)
     }
 }

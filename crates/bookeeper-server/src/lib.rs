@@ -62,11 +62,31 @@ pub async fn bind(cfg: &Config) -> Result<TcpListener, StartError> {
         .map_err(|source| StartError::Bind { addr, source })
 }
 
-/// Serves `app` until Ctrl+C, then shuts down gracefully.
+/// Serves `app` until Ctrl+C or SIGTERM, then shuts down gracefully.
 pub async fn serve(listener: TcpListener, app: axum::Router) -> io::Result<()> {
     axum::serve(listener, app)
-        .with_graceful_shutdown(async {
-            let _ = tokio::signal::ctrl_c().await;
-        })
+        .with_graceful_shutdown(shutdown_signal())
         .await
+}
+
+/// Resolves on Ctrl+C or, on Unix, on SIGTERM (what Docker and systemd send).
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        let _ = tokio::signal::ctrl_c().await;
+    };
+    #[cfg(unix)]
+    {
+        use tokio::signal::unix::{signal, SignalKind};
+        match signal(SignalKind::terminate()) {
+            Ok(mut term) => {
+                tokio::select! {
+                    _ = ctrl_c => {}
+                    _ = term.recv() => {}
+                }
+            }
+            Err(_) => ctrl_c.await,
+        }
+    }
+    #[cfg(not(unix))]
+    ctrl_c.await;
 }
