@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 use rand::RngCore;
 
+use crate::auth::limit::RateLimiter;
 use crate::db::{Db, DbError};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -17,6 +18,7 @@ pub struct AppState {
     pub db: Db,
     pub jwt_secret: Arc<[u8]>,
     pub setup_policy: SetupPolicy,
+    pub limiter: Arc<RateLimiter>,
 }
 
 // Manual impl so the signing secret can never leak through `{:?}`.
@@ -61,6 +63,7 @@ impl AppState {
             db,
             jwt_secret: Arc::from(secret),
             setup_policy,
+            limiter: Arc::new(RateLimiter::default()),
         })
     }
 

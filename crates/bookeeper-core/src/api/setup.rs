@@ -5,6 +5,7 @@ use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
+use crate::auth::limit;
 use crate::auth::sessions::{create_device, NewDevice};
 use crate::auth::{password, tokens, DeviceKind, Role, Session};
 use crate::error::{ApiError, ApiResult};
@@ -160,6 +161,12 @@ pub async fn post_setup(
     let code = req.setup_code;
     let kind = req.device_kind;
     let secret = s.jwt_secret.clone();
+    let limited = policy == SetupPolicy::CodeRequired;
+    if limited {
+        s.limiter
+            .check("setup", limit::SETUP, now_secs())
+            .map_err(ApiError::too_many_requests)?;
+    }
 
     let out = s
         .db
@@ -241,7 +248,17 @@ pub async fn post_setup(
             }
             result
         })
-        .await??;
+        .await?;
+    if limited {
+        match &out {
+            Err(e) if e.code == "setup_code_invalid" => {
+                s.limiter.record_failure("setup", limit::SETUP, now_secs())
+            }
+            Ok(_) => s.limiter.reset("setup"),
+            Err(_) => {}
+        }
+    }
+    let out = out?;
     Ok((StatusCode::CREATED, Json(out)))
 }
 
