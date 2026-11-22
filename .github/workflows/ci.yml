@@ -2,7 +2,7 @@ name: CI
 
 on:
   pull_request:
-    paths: &paths
+    paths:
       - "crates/**"
       - "apps/**"
       - "packages/**"
@@ -14,7 +14,16 @@ on:
       - ".github/workflows/ci.yml"
   push:
     branches: [main]
-    paths: *paths
+    paths:
+      - "crates/**"
+      - "apps/**"
+      - "packages/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "rust-toolchain.toml"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/ci.yml"
   workflow_dispatch:
 
 permissions:
