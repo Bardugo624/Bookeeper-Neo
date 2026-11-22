@@ -108,3 +108,60 @@ async fn posting_to_a_page_is_rejected() {
         .unwrap();
     assert_eq!(res.status(), 405);
 }
+
+#[tokio::test]
+async fn unknown_api_route_keeps_the_error_code() {
+    let body: serde_json::Value = reqwest::get(format!("http://{}/api/v1/nope", start().await))
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    assert_eq!(body["error_code"], "not_found");
+}
+
+#[tokio::test]
+async fn wrong_method_on_api_route_is_json_405() {
+    let res = reqwest::Client::new()
+        .delete(format!("http://{}/api/v1/health", start().await))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(res.status(), 405);
+    let body: serde_json::Value = res.json().await.unwrap();
+    assert_eq!(body["error_code"], "method_not_allowed");
+}
+
+#[tokio::test]
+async fn dot_segments_never_serve_files_outside_the_web_app() {
+    let addr = start().await;
+    // Raw request: HTTP clients normalise `..` away before sending.
+    for path in [
+        "/../Cargo.toml",
+        "/assets/../../Cargo.toml",
+        "/..%2fCargo.toml",
+    ] {
+        let mut stream = tokio::net::TcpStream::connect(addr).await.unwrap();
+        tokio::io::AsyncWriteExt::write_all(
+            &mut stream,
+            format!("GET {path} HTTP/1.1\r\nHost: x\r\nConnection: close\r\n\r\n").as_bytes(),
+        )
+        .await
+        .unwrap();
+        let mut response = String::new();
+        tokio::io::AsyncReadExt::read_to_string(&mut stream, &mut response)
+            .await
+            .unwrap();
+        assert!(!response.contains("[package]"), "{path} leaked a file");
+        assert!(!response.contains("[workspace]"), "{path} leaked a file");
+    }
+}
+
+#[tokio::test]
+async fn pages_declare_utf8_and_forbid_sniffing() {
+    let res = reqwest::get(format!("http://{}/", start().await))
+        .await
+        .unwrap();
+    assert_eq!(res.headers()["content-type"], "text/html; charset=utf-8");
+    assert_eq!(res.headers()["x-content-type-options"], "nosniff");
+}

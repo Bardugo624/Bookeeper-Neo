@@ -12,10 +12,18 @@ struct Assets;
 fn file_response(path: &str) -> Option<Response> {
     let file = Assets::get(path)?;
     let mime = mime_guess::from_path(path).first_or_octet_stream();
+    let content_type = if mime.type_() == "text" || mime.subtype() == "javascript" {
+        format!("{}; charset=utf-8", mime.essence_str())
+    } else {
+        mime.essence_str().to_string()
+    };
     Some(
         (
             StatusCode::OK,
-            [(header::CONTENT_TYPE, mime.essence_str().to_string())],
+            [
+                (header::CONTENT_TYPE, content_type),
+                (header::X_CONTENT_TYPE_OPTIONS, "nosniff".to_string()),
+            ],
             file.data.into_owned(),
         )
             .into_response(),
@@ -30,7 +38,11 @@ async fn fallback(method: Method, uri: Uri) -> Response {
         return ApiError::not_found().into_response();
     }
     if method != Method::GET && method != Method::HEAD {
-        return StatusCode::METHOD_NOT_ALLOWED.into_response();
+        return (
+            StatusCode::METHOD_NOT_ALLOWED,
+            [(header::ALLOW, "GET, HEAD")],
+        )
+            .into_response();
     }
     let wanted = path.trim_start_matches('/');
     if wanted.is_empty() {
@@ -40,6 +52,7 @@ async fn fallback(method: Method, uri: Uri) -> Response {
         return file;
     }
     // A missing asset is a 404; only extension-less paths are client-side routes.
+    // Client routes must therefore keep dotted values (hosts, emails) in the query string.
     let last = wanted.rsplit('/').next().unwrap_or(wanted);
     if last.contains('.') {
         return StatusCode::NOT_FOUND.into_response();
