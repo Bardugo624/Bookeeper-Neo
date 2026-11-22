@@ -1,0 +1,2 @@
+# ts	run_id	task	role	model	verdict	category	key	text	duration_s	injectable
+2026-11-22T19:20:00Z	bookeeper-fase-1a	plumbing	dwarf	sonnet	-	trap	jsonwebtoken 10 needs an explicit crypto backend feature rust crypto with default features off	jsonwebtoken 10 needs an explicit crypto backend feature (rust_crypto) with default-features off [crates/bookeeper-core/Cargo.toml]	185	1
