@@ -1,0 +1,7 @@
+{
+  "app": { "name": "Bookeeper" },
+  "status": {
+    "connected": "Collegato · versione {version}",
+    "unreachable": "Libreria non raggiungibile"
+  }
+}
