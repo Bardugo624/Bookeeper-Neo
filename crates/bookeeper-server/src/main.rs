@@ -35,9 +35,12 @@ async fn main() {
         .init();
     let cli = Cli::parse();
     let result = match cli.command {
-        Some(Command::SetupCode { data_dir }) => open_db(&data_dir)
-            .and_then(|db| issue_setup_code(&db))
-            .map(|code| println!("Codice di setup: {code}")),
+        Some(Command::SetupCode { data_dir }) => {
+            let dir = data_dir.unwrap_or(cli.config.data_dir);
+            open_db(&dir)
+                .and_then(|db| issue_setup_code(&db))
+                .map(|code| println!("Codice di setup: {code}"))
+        }
         None => run(cli.config).await,
     };
     if let Err(e) = result {

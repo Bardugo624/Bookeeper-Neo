@@ -4,8 +4,8 @@ use std::io;
 use std::net::{IpAddr, SocketAddr};
 use std::path::{Path, PathBuf};
 
-use bookeeper_core::{router, AppState, Db, DbError, SetupPolicy, VERSION};
 use bookeeper_core::api::setup::{library_count, new_setup_code};
+use bookeeper_core::{router, AppState, Db, DbError, SetupPolicy, VERSION};
 use clap::{Parser, Subcommand};
 use tokio::net::TcpListener;
 
@@ -41,9 +41,9 @@ pub struct Cli {
 pub enum Command {
     /// Generate and print a new setup code, then exit (no port is opened).
     SetupCode {
-        /// Directory holding the database (created if missing).
-        #[arg(long, env = "BOOKEEPER_DATA", default_value = "./data")]
-        data_dir: PathBuf,
+        /// Directory holding the database (defaults to the top-level `--data-dir`).
+        #[arg(long)]
+        data_dir: Option<PathBuf>,
     },
 }
 

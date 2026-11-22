@@ -12,7 +12,9 @@ fn is_code(s: &str) -> bool {
     let parts: Vec<&str> = s.split('-').collect();
     parts.len() == 3
         && parts.iter().all(|p| {
-            p.len() == 4 && p.chars().all(|c| c.is_ascii_uppercase() || ('2'..='9').contains(&c))
+            p.len() == 4
+                && p.chars()
+                    .all(|c| c.is_ascii_uppercase() || ('2'..='9').contains(&c))
         })
 }
 
