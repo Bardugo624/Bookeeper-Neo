@@ -8,6 +8,7 @@ fn spec_documents_health() {
 }
 
 #[test]
+#[ignore = "run by the openapi CI job and by the api-client task"]
 fn committed_snapshot_is_current() {
     let path = concat!(
         env!("CARGO_MANIFEST_DIR"),
