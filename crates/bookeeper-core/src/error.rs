@@ -1,5 +1,5 @@
 use axum::{
-    http::StatusCode,
+    http::{header::RETRY_AFTER, HeaderValue, StatusCode},
     response::{IntoResponse, Response},
     Json,
 };
@@ -23,6 +23,8 @@ pub struct ApiError {
     pub status: StatusCode,
     pub code: &'static str,
     pub message: String,
+    /// Seconds for the `Retry-After` header, when set.
+    pub retry_after: Option<u64>,
 }
 
 pub type ApiResult<T> = Result<T, ApiError>;
@@ -33,6 +35,7 @@ impl ApiError {
             status,
             code,
             message: message.into(),
+            retry_after: None,
         }
     }
 
@@ -60,6 +63,25 @@ impl ApiError {
         Self::new(StatusCode::CONFLICT, code, msg)
     }
 
+    pub fn validation(msg: impl Into<String>) -> ApiError {
+        Self::new(StatusCode::UNPROCESSABLE_ENTITY, "validation", msg)
+    }
+
+    pub fn coded(status: StatusCode, code: &'static str, msg: impl Into<String>) -> ApiError {
+        Self::new(status, code, msg)
+    }
+
+    pub fn too_many_requests(retry_after_secs: u64) -> ApiError {
+        ApiError {
+            retry_after: Some(retry_after_secs),
+            ..Self::new(
+                StatusCode::TOO_MANY_REQUESTS,
+                "rate_limited",
+                "Too many attempts, retry later",
+            )
+        }
+    }
+
     pub fn internal() -> ApiError {
         Self::new(
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -83,7 +105,12 @@ impl IntoResponse for ApiError {
             error_code: self.code.to_string(),
             message: self.message,
         };
-        (self.status, Json(body)).into_response()
+        let mut res = (self.status, Json(body)).into_response();
+        if let Some(secs) = self.retry_after {
+            res.headers_mut()
+                .insert(RETRY_AFTER, HeaderValue::from(secs));
+        }
+        res
     }
 }
 
