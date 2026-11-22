@@ -23,3 +23,26 @@ fn committed_snapshot_is_current() {
         "run: UPDATE_OPENAPI=1 cargo test -p bookeeper-core --test openapi"
     );
 }
+
+#[tokio::test]
+async fn spec_is_served_over_http() {
+    use axum::{body::Body, http::Request};
+    use http_body_util::BodyExt;
+    use tower::ServiceExt;
+
+    let res = bookeeper_core::router(bookeeper_core::AppState::for_tests())
+        .oneshot(
+            Request::get("/api/v1/openapi.json")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(res.status(), 200);
+    let body: serde_json::Value =
+        serde_json::from_slice(&res.into_body().collect().await.unwrap().to_bytes()).unwrap();
+    assert_eq!(
+        body,
+        serde_json::to_value(bookeeper_core::openapi()).unwrap()
+    );
+}

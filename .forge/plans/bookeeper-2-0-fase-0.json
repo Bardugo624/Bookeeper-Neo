@@ -526,7 +526,7 @@
     {
       "id": "m9",
       "title": "Scheletro PWA incorporato nel server",
-      "objective": "Crea apps/mobile (@bookeeper/mobile): `App({ client, locale, secure })` che con secure=false mostra solo mobile.needsHttps. Aggiunge la chiave mobile.needsHttps a @bookeeper/i18n (it e en, testo nel piano). In bookeeper-server: `web_routes()` serve apps/mobile/dist con rust-embed, con ripiego su index.html per le rotte SPA ma MAI per /api/*; build.rs crea un segnaposto se dist manca; `build()` unisce router e web_routes. Implementa il Task 9 di docs/superpowers/plans/2026-11-20-bookeeper-2.0-fase-0-fondamenta.md esattamente: segui i suoi passi TDD (test che fallisce, poi codice), i suoi blocchi Interfaces e i Global Constraints. Spec: docs/superpowers/specs/2026-11-20-bookeeper-2.0-design.md. Un commit a fine modulo col messaggio indicato nel Task.",
+      "objective": "Crea apps/mobile (@bookeeper/mobile): `App({ client, locale, secure })` che con secure=false mostra solo mobile.needsHttps. Aggiunge la chiave mobile.needsHttps a @bookeeper/i18n (it e en, testo nel piano). In bookeeper-server: `web_routes()` serve apps/mobile/dist con rust-embed, con ripiego su index.html per le rotte SPA ma MAI per /api/*; build.rs crea un segnaposto se dist manca; `build()` unisce router e web_routes. Implementa il Task 9 di docs/superpowers/plans/2026-11-20-bookeeper-2.0-fase-0-fondamenta.md esattamente: segui i suoi passi TDD (test che fallisce, poi codice), i suoi blocchi Interfaces e i Global Constraints. Spec: docs/superpowers/specs/2026-11-20-bookeeper-2.0-design.md. Un commit a fine modulo col messaggio indicato nel Task. VINCOLO (dalla revisione di m3): il router del core ha già un fallback JSON. In axum 0.8 `Router::merge` va in panic se entrambi i router hanno un fallback. Il router finale DEVE avere UN solo fallback che distingue per percorso: `ApiError::not_found()` se il percorso inizia con `/api/`, altrimenti index.html. Forma consigliata: `bookeeper_core::router(state).fallback(spa_handler)` (sostituisce il fallback del core) oppure `.reset_fallback().merge(web_routes())`.",
       "dependsOn": [
         "m8",
         "m5"
@@ -584,6 +584,11 @@
         {
           "check": "cargo build senza Node",
           "expected": "build.rs crea il segnaposto",
+          "blocking": true
+        },
+        {
+          "check": "il server parte senza panic con le rotte web unite",
+          "expected": "tutti i test di tests/serve.rs verdi",
           "blocking": true
         }
       ],
