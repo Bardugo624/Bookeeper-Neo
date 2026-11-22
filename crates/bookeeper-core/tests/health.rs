@@ -7,9 +7,7 @@ use tower::ServiceExt;
 
 #[tokio::test]
 async fn health_reports_ok_and_version() {
-    let app = bookeeper_core::router(bookeeper_core::AppState {
-        version: "2.0.0-dev",
-    });
+    let app = bookeeper_core::router(bookeeper_core::AppState::for_tests());
     let res = app
         .oneshot(Request::get("/api/v1/health").body(Body::empty()).unwrap())
         .await
