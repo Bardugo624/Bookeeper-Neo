@@ -43,3 +43,71 @@ describe('fetch transport', () => {
       .rejects.toMatchObject({ code: 'network', status: 0 });
   });
 });
+
+describe('client routes', () => {
+  const rec = (status = 200, body: unknown = {}) => {
+    const calls: Array<[string, string, unknown]> = [];
+    const t: Transport = {
+      request: async (m, p, b) => {
+        calls.push([m, p, b]);
+        return { status, body };
+      },
+    };
+    return { calls, c: createClient(t) };
+  };
+  const dev = { device_name: 'd', device_kind: 'desktop' as const };
+
+  it('uses the contract method, path and body', async () => {
+    const { calls, c } = rec();
+    await c.setupStatus();
+    await c.setup({ library_name: 'l', display_name: 'n', ...dev });
+    await c.login({ email: 'e', password: 'p', ...dev });
+    await c.libraries({ email: 'e', password: 'p' });
+    await c.refresh('r');
+    await c.me();
+    await c.createPairingCode();
+    await c.redeemPairingCode({ code: 'c', ...dev });
+    await c.listDevices();
+    await c.renameDevice('i', 'x');
+    expect(calls).toEqual([
+      ['GET', '/api/v1/setup', undefined],
+      ['POST', '/api/v1/setup', { library_name: 'l', display_name: 'n', ...dev }],
+      ['POST', '/api/v1/auth/login', { email: 'e', password: 'p', ...dev }],
+      ['POST', '/api/v1/auth/libraries', { email: 'e', password: 'p' }],
+      ['POST', '/api/v1/auth/refresh', { refresh_token: 'r' }],
+      ['GET', '/api/v1/me', undefined],
+      ['POST', '/api/v1/pairing/codes', undefined],
+      ['POST', '/api/v1/pairing/redeem', { code: 'c', ...dev }],
+      ['GET', '/api/v1/devices', undefined],
+      ['PATCH', '/api/v1/devices/i', { name: 'x' }],
+    ]);
+  });
+  it('resolves undefined on 204 and uses contract paths', async () => {
+    const { calls, c } = rec(204, null);
+    await expect(c.logout()).resolves.toBeUndefined();
+    await expect(c.setPassword({ new_password: 'abcdefgh' })).resolves.toBeUndefined();
+    await expect(c.revokeDevice('i')).resolves.toBeUndefined();
+    expect(calls).toEqual([
+      ['POST', '/api/v1/auth/logout', undefined],
+      ['POST', '/api/v1/auth/password', { new_password: 'abcdefgh' }],
+      ['POST', '/api/v1/devices/i/revoke', undefined],
+    ]);
+  });
+  it('encodes device ids', async () => {
+    const { calls, c } = rec();
+    await c.renameDevice('a/b', 'x');
+    expect(calls[0]![1]).toBe('/api/v1/devices/a%2Fb');
+  });
+  it('maps token_expired', async () => {
+    const { c } = rec(401, { error_code: 'token_expired', message: 'm' });
+    await expect(c.me()).rejects.toMatchObject({ status: 401, code: 'token_expired' });
+  });
+  it('carries retryAfter on 429', async () => {
+    const t: Transport = {
+      request: async () => ({ status: 429, body: { error_code: 'rate_limited', message: 'm' }, retryAfter: 30 }),
+    };
+    const p = createClient(t).login({ email: 'e', password: 'p', ...dev });
+    await expect(p).rejects.toMatchObject({ code: 'rate_limited', retryAfter: 30 });
+    await expect(p).rejects.toBeInstanceOf(ApiError);
+  });
+});
