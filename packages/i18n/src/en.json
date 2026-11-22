@@ -3,5 +3,8 @@
   "status": {
     "connected": "Connected · version {version}",
     "unreachable": "Library unreachable"
+  },
+  "mobile": {
+    "needsHttps": "To use Bookeeper on your phone you need a secure address. Ask whoever runs the library."
   }
 }

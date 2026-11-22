@@ -45,3 +45,48 @@ fn unwritable_data_dir_error_names_the_path() {
     assert!(matches!(err, StartError::DataDir { .. }));
     assert!(err.to_string().contains("not-a-dir"));
 }
+
+async fn start() -> std::net::SocketAddr {
+    let tmp = tempfile::tempdir().unwrap();
+    let c = cfg(&tmp.path().join("data"), 0);
+    let listener = bind(&c).await.unwrap();
+    let addr = listener.local_addr().unwrap();
+    tokio::spawn(async move {
+        let _keep = tmp;
+        let _ = serve(listener, build(&c).unwrap()).await;
+    });
+    addr
+}
+
+#[tokio::test]
+async fn root_serves_the_web_app() {
+    let res = reqwest::get(format!("http://{}/", start().await))
+        .await
+        .unwrap();
+    assert_eq!(res.status(), 200);
+    assert!(res.headers()["content-type"]
+        .to_str()
+        .unwrap()
+        .starts_with("text/html"));
+}
+
+#[tokio::test]
+async fn unknown_page_falls_back_to_the_web_app() {
+    let res = reqwest::get(format!("http://{}/pair/ABCD2345", start().await))
+        .await
+        .unwrap();
+    assert_eq!(res.status(), 200);
+    assert!(res.headers()["content-type"]
+        .to_str()
+        .unwrap()
+        .starts_with("text/html"));
+}
+
+#[tokio::test]
+async fn unknown_api_route_never_gets_html() {
+    let res = reqwest::get(format!("http://{}/api/v1/nope", start().await))
+        .await
+        .unwrap();
+    assert_eq!(res.status(), 404);
+    assert_eq!(res.headers()["content-type"], "application/json");
+}

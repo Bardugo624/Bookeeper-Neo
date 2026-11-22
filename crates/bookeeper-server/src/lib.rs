@@ -8,6 +8,9 @@ use bookeeper_core::{router, AppState, Db, DbError, VERSION};
 use clap::Parser;
 use tokio::net::TcpListener;
 
+mod web;
+pub use web::web_routes;
+
 /// Runtime configuration, from flags or `BOOKEEPER_*` environment variables.
 #[derive(Debug, Clone, Parser)]
 #[command(name = "bookeeper-server", version = VERSION)]
@@ -40,10 +43,15 @@ pub fn build(cfg: &Config) -> Result<axum::Router, StartError> {
         source,
     })?;
     let db = Db::open(&cfg.data_dir.join("bookeeper.sqlite"))?;
+    // The core router already has a JSON fallback and `merge` panics when both sides
+    // have one: drop the core's so `web_routes()` carries the only fallback (which
+    // still answers `/api/*` with the JSON 404).
     Ok(router(AppState {
         version: VERSION,
         db,
-    }))
+    })
+    .reset_fallback()
+    .merge(web_routes()))
 }
 
 /// Binds the TCP listener on the configured address and port.

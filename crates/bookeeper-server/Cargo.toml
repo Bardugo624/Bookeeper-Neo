@@ -15,6 +15,8 @@ path = "src/main.rs"
 axum = "0.8"
 bookeeper-core = { path = "../bookeeper-core" }
 clap = { version = "4", features = ["derive", "env"] }
+mime_guess = "2"
+rust-embed = { version = "8", features = ["debug-embed"] }
 thiserror = "2"
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "signal"] }
 tracing = "0.1"

@@ -3,5 +3,8 @@
   "status": {
     "connected": "Collegato · versione {version}",
     "unreachable": "Libreria non raggiungibile"
+  },
+  "mobile": {
+    "needsHttps": "Per usare Bookeeper dal telefono serve un indirizzo sicuro. Chiedi a chi gestisce la libreria."
   }
 }
