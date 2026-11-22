@@ -31,3 +31,8 @@ coverage.txt
 *.sqlite-journal
 *.sqlite-wal
 *.sqlite-shm
+
+# Forge: stato locale di esecuzione
+.forge/*
+!.forge/plans/
+!.forge/memory/
