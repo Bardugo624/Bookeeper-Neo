@@ -18,7 +18,19 @@ describe('client', () => {
   });
 });
 
+describe('client on a non-JSON success', () => {
+  it('rejects a 200 whose body is not an object', async () => {
+    await expect(createClient(fake(200, '<html>')).health()).rejects.toMatchObject({ status: 200, code: 'unknown' });
+  });
+});
+
 describe('fetch transport', () => {
+  it('maps a body read failure to ApiError code "network"', async () => {
+    const res = { status: 200, text: async () => { throw new TypeError('aborted'); } } as unknown as Response;
+    const f = vi.fn(async () => res);
+    await expect(createFetchTransport('https://h.example', f as unknown as typeof fetch).request('GET', '/api/v1/health'))
+      .rejects.toMatchObject({ code: 'network', status: 0 });
+  });
   it('joins base URL and path and sends JSON', async () => {
     const f = vi.fn(async () => new Response('{"a":1}', { status: 200, headers: { 'content-type': 'application/json' } }));
     const r = await createFetchTransport('https://h.example/', f as unknown as typeof fetch).request('POST', '/api/v1/x', { b: 2 });

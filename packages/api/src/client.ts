@@ -13,7 +13,13 @@ function isErrorBody(b: unknown): b is components['schemas']['ApiErrorBody'] {
 }
 
 function unwrap<T>(r: TransportResponse): T {
-  if (r.status >= 200 && r.status < 300) return r.body as T;
+  if (r.status >= 200 && r.status < 300) {
+    // A proxy or SPA fallback can answer 200 with HTML: never pass that off as data.
+    if (typeof r.body !== 'object' || r.body === null) {
+      throw new ApiError(r.status, 'unknown', `Unexpected response (${r.status})`);
+    }
+    return r.body as T;
+  }
   if (isErrorBody(r.body)) throw new ApiError(r.status, r.body.error_code, r.body.message);
   throw new ApiError(r.status, 'unknown', `Unexpected response (${r.status})`);
 }

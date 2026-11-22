@@ -28,16 +28,17 @@ export function createFetchTransport(baseUrl: string, fetchImpl: typeof fetch = 
   return {
     async request(method, path, body) {
       let res: Response;
+      let text: string;
       try {
         res = await fetchImpl(`${base}${path}`, {
           method,
           headers: body === undefined ? undefined : { 'content-type': 'application/json' },
           body: body === undefined ? undefined : JSON.stringify(body),
         });
+        text = await res.text();
       } catch (e) {
         throw new ApiError(0, 'network', e instanceof Error ? e.message : 'network error');
       }
-      const text = await res.text();
       let parsed: unknown = text;
       try {
         parsed = text === '' ? null : JSON.parse(text);
