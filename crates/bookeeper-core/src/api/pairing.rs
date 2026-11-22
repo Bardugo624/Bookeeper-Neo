@@ -7,6 +7,7 @@ use utoipa::ToSchema;
 
 use crate::api::setup::{AuthOut, LibraryOut, UserOut};
 use crate::auth::guard::AuthUser;
+use crate::auth::limit;
 use crate::auth::sessions::{create_device, NewDevice};
 use crate::auth::{tokens, DeviceKind, Role, Session, PAIRING_TTL_SECS};
 use crate::error::{ApiError, ApiErrorBody, ApiResult};
@@ -103,6 +104,10 @@ pub async fn redeem(
     let hash = tokens::hash_code(&req.code);
     let kind = req.device_kind;
     let secret = state.jwt_secret.clone();
+    state
+        .limiter
+        .check("redeem", limit::REDEEM, now_secs())
+        .map_err(ApiError::too_many_requests)?;
 
     let out = state
         .db
@@ -116,8 +121,17 @@ pub async fn redeem(
             }
             result
         })
-        .await??;
-    Ok(Json(out))
+        .await?;
+    match &out {
+        Err(e) if e.code == "pairing_code_invalid" => {
+            state
+                .limiter
+                .record_failure("redeem", limit::REDEEM, now_secs())
+        }
+        Ok(_) => state.limiter.reset("redeem"),
+        Err(_) => {}
+    }
+    Ok(Json(out?))
 }
 
 fn redeem_in_tx(

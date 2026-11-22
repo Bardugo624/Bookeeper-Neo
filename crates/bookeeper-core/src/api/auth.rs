@@ -13,6 +13,7 @@ use utoipa::ToSchema;
 use crate::api::devices::DeviceOut;
 use crate::api::setup::{AuthOut, LibraryOut, UserOut};
 use crate::auth::guard::AuthUser;
+use crate::auth::limit::{self, RateLimiter};
 use crate::auth::sessions::{self, create_device, NewDevice, RefreshError};
 use crate::auth::{password, DeviceKind, Role, Session};
 use crate::error::{ApiError, ApiErrorBody, ApiResult};
@@ -81,6 +82,16 @@ fn normalize_email(email: &str) -> ApiResult<String> {
         return Err(ApiError::validation("email is not valid"));
     }
     Ok(e)
+}
+
+fn login_key(email: &str) -> String {
+    format!("login:{email}")
+}
+
+fn check_limit(limiter: &RateLimiter, key: &str) -> ApiResult<()> {
+    limiter
+        .check(key, limit::LOGIN, now_secs())
+        .map_err(ApiError::too_many_requests)
 }
 
 fn device_name(name: &str) -> ApiResult<String> {
@@ -172,6 +183,8 @@ pub async fn login(
     let kind = req.device_kind;
     let (pw, library_id) = (req.password, req.library_id);
     let secret = s.jwt_secret.clone();
+    let key = login_key(&email);
+    check_limit(&s.limiter, &key)?;
 
     let out =
         s.db.run(move |conn| {
@@ -204,8 +217,15 @@ pub async fn login(
                 session,
             }))
         })
-        .await??;
-    Ok(Json(out))
+        .await?;
+    match &out {
+        Err(e) if e.code == "invalid_credentials" => {
+            s.limiter.record_failure(&key, limit::LOGIN, now_secs())
+        }
+        Ok(_) => s.limiter.reset(&key),
+        Err(_) => {}
+    }
+    Ok(Json(out?))
 }
 
 #[utoipa::path(
@@ -225,12 +245,16 @@ pub async fn libraries(
 ) -> ApiResult<Json<LibrariesOut>> {
     let email = normalize_email(&req.email)?;
     let pw = req.password;
+    let key = login_key(&email);
+    check_limit(&s.limiter, &key)?;
     let found =
         s.db.run(move |conn| find_matches(conn, &email, None, &pw))
             .await?;
     if found.is_empty() {
+        s.limiter.record_failure(&key, limit::LOGIN, now_secs());
         return Err(invalid_credentials());
     }
+    s.limiter.reset(&key);
     Ok(Json(LibrariesOut {
         libraries: found.into_iter().map(|m| m.library).collect(),
     }))
