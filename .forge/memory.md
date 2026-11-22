@@ -3,6 +3,9 @@
      inside a dwarf run: it is excluded from every diff and your edit would be
      overwritten. Facts only, one per line. -->
 
+## Verify
+- UPDATE_OPENAPI=1 cargo test -p bookeeper-core --test openapi -- --include-ignored && npm run gen -w @bookeeper/api && npm test -w @bookeeper/api [packages/api/openapi.json]
+
 ## Known traps
 - jsonwebtoken 10 needs an explicit crypto backend feature (rust_crypto) with default-features off [crates/bookeeper-core/Cargo.toml]
 

@@ -1,2 +1,27 @@
 # ts	run_id	task	role	model	verdict	category	key	text	duration_s	injectable
 2026-11-22T19:20:00Z	bookeeper-fase-1a	plumbing	dwarf	sonnet	-	trap	jsonwebtoken 10 needs an explicit crypto backend feature rust crypto with default features off	jsonwebtoken 10 needs an explicit crypto backend feature (rust_crypto) with default-features off [crates/bookeeper-core/Cargo.toml]	185	1
+2026-11-22T19:22:54Z	bookeeper-fase-1a	plumbing	qa	opus	PASS	-	-	-	170
+2026-11-22T19:24:16Z	bookeeper-fase-1a	skeleton	dwarf	sonnet	-	-	-	-	75
+2026-11-22T19:25:31Z	bookeeper-fase-1a	skeleton	qa	opus	PASS	-	-	-	71
+2026-11-22T19:26:45Z	bookeeper-fase-1a	primitives	dwarf	sonnet	-	-	-	-	71
+2026-11-22T19:28:00Z	bookeeper-fase-1a	primitives	qa	opus	PASS	-	-	-	71
+2026-11-22T19:29:54Z	bookeeper-fase-1a	guard	dwarf	sonnet	-	-	-	-	109
+2026-11-22T19:30:19Z	bookeeper-fase-1a	sessions	dwarf	sonnet	-	-	-	-	134
+2026-11-22T19:31:32Z	bookeeper-fase-1a	guard	qa	opus	PASS	-	-	-	94
+2026-11-22T19:32:05Z	bookeeper-fase-1a	sessions	qa	opus	PASS	-	-	-	101
+2026-11-22T19:34:48Z	bookeeper-fase-1a	devices	dwarf	sonnet	-	-	-	-	157
+2026-11-22T19:34:56Z	bookeeper-fase-1a	setup	dwarf	sonnet	-	-	-	-	165
+2026-11-22T19:36:51Z	bookeeper-fase-1a	devices	qa	opus	PASS	-	-	-	119
+2026-11-22T19:37:21Z	bookeeper-fase-1a	setup	qa	opus	PASS	-	-	-	140
+2026-11-22T19:39:28Z	bookeeper-fase-1a	pairing	dwarf	sonnet	-	-	-	-	122
+2026-11-22T19:40:02Z	bookeeper-fase-1a	login	dwarf	sonnet	-	-	-	-	155
+2026-11-22T19:41:18Z	bookeeper-fase-1a	pairing	qa	opus	PASS	-	-	-	103
+2026-11-22T19:42:06Z	bookeeper-fase-1a	login	qa	opus	PASS	-	-	-	119
+2026-11-22T19:43:36Z	bookeeper-fase-1a	setup-code	dwarf	sonnet	-	-	-	-	135
+2026-11-22T19:45:00Z	bookeeper-fase-1a	limits	dwarf	sonnet	-	-	-	-	165
+2026-11-22T19:45:38Z	bookeeper-fase-1a	setup-code	qa	opus	FAIL	-	-	-	118
+2026-11-22T19:46:14Z	bookeeper-fase-1a	setup-code	dwarf	sonnet	-	-	-	-	25
+2026-11-22T19:47:09Z	bookeeper-fase-1a	limits	qa	opus	PASS	-	-	-	126
+2026-11-22T19:47:46Z	bookeeper-fase-1a	setup-code	qa	opus	PASS	-	-	-	88
+2026-11-22T19:49:19Z	bookeeper-fase-1a	api-client	dwarf	sonnet	-	verify	update openapi 1 cargo test p bookeeper core test openapi include ignored npm run gen w bookeeper api npm test w bookeeper api	UPDATE_OPENAPI=1 cargo test -p bookeeper-core --test openapi -- --include-ignored && npm run gen -w @bookeeper/api && npm test -w @bookeeper/api [packages/api/openapi.json]	90	1
+2026-11-22T19:50:37Z	bookeeper-fase-1a	api-client	qa	opus	PASS	-	-	-	73
