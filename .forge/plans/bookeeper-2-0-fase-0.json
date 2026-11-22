@@ -10,7 +10,7 @@
   "sourcePlan": "docs/superpowers/plans/2026-11-20-bookeeper-2.0-fase-0-fondamenta.md",
   "spec": "docs/superpowers/specs/2026-11-20-bookeeper-2.0-design.md",
   "warnings": [
-    "Catena seriale voluta: Cargo.lock e package-lock.json sono toccati da quasi ogni modulo. Esecuzione senza worktree, un modulo alla volta, un commit per modulo."
+    "Worktree isolati (scelta utente). m5 e m6 in parallelo dopo m4: nessun file in comune. Tutti gli altri moduli in serie perché condividono Cargo.lock o package-lock.json."
   ],
   "modules": [
     {
@@ -300,7 +300,7 @@
       "title": "Workspace JS e client API tipizzato",
       "objective": "Estende i workspace npm di root con apps/* e packages/*, e crea @bookeeper/api: `Transport`, `TransportResponse`, `createFetchTransport(baseUrl, fetchImpl?)`, `class ApiError(status, code, message)`, `type Health`, `createClient(t) -> { health() }`. Tipi generati da openapi.json con openapi-typescript in src/schema.d.ts (versionato). Script di root: test, typecheck, build:2 limitati ad apps/* e packages/*. Implementa il Task 6 di docs/superpowers/plans/2026-11-20-bookeeper-2.0-fase-0-fondamenta.md esattamente: segui i suoi passi TDD (test che fallisce, poi codice), i suoi blocchi Interfaces e i Global Constraints. Spec: docs/superpowers/specs/2026-11-20-bookeeper-2.0-design.md. Un commit a fine modulo col messaggio indicato nel Task.",
       "dependsOn": [
-        "m5"
+        "m4"
       ],
       "agent": "worker",
       "files": [
@@ -528,7 +528,8 @@
       "title": "Scheletro PWA incorporato nel server",
       "objective": "Crea apps/mobile (@bookeeper/mobile): `App({ client, locale, secure })` che con secure=false mostra solo mobile.needsHttps. Aggiunge la chiave mobile.needsHttps a @bookeeper/i18n (it e en, testo nel piano). In bookeeper-server: `web_routes()` serve apps/mobile/dist con rust-embed, con ripiego su index.html per le rotte SPA ma MAI per /api/*; build.rs crea un segnaposto se dist manca; `build()` unisce router e web_routes. Implementa il Task 9 di docs/superpowers/plans/2026-11-20-bookeeper-2.0-fase-0-fondamenta.md esattamente: segui i suoi passi TDD (test che fallisce, poi codice), i suoi blocchi Interfaces e i Global Constraints. Spec: docs/superpowers/specs/2026-11-20-bookeeper-2.0-design.md. Un commit a fine modulo col messaggio indicato nel Task.",
       "dependsOn": [
-        "m8"
+        "m8",
+        "m5"
       ],
       "agent": "worker",
       "files": [
