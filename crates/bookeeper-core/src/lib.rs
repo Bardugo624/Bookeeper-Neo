@@ -8,6 +8,6 @@ pub use api::router;
 pub use db::{Db, DbError};
 pub use error::{ApiError, ApiErrorBody, ApiResult};
 pub use openapi::openapi;
-pub use state::AppState;
+pub use state::{AppState, SetupPolicy};
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
