@@ -1,0 +1,26 @@
+[package]
+name = "bookeeper-server"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+name = "bookeeper_server"
+path = "src/lib.rs"
+
+[[bin]]
+name = "bookeeper-server"
+path = "src/main.rs"
+
+[dependencies]
+axum = "0.8"
+bookeeper-core = { path = "../bookeeper-core" }
+clap = { version = "4", features = ["derive", "env"] }
+thiserror = "2"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "signal"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[dev-dependencies]
+reqwest = { version = "0.12", default-features = false, features = ["json"] }
+serde_json = "1"
+tempfile = "3"
