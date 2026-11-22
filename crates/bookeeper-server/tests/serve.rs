@@ -90,3 +90,21 @@ async fn unknown_api_route_never_gets_html() {
     assert_eq!(res.status(), 404);
     assert_eq!(res.headers()["content-type"], "application/json");
 }
+
+#[tokio::test]
+async fn missing_asset_is_not_the_web_app() {
+    let res = reqwest::get(format!("http://{}/assets/nope.js", start().await))
+        .await
+        .unwrap();
+    assert_eq!(res.status(), 404);
+}
+
+#[tokio::test]
+async fn posting_to_a_page_is_rejected() {
+    let res = reqwest::Client::new()
+        .post(format!("http://{}/pair/ABCD2345", start().await))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(res.status(), 405);
+}
