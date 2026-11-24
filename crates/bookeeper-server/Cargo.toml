@@ -18,6 +18,7 @@ axum-server = { version = "0.8", default-features = false, features = ["tls-rust
 bookeeper-core = { path = "../bookeeper-core" }
 bookeeper-net = { path = "../bookeeper-net" }
 clap = { version = "4", features = ["derive", "env"] }
+futures-util = { version = "0.3", default-features = false }
 gethostname = "1"
 mime_guess = "2"
 rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12", "logging"] }

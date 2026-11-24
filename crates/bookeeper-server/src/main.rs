@@ -1,7 +1,8 @@
 use bookeeper_core::VERSION;
 use bookeeper_server::{
-    app_state, bind, build_with_state, issue_setup_code, open_db, serve, startup_setup_code, Cli,
-    Command, Config, StartError,
+    app_state, bind, build_with_state, identity_lines, issue_setup_code, load_self_identity,
+    open_db, self_dir, serve, startup_setup_code, Cli, Command, Config, StartError, TlsChoice,
+    TlsServer,
 };
 use clap::Parser;
 
@@ -22,8 +23,33 @@ async fn run(cfg: Config) -> Result<(), StartError> {
         addr: std::net::SocketAddr::new(cfg.bind, cfg.listen_port()),
         source,
     })?;
-    println!("Bookeeper {VERSION} in ascolto su http://{addr}");
-    if let Err(e) = serve(listener, app).await {
+    let scheme = if cfg.tls == TlsChoice::Off {
+        "http"
+    } else {
+        "https"
+    };
+    println!("Bookeeper {VERSION} in ascolto su {scheme}://{addr}");
+    let result = match cfg.tls {
+        TlsChoice::Off => serve(listener, app).await,
+        TlsChoice::SelfSigned => {
+            let identity = load_self_identity(&cfg)?;
+            for line in identity_lines(&identity) {
+                println!("{line}");
+            }
+            TlsServer::self_signed(listener, &identity)?
+                .serve(app)
+                .await
+        }
+        TlsChoice::Acme => {
+            if let Some(domain) = &cfg.domain {
+                println!(
+                    "Certificato richiesto per {domain}: la porta 443 deve essere raggiungibile da Internet."
+                );
+            }
+            TlsServer::acme(listener, &cfg)?.serve(app).await
+        }
+    };
+    if let Err(e) = result {
         eprintln!("error: {e}");
         std::process::exit(1);
     }
@@ -44,6 +70,22 @@ async fn main() {
             open_db(&dir)
                 .and_then(|db| issue_setup_code(&db))
                 .map(|code| println!("Codice di setup: {code}"))
+        }
+        Some(Command::Fingerprint { data_dir }) => {
+            let dir = data_dir.unwrap_or(cli.config.data_dir);
+            match bookeeper_net::tls::Identity::load(&self_dir(&dir)) {
+                Ok(Some(identity)) => {
+                    for line in identity_lines(&identity) {
+                        println!("{line}");
+                    }
+                    Ok(())
+                }
+                Ok(None) => Err(StartError::Config(
+                    "nessun certificato autogenerato in questa cartella: avvia il server una volta con --tls self"
+                        .to_string(),
+                )),
+                Err(e) => Err(StartError::Config(format!("TLS: {e}"))),
+            }
         }
         None => run(cli.config).await,
     };
