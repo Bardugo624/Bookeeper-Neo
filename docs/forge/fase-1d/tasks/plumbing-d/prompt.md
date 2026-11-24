@@ -32,7 +32,8 @@ Preparare ciò che le task del core e della rete usano senza poterlo modificare:
 
 ## Acceptance criteria
 
-- `cargo build --workspace` e `cargo test --workspace` passano.
+- `cargo build --workspace --all-targets` passa.
+- `cargo test -p bookeeper-core -p bookeeper-net` passa.
 - `cargo clippy --workspace --all-targets -- -D warnings` è pulito.
 - `cargo tree -i aws-lc-rs`, `cargo tree -i aws-lc-sys`, `cargo tree -i openssl-sys` non trovano alcun pacchetto.
 - `cargo tree -p bookeeper-net -i rustls` mostra una sola versione di `rustls`.

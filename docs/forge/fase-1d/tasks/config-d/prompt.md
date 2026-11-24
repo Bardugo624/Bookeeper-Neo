@@ -36,7 +36,8 @@ Dare a `bookeeper-server` tutta la configurazione della tabella del contratto e 
 
 ## Acceptance criteria
 
-- `cargo build --workspace` e `cargo test --workspace` passano.
+- `cargo build --workspace --all-targets` passa.
+- `cargo test -p bookeeper-server` passa, test nuovi e vecchi.
 - `cargo clippy --workspace --all-targets -- -D warnings` è pulito.
 - `cargo tree -i aws-lc-rs`, `cargo tree -i aws-lc-sys`, `cargo tree -i openssl-sys` non trovano alcun pacchetto.
 - `cargo run -p bookeeper-server -- --help` elenca tutti i flag della tabella del contratto.

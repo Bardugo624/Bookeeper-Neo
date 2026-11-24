@@ -24,6 +24,6 @@ Allineare `packages/api` al core dopo il run 1D: rotta `GET /server` nuova e ris
 
 - `cargo test -p bookeeper-core --test openapi -- --include-ignored` passa (l'istantanea coincide col core).
 - `npm run gen -w @bookeeper/api` non produce differenze dopo il commit (`git diff --exit-code packages/api`).
-- `npm test -w @bookeeper/api` e `npm run typecheck` (dalla radice) passano.
+- `npm test -w @bookeeper/api` passa; `npm run typecheck -w @bookeeper/api -w @bookeeper/desktop -w @bookeeper/mobile` passa.
 - `packages/api/openapi.json` contiene il percorso `/api/v1/server`.
 - Cambiano solo: `packages/api/openapi.json`, `packages/api/src/schema.d.ts`, `packages/api/src/client.ts`, `packages/api/src/index.ts`, file sotto `packages/api/src/resources/`, `packages/api/src/resources.test.ts`.
