@@ -1,0 +1,15 @@
+# Avvio: `docker compose up -d` (poi apri http://<indirizzo>:7842).
+# Il codice di setup si legge con `docker compose logs bookeeper`.
+# Per un dominio imposta BOOKEEPER_TLS, BOOKEEPER_DOMAIN e BOOKEEPER_PUBLIC_URL.
+services:
+  bookeeper:
+    image: ghcr.io/bardugo624/bookeeper-server:latest
+    build: .
+    ports:
+      - "7842:7842"
+    volumes:
+      - bookeeper-data:/data
+    restart: unless-stopped
+
+volumes:
+  bookeeper-data:

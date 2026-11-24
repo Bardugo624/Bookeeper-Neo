@@ -255,7 +255,8 @@ fn check_dates(lent_at: i64, due_at: Option<i64>) -> ApiResult<()> {
     ),
     responses(
         (status = 200, description = "Loans", body = LoanList),
-        (status = 422, description = "Invalid query", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 422, description = "validation: invalid query", body = ApiErrorBody),
     )
 )]
 pub async fn list_loans(
@@ -320,10 +321,12 @@ pub async fn list_loans(
     request_body = CreateLoan,
     responses(
         (status = 201, description = "Created loan", body = LoanOut),
-        (status = 403, description = "Guests cannot write", body = ApiErrorBody),
-        (status = 404, description = "Unknown book", body = ApiErrorBody),
+        (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: guests cannot write", body = ApiErrorBody),
+        (status = 404, description = "not_found: unknown book", body = ApiErrorBody),
         (status = 409, description = "book_already_lent", body = ApiErrorBody),
-        (status = 422, description = "Invalid body", body = ApiErrorBody),
+        (status = 422, description = "validation: invalid body", body = ApiErrorBody),
     )
 )]
 pub async fn create_loan(
@@ -402,9 +405,11 @@ pub async fn create_loan(
     request_body = PatchLoan,
     responses(
         (status = 200, description = "Updated loan", body = LoanOut),
-        (status = 403, description = "Guests cannot write", body = ApiErrorBody),
-        (status = 404, description = "Unknown loan", body = ApiErrorBody),
-        (status = 422, description = "Invalid body", body = ApiErrorBody),
+        (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: guests cannot write", body = ApiErrorBody),
+        (status = 404, description = "not_found: unknown loan", body = ApiErrorBody),
+        (status = 422, description = "validation: invalid body", body = ApiErrorBody),
     )
 )]
 pub async fn patch_loan(
@@ -469,8 +474,9 @@ pub async fn patch_loan(
     params(("id" = String, Path, description = "Loan id")),
     responses(
         (status = 204, description = "Deleted"),
-        (status = 403, description = "Guests cannot write", body = ApiErrorBody),
-        (status = 404, description = "Unknown loan", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: guests cannot write", body = ApiErrorBody),
+        (status = 404, description = "not_found: unknown loan", body = ApiErrorBody),
     )
 )]
 pub async fn delete_loan(
@@ -507,9 +513,11 @@ pub async fn delete_loan(
     request_body = Option<ReturnLoan>,
     responses(
         (status = 200, description = "Returned loan", body = LoanOut),
-        (status = 403, description = "Guests cannot write", body = ApiErrorBody),
-        (status = 404, description = "Unknown loan", body = ApiErrorBody),
-        (status = 422, description = "returned_at before lent_at", body = ApiErrorBody),
+        (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: guests cannot write", body = ApiErrorBody),
+        (status = 404, description = "not_found: unknown loan", body = ApiErrorBody),
+        (status = 422, description = "validation: returned_at before lent_at", body = ApiErrorBody),
     )
 )]
 pub async fn return_loan(
@@ -557,8 +565,9 @@ pub async fn return_loan(
     params(("id" = String, Path, description = "Loan id")),
     responses(
         (status = 200, description = "Reopened loan", body = LoanOut),
-        (status = 403, description = "Guests cannot write", body = ApiErrorBody),
-        (status = 404, description = "Unknown loan", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: guests cannot write", body = ApiErrorBody),
+        (status = 404, description = "not_found: unknown loan", body = ApiErrorBody),
         (status = 409, description = "book_already_lent", body = ApiErrorBody),
     )
 )]

@@ -76,8 +76,9 @@ fn zero_items_is_none() {
 #[test]
 fn year_is_extracted_from_partial_dates() {
     let year = |d: &str| {
-        let body =
-            format!(r#"{{"totalItems":1,"items":[{{"volumeInfo":{{"publishedDate":"{d}"}}}}]}}"#);
+        let body = format!(
+            r#"{{"totalItems":1,"items":[{{"volumeInfo":{{"title":"T","publishedDate":"{d}"}}}}]}}"#
+        );
         parse(&body, ISBN).unwrap().unwrap().published_year
     };
     assert_eq!(year("1980"), Some(1980));
@@ -130,10 +131,6 @@ fn missing_volume_info_fields_are_absent() {
     assert_eq!(m.genre, None);
     assert!(m.cover_candidates.is_empty());
     assert_eq!(m.isbn_13, None);
-    let m = parse(&fixture("no_volume_info.json"), ISBN)
-        .unwrap()
-        .unwrap();
-    assert_eq!(m.title, None);
 }
 
 #[tokio::test]
@@ -173,4 +170,45 @@ fn malformed_body_is_an_error_not_a_panic() {
     assert!(parse(r#"{"totalItems":"x","items":[1,null,"s"]}"#, ISBN)
         .unwrap()
         .is_none());
+}
+
+#[test]
+fn year_needs_exactly_four_digits() {
+    let year = |d: &str| {
+        let body = format!(
+            r#"{{"totalItems":1,"items":[{{"volumeInfo":{{"title":"T","publishedDate":"{d}"}}}}]}}"#
+        );
+        parse(&body, ISBN).unwrap().unwrap().published_year
+    };
+    assert_eq!(year("20231"), None);
+    assert_eq!(year("120050"), None);
+    assert_eq!(year("2005-03-01"), Some(2005));
+    assert_eq!(year("c2005"), Some(2005));
+    assert_eq!(year("marzo 2005"), Some(2005));
+}
+
+#[test]
+fn an_item_without_fields_is_no_result() {
+    assert_eq!(parse(&fixture("no_volume_info.json"), ISBN).unwrap(), None);
+    assert_eq!(
+        parse(&fixture("empty_volume_info.json"), ISBN).unwrap(),
+        None
+    );
+}
+
+#[test]
+fn description_entities_are_decoded() {
+    let m = parse(&fixture("entities.json"), ISBN).unwrap().unwrap();
+    assert_eq!(
+        m.description.as_deref(),
+        Some("Perché è così… «bello» © 2005 &sconosciuta;")
+    );
+}
+
+#[tokio::test]
+async fn an_oversized_body_is_a_provider_error() {
+    let body = format!(r#"{{"totalItems":0,"pad":"{}"}}"#, "x".repeat(2 << 20));
+    let (base, _rx) = serve("200 OK", &body);
+    let p = GoogleBooks::with_base_url(reqwest::Client::new(), &base);
+    assert!(p.lookup(ISBN).await.is_err());
 }

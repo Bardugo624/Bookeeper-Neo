@@ -20,6 +20,23 @@ it('sends null when there is no body', async () => {
   expect(r).toEqual({ status: 200, body: null });
 });
 
+it('request forwards headers to api_request', async () => {
+  invoke.mockResolvedValueOnce({ status: 200, body: '' });
+  await createTauriTransport().request('POST', '/x', {}, { 'X-Confirm-Token': 't' });
+  expect(invoke).toHaveBeenLastCalledWith('api_request', {
+    method: 'POST',
+    path: '/x',
+    body: '{}',
+    headers: { 'X-Confirm-Token': 't' },
+  });
+});
+
+it('request omits headers when none are given', async () => {
+  invoke.mockResolvedValueOnce({ status: 200, body: '' });
+  await createTauriTransport().request('POST', '/x', {});
+  expect(invoke.mock.lastCall?.[1]).not.toHaveProperty('headers');
+});
+
 it('maps a failed invoke to ApiError code "network"', async () => {
   invoke.mockRejectedValueOnce('ipc closed');
   const p = createTauriTransport().request('GET', '/api/v1/health');

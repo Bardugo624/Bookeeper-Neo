@@ -119,3 +119,28 @@ describe('query and encoding', () => {
     await expect(p).rejects.toMatchObject({ status: 409, code: 'slot_taken' });
   });
 });
+
+describe('server info', () => {
+  it('getServerInfo requests GET /api/v1/server', async () => {
+    const { c, calls } = rec(200, { version: '1', tls: 'off', public_url: null, phone_ready: false });
+    await c.getServerInfo();
+    expect(calls).toEqual([['GET', `${B}/server`, undefined]]);
+  });
+  it('getServerInfo works without a session', async () => {
+    let refreshes = 0;
+    const t: Transport = {
+      request: async (_m, p) => {
+        if (p.includes('/auth/refresh')) refreshes++;
+        return { status: 200, body: { version: '1', tls: 'off', public_url: null, phone_ready: false } };
+      },
+    };
+    const info = await createClient(t).getServerInfo();
+    expect(info.version).toBe('1');
+    expect(refreshes).toBe(0);
+  });
+  it('getServerInfo returns the body as is', async () => {
+    const body = { version: '1', tls: 'off', public_url: null, phone_ready: false };
+    const { c } = rec(200, body);
+    expect(await c.getServerInfo()).toEqual(body);
+  });
+});

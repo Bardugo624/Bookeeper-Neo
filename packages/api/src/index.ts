@@ -30,3 +30,4 @@ export type { CoverColor, CoverFetched, FetchCover } from './resources/covers';
 export type { ImportReport, ImportRequest, ImportFormat, ImportRowError, ImportedBook, ExportJson, ExportBook } from './resources/transfer';
 export type { ConfirmOut, ConfirmRequest, RestoreReport, BackupList, BackupItem, BackupConfig } from './resources/backup';
 export type { LabelsRequest } from './resources/labels';
+export type { ServerInfo, TlsMode } from './resources/server';

@@ -5,9 +5,11 @@
 
 use serde_json::Value;
 
+use super::text::{read_limited, strip_html};
 use super::{Metadata, Provider, ProviderError};
 
 const DEFAULT_BASE: &str = "https://openlibrary.org";
+const MAX_BODY: usize = 1 << 20;
 
 pub struct OpenLibrary {
     http: reqwest::Client,
@@ -59,10 +61,9 @@ impl Provider for OpenLibrary {
         if !status.is_success() {
             return Ok(None);
         }
-        let body = resp
-            .text()
+        let body = read_limited(resp, MAX_BODY)
             .await
-            .map_err(|e| ProviderError(format!("open-library: read: {e}")))?;
+            .map_err(|e| ProviderError(format!("open-library: {e}")))?;
         parse(&body, isbn_13)
     }
 }
@@ -197,76 +198,5 @@ fn year(s: &str) -> Option<i32> {
 
 /// Strip HTML tags, decode entities, trim; empty becomes `None`.
 fn plain_text(s: &str) -> Option<String> {
-    let mut out = String::with_capacity(s.len());
-    let mut in_tag = false;
-    let mut tag = String::new();
-    for c in s.chars() {
-        if in_tag {
-            if c == '>' {
-                in_tag = false;
-                let name = tag
-                    .trim_start_matches('/')
-                    .split(|c: char| c.is_whitespace() || c == '/')
-                    .next()
-                    .unwrap_or("")
-                    .to_ascii_lowercase();
-                if matches!(name.as_str(), "br" | "p" | "div" | "li" | "ul" | "ol") {
-                    out.push('\n');
-                }
-                tag.clear();
-            } else {
-                tag.push(c);
-            }
-        } else if c == '<' {
-            in_tag = true;
-        } else {
-            out.push(c);
-        }
-    }
-    if in_tag {
-        // Unterminated tag: keep what looked like text.
-        out.push('<');
-        out.push_str(&tag);
-    }
-    clean(&decode_entities(&out))
-}
-
-fn decode_entities(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
-    let mut rest = s;
-    while let Some(pos) = rest.find('&') {
-        out.push_str(&rest[..pos]);
-        let tail = &rest[pos + 1..];
-        let decoded = tail.find(';').filter(|e| *e <= 10).and_then(|end| {
-            let name = &tail[..end];
-            let ch = match name {
-                "amp" => Some('&'),
-                "lt" => Some('<'),
-                "gt" => Some('>'),
-                "quot" => Some('"'),
-                "apos" => Some('\''),
-                "nbsp" => Some(' '),
-                _ => name.strip_prefix('#').and_then(|n| {
-                    let code = match n.strip_prefix(['x', 'X']) {
-                        Some(h) => u32::from_str_radix(h, 16).ok()?,
-                        None => n.parse().ok()?,
-                    };
-                    char::from_u32(code)
-                }),
-            };
-            ch.map(|c| (c, end))
-        });
-        match decoded {
-            Some((c, end)) => {
-                out.push(c);
-                rest = &tail[end + 1..];
-            }
-            None => {
-                out.push('&');
-                rest = tail;
-            }
-        }
-    }
-    out.push_str(rest);
-    out
+    clean(&strip_html(s))
 }

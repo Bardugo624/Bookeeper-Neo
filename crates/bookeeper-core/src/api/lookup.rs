@@ -53,9 +53,9 @@ fn to_isbn13(raw: &str) -> Option<String> {
     ),
     responses(
         (status = 200, description = "Metadata", body = Metadata),
-        (status = 401, description = "Missing or invalid token", body = ApiErrorBody),
-        (status = 404, description = "No provider knows the ISBN (isbn_not_found)", body = ApiErrorBody),
-        (status = 422, description = "Invalid ISBN", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 404, description = "isbn_not_found: no provider knows the ISBN", body = ApiErrorBody),
+        (status = 422, description = "validation: invalid ISBN", body = ApiErrorBody),
     )
 )]
 pub async fn lookup_isbn(

@@ -1,51 +1,23 @@
 //! Standalone Bookeeper server: wires the core router to a data directory and a TCP port.
 
 use std::io;
-use std::net::{IpAddr, SocketAddr};
+use std::net::SocketAddr;
 use std::path::{Path, PathBuf};
 
 use bookeeper_core::api::setup::{library_count, new_setup_code};
-use bookeeper_core::{router, AppState, Db, DbError, SetupPolicy, VERSION};
-use clap::{Parser, Subcommand};
+use bookeeper_core::{router, AppState, Db, DbError, SetupPolicy};
 use tokio::net::TcpListener;
 
+pub mod announce;
+mod config;
+pub mod health;
+mod layers;
+pub mod tls;
 mod web;
+pub use announce::{announcement, Announcer};
+pub use config::{Cli, Command, Config, Switch, TlsChoice};
+pub use tls::{load_self_identity, self_dir, TlsServer};
 pub use web::web_routes;
-
-/// Runtime configuration, from flags or `BOOKEEPER_*` environment variables.
-#[derive(Debug, Clone, Parser)]
-#[command(name = "bookeeper-server", version = VERSION)]
-pub struct Config {
-    /// Directory holding the database (created if missing).
-    #[arg(long, env = "BOOKEEPER_DATA", default_value = "./data")]
-    pub data_dir: PathBuf,
-    /// Address to listen on.
-    #[arg(long, env = "BOOKEEPER_BIND", default_value = "0.0.0.0")]
-    pub bind: IpAddr,
-    /// Port to listen on.
-    #[arg(long, env = "BOOKEEPER_PORT", default_value_t = 7842)]
-    pub port: u16,
-}
-
-/// Command line: the startup flags plus an optional subcommand.
-#[derive(Debug, Clone, Parser)]
-#[command(name = "bookeeper-server", version = VERSION)]
-pub struct Cli {
-    #[command(flatten)]
-    pub config: Config,
-    #[command(subcommand)]
-    pub command: Option<Command>,
-}
-
-#[derive(Debug, Clone, Subcommand)]
-pub enum Command {
-    /// Generate and print a new setup code, then exit (no port is opened).
-    SetupCode {
-        /// Directory holding the database (defaults to the top-level `--data-dir`).
-        #[arg(long)]
-        data_dir: Option<PathBuf>,
-    },
-}
 
 #[derive(Debug, thiserror::Error)]
 pub enum StartError {
@@ -53,6 +25,8 @@ pub enum StartError {
     DataDir { path: PathBuf, source: io::Error },
     #[error("cannot listen on {addr} (port {}): {source}", addr.port())]
     Bind { addr: SocketAddr, source: io::Error },
+    #[error("configurazione non valida: {0}")]
+    Config(String),
     #[error("{0}")]
     Db(#[from] DbError),
 }
@@ -82,22 +56,21 @@ pub fn issue_setup_code(db: &Db) -> Result<String, StartError> {
 
 /// Creates the data directory if missing, opens the database and builds the router.
 pub fn build(cfg: &Config) -> Result<axum::Router, StartError> {
-    build_with_data(open_db(&cfg.data_dir)?, &cfg.data_dir)
+    build_with_data(open_db(&cfg.data_dir)?, cfg)
 }
 
-/// Builds the router on an opened database, keeping files under `data_dir`.
-pub fn build_with_data(db: Db, data_dir: &Path) -> Result<axum::Router, StartError> {
-    finish(app_state(db, data_dir)?)
+/// Builds the router on an opened database, keeping files under `cfg.data_dir`.
+pub fn build_with_data(db: Db, cfg: &Config) -> Result<axum::Router, StartError> {
+    finish(app_state(db, cfg)?)
 }
 
 /// The application state for a data directory, for callers that also need to start
 /// background work (the scheduled backups) on it.
-pub fn app_state(db: Db, data_dir: &Path) -> Result<AppState, StartError> {
-    Ok(AppState::open_with_data(
-        db,
-        SetupPolicy::CodeRequired,
-        data_dir,
-    )?)
+pub fn app_state(db: Db, cfg: &Config) -> Result<AppState, StartError> {
+    Ok(
+        AppState::open_with_data(db, SetupPolicy::CodeRequired, &cfg.data_dir)?
+            .with_server(cfg.server_info()),
+    )
 }
 
 /// Same router as [`build_with_data`], on an existing state.
@@ -113,12 +86,13 @@ fn router_for(state: AppState) -> axum::Router {
     // The core router already has a JSON fallback and `merge` panics when both sides
     // have one: drop the core's so `web_routes()` carries the only fallback (which
     // still answers `/api/*` with the JSON 404).
-    router(state).reset_fallback().merge(web_routes())
+    let info = state.server.clone();
+    layers::apply(router(state).reset_fallback().merge(web_routes()), &info)
 }
 
 /// Binds the TCP listener on the configured address and port.
 pub async fn bind(cfg: &Config) -> Result<TcpListener, StartError> {
-    let addr = SocketAddr::new(cfg.bind, cfg.port);
+    let addr = SocketAddr::new(cfg.bind, cfg.listen_port());
     TcpListener::bind(addr)
         .await
         .map_err(|source| StartError::Bind { addr, source })
@@ -132,7 +106,7 @@ pub async fn serve(listener: TcpListener, app: axum::Router) -> io::Result<()> {
 }
 
 /// Resolves on Ctrl+C or, on Unix, on SIGTERM (what Docker and systemd send).
-async fn shutdown_signal() {
+pub(crate) async fn shutdown_signal() {
     let ctrl_c = async {
         let _ = tokio::signal::ctrl_c().await;
     };
@@ -151,4 +125,15 @@ async fn shutdown_signal() {
     }
     #[cfg(not(unix))]
     ctrl_c.await;
+}
+
+/// The two certificate lines shown at startup and by `fingerprint`.
+pub fn identity_lines(identity: &bookeeper_net::tls::Identity) -> [String; 2] {
+    [
+        format!("Impronta del certificato: {}", identity.fingerprint_hex()),
+        format!(
+            "Frase di verifica: {}",
+            bookeeper_net::phrase::verification_phrase(&identity.fingerprint)
+        ),
+    ]
 }

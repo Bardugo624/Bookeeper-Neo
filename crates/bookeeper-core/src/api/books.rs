@@ -494,9 +494,11 @@ pub fn insert_in_tx_unaudited(
     request_body = CreateBook,
     responses(
         (status = 201, description = "Created book", body = BookOut),
-        (status = 403, description = "Guests cannot write", body = ApiErrorBody),
+        (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: guests cannot write", body = ApiErrorBody),
         (status = 409, description = "progressive_taken", body = ApiErrorBody),
-        (status = 422, description = "Invalid body", body = ApiErrorBody),
+        (status = 422, description = "validation: invalid body", body = ApiErrorBody),
     )
 )]
 pub async fn create_book(
@@ -530,7 +532,8 @@ pub async fn create_book(
     params(("id" = String, Path, description = "Book id")),
     responses(
         (status = 200, description = "The book", body = BookOut),
-        (status = 404, description = "Unknown book", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 404, description = "not_found: unknown book", body = ApiErrorBody),
     )
 )]
 pub async fn get_book(
@@ -614,10 +617,12 @@ fn merge(current: BookOut, p: PatchBook) -> ApiResult<NewBook> {
     request_body = PatchBook,
     responses(
         (status = 200, description = "Updated book", body = BookOut),
-        (status = 403, description = "Guests cannot write", body = ApiErrorBody),
-        (status = 404, description = "Unknown book", body = ApiErrorBody),
+        (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: guests cannot write", body = ApiErrorBody),
+        (status = 404, description = "not_found: unknown book", body = ApiErrorBody),
         (status = 409, description = "progressive_taken", body = ApiErrorBody),
-        (status = 422, description = "Invalid body", body = ApiErrorBody),
+        (status = 422, description = "validation: invalid body", body = ApiErrorBody),
     )
 )]
 pub async fn patch_book(
@@ -726,8 +731,9 @@ async fn remove_covers(state: &AppState, ids: Vec<String>) {
     params(("id" = String, Path, description = "Book id")),
     responses(
         (status = 204, description = "Deleted"),
-        (status = 403, description = "Guests cannot write", body = ApiErrorBody),
-        (status = 404, description = "Unknown book", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: guests cannot write", body = ApiErrorBody),
+        (status = 404, description = "not_found: unknown book", body = ApiErrorBody),
     )
 )]
 pub async fn delete_book(
@@ -762,8 +768,10 @@ pub async fn delete_book(
     request_body = BatchDelete,
     responses(
         (status = 200, description = "Number of books deleted", body = BatchDeleted),
-        (status = 403, description = "Guests cannot write", body = ApiErrorBody),
-        (status = 422, description = "More than 500 ids", body = ApiErrorBody),
+        (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: guests cannot write", body = ApiErrorBody),
+        (status = 422, description = "validation: more than 500 ids", body = ApiErrorBody),
     )
 )]
 pub async fn batch_delete(
@@ -802,6 +810,7 @@ pub async fn batch_delete(
     security(("bearer" = [])),
     responses(
         (status = 200, description = "Highest progressive number plus one, or 1", body = NextProgressive),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
         (status = 409, description = "progressive_taken", body = ApiErrorBody),
     )
 )]

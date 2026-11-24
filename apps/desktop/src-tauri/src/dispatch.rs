@@ -41,6 +41,7 @@ pub async fn dispatch(
     method: &str,
     path: &str,
     body: Option<String>,
+    headers: BTreeMap<String, String>,
 ) -> ApiResponse {
     let method = match Method::from_bytes(method.as_bytes()) {
         Ok(m) if ALLOWED_METHODS.contains(&m) => m,
@@ -53,6 +54,7 @@ pub async fn dispatch(
     if body.is_some() {
         builder = builder.header("content-type", "application/json");
     }
+    builder = apply_allowed_headers(builder, &headers);
     let Ok(request) = builder.body(Body::from(body.unwrap_or_default())) else {
         return bad_request("Invalid request");
     };
@@ -92,6 +94,23 @@ const EXPOSED_RESPONSE_HEADERS: [&str; 5] = [
     "retry-after",
     "cache-control",
 ];
+
+/// Copies the allowed headers onto the request; others and invalid values are dropped.
+fn apply_allowed_headers(
+    mut builder: axum::http::request::Builder,
+    headers: &BTreeMap<String, String>,
+) -> axum::http::request::Builder {
+    for (name, value) in headers {
+        let lower = name.to_ascii_lowercase();
+        if !ALLOWED_REQUEST_HEADERS.contains(&lower.as_str()) {
+            continue;
+        }
+        if let Ok(v) = axum::http::HeaderValue::from_str(value) {
+            builder = builder.header(lower, v);
+        }
+    }
+    builder
+}
 
 fn raw_error(status: StatusCode, code: &str, message: &str) -> RawApiResponse {
     let body = serde_json::json!({ "error_code": code, "message": message }).to_string();
@@ -136,12 +155,7 @@ pub async fn dispatch_raw(
             builder = builder.header("content-type", ct);
         }
     }
-    for (name, value) in &headers {
-        let lower = name.to_ascii_lowercase();
-        if ALLOWED_REQUEST_HEADERS.contains(&lower.as_str()) {
-            builder = builder.header(lower, value.as_str());
-        }
-    }
+    builder = apply_allowed_headers(builder, &headers);
     let Ok(request) = builder.body(Body::from(body.unwrap_or_default())) else {
         return raw_bad_request("Invalid request");
     };
@@ -187,27 +201,41 @@ mod tests {
 
     #[tokio::test]
     async fn dispatches_to_core_without_a_socket() {
-        let r = dispatch(test_router(), "GET", "/api/v1/health", None).await;
+        let r = dispatch(
+            test_router(),
+            "GET",
+            "/api/v1/health",
+            None,
+            BTreeMap::new(),
+        )
+        .await;
         assert_eq!(r.status, 200);
         assert!(r.body.contains("\"status\":\"ok\""));
     }
 
     #[tokio::test]
     async fn rejects_paths_outside_api() {
-        let r = dispatch(test_router(), "GET", "/etc/passwd", None).await;
+        let r = dispatch(test_router(), "GET", "/etc/passwd", None, BTreeMap::new()).await;
         assert_eq!(r.status, 400);
         assert!(r.body.contains("\"error_code\":\"bad_request\""));
     }
 
     #[tokio::test]
     async fn rejects_invalid_method_without_panicking() {
-        let r = dispatch(test_router(), "NOT A METHOD", "/api/v1/health", None).await;
+        let r = dispatch(
+            test_router(),
+            "NOT A METHOD",
+            "/api/v1/health",
+            None,
+            BTreeMap::new(),
+        )
+        .await;
         assert_eq!(r.status, 400);
     }
 
     #[tokio::test]
     async fn passes_core_errors_through() {
-        let r = dispatch(test_router(), "GET", "/api/v1/nope", None).await;
+        let r = dispatch(test_router(), "GET", "/api/v1/nope", None, BTreeMap::new()).await;
         assert_eq!(r.status, 404);
         assert!(r.body.contains("not_found"));
     }
@@ -215,7 +243,14 @@ mod tests {
     #[tokio::test]
     async fn rejects_methods_outside_the_transport_contract() {
         for method in ["TRACE", "CONNECT", "get", "FOO"] {
-            let r = dispatch(test_router(), method, "/api/v1/health", None).await;
+            let r = dispatch(
+                test_router(),
+                method,
+                "/api/v1/health",
+                None,
+                BTreeMap::new(),
+            )
+            .await;
             assert_eq!(r.status, 400, "{method}");
         }
     }
@@ -223,7 +258,7 @@ mod tests {
     #[tokio::test]
     async fn rejects_malformed_paths_without_panicking() {
         for path in ["/api/v1/he alth", "/api/\u{0}"] {
-            let r = dispatch(test_router(), "GET", path, None).await;
+            let r = dispatch(test_router(), "GET", path, None, BTreeMap::new()).await;
             assert_eq!(r.status, 400, "{path:?}");
             assert!(r.body.contains("bad_request"));
         }
@@ -231,14 +266,28 @@ mod tests {
 
     #[tokio::test]
     async fn non_ascii_paths_reach_the_core() {
-        let r = dispatch(test_router(), "GET", "/api/v1/libreria/città", None).await;
+        let r = dispatch(
+            test_router(),
+            "GET",
+            "/api/v1/libreria/città",
+            None,
+            BTreeMap::new(),
+        )
+        .await;
         assert_eq!(r.status, 404);
         assert!(r.body.contains("not_found"));
     }
 
     #[tokio::test]
     async fn dot_segments_never_leave_the_api() {
-        let r = dispatch(test_router(), "GET", "/api/../etc/passwd", None).await;
+        let r = dispatch(
+            test_router(),
+            "GET",
+            "/api/../etc/passwd",
+            None,
+            BTreeMap::new(),
+        )
+        .await;
         assert_eq!(r.status, 404);
         assert!(r.body.contains("not_found"));
     }
@@ -352,6 +401,36 @@ mod tests {
             String::from_utf8(decode(&r)).unwrap(),
             "if-none-match,x-confirm-token"
         );
+    }
+
+    #[tokio::test]
+    async fn json_requests_carry_allowed_headers() {
+        use axum::{http::HeaderMap, routing::post};
+        let router = Router::new().route(
+            "/api/t",
+            post(|h: HeaderMap| async move {
+                h.get("x-confirm-token")
+                    .and_then(|v| v.to_str().ok())
+                    .unwrap_or("")
+                    .to_owned()
+            }),
+        );
+        let headers = BTreeMap::from([("X-Confirm-Token".to_owned(), "tok".to_owned())]);
+        let r = dispatch(router, "POST", "/api/t", Some("{}".into()), headers).await;
+        assert_eq!(r.status, 200);
+        assert_eq!(r.body, "tok");
+    }
+
+    #[tokio::test]
+    async fn json_requests_drop_other_headers() {
+        let headers = BTreeMap::from([
+            ("Host".to_owned(), "evil".to_owned()),
+            ("X-Forwarded-For".to_owned(), "1.2.3.4".to_owned()),
+            ("X-Confirm-Token".to_owned(), "bad\nvalue".to_owned()),
+        ]);
+        let r = dispatch(probe_router(), "GET", "/api/echo-headers", None, headers).await;
+        assert_eq!(r.status, 200);
+        assert_eq!(r.body, "");
     }
 
     #[tokio::test]

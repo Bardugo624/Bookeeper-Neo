@@ -169,7 +169,10 @@ fn check_optional(
     path = "/api/v1/wishlist",
     tag = "wishlist",
     security(("bearer" = [])),
-    responses((status = 200, description = "The caller's wishlist", body = WishList))
+    responses(
+        (status = 200, description = "The caller's wishlist", body = WishList),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+    )
 )]
 pub async fn list_wishlist(
     State(state): State<AppState>,
@@ -199,8 +202,10 @@ pub async fn list_wishlist(
     request_body = CreateWish,
     responses(
         (status = 201, description = "Created item", body = WishOut),
-        (status = 403, description = "Guests cannot write", body = ApiErrorBody),
-        (status = 422, description = "Invalid body", body = ApiErrorBody),
+        (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: guests cannot write", body = ApiErrorBody),
+        (status = 422, description = "validation: invalid body", body = ApiErrorBody),
     )
 )]
 pub async fn create_wish(
@@ -261,9 +266,11 @@ pub async fn create_wish(
     request_body = PatchWish,
     responses(
         (status = 200, description = "Updated item", body = WishOut),
-        (status = 403, description = "Guests cannot write", body = ApiErrorBody),
-        (status = 404, description = "Unknown item", body = ApiErrorBody),
-        (status = 422, description = "Invalid body", body = ApiErrorBody),
+        (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: guests cannot write", body = ApiErrorBody),
+        (status = 404, description = "not_found: unknown item", body = ApiErrorBody),
+        (status = 422, description = "validation: invalid body", body = ApiErrorBody),
     )
 )]
 pub async fn patch_wish(
@@ -343,8 +350,9 @@ pub async fn patch_wish(
     params(("id" = String, Path, description = "Wishlist item id")),
     responses(
         (status = 204, description = "Deleted"),
-        (status = 403, description = "Guests cannot write", body = ApiErrorBody),
-        (status = 404, description = "Unknown item", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: guests cannot write", body = ApiErrorBody),
+        (status = 404, description = "not_found: unknown item", body = ApiErrorBody),
     )
 )]
 pub async fn delete_wish(
@@ -397,10 +405,11 @@ fn split_authors(raw: Option<&str>) -> Vec<String> {
     params(("id" = String, Path, description = "Wishlist item id")),
     responses(
         (status = 201, description = "The new book; the item is removed", body = BookOut),
-        (status = 403, description = "Guests cannot write", body = ApiErrorBody),
-        (status = 404, description = "Unknown item", body = ApiErrorBody),
-        (status = 409, description = "Book conflict", body = ApiErrorBody),
-        (status = 422, description = "The item does not make a valid book", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: guests cannot write", body = ApiErrorBody),
+        (status = 404, description = "not_found: unknown item", body = ApiErrorBody),
+        (status = 409, description = "progressive_taken: book conflict", body = ApiErrorBody),
+        (status = 422, description = "validation: the item does not make a valid book", body = ApiErrorBody),
     )
 )]
 pub async fn convert_wish(

@@ -2,10 +2,12 @@
 
 use serde_json::Value;
 
+use super::text::{read_limited, strip_html};
 use super::{Metadata, Provider, ProviderError};
 
 const DEFAULT_BASE: &str = "https://www.googleapis.com";
 const NAME: &str = "google-books";
+const MAX_BODY: usize = 1 << 20;
 
 pub struct GoogleBooks {
     http: reqwest::Client,
@@ -59,10 +61,9 @@ impl Provider for GoogleBooks {
             // Other 4xx: definitive "no record" from the provider's side.
             return Ok(None);
         }
-        let body = resp
-            .text()
+        let body = read_limited(resp, MAX_BODY)
             .await
-            .map_err(|e| ProviderError(format!("google-books: read body: {e}")))?;
+            .map_err(|e| ProviderError(format!("google-books: {e}")))?;
         parse(&body, isbn_13)
     }
 }
@@ -126,6 +127,13 @@ pub fn parse(body: &str, isbn_13: &str) -> Result<Option<Metadata>, ProviderErro
             _ => {}
         }
     }
+    let empty_result = Metadata {
+        sources: Vec::new(),
+        ..m.clone()
+    } == Metadata::default();
+    if empty_result {
+        return Ok(None);
+    }
     Ok(Some(m))
 }
 
@@ -173,17 +181,15 @@ fn identifiers(item: &Value) -> Vec<(String, String)> {
         .unwrap_or_default()
 }
 
-/// First four-digit number in 1000..=2100 found in the date.
+/// First run of exactly four digits (not adjacent to other digits) in 1000..=2100.
 fn parse_year(date: &str) -> Option<i32> {
-    let b = date.as_bytes();
-    (0..b.len().saturating_sub(3)).find_map(|i| {
-        let w = &b[i..i + 4];
-        if !w.iter().all(u8::is_ascii_digit) {
-            return None;
-        }
-        let n = std::str::from_utf8(w).ok()?.parse::<i32>().ok()?;
-        (1000..=2100).contains(&n).then_some(n)
-    })
+    date.split(|c: char| !c.is_ascii_digit())
+        .filter(|run| run.len() == 4)
+        .find_map(|run| {
+            run.parse::<i32>()
+                .ok()
+                .filter(|n| (1000..=2100).contains(n))
+        })
 }
 
 fn cover_candidates(links: Option<&Value>) -> Vec<String> {
@@ -225,83 +231,4 @@ fn with_zoom_zero(u: &str) -> Option<String> {
         .find(|c: char| !c.is_ascii_digit())
         .map_or(u.len(), |p| start + p);
     Some(format!("{}0{}", &u[..start], &u[end..]))
-}
-
-/// Plain text from an HTML fragment: tags removed, entities decoded.
-fn strip_html(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
-    let mut chars = s.chars().peekable();
-    while let Some(c) = chars.next() {
-        if c == '<' {
-            let mut tag = String::new();
-            let mut closed = false;
-            for t in chars.by_ref() {
-                if t == '>' {
-                    closed = true;
-                    break;
-                }
-                tag.push(t);
-            }
-            if !closed {
-                out.push('<');
-                out.push_str(&tag);
-                break;
-            }
-            let name: String = tag
-                .trim_start_matches('/')
-                .chars()
-                .take_while(|c| c.is_ascii_alphanumeric())
-                .collect::<String>()
-                .to_lowercase();
-            if matches!(name.as_str(), "br" | "p" | "div" | "li")
-                && !out.ends_with(['\n', ' '])
-                && !out.is_empty()
-            {
-                out.push('\n');
-            }
-        } else {
-            out.push(c);
-        }
-    }
-    decode_entities(&out)
-}
-
-fn decode_entities(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
-    let mut rest = s;
-    while let Some(i) = rest.find('&') {
-        out.push_str(&rest[..i]);
-        rest = &rest[i..];
-        let decoded = rest.find(';').filter(|&e| e <= 10).and_then(|e| {
-            let ent = &rest[1..e];
-            let ch = match ent {
-                "amp" => Some('&'),
-                "lt" => Some('<'),
-                "gt" => Some('>'),
-                "quot" => Some('"'),
-                "apos" => Some('\''),
-                "nbsp" => Some(' '),
-                _ => ent.strip_prefix('#').and_then(|n| {
-                    let code = match n.strip_prefix(['x', 'X']) {
-                        Some(h) => u32::from_str_radix(h, 16).ok()?,
-                        None => n.parse::<u32>().ok()?,
-                    };
-                    char::from_u32(code)
-                }),
-            };
-            ch.map(|c| (c, e + 1))
-        });
-        match decoded {
-            Some((c, len)) => {
-                out.push(c);
-                rest = &rest[len..];
-            }
-            None => {
-                out.push('&');
-                rest = &rest[1..];
-            }
-        }
-    }
-    out.push_str(rest);
-    out
 }

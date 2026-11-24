@@ -29,10 +29,11 @@ fn server_binary_keeps_files_in_its_data_dir() {
 #[test]
 fn library_build_keeps_files_in_its_data_dir() {
     let tmp = tempfile::tempdir().unwrap();
-    let cfg = Config {
-        data_dir: tmp.path().into(),
-        bind: "127.0.0.1".parse().unwrap(),
-        port: 0,
+    let cfg = {
+        let mut c = Config::for_data_dir(tmp.path());
+        c.bind = "127.0.0.1".parse().unwrap();
+        c.port = Some(0);
+        c
     };
     let _router = build(&cfg).unwrap();
     assert!(tmp.path().join("covers").is_dir());

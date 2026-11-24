@@ -12,6 +12,10 @@ on:
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/ci.yml"
+      - "Dockerfile"
+      - ".dockerignore"
+      - "docker-compose.yml"
+      - "scripts/**"
   push:
     branches: [main]
     paths:
@@ -24,6 +28,10 @@ on:
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/ci.yml"
+      - "Dockerfile"
+      - ".dockerignore"
+      - "docker-compose.yml"
+      - "scripts/**"
   workflow_dispatch:
 
 permissions:
@@ -97,3 +105,39 @@ jobs:
       - run: npm ci
       - run: npm run build -w @bookeeper/desktop
       - run: cargo build -p bookeeper-desktop
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build the image (amd64, not published)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          push: false
+          tags: bookeeper-server:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Start the container
+        run: docker run -d --name bookeeper -p 7842:7842 bookeeper-server:ci
+      - name: Wait for healthy
+        run: |
+          for i in $(seq 1 30); do
+            s=$(docker inspect -f '{{.State.Health.Status}}' bookeeper)
+            echo "health: $s"
+            [ "$s" = healthy ] && exit 0
+            sleep 2
+          done
+          docker logs bookeeper
+          exit 1
+      - name: Smoke test
+        run: |
+          code=$(docker logs bookeeper 2>&1 | grep -oE '[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}' | head -1)
+          test -n "$code"
+          scripts/smoke.sh http://127.0.0.1:7842 "$code"
+      - name: Container logs on failure
+        if: failure()
+        run: docker logs bookeeper

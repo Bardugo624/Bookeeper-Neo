@@ -326,7 +326,7 @@ fn check_spine(w: Option<i64>) -> ApiResult<Option<i64>> {
     get, path = "/api/v1/shelves", tag = "shelves", security(("bearer" = [])),
     responses(
         (status = 200, description = "Shelves ordered by label code", body = ShelfList),
-        (status = 401, description = "Not authenticated", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
     )
 )]
 pub async fn list_shelves(
@@ -349,9 +349,10 @@ pub async fn list_shelves(
     request_body = NewShelf,
     responses(
         (status = 201, description = "Created shelf", body = ShelfOut),
-        (status = 401, description = "Not authenticated", body = ApiErrorBody),
-        (status = 403, description = "Role too low", body = ApiErrorBody),
-        (status = 422, description = "Invalid field", body = ApiErrorBody),
+        (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: role too low", body = ApiErrorBody),
+        (status = 422, description = "validation: invalid field", body = ApiErrorBody),
     )
 )]
 pub async fn create_shelf(
@@ -412,8 +413,8 @@ pub async fn create_shelf(
     params(("id" = String, Path, description = "Shelf id")),
     responses(
         (status = 200, description = "The shelf", body = ShelfOut),
-        (status = 401, description = "Not authenticated", body = ApiErrorBody),
-        (status = 404, description = "Unknown shelf", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 404, description = "not_found: unknown shelf", body = ApiErrorBody),
     )
 )]
 pub async fn get_shelf(
@@ -439,11 +440,12 @@ fn required<T>(v: Option<Option<T>>, field: &str) -> ApiResult<Option<T>> {
     request_body = ShelfPatch,
     responses(
         (status = 200, description = "Updated shelf", body = ShelfOut),
-        (status = 401, description = "Not authenticated", body = ApiErrorBody),
-        (status = 403, description = "Role too low", body = ApiErrorBody),
-        (status = 404, description = "Unknown shelf", body = ApiErrorBody),
-        (status = 409, description = "A placed book would not fit (shelf_too_small)", body = ApiErrorBody),
-        (status = 422, description = "Invalid field", body = ApiErrorBody),
+        (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: role too low", body = ApiErrorBody),
+        (status = 404, description = "not_found: unknown shelf", body = ApiErrorBody),
+        (status = 409, description = "shelf_too_small: a placed book would not fit", body = ApiErrorBody),
+        (status = 422, description = "validation: invalid field", body = ApiErrorBody),
     )
 )]
 pub async fn update_shelf(
@@ -517,9 +519,9 @@ pub async fn update_shelf(
     params(("id" = String, Path, description = "Shelf id")),
     responses(
         (status = 204, description = "Deleted; its books stay, unplaced"),
-        (status = 401, description = "Not authenticated", body = ApiErrorBody),
-        (status = 403, description = "Role too low", body = ApiErrorBody),
-        (status = 404, description = "Unknown shelf", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: role too low", body = ApiErrorBody),
+        (status = 404, description = "not_found: unknown shelf", body = ApiErrorBody),
     )
 )]
 pub async fn delete_shelf(
@@ -549,8 +551,8 @@ pub async fn delete_shelf(
     params(("id" = String, Path, description = "Shelf id")),
     responses(
         (status = 200, description = "Placed books by row then slot", body = ShelfBookList),
-        (status = 401, description = "Not authenticated", body = ApiErrorBody),
-        (status = 404, description = "Unknown shelf", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 404, description = "not_found: unknown shelf", body = ApiErrorBody),
     )
 )]
 pub async fn shelf_books(
@@ -592,11 +594,12 @@ pub async fn shelf_books(
     request_body = PlaceIn,
     responses(
         (status = 200, description = "New placement", body = Placement),
-        (status = 401, description = "Not authenticated", body = ApiErrorBody),
-        (status = 403, description = "Role too low", body = ApiErrorBody),
-        (status = 404, description = "Unknown book or shelf", body = ApiErrorBody),
-        (status = 409, description = "Slot occupied (slot_taken)", body = ApiErrorBody),
-        (status = 422, description = "Slot outside the shelf or bad spine_width", body = ApiErrorBody),
+        (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: role too low", body = ApiErrorBody),
+        (status = 404, description = "not_found: unknown book or shelf", body = ApiErrorBody),
+        (status = 409, description = "slot_taken: slot occupied", body = ApiErrorBody),
+        (status = 422, description = "validation: slot outside the shelf or bad spine_width", body = ApiErrorBody),
     )
 )]
 pub async fn place_book(
@@ -658,9 +661,9 @@ pub async fn place_book(
     params(("id" = String, Path, description = "Book id")),
     responses(
         (status = 204, description = "Book is not placed (idempotent)"),
-        (status = 401, description = "Not authenticated", body = ApiErrorBody),
-        (status = 403, description = "Role too low", body = ApiErrorBody),
-        (status = 404, description = "Unknown book", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: role too low", body = ApiErrorBody),
+        (status = 404, description = "not_found: unknown book", body = ApiErrorBody),
     )
 )]
 pub async fn unplace_book(
@@ -689,10 +692,11 @@ pub async fn unplace_book(
     request_body = BatchAssignIn,
     responses(
         (status = 200, description = "What was placed and what was skipped", body = BatchAssignOut),
-        (status = 401, description = "Not authenticated", body = ApiErrorBody),
-        (status = 403, description = "Role too low", body = ApiErrorBody),
-        (status = 404, description = "Unknown shelf", body = ApiErrorBody),
-        (status = 422, description = "More than 500 ids", body = ApiErrorBody),
+        (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: role too low", body = ApiErrorBody),
+        (status = 404, description = "not_found: unknown shelf", body = ApiErrorBody),
+        (status = 422, description = "validation: more than 500 ids", body = ApiErrorBody),
     )
 )]
 pub async fn batch_assign(

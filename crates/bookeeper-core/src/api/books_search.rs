@@ -113,7 +113,8 @@ fn parse_bool(name: &str, v: &Option<String>) -> ApiResult<Option<bool>> {
     ),
     responses(
         (status = 200, description = "Books", body = BookList),
-        (status = 422, description = "Invalid query", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 422, description = "validation: invalid query", body = ApiErrorBody),
     )
 )]
 pub async fn list_books(
