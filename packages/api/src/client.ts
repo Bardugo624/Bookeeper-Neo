@@ -6,6 +6,11 @@ import { shelvesApi } from './resources/shelves';
 import { loansApi } from './resources/loans';
 import { wishlistApi } from './resources/wishlist';
 import { statsApi } from './resources/stats';
+import { lookupApi } from './resources/lookup';
+import { coversApi } from './resources/covers';
+import { transferApi } from './resources/transfer';
+import { backupApi } from './resources/backup';
+import { labelsApi } from './resources/labels';
 
 export type Health = components['schemas']['Health'];
 
@@ -34,6 +39,11 @@ export function createClient(t: Transport) {
     ...loansApi(t),
     ...wishlistApi(t),
     ...statsApi(t),
+    ...lookupApi(t),
+    ...coversApi(t),
+    ...transferApi(t),
+    ...backupApi(t),
+    ...labelsApi(t),
     async health() {
       return unwrap<Health>(await t.request('GET', `${P}/health`));
     },
