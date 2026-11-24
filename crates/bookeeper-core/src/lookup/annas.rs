@@ -108,7 +108,13 @@ impl AnnasArchive {
         for mirror in &self.mirrors {
             let attempt = tokio::time::timeout(PER_MIRROR_TIMEOUT, self.fetch(mirror, isbn)).await;
             match attempt {
-                Ok(Ok(Some(body))) => return parse(&body, isbn_13),
+                Ok(Ok(Some(body))) => match parse(&body, isbn_13) {
+                    Ok(None) if !is_no_records(&body) => {
+                        // Unparseable 200 (parked domain, challenge page): next mirror.
+                        last_err = Some(ProviderError("annas-archive: parse failed".into()));
+                    }
+                    other => return other,
+                },
                 Ok(Ok(None)) => return Ok(None),
                 Ok(Err(e)) => last_err = Some(e),
                 Err(_) => last_err = Some(ProviderError("annas-archive: mirror timed out".into())),
@@ -148,9 +154,13 @@ fn clean(s: &str) -> Option<String> {
     (!t.is_empty()).then(|| t.to_string())
 }
 
+fn is_no_records(body: &str) -> bool {
+    body.contains("no records") || body.contains("Nessun risultato")
+}
+
 /// Pure: response body to result. No network access.
 pub fn parse(body: &str, isbn_13: &str) -> Result<Option<Metadata>, ProviderError> {
-    if body.contains("no records") || body.contains("Nessun risultato") {
+    if is_no_records(body) {
         return Ok(None);
     }
     let isbn = normalize_isbn(isbn_13);
@@ -308,6 +318,7 @@ fn find_pages(s: &str) -> Option<i32> {
 fn find_language(s: &str) -> Option<String> {
     let lower = s.to_ascii_lowercase();
     let b = lower.as_bytes();
+    let mut best: Option<(usize, String)> = None;
     for key in ["language", "lingua"] {
         let mut from = 0;
         while let Some(pos) = lower[from..].find(key) {
@@ -332,11 +343,14 @@ fn find_language(s: &str) -> Option<String> {
             }
             let run = &lower[run_start..j];
             if (2..=3).contains(&run.len()) && run.bytes().all(|c| c.is_ascii_lowercase()) {
-                return Some(run.to_string());
+                if best.as_ref().is_none_or(|(p, _)| start < *p) {
+                    best = Some((start, run.to_string()));
+                }
+                break;
             }
         }
     }
-    None
+    best.map(|(_, v)| v)
 }
 
 fn split_on_any<'a>(s: &'a str, seps: &[&str]) -> Vec<&'a str> {
