@@ -203,14 +203,13 @@ pub async fn import_books(
                         continue;
                     }
                 };
-                let key = book.isbn_13.clone().or_else(|| book.isbn_10.clone());
-                if let Some(key) = key {
-                    // `known` also grows with this file's rows: duplicates within the file.
-                    if !known.insert(key) {
-                        report.duplicates += 1;
-                        continue;
-                    }
+                // `known` also grows with this file's rows: duplicates within the file.
+                let keys: Vec<&String> = book.isbn_13.iter().chain(book.isbn_10.iter()).collect();
+                if keys.iter().any(|k| known.contains(*k)) {
+                    report.duplicates += 1;
+                    continue;
                 }
+                known.extend(keys.into_iter().cloned());
                 report.new += 1;
                 if report.preview.len() < MAX_PREVIEW {
                     report.preview.push(imported_from(&book));

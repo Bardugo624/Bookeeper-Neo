@@ -635,3 +635,60 @@ fn routes_are_in_the_openapi_document() {
     assert!(doc["paths"]["/api/v1/import"]["post"].is_object());
     assert!(doc["paths"]["/api/v1/export"]["get"].is_object());
 }
+
+const LT_TITLE_ONLY: &str = include_str!("fixtures/import/librarything_title_only.tsv");
+const TAB_UNKNOWN: &str = include_str!("fixtures/import/tab_unknown.tsv");
+
+#[tokio::test]
+async fn librarything_is_detected_with_only_a_title_column() {
+    let s = admin().await;
+    let rep = ok_import(&s, "auto", LT_TITLE_ONLY, true).await;
+    assert_eq!(rep["format"], "librarything");
+}
+
+#[tokio::test]
+async fn any_tab_separated_header_falls_back_to_librarything() {
+    let s = admin().await;
+    // Detected as LibraryThing (not "unknown format"): the LibraryThing parser
+    // is the one that then complains about the missing title column.
+    let (st, body) = import(&s, "auto", TAB_UNKNOWN, true).await;
+    assert_eq!(st, 422, "{body}");
+    assert_eq!(body["message"], "The file has no title column");
+}
+
+#[tokio::test]
+async fn goodreads_and_calibre_detection_is_unchanged() {
+    let s = admin().await;
+    assert_eq!(
+        ok_import(&s, "auto", GOODREADS, true).await["format"],
+        "goodreads"
+    );
+    assert_eq!(
+        ok_import(&s, "auto", CALIBRE, true).await["format"],
+        "calibre"
+    );
+}
+
+#[tokio::test]
+async fn in_file_duplicates_match_on_either_isbn() {
+    let s = admin().await;
+    let only13 = format!("Dune,A,{DUNE13}\n");
+    let both = format!("Dune,A,\"{DUNE13},{DUNE10}\"\n");
+    for body in [format!("{only13}{both}"), format!("{both}{only13}")] {
+        let csv = format!("title,authors,isbn\n{body}");
+        let rep = ok_import(&s, "calibre", &csv, true).await;
+        assert_eq!(rep["new"], 1, "{rep}");
+        assert_eq!(rep["duplicates"], 1, "{rep}");
+    }
+}
+
+#[tokio::test]
+async fn rows_without_isbn_are_never_duplicates() {
+    let s = admin().await;
+    let csv = "title,authors,isbn\nA,X,\nA,X,\n";
+    let rep = ok_import(&s, "calibre", csv, true).await;
+    assert_eq!(
+        (rep["new"].as_i64(), rep["duplicates"].as_i64()),
+        (Some(2), Some(0))
+    );
+}
