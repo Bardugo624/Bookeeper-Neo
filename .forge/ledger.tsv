@@ -53,3 +53,19 @@
 2026-11-24T12:47:46Z	bookeeper-fase-1c	skeleton-c	qa	opus	PASS	-	-	-	145
 2026-11-24T12:49:29Z	bookeeper-fase-1c	plumbing-c	dwarf	sonnet	-	trap	the uuid dependency only enables the v7 feature so use uuid now v7 not new v4	the `uuid` dependency only enables the `v7` feature, so use `Uuid::now_v7()`, not `new_v4()` [crates/bookeeper-core/Cargo.toml]	379	1
 2026-11-24T12:52:59Z	bookeeper-fase-1c	plumbing-c	qa	opus	FAIL	trap	the bookeeper server binary builds its router through build with db in main rs not lib rs build changing only build does not	the bookeeper-server binary builds its router through `build_with_db` in main.rs, not lib.rs `build()`; changing only `build()` does not… [crates/bookeeper-server/src/main.rs]	205	1
+2026-11-24T13:00:23Z	bookeeper-fase-1c	plumbing-c	dwarf	sonnet	-	trap	the bookeeper server binary builds its router through build with db in main rs not lib rs build changing only build does not	the bookeeper-server binary builds its router through `build_with_db` in main.rs, not lib.rs `build()`; changing only `build()` does not… [crates/bookeeper-server/src/main.rs]	41	1
+2026-11-24T13:03:43Z	bookeeper-fase-1c	plumbing-c	qa	opus	PASS	-	-	-	195
+2026-11-24T13:08:57Z	bookeeper-fase-1c	lookup-google	dwarf	sonnet	-	-	-	-	304
+2026-11-24T13:09:09Z	bookeeper-fase-1c	hardening-c	dwarf	sonnet	-	-	-	-	315
+2026-11-24T13:09:51Z	bookeeper-fase-1c	lookup-core	dwarf	sonnet	-	-	-	-	357
+2026-11-24T13:13:31Z	bookeeper-fase-1c	hardening-c	qa	opus	PASS	-	-	-	254
+2026-11-24T13:13:40Z	bookeeper-fase-1c	lookup-google	qa	opus	PASS	-	-	-	271
+2026-11-24T13:14:02Z	bookeeper-fase-1c	lookup-core	qa	opus	FAIL	finding	new routes reach for axum query instead of crate api util apiquery so bad query strings answer 400 plain text instead of 422	new routes reach for axum `Query` instead of `crate::api::util::ApiQuery`, so bad query strings answer 400 plain text instead of 422… [crates/bookeeper-core/src/api/util.rs]	244	1
+2026-11-24T13:14:33Z	bookeeper-fase-1c	lookup-core	dwarf	sonnet	-	-	-	-	28
+2026-11-24T13:17:15Z	bookeeper-fase-1c	lookup-core	qa	opus	PASS	-	-	-	156
+2026-11-24T13:17:37Z	bookeeper-fase-1c	lookup-openlibrary	dwarf	sonnet	-	-	-	-	234
+2026-11-24T13:18:29Z	bookeeper-fase-1c	lookup-annas	dwarf	sonnet	-	-	-	-	284
+2026-11-24T13:20:53Z	bookeeper-fase-1c	lookup-openlibrary	qa	opus	PASS	-	-	-	190
+2026-11-24T13:21:41Z	bookeeper-fase-1c	confirm	dwarf	sonnet	-	-	-	-	252
+2026-11-24T13:23:09Z	bookeeper-fase-1c	lookup-annas	qa	opus	FAIL	-	-	-	275
+2026-11-24T13:24:13Z	bookeeper-fase-1c	lookup-annas	dwarf	sonnet	-	-	-	-	42
