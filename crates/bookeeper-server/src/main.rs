@@ -6,6 +6,8 @@ use bookeeper_server::{
 use clap::Parser;
 
 async fn run(cfg: Config) -> Result<(), StartError> {
+    // Reject a bad configuration before opening a port, a directory or the database.
+    cfg.validate()?;
     // Bind first: a busy port must not leave a freshly created data directory behind.
     let listener = bind(&cfg).await?;
     let db = open_db(&cfg.data_dir)?;
@@ -13,11 +15,11 @@ async fn run(cfg: Config) -> Result<(), StartError> {
     if let Some(code) = startup_setup_code(&db)? {
         println!("Codice di setup: {code}");
     }
-    let state = app_state(db, &cfg.data_dir)?;
+    let state = app_state(db, &cfg)?;
     bookeeper_core::backup::schedule::spawn(state.clone());
     let app = build_with_state(state);
     let addr = listener.local_addr().map_err(|source| StartError::Bind {
-        addr: std::net::SocketAddr::new(cfg.bind, cfg.port),
+        addr: std::net::SocketAddr::new(cfg.bind, cfg.listen_port()),
         source,
     })?;
     println!("Bookeeper {VERSION} in ascolto su http://{addr}");

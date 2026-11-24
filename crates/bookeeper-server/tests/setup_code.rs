@@ -20,14 +20,15 @@ fn is_code(s: &str) -> bool {
 
 async fn start(dir: &Path) -> (SocketAddr, bookeeper_core::Db) {
     let db = open_db(dir).unwrap();
-    let cfg = Config {
-        data_dir: dir.into(),
-        bind: "127.0.0.1".parse().unwrap(),
-        port: 0,
+    let cfg = {
+        let mut c = Config::for_data_dir(dir);
+        c.bind = "127.0.0.1".parse().unwrap();
+        c.port = Some(0);
+        c
     };
     let listener = bind(&cfg).await.unwrap();
     let addr = listener.local_addr().unwrap();
-    let app = build_with_data(db.clone(), dir).unwrap();
+    let app = build_with_data(db.clone(), &cfg).unwrap();
     tokio::spawn(serve(listener, app));
     (addr, db)
 }

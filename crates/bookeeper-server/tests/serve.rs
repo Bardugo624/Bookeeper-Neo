@@ -1,11 +1,10 @@
 use bookeeper_server::{bind, build, serve, Config, StartError};
 
 fn cfg(dir: &std::path::Path, port: u16) -> Config {
-    Config {
-        data_dir: dir.into(),
-        bind: "127.0.0.1".parse().unwrap(),
-        port,
-    }
+    let mut cfg = Config::for_data_dir(dir);
+    cfg.bind = "127.0.0.1".parse().unwrap();
+    cfg.port = Some(port);
+    cfg
 }
 
 #[tokio::test]

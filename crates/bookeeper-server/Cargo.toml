@@ -14,17 +14,24 @@ path = "src/main.rs"
 
 [dependencies]
 axum = "0.8"
+axum-server = { version = "0.8", default-features = false, features = ["tls-rustls-no-provider"] }
 bookeeper-core = { path = "../bookeeper-core" }
+bookeeper-net = { path = "../bookeeper-net" }
 clap = { version = "4", features = ["derive", "env"] }
+gethostname = "1"
 mime_guess = "2"
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12", "logging"] }
+rustls-acme = { version = "0.15", default-features = false, features = ["axum", "ring", "webpki-roots"] }
 rust-embed = { version = "8", features = ["debug-embed"] }
 thiserror = "2"
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "signal"] }
+tower = "0.5"
+tower-http = { version = "0.6", features = ["trace", "set-header"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [dev-dependencies]
-reqwest = { version = "0.12", default-features = false, features = ["json"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 serde_json = "1"
 tempfile = "3"
 tokio = { version = "1", features = ["io-util"] }
