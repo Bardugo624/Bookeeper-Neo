@@ -770,3 +770,34 @@ fn jpeg_with_trailing_data_is_accepted() {
     b.extend_from_slice(b"\n");
     assert!(bookeeper_core::covers::process(&b).is_ok());
 }
+
+/// A 400x400 JPEG with an APP1 segment holding a complete 80x80 JPEG (as an EXIF
+/// thumbnail would) right after SOI; the thumbnail's own EOI must not make a cut
+/// file look complete.
+#[test]
+fn truncated_jpeg_with_an_embedded_thumbnail_is_rejected() {
+    let main = encode(&noisy(400, 400), ImageFormat::Jpeg);
+    let thumb = encode(&noisy(80, 80), ImageFormat::Jpeg);
+    let mut payload = b"Exif\0\0".to_vec();
+    payload.extend_from_slice(&thumb);
+    let seg_len = u16::try_from(payload.len() + 2).unwrap();
+    let mut full = vec![0xff, 0xd8, 0xff, 0xe1];
+    full.extend_from_slice(&seg_len.to_be_bytes());
+    full.extend_from_slice(&payload);
+    full.extend_from_slice(&main[2..]);
+    assert!(process(&full).is_ok(), "the complete file is accepted");
+    for (num, den) in [(1, 2), (2, 3), (3, 4), (9, 10)] {
+        let cut = &full[..full.len() * num / den];
+        assert!(process(cut).is_err(), "cut at {num}/{den} was accepted");
+    }
+    // Losing just the final EOI is also a truncation.
+    assert!(process(&full[..full.len() - 2]).is_err());
+}
+
+#[test]
+fn fill_bytes_before_the_end_marker_are_accepted() {
+    let mut b = encode(&noisy(200, 200), ImageFormat::Jpeg);
+    let eoi = b.len() - 2;
+    b.splice(eoi..eoi, [0xff, 0xff]);
+    assert!(process(&b).is_ok());
+}

@@ -43,12 +43,9 @@ pub fn process(bytes: &[u8]) -> Result<Processed, CoverError> {
         Ok(f @ (ImageFormat::Jpeg | ImageFormat::Png | ImageFormat::WebP)) => f,
         _ => return err("not a JPEG, PNG or WebP image"),
     };
-    // Lenient JPEG decoders paper over a cut file with grey; a complete one ends with EOI.
-    if format == ImageFormat::Jpeg {
-        // Data may legitimately follow the EOI (motion photos, vendor trailers).
-        if !bytes.windows(2).any(|w| w == [0xff, 0xd9]) {
-            return err("truncated JPEG");
-        }
+    // Lenient JPEG decoders paper over a cut file with grey; a complete one reaches EOI.
+    if format == ImageFormat::Jpeg && !jpeg_reaches_eoi(bytes) {
+        return err("truncated JPEG");
     }
     // Declared dimensions first: nothing is allocated for a hostile header.
     let reader = ImageReader::with_format(Cursor::new(bytes), format);
@@ -84,6 +81,59 @@ pub fn process(bytes: &[u8]) -> Result<Processed, CoverError> {
         .encode_image(&rgb)
         .map_err(|_| CoverError("cannot encode image".into()))?;
     Ok(Processed { jpeg, color })
+}
+
+/// Walks the JPEG marker segments by their declared lengths and the entropy-coded
+/// scans byte by byte, and tells whether the stream's own EOI is reached. An `FF D9`
+/// inside a header segment (an EXIF thumbnail in APP1, say) does not count, and data
+/// after the EOI (motion photos, vendor trailers) is allowed.
+fn jpeg_reaches_eoi(b: &[u8]) -> bool {
+    let n = b.len();
+    if n < 4 || b[0] != 0xff || b[1] != 0xd8 {
+        return false;
+    }
+    let mut i = 2;
+    loop {
+        // Tolerate stray bytes between segments, then any fill bytes before the marker.
+        while i < n && b[i] != 0xff {
+            i += 1;
+        }
+        while i < n && b[i] == 0xff {
+            i += 1;
+        }
+        if i >= n {
+            return false;
+        }
+        let marker = b[i];
+        i += 1;
+        match marker {
+            0xd9 => return true,
+            // Standalone markers carry no length.
+            0x01 | 0xd0..=0xd8 => continue,
+            _ => {}
+        }
+        if i + 2 > n {
+            return false;
+        }
+        let len = usize::from(u16::from_be_bytes([b[i], b[i + 1]]));
+        if len < 2 || i + len > n {
+            return false;
+        }
+        i += len;
+        if marker == 0xda {
+            // Entropy-coded data: FF 00 is a stuffed byte and FF D0..D7 a restart
+            // marker; any other FF xx starts the next marker.
+            loop {
+                if i + 1 >= n {
+                    return false;
+                }
+                if b[i] == 0xff && b[i + 1] != 0x00 && !(0xd0..=0xd7).contains(&b[i + 1]) {
+                    break;
+                }
+                i += 1;
+            }
+        }
+    }
 }
 
 /// RGB with transparency composited over white.
