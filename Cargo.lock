@@ -371,6 +371,7 @@ name = "bookeeper-desktop"
 version = "2.0.0-dev"
 dependencies = [
  "axum",
+ "base64 0.22.1",
  "bookeeper-core",
  "http-body-util",
  "serde",
