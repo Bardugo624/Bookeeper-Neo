@@ -32,31 +32,43 @@ pub enum Switch {
 #[command(name = "bookeeper-server", version = VERSION)]
 pub struct Config {
     /// Directory holding the database (created if missing).
-    #[arg(long, env = "BOOKEEPER_DATA", default_value = "./data")]
+    #[arg(long, global = true, env = "BOOKEEPER_DATA", default_value = "./data")]
     pub data_dir: PathBuf,
     /// Address to listen on.
-    #[arg(long, env = "BOOKEEPER_BIND", default_value = "0.0.0.0")]
+    #[arg(long, global = true, env = "BOOKEEPER_BIND", default_value = "0.0.0.0")]
     pub bind: IpAddr,
     /// Port to listen on (default: 443 with `--tls acme`, otherwise 7842).
-    #[arg(long, env = "BOOKEEPER_PORT")]
+    #[arg(long, global = true, env = "BOOKEEPER_PORT")]
     pub port: Option<u16>,
     /// TLS mode.
-    #[arg(long, env = "BOOKEEPER_TLS", value_enum, default_value = "off")]
+    #[arg(
+        long,
+        global = true,
+        env = "BOOKEEPER_TLS",
+        value_enum,
+        default_value = "off"
+    )]
     pub tls: TlsChoice,
     /// Public DNS name of the server (required with `--tls acme`).
-    #[arg(long, env = "BOOKEEPER_DOMAIN")]
+    #[arg(long, global = true, env = "BOOKEEPER_DOMAIN")]
     pub domain: Option<String>,
     /// Contact e-mail for the ACME account.
-    #[arg(long, env = "BOOKEEPER_ACME_EMAIL")]
+    #[arg(long, global = true, env = "BOOKEEPER_ACME_EMAIL")]
     pub acme_email: Option<String>,
     /// ACME directory URL (default: Let's Encrypt, production).
-    #[arg(long, env = "BOOKEEPER_ACME_DIRECTORY")]
+    #[arg(long, global = true, env = "BOOKEEPER_ACME_DIRECTORY")]
     pub acme_directory: Option<String>,
     /// Address phones should use (default with `--tls acme`: `https://<domain>`).
-    #[arg(long, env = "BOOKEEPER_PUBLIC_URL")]
+    #[arg(long, global = true, env = "BOOKEEPER_PUBLIC_URL")]
     pub public_url: Option<String>,
     /// Announce the server on the local network (mDNS).
-    #[arg(long, env = "BOOKEEPER_MDNS", value_enum, default_value = "on")]
+    #[arg(
+        long,
+        global = true,
+        env = "BOOKEEPER_MDNS",
+        value_enum,
+        default_value = "on"
+    )]
     pub mdns: Switch,
 }
 
@@ -87,10 +99,7 @@ pub enum Command {
     },
     /// Exit 0 if the server on this machine answers, 1 otherwise. Reads the same
     /// flags and `BOOKEEPER_*` variables as the server; opens nothing.
-    Healthcheck {
-        #[command(flatten)]
-        config: Box<Config>,
-    },
+    Healthcheck,
 }
 
 impl Config {

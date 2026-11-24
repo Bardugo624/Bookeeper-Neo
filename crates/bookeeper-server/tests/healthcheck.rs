@@ -89,7 +89,7 @@ async fn the_subcommand_exits_0_or_1_and_creates_no_data_dir() {
                 Command::new(env!("CARGO_BIN_EXE_bookeeper-server"))
                     .args(["healthcheck", "--data-dir"])
                     .arg(&data)
-                    .args(["--port", &port.to_string(), "--tls", "self"])
+                    .args(["--port", &port.to_string()])
                     .output()
                     .unwrap()
             })
@@ -98,10 +98,21 @@ async fn the_subcommand_exits_0_or_1_and_creates_no_data_dir() {
         }
     };
     let (l, a) = listener().await;
+    let responder = tokio::spawn(async move {
+        loop {
+            let Ok((mut s, _)) = l.accept().await else {
+                break;
+            };
+            let _ = s
+                .write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n")
+                .await;
+        }
+    });
     let ok = run(a.port()).await;
     assert_eq!(ok.status.code(), Some(0));
     assert!(ok.stdout.is_empty());
-    drop(l);
+    responder.abort();
+    let _ = responder.await;
     let bad = run(a.port()).await;
     assert_eq!(bad.status.code(), Some(1));
     assert!(!bad.stderr.is_empty());
