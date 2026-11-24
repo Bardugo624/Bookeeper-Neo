@@ -9,6 +9,7 @@ use bookeeper_core::{router, AppState, Db, DbError, SetupPolicy};
 use tokio::net::TcpListener;
 
 mod config;
+mod layers;
 mod web;
 pub use config::{Cli, Command, Config, Switch, TlsChoice};
 pub use web::web_routes;
@@ -80,7 +81,8 @@ fn router_for(state: AppState) -> axum::Router {
     // The core router already has a JSON fallback and `merge` panics when both sides
     // have one: drop the core's so `web_routes()` carries the only fallback (which
     // still answers `/api/*` with the JSON 404).
-    router(state).reset_fallback().merge(web_routes())
+    let info = state.server.clone();
+    layers::apply(router(state).reset_fallback().merge(web_routes()), &info)
 }
 
 /// Binds the TCP listener on the configured address and port.
