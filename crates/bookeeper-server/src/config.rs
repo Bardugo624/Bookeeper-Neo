@@ -49,9 +49,15 @@ pub struct Config {
         default_value = "off"
     )]
     pub tls: TlsChoice,
-    /// Public DNS name of the server (required with `--tls acme`).
-    #[arg(long, global = true, env = "BOOKEEPER_DOMAIN")]
-    pub domain: Option<String>,
+    /// Public DNS names of the server, repeatable or comma separated (required
+    /// with `--tls acme`; the first is the main one).
+    #[arg(
+        long = "domain",
+        global = true,
+        env = "BOOKEEPER_DOMAIN",
+        value_delimiter = ','
+    )]
+    pub domains: Vec<String>,
     /// Contact e-mail for the ACME account.
     #[arg(long, global = true, env = "BOOKEEPER_ACME_EMAIL")]
     pub acme_email: Option<String>,
@@ -110,7 +116,7 @@ impl Config {
             bind: IpAddr::from([0, 0, 0, 0]),
             port: None,
             tls: TlsChoice::Off,
-            domain: None,
+            domains: Vec::new(),
             acme_email: None,
             acme_directory: None,
             public_url: None,
@@ -126,14 +132,28 @@ impl Config {
         })
     }
 
+    /// The domain names, normalised: trimmed, lowercase, no empty entries, no
+    /// duplicates, order kept.
+    pub fn domain_names(&self) -> Vec<String> {
+        let mut out: Vec<String> = Vec::new();
+        for d in &self.domains {
+            let d = d.trim().to_lowercase();
+            if !d.is_empty() && !out.contains(&d) {
+                out.push(d);
+            }
+        }
+        out
+    }
+
     /// Checks the configuration before anything is opened or created.
     pub fn validate(&self) -> Result<(), StartError> {
-        if self.tls == TlsChoice::Acme && self.domain.is_none() {
+        let domains = self.domain_names();
+        if self.tls == TlsChoice::Acme && domains.is_empty() {
             return Err(StartError::Config(
                 "con --tls acme serve --domain".to_string(),
             ));
         }
-        if let Some(domain) = &self.domain {
+        for domain in &domains {
             if !is_dns_name(domain) {
                 return Err(StartError::Config(format!(
                     "--domain \"{domain}\" non è un nome DNS valido (per esempio libri.example.org)"
@@ -141,16 +161,10 @@ impl Config {
             }
         }
         if let Some(url) = &self.public_url {
-            let rest = url
-                .strip_prefix("https://")
-                .or_else(|| url.strip_prefix("http://"));
-            match rest {
-                Some(r) if !r.trim_matches('/').is_empty() => {}
-                _ => {
-                    return Err(StartError::Config(format!(
-                        "--public-url \"{url}\" deve iniziare con http:// o https:// e indicare un indirizzo"
-                    )))
-                }
+            if !is_public_url(url) {
+                return Err(StartError::Config(format!(
+                    "--public-url \"{url}\" deve iniziare con http:// o https:// e indicare un indirizzo"
+                )));
             }
         }
         Ok(())
@@ -162,7 +176,7 @@ impl Config {
             return Some(url.trim_end_matches('/').to_string());
         }
         if self.tls == TlsChoice::Acme {
-            let domain = self.domain.as_ref()?;
+            let domain = self.domain_names().into_iter().next()?;
             let port = self.listen_port();
             return Some(if port == 443 {
                 format!("https://{domain}")
@@ -196,4 +210,54 @@ fn is_dns_name(s: &str) -> bool {
                 && !label.starts_with('-')
                 && !label.ends_with('-')
         })
+}
+
+/// `http(s)://host[:port][/path]` with a DNS name, IPv4 or bracketed IPv6 host.
+fn is_public_url(url: &str) -> bool {
+    let Some(rest) = url
+        .strip_prefix("https://")
+        .or_else(|| url.strip_prefix("http://"))
+    else {
+        return false;
+    };
+    if rest.chars().any(|c| c.is_control() || c.is_whitespace()) {
+        return false;
+    }
+    let (authority, path) = match rest.find('/') {
+        Some(i) => (&rest[..i], &rest[i..]),
+        None => (rest, ""),
+    };
+    if path.contains(['?', '#']) || authority.contains(['@', '?', '#']) {
+        return false;
+    }
+    let (host, port) = if let Some(inner) = authority.strip_prefix('[') {
+        let Some(end) = inner.find(']') else {
+            return false;
+        };
+        let after = &inner[end + 1..];
+        let port = if after.is_empty() {
+            None
+        } else if let Some(p) = after.strip_prefix(':') {
+            Some(p)
+        } else {
+            return false;
+        };
+        if inner[..end].parse::<std::net::Ipv6Addr>().is_err() {
+            return false;
+        }
+        return port.is_none_or(valid_port);
+    } else {
+        match authority.split_once(':') {
+            Some((h, p)) => (h, Some(p)),
+            None => (authority, None),
+        }
+    };
+    if !(host.parse::<std::net::Ipv4Addr>().is_ok() || is_dns_name(host)) {
+        return false;
+    }
+    port.is_none_or(valid_port)
+}
+
+fn valid_port(p: &str) -> bool {
+    !p.is_empty() && p.bytes().all(|b| b.is_ascii_digit()) && p.parse::<u16>().is_ok_and(|n| n >= 1)
 }

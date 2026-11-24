@@ -186,7 +186,7 @@ async fn acme_mode_starts_and_listens_without_a_certificate() {
     cfg.bind = "127.0.0.1".parse().unwrap();
     cfg.port = Some(0);
     cfg.tls = TlsChoice::Acme;
-    cfg.domain = Some("libri.example.org".into());
+    cfg.domains = vec!["libri.example.org".into()];
     cfg.acme_directory = Some("https://127.0.0.1:1/dir".into());
     cfg.validate().unwrap();
     let listener = bind(&cfg).await.unwrap();
@@ -224,4 +224,81 @@ async fn acme_mode_starts_and_listens_without_a_certificate() {
         .expect("graceful shutdown")
         .unwrap()
         .unwrap();
+}
+
+fn acme_cfg(dir: &Path, domains: &[&str]) -> Config {
+    let mut cfg = Config::for_data_dir(dir);
+    cfg.bind = "127.0.0.1".parse().unwrap();
+    cfg.port = Some(0);
+    cfg.tls = TlsChoice::Acme;
+    cfg.domains = domains.iter().map(|d| d.to_string()).collect();
+    cfg.acme_directory = Some("https://127.0.0.1:1/dir".into());
+    cfg
+}
+
+#[test]
+fn self_names_include_every_domain() {
+    let tmp = tempfile::tempdir().unwrap();
+    let mut cfg = self_cfg(tmp.path());
+    cfg.domains = vec!["a.example.org".into(), "B.example.org".into()];
+    let names = bookeeper_server::tls::self_names(&cfg);
+    assert!(names.contains(&"a.example.org".to_string()), "{names:?}");
+    assert!(names.contains(&"b.example.org".to_string()), "{names:?}");
+}
+
+#[tokio::test]
+async fn acme_mode_starts_with_two_domains() {
+    let tmp = tempfile::tempdir().unwrap();
+    let cfg = acme_cfg(tmp.path(), &["mobile.example.org", "app.example.org"]);
+    cfg.validate().unwrap();
+    let listener = bind(&cfg).await.unwrap();
+    let addr = listener.local_addr().unwrap();
+    let app = build_with_state(app_state(open_db(tmp.path()).unwrap(), &cfg).unwrap());
+    let (stop, rx) = oneshot::channel::<()>();
+    let task = tokio::spawn(
+        TlsServer::acme(listener, &cfg)
+            .unwrap()
+            .serve_until(app, async {
+                let _ = rx.await;
+            }),
+    );
+    let tcp = tokio::time::timeout(Duration::from_secs(5), tokio::net::TcpStream::connect(addr))
+        .await
+        .expect("connect in time");
+    assert!(tcp.is_ok());
+    drop(tcp);
+    assert!(!task.is_finished());
+    let _ = stop.send(());
+    tokio::time::timeout(Duration::from_secs(5), task)
+        .await
+        .expect("graceful shutdown")
+        .unwrap()
+        .unwrap();
+}
+
+#[tokio::test]
+async fn acme_mode_drops_a_silent_connection() {
+    use tokio::io::AsyncReadExt;
+    let tmp = tempfile::tempdir().unwrap();
+    let cfg = acme_cfg(tmp.path(), &["libri.example.org"]);
+    let listener = bind(&cfg).await.unwrap();
+    let addr = listener.local_addr().unwrap();
+    let app = build_with_state(app_state(open_db(tmp.path()).unwrap(), &cfg).unwrap());
+    let (stop, rx) = oneshot::channel::<()>();
+    let task = tokio::spawn(
+        TlsServer::acme(listener, &cfg)
+            .unwrap()
+            .serve_until(app, async {
+                let _ = rx.await;
+            }),
+    );
+    let mut tcp = tokio::net::TcpStream::connect(addr).await.unwrap();
+    let mut buf = [0u8; 16];
+    let read = tokio::time::timeout(Duration::from_secs(15), tcp.read(&mut buf))
+        .await
+        .expect("the silent connection must be closed within 15 seconds");
+    // End of stream or an error: either way the server let go.
+    assert!(matches!(read, Ok(0) | Err(_)), "{read:?}");
+    let _ = stop.send(());
+    let _ = tokio::time::timeout(Duration::from_secs(5), task).await;
 }
