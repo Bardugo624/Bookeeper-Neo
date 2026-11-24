@@ -73,6 +73,7 @@ fn load_secret(db: &Db) -> Result<Vec<u8>, DbError> {
 fn build_http() -> reqwest::Client {
     reqwest::Client::builder()
         .timeout(Duration::from_secs(10))
+        .redirect(reqwest::redirect::Policy::none())
         .user_agent(format!("Bookeeper/{}", crate::VERSION))
         .build()
         .expect("http client")

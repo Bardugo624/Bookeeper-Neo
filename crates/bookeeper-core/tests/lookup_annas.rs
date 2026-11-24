@@ -2,7 +2,8 @@
 
 use std::io::{Read, Write};
 use std::net::TcpListener;
-use std::sync::mpsc;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::{mpsc, Arc};
 
 use bookeeper_core::lookup::annas::parse;
 use bookeeper_core::lookup::{AnnasArchive, Provider};
@@ -177,4 +178,88 @@ async fn invalid_utf8_body_is_an_error() {
 #[test]
 fn name_is_stable() {
     assert_eq!(AnnasArchive::new(reqwest::Client::new()).name(), "annas-archive");
+}
+
+/// Local server answering every request with `respond(request_line)`; counts requests.
+fn serve_loop(respond: impl Fn(&str) -> String + Send + 'static) -> (String, Arc<AtomicUsize>) {
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let base = format!("http://{}", listener.local_addr().unwrap());
+    let hits = Arc::new(AtomicUsize::new(0));
+    let h = hits.clone();
+    std::thread::spawn(move || {
+        while let Ok((mut s, _)) = listener.accept() {
+            let mut buf = [0u8; 4096];
+            let n = s.read(&mut buf).unwrap_or(0);
+            let req = String::from_utf8_lossy(&buf[..n]).to_string();
+            h.fetch_add(1, Ordering::SeqCst);
+            let _ = s.write_all(respond(req.lines().next().unwrap_or("")).as_bytes());
+        }
+    });
+    (base, hits)
+}
+
+fn redirect_to(loc: &str) -> String {
+    format!("HTTP/1.1 302 Found\r\nLocation: {loc}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n")
+}
+
+fn ok_page() -> String {
+    let body = fixture("result.html");
+    format!(
+        "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+        body.len()
+    )
+}
+
+#[tokio::test]
+async fn shared_client_does_not_follow_redirects() {
+    let (target, target_hits) = serve_loop(|_| ok_page());
+    let (base, _) = serve_loop(move |_| redirect_to(&format!("{target}/x")));
+    let state = bookeeper_core::state::AppState::for_tests();
+    let resp = state.http.get(format!("{base}/a")).send().await.unwrap();
+    assert_eq!(resp.status().as_u16(), 302);
+    assert_eq!(target_hits.load(Ordering::SeqCst), 0);
+}
+
+#[tokio::test]
+async fn redirect_inside_the_mirror_list_is_followed() {
+    let (second, _) = serve_loop(|_| ok_page());
+    let target = second.clone();
+    let (first, _) = serve_loop(move |_| redirect_to(&format!("{target}/isbn/{ISBN}")));
+    let client = reqwest::Client::builder().redirect(reqwest::redirect::Policy::none()).build().unwrap();
+    let p = AnnasArchive::with_mirrors(client, vec![first, second]);
+    let m = p.lookup(ISBN).await.unwrap().unwrap();
+    assert_eq!(m.title.as_deref(), Some("Il nome della rosa"));
+}
+
+#[tokio::test]
+async fn redirect_to_a_foreign_host_is_not_followed() {
+    let (foreign, foreign_hits) = serve_loop(|_| ok_page());
+    let (first, _) = serve_loop(move |_| redirect_to(&format!("{foreign}/isbn/{ISBN}")));
+    let client = reqwest::Client::builder().redirect(reqwest::redirect::Policy::none()).build().unwrap();
+    let p = AnnasArchive::with_mirrors(client, vec![first]);
+    assert!(p.lookup(ISBN).await.is_err());
+    assert_eq!(foreign_hits.load(Ordering::SeqCst), 0);
+}
+
+#[tokio::test]
+async fn redirect_loops_stop_after_three_hops() {
+    let (base, hits) = serve_loop(|_| redirect_to("/isbn/9788845292613"));
+    let client = reqwest::Client::builder().redirect(reqwest::redirect::Policy::none()).build().unwrap();
+    let p = AnnasArchive::with_base_url(client, &base);
+    assert!(p.lookup(ISBN).await.is_err());
+    assert_eq!(hits.load(Ordering::SeqCst), 4);
+}
+
+#[test]
+fn first_language_label_wins() {
+    let body = "<html><head><meta property=\"og:title\" content=\"T\"></head><body>Lingua: it Language: en</body></html>";
+    assert_eq!(parse(body, ISBN).unwrap().unwrap().language.as_deref(), Some("it"));
+}
+
+#[tokio::test]
+async fn unparseable_200_tries_the_next_mirror() {
+    let (bad, _) = serve("200 OK", "<html><body>parked</body></html>");
+    let (good, _) = serve("200 OK", &fixture("result.html"));
+    let p = AnnasArchive::with_mirrors(reqwest::Client::new(), vec![bad, good]);
+    assert!(p.lookup(ISBN).await.unwrap().is_some());
 }

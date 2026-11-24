@@ -26,6 +26,8 @@ const MIRRORS: [&str; 4] = [
 const PER_MIRROR_TIMEOUT: Duration = Duration::from_secs(6);
 /// Overall budget (the service grants 8 s to a provider).
 const TOTAL_TIMEOUT: Duration = Duration::from_secs(7);
+/// Maximum redirect hops followed by hand.
+const MAX_REDIRECTS: u32 = 3;
 /// Pages are ~80–250 KiB; never read more than 1 MiB.
 const MAX_BODY: usize = 1 << 20;
 
@@ -50,29 +52,50 @@ impl AnnasArchive {
         Self { http, mirrors }
     }
 
-    fn allowed_host(&self, host: &str) -> bool {
+    fn allowed(&self, url: &reqwest::Url) -> bool {
+        let key = |u: &reqwest::Url| {
+            u.host_str().map(|h| (h.to_ascii_lowercase(), u.port_or_known_default()))
+        };
+        let Some(k) = key(url) else { return false };
         self.mirrors
             .iter()
             .filter_map(|m| reqwest::Url::parse(m).ok())
-            .any(|u| u.host_str().is_some_and(|h| h.eq_ignore_ascii_case(host)))
+            .any(|u| key(&u).as_ref() == Some(&k))
     }
 
     /// One mirror. `Ok(Some(body))` = 200, `Ok(None)` = 404, `Err` = try the next.
+    /// Redirects are followed by hand (max 3 hops), only inside the mirror list.
     async fn fetch(&self, mirror: &str, isbn: &str) -> Result<Option<String>, ProviderError> {
-        let url = format!("{mirror}/isbn/{isbn}");
-        let mut resp = self
-            .http
-            .get(&url)
-            .header("Accept", "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8")
-            .header("Accept-Language", "it,en;q=0.9")
-            .send()
-            .await
-            .map_err(|e| ProviderError(format!("annas-archive: request failed: {e}")))?;
-        // The shared client may follow redirects: refuse the ones that left the list.
-        let host_ok = resp.url().host_str().is_some_and(|h| self.allowed_host(h));
-        if !host_ok {
-            return Err(ProviderError("annas-archive: redirect outside the mirror list".into()));
-        }
+        let mut url = reqwest::Url::parse(&format!("{mirror}/isbn/{isbn}"))
+            .map_err(|e| ProviderError(format!("annas-archive: bad mirror url: {e}")))?;
+        let mut hops = 0;
+        let mut resp = loop {
+            let resp = self
+                .http
+                .get(url.clone())
+                .header("Accept", "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8")
+                .header("Accept-Language", "it,en;q=0.9")
+                .send()
+                .await
+                .map_err(|e| ProviderError(format!("annas-archive: request failed: {e}")))?;
+            if !resp.status().is_redirection() {
+                break resp;
+            }
+            hops += 1;
+            if hops > MAX_REDIRECTS {
+                return Err(ProviderError("annas-archive: too many redirects".into()));
+            }
+            let next = resp
+                .headers()
+                .get(reqwest::header::LOCATION)
+                .and_then(|v| v.to_str().ok())
+                .and_then(|loc| url.join(loc.trim()).ok())
+                .ok_or_else(|| ProviderError("annas-archive: bad redirect".into()))?;
+            if !self.allowed(&next) {
+                return Err(ProviderError("annas-archive: redirect outside the mirror list".into()));
+            }
+            url = next;
+        };
         let status = resp.status().as_u16();
         if status == 404 {
             return Ok(None);
