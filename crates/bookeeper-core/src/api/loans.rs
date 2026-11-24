@@ -110,6 +110,44 @@ pub struct ReturnLoan {
     pub returned_at: Option<i64>,
 }
 
+/// JSON body that may be absent: no body, an empty body or `{}` give the
+/// default value; a present but malformed body is still rejected.
+pub struct OptionalJson<T>(pub T);
+
+impl<S, T> axum::extract::FromRequest<S> for OptionalJson<T>
+where
+    S: Send + Sync,
+    T: serde::de::DeserializeOwned + Default,
+{
+    type Rejection = ApiError;
+
+    async fn from_request(req: axum::extract::Request, state: &S) -> Result<Self, ApiError> {
+        let bytes = axum::body::Bytes::from_request(req, state)
+            .await
+            .map_err(|e| {
+                if e.status() == StatusCode::PAYLOAD_TOO_LARGE {
+                    ApiError::coded(
+                        StatusCode::PAYLOAD_TOO_LARGE,
+                        "payload_too_large",
+                        "Request body is too large",
+                    )
+                } else {
+                    ApiError::bad_request("Invalid request body")
+                }
+            })?;
+        if bytes.iter().all(u8::is_ascii_whitespace) {
+            return Ok(OptionalJson(T::default()));
+        }
+        match serde_json::from_slice::<T>(&bytes) {
+            Ok(v) => Ok(OptionalJson(v)),
+            Err(e) if e.is_data() => Err(ApiError::validation(
+                "Invalid or missing fields in request body",
+            )),
+            Err(_) => Err(ApiError::bad_request("Malformed JSON")),
+        }
+    }
+}
+
 #[derive(Debug, Deserialize, ToSchema)]
 pub struct ListLoansQuery {
     /// `active` (default), `returned`, `overdue` or `all`.
@@ -389,6 +427,11 @@ pub async fn patch_loan(
             if let Err(e) = check_notes(&notes).and_then(|()| check_dates(lent_at, due_at)) {
                 return Ok(Err(e));
             }
+            if current.returned_at.is_some_and(|r| lent_at > r) {
+                return Ok(Err(ApiError::validation(
+                    "lent_at cannot be after returned_at",
+                )));
+            }
             tx.execute(
                 "UPDATE loans SET borrower_name = ?1, lent_at = ?2, due_at = ?3, notes = ?4 \
                  WHERE id = ?5 AND library_id = ?6",
@@ -446,7 +489,7 @@ pub async fn delete_loan(
     tag = "loans",
     security(("bearer" = [])),
     params(("id" = String, Path, description = "Loan id")),
-    request_body = ReturnLoan,
+    request_body = Option<ReturnLoan>,
     responses(
         (status = 200, description = "Returned loan", body = LoanOut),
         (status = 403, description = "Guests cannot write", body = ApiErrorBody),
@@ -458,7 +501,7 @@ pub async fn return_loan(
     State(state): State<AppState>,
     who: AuthUser,
     Path(id): Path<String>,
-    ApiJson(body): ApiJson<ReturnLoan>,
+    OptionalJson(body): OptionalJson<ReturnLoan>,
 ) -> ApiResult<Json<LoanOut>> {
     who.require(Role::Member)?;
     let out = state

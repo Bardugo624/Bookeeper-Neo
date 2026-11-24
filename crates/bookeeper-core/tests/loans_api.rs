@@ -524,3 +524,91 @@ async fn mutations_are_audited() {
     .collect();
     assert_eq!(got, want);
 }
+
+#[tokio::test]
+async fn lent_at_cannot_pass_returned_at() {
+    let s = seed(Role::Owner, None, None).await;
+    let book = insert_book(&s.state, &s.library_id, "Dune").await;
+    let t = now();
+    let l = lend(&s, &book, json!({"lent_at": t - 1000})).await;
+    let id = l["id"].as_str().unwrap();
+    let (st, _) = req(
+        &s,
+        "POST",
+        &format!("/api/v1/loans/{id}/return"),
+        Some(json!({"returned_at": t - 500})),
+    )
+    .await;
+    assert_eq!(st, 200);
+    let path = format!("/api/v1/loans/{id}");
+    let (st, b) = req(&s, "PATCH", &path, Some(json!({"lent_at": t - 100}))).await;
+    assert_eq!((st, b["error_code"].as_str()), (422, Some("validation")));
+    let (st, b) = req(&s, "PATCH", &path, Some(json!({"lent_at": t - 500}))).await;
+    assert_eq!((st, b["lent_at"].as_i64()), (200, Some(t - 500)));
+    // The rejected patch changed nothing before the valid one.
+    let (_, b) = req(&s, "GET", "/api/v1/loans?status=returned", None).await;
+    assert_eq!(b["items"][0]["lent_at"].as_i64(), Some(t - 500));
+}
+
+async fn fresh_loan_path(s: &Seeded) -> String {
+    let book = insert_book(&s.state, &s.library_id, "Dune").await;
+    let l = lend(s, &book, json!({"lent_at": now() - 1000})).await;
+    format!("/api/v1/loans/{}/return", l["id"].as_str().unwrap())
+}
+
+#[tokio::test]
+async fn return_without_a_body_uses_now() {
+    let s = seed(Role::Owner, None, None).await;
+    let path = fresh_loan_path(&s).await;
+    let before = now();
+    let (st, b) = req(&s, "POST", &path, None).await;
+    assert_eq!(st, 200, "{b}");
+    let r = b["returned_at"].as_i64().unwrap();
+    assert!(r >= before && r <= now() + 1);
+}
+
+#[tokio::test]
+async fn return_with_an_empty_object_uses_now() {
+    let s = seed(Role::Owner, None, None).await;
+    let path = fresh_loan_path(&s).await;
+    let before = now();
+    let (st, b) = req(&s, "POST", &path, Some(json!({}))).await;
+    assert_eq!(st, 200, "{b}");
+    assert!(b["returned_at"].as_i64().unwrap() >= before);
+}
+
+#[tokio::test]
+async fn return_with_malformed_json_is_bad_request() {
+    use axum::body::Body;
+    use axum::http::Request;
+    use http_body_util::BodyExt;
+    use tower::ServiceExt;
+    let s = seed(Role::Owner, None, None).await;
+    let path = fresh_loan_path(&s).await;
+    let req = Request::builder()
+        .method("POST")
+        .uri(&path)
+        .header(
+            "authorization",
+            format!("Bearer {}", s.session.access_token),
+        )
+        .header("content-type", "application/json")
+        .body(Body::from("{not json"))
+        .unwrap();
+    let resp = bookeeper_core::router(s.state.clone())
+        .oneshot(req)
+        .await
+        .unwrap();
+    assert_eq!(resp.status().as_u16(), 400);
+    let bytes = resp.into_body().collect().await.unwrap().to_bytes();
+    let b: Value = serde_json::from_slice(&bytes).unwrap();
+    assert_eq!(b["error_code"], "bad_request");
+}
+
+#[test]
+fn return_body_is_optional_in_openapi() {
+    let doc = serde_json::to_value(bookeeper_core::openapi()).unwrap();
+    let rb = &doc["paths"]["/api/v1/loans/{id}/return"]["post"]["requestBody"];
+    assert!(rb.is_object(), "{rb}");
+    assert_ne!(rb["required"], json!(true), "{rb}");
+}
