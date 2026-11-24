@@ -534,3 +534,33 @@ fn routes_are_in_openapi() {
     assert!(paths["/api/v1/books/batch-delete"]["post"].is_object());
     assert!(paths["/api/v1/books/next-progressive"]["get"].is_object());
 }
+
+#[test]
+fn next_progressive_documents_the_conflict() {
+    let doc = serde_json::to_value(bookeeper_core::openapi()).unwrap();
+    assert!(doc["paths"]["/api/v1/books/next-progressive"]["get"]["responses"]["409"].is_object());
+}
+
+#[tokio::test]
+async fn patch_does_not_revalidate_untouched_fields() {
+    let s = seed(Role::Owner, None, None).await;
+    let book = create(&s, json!({"title": "Dune"})).await;
+    let id = book["id"].as_str().unwrap().to_string();
+    let long = "a".repeat(400);
+    let (i, l) = (id.clone(), long.clone());
+    s.state
+        .db
+        .run(move |c| {
+            c.execute(
+                "UPDATE books SET title = ?1 WHERE id = ?2",
+                rusqlite::params![l, i],
+            )
+        })
+        .await
+        .unwrap();
+    let (st, b) = patch(&s, &id, json!({"notes": "x"})).await;
+    assert_eq!((st, b["notes"].as_str()), (200, Some("x")));
+    assert_eq!(b["title"].as_str(), Some(long.as_str()));
+    let (st, _) = patch(&s, &id, json!({"title": long})).await;
+    assert_eq!(st, 422);
+}

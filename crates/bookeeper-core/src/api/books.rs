@@ -532,30 +532,62 @@ pub async fn get_book(
     Ok(Json(book))
 }
 
-fn merge(current: BookOut, p: PatchBook) -> ApiResult<CreateBook> {
-    let title = match p.title {
-        None => current.title,
-        Some(Some(t)) => t,
+/// Applies a patch to the stored record, validating only the fields present
+/// in the body: untouched fields keep their stored value even if out of rule.
+fn merge(current: BookOut, p: PatchBook) -> ApiResult<NewBook> {
+    let title = match &p.title {
+        None => None,
+        Some(Some(t)) => Some(t.clone()),
         Some(None) => return Err(ApiError::validation("title cannot be null")),
     };
-    Ok(CreateBook {
-        isbn_13: p.isbn_13.unwrap_or(current.isbn_13),
-        isbn_10: p.isbn_10.unwrap_or(current.isbn_10),
-        title,
-        subtitle: p.subtitle.unwrap_or(current.subtitle),
-        authors: p.authors.map_or(current.authors, Option::unwrap_or_default),
-        publisher: p.publisher.unwrap_or(current.publisher),
-        published_year: p.published_year.unwrap_or(current.published_year),
-        language: p.language.unwrap_or(current.language),
-        page_count: p.page_count.unwrap_or(current.page_count),
-        description: p.description.unwrap_or(current.description),
-        genre: p.genre.unwrap_or(current.genre),
-        format: p.format.unwrap_or(current.format),
-        progressive_number: p.progressive_number.unwrap_or(current.progressive_number),
-        condition: p.condition.unwrap_or(current.condition),
-        acquired_at: p.acquired_at.unwrap_or(current.acquired_at),
-        price_cents: p.price_cents.unwrap_or(current.price_cents),
-        notes: p.notes.unwrap_or(current.notes),
+    // Validate the touched fields through the creation rules, with neutral
+    // values standing in for the untouched ones.
+    let probe = CreateBook {
+        isbn_13: p.isbn_13.clone().flatten(),
+        isbn_10: p.isbn_10.clone().flatten(),
+        title: title.clone().unwrap_or_else(|| "x".to_string()),
+        subtitle: p.subtitle.clone().flatten(),
+        authors: p
+            .authors
+            .clone()
+            .map(Option::unwrap_or_default)
+            .unwrap_or_default(),
+        publisher: p.publisher.clone().flatten(),
+        published_year: p.published_year.flatten(),
+        language: p.language.clone().flatten(),
+        page_count: p.page_count.flatten(),
+        description: p.description.clone().flatten(),
+        genre: p.genre.clone().flatten(),
+        format: p.format.clone().flatten(),
+        progressive_number: p.progressive_number.flatten(),
+        condition: p.condition.clone().flatten(),
+        acquired_at: p.acquired_at.flatten(),
+        price_cents: p.price_cents.flatten(),
+        notes: p.notes.clone().flatten(),
+    };
+    let v = validate_new(probe)?;
+    Ok(NewBook {
+        isbn_13: p.isbn_13.map_or(current.isbn_13, |_| v.isbn_13),
+        isbn_10: p.isbn_10.map_or(current.isbn_10, |_| v.isbn_10),
+        title: title.map_or(current.title, |_| v.title),
+        subtitle: p.subtitle.map_or(current.subtitle, |_| v.subtitle),
+        authors: p.authors.map_or(current.authors, |_| v.authors),
+        publisher: p.publisher.map_or(current.publisher, |_| v.publisher),
+        published_year: p
+            .published_year
+            .map_or(current.published_year, |_| v.published_year),
+        language: p.language.map_or(current.language, |_| v.language),
+        page_count: p.page_count.map_or(current.page_count, |_| v.page_count),
+        description: p.description.map_or(current.description, |_| v.description),
+        genre: p.genre.map_or(current.genre, |_| v.genre),
+        format: p.format.map_or(current.format, |_| v.format),
+        progressive_number: p
+            .progressive_number
+            .map_or(current.progressive_number, |_| v.progressive_number),
+        condition: p.condition.map_or(current.condition, |_| v.condition),
+        acquired_at: p.acquired_at.map_or(current.acquired_at, |_| v.acquired_at),
+        price_cents: p.price_cents.map_or(current.price_cents, |_| v.price_cents),
+        notes: p.notes.map_or(current.notes, |_| v.notes),
     })
 }
 
@@ -589,11 +621,12 @@ pub async fn patch_book(
                 return Ok(Err(ApiError::not_found()));
             };
             let old_updated = current.updated_at;
-            let book = match merge(current, patch).and_then(validate_new) {
+            let progressive_touched = patch.progressive_number.is_some();
+            let book = match merge(current, patch) {
                 Ok(b) => b,
                 Err(e) => return Ok(Err(e)),
             };
-            if let Some(n) = book.progressive_number {
+            if let Some(n) = book.progressive_number.filter(|_| progressive_touched) {
                 if progressive_taken(&tx, &who.library_id, n, Some(&id))? {
                     return Ok(Err(taken_error()));
                 }
@@ -743,7 +776,10 @@ pub async fn batch_delete(
     path = "/api/v1/books/next-progressive",
     tag = "books",
     security(("bearer" = [])),
-    responses((status = 200, description = "Highest progressive number plus one, or 1", body = NextProgressive))
+    responses(
+        (status = 200, description = "Highest progressive number plus one, or 1", body = NextProgressive),
+        (status = 409, description = "progressive_taken", body = ApiErrorBody),
+    )
 )]
 pub async fn next_progressive(
     State(state): State<AppState>,
