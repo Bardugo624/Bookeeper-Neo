@@ -116,7 +116,7 @@ fn authorize(user: &AuthUser, device: Option<DeviceOut>) -> ApiResult<DeviceOut>
     security(("bearer" = [])),
     responses(
         (status = 200, description = "Visible devices, newest first", body = DeviceList),
-        (status = 401, description = "Not authenticated", body = crate::error::ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = crate::error::ApiErrorBody),
     )
 )]
 pub async fn list_devices(
@@ -150,10 +150,11 @@ pub async fn list_devices(
     request_body = RenameDevice,
     responses(
         (status = 200, description = "Updated device", body = DeviceOut),
-        (status = 401, description = "Not authenticated", body = crate::error::ApiErrorBody),
-        (status = 403, description = "Not your device", body = crate::error::ApiErrorBody),
-        (status = 404, description = "Unknown device", body = crate::error::ApiErrorBody),
-        (status = 422, description = "Invalid name", body = crate::error::ApiErrorBody),
+        (status = 400, description = "bad_request: malformed JSON or wrong content type", body = crate::error::ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = crate::error::ApiErrorBody),
+        (status = 403, description = "forbidden: not your device", body = crate::error::ApiErrorBody),
+        (status = 404, description = "not_found: unknown device", body = crate::error::ApiErrorBody),
+        (status = 422, description = "validation: invalid name", body = crate::error::ApiErrorBody),
     )
 )]
 pub async fn rename_device(
@@ -196,9 +197,9 @@ pub async fn rename_device(
     params(("id" = String, Path, description = "Device id")),
     responses(
         (status = 204, description = "Device revoked (idempotent)"),
-        (status = 401, description = "Not authenticated", body = crate::error::ApiErrorBody),
-        (status = 403, description = "Not your device", body = crate::error::ApiErrorBody),
-        (status = 404, description = "Unknown device", body = crate::error::ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = crate::error::ApiErrorBody),
+        (status = 403, description = "forbidden: not your device", body = crate::error::ApiErrorBody),
+        (status = 404, description = "not_found: unknown device", body = crate::error::ApiErrorBody),
     )
 )]
 pub async fn revoke(

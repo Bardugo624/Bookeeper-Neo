@@ -159,9 +159,10 @@ async fn store(
     request_body(content = Vec<u8>, content_type = "application/octet-stream"),
     responses(
         (status = 200, description = "Stored", body = CoverColor),
-        (status = 400, description = "unsupported_image", body = ApiErrorBody),
-        (status = 403, description = "Guests cannot write", body = ApiErrorBody),
-        (status = 404, description = "Unknown book", body = ApiErrorBody),
+        (status = 400, description = "unsupported_image or bad_request", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: guests cannot write", body = ApiErrorBody),
+        (status = 404, description = "not_found: unknown book", body = ApiErrorBody),
         (status = 413, description = "payload_too_large", body = ApiErrorBody),
     )
 )]
@@ -192,8 +193,10 @@ pub async fn put_cover(
     request_body = FetchCover,
     responses(
         (status = 200, description = "Stored", body = CoverFetched),
-        (status = 403, description = "Guests cannot write", body = ApiErrorBody),
-        (status = 404, description = "Unknown book", body = ApiErrorBody),
+        (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: guests cannot write", body = ApiErrorBody),
+        (status = 404, description = "not_found: unknown book", body = ApiErrorBody),
         (status = 422, description = "validation or cover_fetch_failed", body = ApiErrorBody),
     )
 )]
@@ -257,7 +260,8 @@ fn matches_etag(headers: &HeaderMap, etag: &str) -> bool {
     responses(
         (status = 200, description = "JPEG image", content_type = "image/jpeg", body = Vec<u8>),
         (status = 304, description = "Not modified"),
-        (status = 404, description = "Unknown book or cover_not_found", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 404, description = "not_found or cover_not_found", body = ApiErrorBody),
     )
 )]
 pub async fn get_cover(
@@ -324,8 +328,9 @@ pub async fn get_cover(
     params(("id" = String, Path, description = "Book id")),
     responses(
         (status = 204, description = "No cover any more"),
-        (status = 403, description = "Guests cannot write", body = ApiErrorBody),
-        (status = 404, description = "Unknown book", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: guests cannot write", body = ApiErrorBody),
+        (status = 404, description = "not_found: unknown book", body = ApiErrorBody),
     )
 )]
 pub async fn delete_cover(

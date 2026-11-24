@@ -80,7 +80,8 @@ impl FromRequestParts<AppState> for OwnerConfirmed {
     security(("bearer" = [])),
     responses(
         (status = 200, description = "The archive", content_type = "application/zip", body = Vec<u8>),
-        (status = 403, description = "Admin or owner only", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: admin or owner only", body = ApiErrorBody),
     )
 )]
 pub async fn create_backup(State(state): State<AppState>, who: AuthUser) -> ApiResult<Response> {
@@ -118,9 +119,9 @@ pub async fn create_backup(State(state): State<AppState>, who: AuthUser) -> ApiR
     request_body(content = ArchiveBody, content_type = "application/zip"),
     responses(
         (status = 200, description = "Restored", body = RestoreReport),
-        (status = 400, description = "invalid_archive", body = ApiErrorBody),
-        (status = 401, description = "confirmation_required", body = ApiErrorBody),
-        (status = 403, description = "Owner only", body = ApiErrorBody),
+        (status = 400, description = "invalid_archive or bad_request", body = ApiErrorBody),
+        (status = 401, description = "confirmation_required, unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: owner only", body = ApiErrorBody),
         (status = 413, description = "payload_too_large", body = ApiErrorBody),
     )
 )]
@@ -162,8 +163,8 @@ pub struct BackupList {
     security(("bearer" = [])),
     responses(
         (status = 200, description = "Automatic backups", body = BackupList),
-        (status = 401, description = "Missing or invalid token", body = ApiErrorBody),
-        (status = 403, description = "Admin or owner only", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: admin or owner only", body = ApiErrorBody),
     )
 )]
 pub async fn list_backups(
@@ -200,8 +201,8 @@ pub async fn list_backups(
     security(("bearer" = [])),
     responses(
         (status = 200, description = "Effective configuration", body = BackupConfig),
-        (status = 401, description = "Missing or invalid token", body = ApiErrorBody),
-        (status = 403, description = "Admin or owner only", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: admin or owner only", body = ApiErrorBody),
     )
 )]
 pub async fn get_config(
@@ -226,8 +227,9 @@ pub async fn get_config(
     request_body = BackupConfig,
     responses(
         (status = 200, description = "Saved configuration", body = BackupConfig),
-        (status = 401, description = "Missing or invalid token", body = ApiErrorBody),
-        (status = 403, description = "Admin or owner only", body = ApiErrorBody),
+        (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: admin or owner only", body = ApiErrorBody),
         (status = 422, description = "validation", body = ApiErrorBody),
     )
 )]

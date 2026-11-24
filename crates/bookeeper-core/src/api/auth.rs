@@ -176,9 +176,11 @@ fn find_matches(
     request_body = LoginRequest,
     responses(
         (status = 200, description = "Signed in on a new device", body = AuthOut),
-        (status = 401, description = "Wrong email or password", body = ApiErrorBody),
-        (status = 409, description = "The credentials match several libraries", body = ApiErrorBody),
-        (status = 422, description = "Invalid fields", body = ApiErrorBody),
+        (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
+        (status = 401, description = "invalid_credentials: wrong email or password", body = ApiErrorBody),
+        (status = 409, description = "library_choice_required: the credentials match several libraries", body = ApiErrorBody),
+        (status = 422, description = "validation: invalid fields", body = ApiErrorBody),
+        (status = 429, description = "rate_limited: too many attempts (Retry-After header)", body = ApiErrorBody),
     )
 )]
 pub async fn login(
@@ -241,8 +243,10 @@ pub async fn login(
     request_body = LibrariesRequest,
     responses(
         (status = 200, description = "Libraries matching the credentials", body = LibrariesOut),
-        (status = 401, description = "Wrong email or password", body = ApiErrorBody),
-        (status = 422, description = "Invalid fields", body = ApiErrorBody),
+        (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
+        (status = 401, description = "invalid_credentials: wrong email or password", body = ApiErrorBody),
+        (status = 422, description = "validation: invalid fields", body = ApiErrorBody),
+        (status = 429, description = "rate_limited: too many attempts (Retry-After header)", body = ApiErrorBody),
     )
 )]
 pub async fn libraries(
@@ -274,6 +278,7 @@ pub async fn libraries(
     request_body = RefreshRequest,
     responses(
         (status = 200, description = "New session", body = RefreshOut),
+        (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
         (status = 401, description = "refresh_invalid, refresh_reused or device_revoked", body = ApiErrorBody),
     )
 )]
@@ -313,7 +318,7 @@ pub async fn refresh(
     security(("bearer" = [])),
     responses(
         (status = 204, description = "This device has been revoked"),
-        (status = 401, description = "Not signed in", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
     )
 )]
 pub async fn logout(State(s): State<AppState>, user: AuthUser) -> ApiResult<StatusCode> {
@@ -332,9 +337,10 @@ pub async fn logout(State(s): State<AppState>, user: AuthUser) -> ApiResult<Stat
     request_body = PasswordRequest,
     responses(
         (status = 204, description = "Password changed; other devices revoked"),
-        (status = 401, description = "Current password is wrong", body = ApiErrorBody),
-        (status = 409, description = "Current password is required", body = ApiErrorBody),
-        (status = 422, description = "Invalid fields", body = ApiErrorBody),
+        (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
+        (status = 401, description = "invalid_credentials: current password is wrong; or unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 409, description = "password_required: current password is required", body = ApiErrorBody),
+        (status = 422, description = "validation: invalid fields", body = ApiErrorBody),
     )
 )]
 pub async fn change_password(
@@ -404,7 +410,7 @@ pub async fn change_password(
     security(("bearer" = [])),
     responses(
         (status = 200, description = "Library, user and current device", body = MeOut),
-        (status = 401, description = "Not signed in", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
     )
 )]
 pub async fn me(State(s): State<AppState>, user: AuthUser) -> ApiResult<Json<MeOut>> {

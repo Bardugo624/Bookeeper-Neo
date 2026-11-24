@@ -43,8 +43,9 @@ pub struct LabelsRequest {
     request_body = LabelsRequest,
     responses(
         (status = 200, description = "PDF file; header X-Labels-Skipped", content_type = "application/pdf", body = Vec<u8>),
-        (status = 401, description = "Missing or invalid token", body = ApiErrorBody),
-        (status = 422, description = "Invalid ids or nothing to print", body = ApiErrorBody),
+        (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 422, description = "validation: invalid ids or nothing to print", body = ApiErrorBody),
     )
 )]
 pub async fn labels_pdf(

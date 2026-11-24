@@ -147,9 +147,11 @@ pub async fn get_setup(State(s): State<AppState>) -> ApiResult<Json<SetupStatus>
     request_body = SetupRequest,
     responses(
         (status = 201, description = "Library created", body = AuthOut),
-        (status = 403, description = "Setup code missing or wrong", body = crate::error::ApiErrorBody),
-        (status = 409, description = "Setup already done", body = crate::error::ApiErrorBody),
-        (status = 422, description = "Invalid fields", body = crate::error::ApiErrorBody),
+        (status = 400, description = "bad_request: malformed JSON or wrong content type", body = crate::error::ApiErrorBody),
+        (status = 403, description = "setup_code_invalid: setup code missing or wrong", body = crate::error::ApiErrorBody),
+        (status = 409, description = "setup_closed: setup already done", body = crate::error::ApiErrorBody),
+        (status = 422, description = "validation: invalid fields", body = crate::error::ApiErrorBody),
+        (status = 429, description = "rate_limited: too many setup attempts (Retry-After header)", body = crate::error::ApiErrorBody),
     )
 )]
 pub async fn post_setup(
