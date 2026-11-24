@@ -101,3 +101,5 @@
 2026-11-24T20:47:09Z	bookeeper-fase-1c	desktop-raw	qa	opus	PASS	-	-	-	221
 2026-11-24T20:48:26Z	bookeeper-fase-1c	fmt-fix	dwarf	sonnet	-	-	-	-	74
 2026-11-24T20:49:55Z	bookeeper-fase-1c	fmt-fix	qa	opus	PASS	-	-	-	85
+2026-11-24T20:57:24Z	bookeeper-fase-1c	stale-test	dwarf	sonnet	-	-	-	-	79
+2026-11-24T20:58:46Z	bookeeper-fase-1c	stale-test	qa	opus	PASS	-	-	-	77
