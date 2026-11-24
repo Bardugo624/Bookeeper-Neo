@@ -424,8 +424,31 @@ pub fn insert_in_tx(
     book: &NewBook,
     now: i64,
 ) -> rusqlite::Result<Result<String, ApiError>> {
+    let id = match insert_in_tx_unaudited(tx, &who.library_id, book, now)? {
+        Ok(id) => id,
+        Err(e) => return Ok(Err(e)),
+    };
+    audit::record(
+        tx,
+        who,
+        "book.create",
+        "book",
+        &id,
+        Some(&serde_json::json!({ "title": book.title })),
+        now,
+    )?;
+    Ok(Ok(id))
+}
+
+/// Like [`insert_in_tx`] (book row and full-text row) but writes no audit row.
+pub fn insert_in_tx_unaudited(
+    tx: &rusqlite::Transaction<'_>,
+    library_id: &str,
+    book: &NewBook,
+    now: i64,
+) -> rusqlite::Result<Result<String, ApiError>> {
     if let Some(n) = book.progressive_number {
-        if progressive_taken(tx, &who.library_id, n, None)? {
+        if progressive_taken(tx, library_id, n, None)? {
             return Ok(Err(taken_error()));
         }
     }
@@ -438,7 +461,7 @@ pub fn insert_in_tx(
          ?18, ?19, ?20, ?20)",
         params![
             id,
-            who.library_id,
+            library_id,
             book.isbn_13,
             book.isbn_10,
             book.title,
@@ -460,15 +483,6 @@ pub fn insert_in_tx(
         ],
     )?;
     fts_insert(tx, tx.last_insert_rowid(), book)?;
-    audit::record(
-        tx,
-        who,
-        "book.create",
-        "book",
-        &id,
-        Some(&serde_json::json!({ "title": book.title })),
-        now,
-    )?;
     Ok(Ok(id))
 }
 

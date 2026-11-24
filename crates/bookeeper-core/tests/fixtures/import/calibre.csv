@@ -1,0 +1,6 @@
+title,authors,isbn,publisher,pubdate,languages,tags
+Dune,Frank Herbert,9780441172719,Ace,1990-09-01T00:00:00+00:00,eng,"scifi, classic"
+Good Omens,Terry Pratchett & Neil Gaiman,0060850523,Harper,2006-11-28T00:00:00+00:00,"eng, ita",
+"Il nome della rosa, edizione ""speciale""",Umberto Eco,978-0-306-40615-7,Bompiani,1980-01-01T00:00:00+00:00,ita,
+Libro senza ISBN,Autore Due,,Editore,2001-05-05T00:00:00+00:00,fra,
+Isbn rotto,Autore Tre,1234567890123,,2010-01-01T00:00:00+00:00,,
