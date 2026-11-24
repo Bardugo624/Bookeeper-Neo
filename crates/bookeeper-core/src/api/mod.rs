@@ -14,6 +14,7 @@ pub mod labels;
 pub mod loans;
 pub mod lookup;
 pub mod pairing;
+pub mod server;
 pub mod setup;
 pub mod shelves;
 pub mod stats;
@@ -36,6 +37,7 @@ async fn method_not_allowed_fallback() -> ApiError {
 pub fn router(state: AppState) -> Router {
     Router::new()
         .route("/api/v1/health", get(health::health))
+        .route("/api/v1/server", get(server::server_info))
         .merge(setup::routes())
         .merge(auth::routes())
         .merge(pairing::routes())

@@ -3,7 +3,7 @@ use utoipa::OpenApi;
 use crate::{
     api::{
         auth, backup, books, books_search, confirm, covers, devices, health, labels, loans, lookup,
-        pairing, setup, shelves, stats, transfer, wishlist,
+        pairing, server, setup, shelves, stats, transfer, wishlist,
     },
     error::ApiErrorBody,
 };
@@ -11,8 +11,8 @@ use crate::{
 #[derive(OpenApi)]
 #[openapi(
     info(title = "Bookeeper API"),
-    paths(health::health),
-    components(schemas(health::Health, ApiErrorBody))
+    paths(health::health, server::server_info),
+    components(schemas(health::Health, server::ServerOut, crate::TlsMode, ApiErrorBody))
 )]
 struct ApiDoc;
 
