@@ -175,11 +175,10 @@ async fn sql<R: Send + 'static>(
 }
 
 async fn api_archive(state: &AppState, lib: &str) -> Vec<u8> {
-    let (files, lib) = (state.files.clone(), lib.to_string());
-    sql(state, move |c| {
-        Ok(backup::create_archive(c, &files, &lib, 1_700_000_000).unwrap())
-    })
-    .await
+    backup::create(&state.db, &state.files, lib, 1_700_000_000)
+        .await
+        .unwrap()
+        .0
 }
 
 /// The data of a library as stored in an archive, without the cover colour (covers are
@@ -1098,4 +1097,95 @@ async fn oversized_restore_body_is_refused() {
     .await;
     assert_eq!(st, 413);
     assert_eq!(code(&body), "payload_too_large");
+}
+
+// ------------------------------------------------------------------ p3-backup
+
+#[tokio::test]
+async fn restore_rejects_authors_that_are_not_a_json_list() {
+    let s = owner().await;
+    populate(&s).await;
+    let tok = &s.session.access_token;
+    let good = unzip(&do_backup(&s.state, tok).await);
+    let good_data: Value = serde_json::from_slice(&entry(&good, "data.json")).unwrap();
+    let before = data_of(&s.state, &s.library_id).await;
+
+    for bad in ["non json", "{\"a\":1}", "[1,2]"] {
+        let mut data = good_data.clone();
+        data["books"][0]["authors_json"] = json!(bad);
+        let mut e = good.clone();
+        e.iter_mut().find(|(n, _)| n == "data.json").unwrap().1 = data.to_string().into_bytes();
+        let confirm = confirm_token(&s.state, tok, Some(PW)).await;
+        let (st, body) = do_restore(&s.state, tok, &confirm, rezip(&e)).await;
+        assert_eq!(st, 400, "{bad}: {}", String::from_utf8_lossy(&body));
+        assert_eq!(code(&body), "invalid_archive", "{bad}");
+        assert_eq!(data_of(&s.state, &s.library_id).await, before, "{bad}");
+    }
+    assert_eq!(search_total(&s.state, tok, "rosa").await, 1);
+}
+
+#[tokio::test]
+async fn backup_omits_a_cover_that_cannot_be_read() {
+    let s = owner().await;
+    let w = populate(&s).await;
+    let tok = &s.session.access_token;
+    for f in std::fs::read_dir(&s.state.files.covers_dir).unwrap() {
+        let path = f.unwrap().path();
+        if path.is_file() {
+            std::fs::remove_file(path).unwrap();
+        }
+    }
+    let archive = do_backup(&s.state, tok).await;
+    let entries = unzip(&archive);
+    assert!(!entries.iter().any(|(n, _)| n.starts_with("covers/")));
+    let data: Value = serde_json::from_slice(&entry(&entries, "data.json")).unwrap();
+    let book = data["books"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|b| b["id"] == w.book_a.as_str())
+        .unwrap();
+    assert!(book["cover_file"].is_null() && book["cover_color"].is_null());
+
+    let confirm = confirm_token(&s.state, tok, Some(PW)).await;
+    let (st, body) = do_restore(&s.state, tok, &confirm, archive).await;
+    assert_eq!(st, 200, "{}", String::from_utf8_lossy(&body));
+    let (st, _, b) = raw(
+        &s.state,
+        "GET",
+        &format!("/api/v1/books/{}/cover", w.book_a),
+        Some(tok),
+        vec![],
+        &[],
+    )
+    .await;
+    assert_eq!(st, 404);
+    assert_eq!(code(&b), "cover_not_found");
+}
+
+#[tokio::test]
+async fn archives_made_before_this_change_still_restore() {
+    let s = owner().await;
+    let tok = &s.session.access_token;
+    let data = json!({
+        "rooms": [],
+        "books": [{
+            "id": "book-old", "library_id": "whatever", "title": "Vecchio",
+            "authors_json": "[\"A. Autore\"]", "cover_file": "book-old.jpg",
+            "cover_color": "#112233", "created_at": 1, "updated_at": 1
+        }],
+        "users": []
+    });
+    let archive = rezip(&[
+        ("manifest.json".to_string(), manifest()),
+        ("data.json".to_string(), data.to_string().into_bytes()),
+        ("covers/book-old.jpg".to_string(), png_bytes(3)),
+    ]);
+    let confirm = confirm_token(&s.state, tok, Some(PW)).await;
+    let (st, body) = do_restore(&s.state, tok, &confirm, archive).await;
+    assert_eq!(st, 200, "{}", String::from_utf8_lossy(&body));
+    let report: Value = serde_json::from_slice(&body).unwrap();
+    assert_eq!(report["books"], 1);
+    assert_eq!(report["covers"], 1);
+    assert_eq!(search_total(&s.state, tok, "Vecchio").await, 1);
 }

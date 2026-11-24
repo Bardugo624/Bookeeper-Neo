@@ -288,20 +288,36 @@ pub fn archive_filename(conn: &Connection, library_id: &str, now: i64) -> rusqli
         [library_id],
         |r| r.get(0),
     )?;
+    Ok(filename_of(&name, now))
+}
+
+/// Rows of one library read in a single read-only transaction. Holding this value needs
+/// no connection: the heavy part of a backup (cover reads, compression) runs afterwards.
+pub struct Snapshot {
+    lib_id: String,
+    lib_name: String,
+    data: Map<String, Value>,
+    counts: Map<String, Value>,
+    cover_ids: Vec<String>,
+}
+
+impl Snapshot {
+    /// File name of the download, same as [`archive_filename`].
+    pub fn filename(&self, now: i64) -> String {
+        filename_of(&self.lib_name, now)
+    }
+}
+
+fn filename_of(name: &str, now: i64) -> String {
     let stamp = chrono::DateTime::from_timestamp(now, 0)
         .unwrap_or_default()
         .format("%Y%m%d-%H%M%S");
-    Ok(format!("bookeeper-{name}-{stamp}.zip"))
+    format!("bookeeper-{name}-{stamp}.zip")
 }
 
-/// Builds the archive of a library. Reads happen in one read-only transaction, so the
-/// archive is consistent even with writes going on.
-pub fn create_archive(
-    conn: &Connection,
-    files: &Files,
-    library_id: &str,
-    now: i64,
-) -> Result<Vec<u8>, BackupError> {
+/// Reads the rows of a library in one read-only transaction, so the snapshot is
+/// consistent even with writes going on. Touches no file and compresses nothing.
+pub fn read_snapshot(conn: &Connection, library_id: &str) -> Result<Snapshot, BackupError> {
     let tx = conn.unchecked_transaction()?;
     let (lib_name, lib_id): (String, String) = tx.query_row(
         "SELECT name, id FROM libraries WHERE id = ?1",
@@ -333,15 +349,56 @@ pub fn create_archive(
         ids.collect::<rusqlite::Result<_>>()?
     };
     tx.rollback()?;
+    Ok(Snapshot {
+        lib_id,
+        lib_name,
+        data,
+        counts,
+        cover_ids,
+    })
+}
+
+/// Reads and compresses everything outside the database. A cover that cannot be read is
+/// left out and its book is written without cover, so the archive stays consistent.
+/// Blocking: call it from `spawn_blocking`.
+pub fn build_archive(snapshot: Snapshot, files: &Files, now: i64) -> Result<Vec<u8>, BackupError> {
+    let Snapshot {
+        lib_id,
+        lib_name,
+        mut data,
+        mut counts,
+        cover_ids,
+    } = snapshot;
 
     let mut covers_found: Vec<(String, Vec<u8>)> = Vec::new();
+    let mut missing: HashSet<String> = HashSet::new();
     for id in cover_ids {
-        let Some(path) = covers::cover_path(&files.covers_dir, &id) else {
-            continue;
-        };
-        match std::fs::read(&path) {
+        let read = covers::cover_path(&files.covers_dir, &id)
+            .ok_or_else(|| std::io::Error::other("no path"))
+            .and_then(std::fs::read);
+        match read {
             Ok(bytes) => covers_found.push((id, bytes)),
-            Err(e) => tracing::warn!(error = %e, "cover file missing from the backup"),
+            Err(e) => {
+                tracing::warn!(error = %e, "cover file missing from the backup");
+                missing.insert(id);
+            }
+        }
+    }
+    if !missing.is_empty() {
+        if let Some(Value::Array(books)) = data.get_mut("books") {
+            for book in books {
+                let Some(obj) = book.as_object_mut() else {
+                    continue;
+                };
+                if obj
+                    .get("id")
+                    .and_then(Value::as_str)
+                    .is_some_and(|id| missing.contains(id))
+                {
+                    obj.insert("cover_file".into(), Value::Null);
+                    obj.insert("cover_color".into(), Value::Null);
+                }
+            }
         }
     }
     counts.insert("covers".into(), json!(covers_found.len()));
@@ -476,13 +533,30 @@ fn parse_rows(
     Ok(out)
 }
 
-struct Parsed {
+/// `books.authors_json` is read as a JSON list of strings by search, sorting and stats,
+/// the only archive column the core parses as JSON (the wishlist `authors` is plain text).
+fn check_json_columns(books: &[Row]) -> Result<(), BackupError> {
+    for row in books {
+        if let Some(Sql::Text(raw)) = row.get("authors_json") {
+            match serde_json::from_str::<Value>(raw) {
+                Ok(Value::Array(a)) if a.iter().all(Value::is_string) => {}
+                _ => return invalid("authors_json is not a list of strings"),
+            }
+        }
+    }
+    Ok(())
+}
+
+/// An archive that has been decompressed and validated; ready for [`restore_archive`].
+pub struct Parsed {
     tables: Vec<Vec<Row>>,
     users: Vec<Row>,
     covers: HashMap<String, Processed>,
 }
 
-fn parse_archive(bytes: &[u8]) -> Result<Parsed, BackupError> {
+/// Decompresses and validates an archive, re-encoding its covers. Needs no connection:
+/// run it in `spawn_blocking`.
+pub fn analyze_archive(bytes: &[u8]) -> Result<Parsed, BackupError> {
     let mut zip = ZipArchive::new(Cursor::new(bytes))
         .map_err(|_| BackupError::Invalid("not a readable zip".into()))?;
     if zip.len() > MAX_ENTRIES {
@@ -539,6 +613,7 @@ fn parse_archive(bytes: &[u8]) -> Result<Parsed, BackupError> {
         .map(|t| parse_rows(data.get(t.name), t.cols))
         .collect::<Result<Vec<_>, _>>()?;
     let users = parse_rows(data.get("users"), &USER_COLS)?;
+    check_json_columns(&tables[T_BOOKS])?;
 
     let book_ids: HashSet<String> = tables[T_BOOKS]
         .iter()
@@ -654,14 +729,14 @@ pub fn restore_archive(
     conn: &mut Connection,
     files: &Files,
     who: &AuthUser,
-    bytes: &[u8],
+    parsed: Parsed,
     now: i64,
 ) -> Result<RestoreReport, BackupError> {
     let Parsed {
         mut tables,
         users,
         covers: processed,
-    } = parse_archive(bytes)?;
+    } = parsed;
     let lib = who.library_id.as_str();
 
     let tx = conn.transaction()?;
@@ -885,4 +960,25 @@ fn write_covers(dir: &Path, covered: &HashMap<String, Processed>, old_books: &[S
         .collect();
     covers::remove_files(dir, &stale);
     let _ = std::fs::remove_dir_all(&tmp);
+}
+
+/// Reads a library snapshot (short use of the connection), then builds the archive on a
+/// blocking thread. Returns the bytes and the download file name.
+pub async fn create(
+    db: &crate::db::Db,
+    files: &Files,
+    library_id: &str,
+    now: i64,
+) -> Result<(Vec<u8>, String), BackupError> {
+    let lib = library_id.to_string();
+    let snapshot = db
+        .run(move |conn| Ok(read_snapshot(conn, &lib)))
+        .await
+        .map_err(|e| BackupError::Archive(e.to_string()))??;
+    let name = snapshot.filename(now);
+    let files = files.clone();
+    let bytes = tokio::task::spawn_blocking(move || build_archive(snapshot, &files, now))
+        .await
+        .map_err(|e| BackupError::Archive(e.to_string()))??;
+    Ok((bytes, name))
 }

@@ -131,6 +131,17 @@ pub fn list_auto(files: &Files, library_id: &str) -> std::io::Result<Vec<AutoBac
     Ok(out)
 }
 
+/// Backups dated further than this past `now` are not trusted (clock skew tolerance).
+const FUTURE_SLACK_SECS: i64 = 300;
+
+/// Drops backups dated in the future: they must not decide "due" nor push real ones out
+/// of the rotation. They stay on disk and in `list_auto`.
+fn trusted(list: Vec<AutoBackup>, now: i64) -> Vec<AutoBackup> {
+    list.into_iter()
+        .filter(|b| b.created_at <= now + FUTURE_SLACK_SECS)
+        .collect()
+}
+
 fn in_flight() -> &'static Mutex<HashSet<String>> {
     static SET: OnceLock<Mutex<HashSet<String>>> = OnceLock::new();
     SET.get_or_init(Default::default)
@@ -219,7 +230,9 @@ async fn backup_library(state: &AppState, library_id: &str, now: i64) -> Result<
             if dir.is_dir() {
                 remove_stale_tmp(&dir, now);
             }
-            let newest = list_auto(&files, &lib)?.first().map(|b| b.created_at);
+            let newest = trusted(list_auto(&files, &lib)?, now)
+                .first()
+                .map(|b| b.created_at);
             Ok(newest.is_none_or(|t| !(0..interval).contains(&(now - t))))
         })
         .await?
@@ -228,13 +241,7 @@ async fn backup_library(state: &AppState, library_id: &str, now: i64) -> Result<
         return Ok(false);
     }
 
-    let bytes = {
-        let (files, lib) = (files.clone(), lib.clone());
-        state
-            .db
-            .run(move |conn| Ok(backup::create_archive(conn, &files, &lib, now)))
-            .await??
-    };
+    let (bytes, _) = backup::create(&state.db, &files, &lib, now).await?;
     let size = bytes.len();
     {
         let (files, lib) = (files.clone(), lib.clone());
@@ -271,7 +278,11 @@ async fn backup_library(state: &AppState, library_id: &str, now: i64) -> Result<
     let keep = cfg.keep as usize;
     blocking(move || -> Result<(), RunError> {
         let dir = library_dir(&files, &lib);
-        for old in list_auto(&files, &lib)?.into_iter().skip(keep) {
+        // Future-dated files are neither kept nor deleted: they are not in the list.
+        for old in trusted(list_auto(&files, &lib)?, now)
+            .into_iter()
+            .skip(keep)
+        {
             // Only names produced by `file_name`, inside this library's folder.
             std::fs::remove_file(dir.join(&old.name))?;
         }
