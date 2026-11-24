@@ -233,12 +233,12 @@ async fn helpers_work() {
 }
 
 #[tokio::test]
-async fn empty_modules_are_mounted() {
+async fn unknown_api_path_is_not_found() {
     let s = seed(Role::Owner, None, None).await;
     let (status, _, body) = call(
         &s.state,
         "GET",
-        "/api/v1/books",
+        "/api/v1/does-not-exist",
         Some(&s.session.access_token),
         None,
     )
