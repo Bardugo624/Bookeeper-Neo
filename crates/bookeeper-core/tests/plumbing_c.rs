@@ -1,8 +1,7 @@
 use std::io::{Read, Write};
 use std::net::TcpListener;
-use std::sync::Arc;
 
-use bookeeper_core::lookup::{LookupService, Metadata, Provider};
+use bookeeper_core::lookup::{LookupService, Metadata};
 use bookeeper_core::{AppState, Db, DbError, SetupPolicy};
 
 fn db() -> Db {
@@ -81,22 +80,9 @@ fn lookup_service_lists_providers_in_order() {
 }
 
 #[tokio::test]
-async fn stub_lookup_returns_none() {
-    let svc = LookupService::new(reqwest::Client::new());
+async fn lookup_without_providers_is_none() {
+    let svc = LookupService::with_providers(vec![]);
     assert_eq!(svc.lookup("9780306406157", false, 0).await, None);
-    for p in [
-        Arc::new(bookeeper_core::lookup::GoogleBooks::new(
-            reqwest::Client::new(),
-        )) as Arc<dyn Provider>,
-        Arc::new(bookeeper_core::lookup::AnnasArchive::new(
-            reqwest::Client::new(),
-        )),
-        Arc::new(bookeeper_core::lookup::OpenLibrary::new(
-            reqwest::Client::new(),
-        )),
-    ] {
-        assert_eq!(p.lookup("9780306406157").await, Ok(None));
-    }
 }
 
 #[test]
