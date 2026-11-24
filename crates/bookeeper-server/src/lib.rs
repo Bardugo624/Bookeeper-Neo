@@ -8,10 +8,12 @@ use bookeeper_core::api::setup::{library_count, new_setup_code};
 use bookeeper_core::{router, AppState, Db, DbError, SetupPolicy};
 use tokio::net::TcpListener;
 
+pub mod announce;
 mod config;
 mod layers;
 pub mod tls;
 mod web;
+pub use announce::{announcement, Announcer};
 pub use config::{Cli, Command, Config, Switch, TlsChoice};
 pub use tls::{load_self_identity, self_dir, TlsServer};
 pub use web::web_routes;
