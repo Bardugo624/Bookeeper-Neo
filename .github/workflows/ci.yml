@@ -76,7 +76,7 @@ jobs:
           node-version: 22
           cache: npm
       - name: Snapshot matches the core
-        run: cargo test -p bookeeper-core --test openapi
+        run: cargo test -p bookeeper-core --test openapi -- --include-ignored
       - run: npm ci
       - run: npm run gen -w @bookeeper/api
       - name: Types match the snapshot
