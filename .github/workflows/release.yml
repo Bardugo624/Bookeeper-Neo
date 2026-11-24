@@ -18,8 +18,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  # True only for a tag push or a manual run with `publish` ticked.
-  PUBLISH: ${{ startsWith(github.ref, 'refs/tags/v2.') || (github.event_name == 'workflow_dispatch' && inputs.publish) }}
+  # True only for a tag push (the only push trigger) or a manual run with `publish` ticked.
+  PUBLISH: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish) }}
 
 jobs:
   check:
@@ -116,6 +116,10 @@ jobs:
         with:
           name: mobile-dist
           path: apps/mobile/dist
+      - uses: actions/setup-python@v5
+        if: matrix.zig
+        with:
+          python-version: "3.12"
       - name: Install zig and cargo-zigbuild
         if: matrix.zig
         run: |
@@ -204,7 +208,7 @@ jobs:
 
   release:
     needs: [check, server, docker]
-    if: ${{ startsWith(github.ref, 'refs/tags/v2.') || (github.event_name == 'workflow_dispatch' && inputs.publish) }}
+    if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish) }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
