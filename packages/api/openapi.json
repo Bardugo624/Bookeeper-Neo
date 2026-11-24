@@ -56,6 +56,16 @@
               }
             }
           },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
           "422": {
             "description": "validation: password required",
             "content": {
@@ -123,6 +133,16 @@
           },
           "401": {
             "description": "invalid_credentials: wrong email or password",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
             "content": {
               "application/json": {
                 "schema": {
@@ -203,6 +223,16 @@
           },
           "409": {
             "description": "library_choice_required: the credentials match several libraries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
             "content": {
               "application/json": {
                 "schema": {
@@ -312,6 +342,16 @@
               }
             }
           },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
           "422": {
             "description": "validation: invalid fields",
             "content": {
@@ -369,6 +409,26 @@
           },
           "401": {
             "description": "refresh_invalid, refresh_reused or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation",
             "content": {
               "application/json": {
                 "schema": {
@@ -571,6 +631,16 @@
           },
           "403": {
             "description": "forbidden: admin or owner only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
             "content": {
               "application/json": {
                 "schema": {
@@ -810,6 +880,16 @@
               }
             }
           },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
           "422": {
             "description": "validation: invalid body",
             "content": {
@@ -877,6 +957,16 @@
           },
           "403": {
             "description": "forbidden: guests cannot write",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
             "content": {
               "application/json": {
                 "schema": {
@@ -1139,6 +1229,16 @@
           },
           "409": {
             "description": "progressive_taken",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
             "content": {
               "application/json": {
                 "schema": {
@@ -1467,6 +1567,16 @@
               }
             }
           },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
           "422": {
             "description": "validation or cover_fetch_failed",
             "content": {
@@ -1565,6 +1675,16 @@
           },
           "409": {
             "description": "slot_taken: slot occupied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
             "content": {
               "application/json": {
                 "schema": {
@@ -1753,6 +1873,16 @@
           },
           "404": {
             "description": "not_found: unknown device",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
             "content": {
               "application/json": {
                 "schema": {
@@ -2071,6 +2201,16 @@
               }
             }
           },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
           "422": {
             "description": "validation: invalid ids or nothing to print",
             "content": {
@@ -2249,6 +2389,16 @@
               }
             }
           },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
           "422": {
             "description": "validation: invalid body",
             "content": {
@@ -2394,6 +2544,16 @@
           },
           "404": {
             "description": "not_found: unknown loan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
             "content": {
               "application/json": {
                 "schema": {
@@ -2572,6 +2732,16 @@
           },
           "404": {
             "description": "not_found: unknown loan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
             "content": {
               "application/json": {
                 "schema": {
@@ -2801,6 +2971,16 @@
               }
             }
           },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
           "422": {
             "description": "validation: invalid fields",
             "content": {
@@ -3006,6 +3186,16 @@
               }
             }
           },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
           "422": {
             "description": "validation: invalid fields",
             "content": {
@@ -3111,6 +3301,16 @@
           },
           "403": {
             "description": "forbidden: role too low",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
             "content": {
               "application/json": {
                 "schema": {
@@ -3336,6 +3536,16 @@
               }
             }
           },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
           "422": {
             "description": "validation: invalid field",
             "content": {
@@ -3424,6 +3634,16 @@
           },
           "404": {
             "description": "not_found: unknown shelf",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
             "content": {
               "application/json": {
                 "schema": {
@@ -3631,6 +3851,16 @@
               }
             }
           },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
           "422": {
             "description": "validation: invalid body",
             "content": {
@@ -3776,6 +4006,16 @@
           },
           "404": {
             "description": "not_found: unknown item",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
             "content": {
               "application/json": {
                 "schema": {
@@ -5892,6 +6132,7 @@
         "required": [
           "version",
           "tls",
+          "public_url",
           "phone_ready"
         ],
         "properties": {

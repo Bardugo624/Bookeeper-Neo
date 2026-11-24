@@ -1268,7 +1268,7 @@ export interface components {
         ServerOut: {
             phone_ready: boolean;
             /** @description Always present in the JSON; `null` when there is no public address. */
-            public_url?: string | null;
+            public_url: string | null;
             tls: components["schemas"]["TlsMode"];
             version: string;
         };
@@ -1450,6 +1450,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
+            /** @description payload_too_large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
             /** @description validation: password required */
             422: {
                 headers: {
@@ -1503,6 +1512,15 @@ export interface operations {
             };
             /** @description invalid_credentials: wrong email or password */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1572,6 +1590,15 @@ export interface operations {
             };
             /** @description library_choice_required: the credentials match several libraries */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1673,6 +1700,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
+            /** @description payload_too_large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
             /** @description validation: invalid fields */
             422: {
                 headers: {
@@ -1717,6 +1753,24 @@ export interface operations {
             };
             /** @description refresh_invalid, refresh_reused or device_revoked */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description validation */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1889,6 +1943,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
+            /** @description payload_too_large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
             /** @description validation */
             422: {
                 headers: {
@@ -2019,6 +2082,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
+            /** @description payload_too_large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
             /** @description validation: invalid body */
             422: {
                 headers: {
@@ -2072,6 +2144,15 @@ export interface operations {
             };
             /** @description forbidden: guests cannot write */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2280,6 +2361,15 @@ export interface operations {
             };
             /** @description progressive_taken */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2527,6 +2617,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
+            /** @description payload_too_large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
             /** @description validation or cover_fetch_failed */
             422: {
                 headers: {
@@ -2601,6 +2700,15 @@ export interface operations {
             };
             /** @description slot_taken: slot occupied */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2750,6 +2858,15 @@ export interface operations {
             };
             /** @description not_found: unknown device */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2995,6 +3112,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
+            /** @description payload_too_large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
             /** @description validation: invalid ids or nothing to print */
             422: {
                 headers: {
@@ -3120,6 +3246,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
+            /** @description payload_too_large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
             /** @description validation: invalid body */
             422: {
                 headers: {
@@ -3233,6 +3368,15 @@ export interface operations {
             };
             /** @description not_found: unknown loan */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3364,6 +3508,15 @@ export interface operations {
             };
             /** @description not_found: unknown loan */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3535,6 +3688,15 @@ export interface operations {
             };
             /** @description pairing_code_invalid: code wrong, expired or already used */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3714,6 +3876,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
+            /** @description payload_too_large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
             /** @description validation: invalid fields */
             422: {
                 headers: {
@@ -3805,6 +3976,15 @@ export interface operations {
             };
             /** @description forbidden: role too low */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3982,6 +4162,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
+            /** @description payload_too_large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
             /** @description validation: invalid field */
             422: {
                 headers: {
@@ -4047,6 +4236,15 @@ export interface operations {
             };
             /** @description not_found: unknown shelf */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4213,6 +4411,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
+            /** @description payload_too_large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
             /** @description validation: invalid body */
             422: {
                 headers: {
@@ -4326,6 +4533,15 @@ export interface operations {
             };
             /** @description not_found: unknown item */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };
