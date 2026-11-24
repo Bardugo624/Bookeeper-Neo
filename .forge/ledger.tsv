@@ -78,3 +78,23 @@
 2026-11-24T13:41:09Z	bookeeper-fase-1c	covers	qa	opus	FAIL	finding	does the jpeg contain ff d9 truncation checks are fooled by the exif thumbnail s own end marker inside app1 look only after the	"does the JPEG contain FF D9" truncation checks are fooled by the EXIF thumbnail's own end marker inside APP1; look only after the… [crates/bookeeper-core/src/covers.rs]	212	1
 2026-11-24T13:41:20Z	bookeeper-fase-1c	labels	dwarf	sonnet	-	trap	printpdf 0 7 stamps creation date and a document id so pdfs built with it are not byte deterministic labels rs writes raw pdf instead	printpdf 0.7 stamps creation date and a document id, so PDFs built with it are not byte-deterministic; labels.rs writes raw PDF instead [crates/bookeeper-core/src/labels.rs]	299	1
 2026-11-24T13:44:17Z	bookeeper-fase-1c	labels	qa	opus	PASS	-	-	-	172
+2026-11-24T19:56:56Z	bookeeper-fase-1c	covers	dwarf	opus	-	finding	does the jpeg contain ff d9 truncation checks are fooled by the exif thumbnail s own end marker inside app1 look only after the	"does the JPEG contain FF D9" truncation checks are fooled by the EXIF thumbnail's own end marker inside APP1; look only after the… [crates/bookeeper-core/src/covers.rs]	176	1
+2026-11-24T19:59:12Z	bookeeper-fase-1c	covers	qa	opus	PASS	-	-	-	130
+2026-11-24T20:00:03Z	bookeeper-fase-1c	covers	dwarf	opus	-	-	-	-	47
+2026-11-24T20:02:11Z	bookeeper-fase-1c	covers	qa	opus	PASS	-	-	-	123
+2026-11-24T20:08:04Z	bookeeper-fase-1c	transfer	dwarf	sonnet	-	trap	the books list search route is get api v1 books q there is no books search route and it returns 404	The books list/search route is `GET /api/v1/books?q=`; there is no `/books/search` route and it returns 404 [crates/bookeeper-core/src/api/books_search.rs]	348	1
+2026-11-24T20:10:49Z	bookeeper-fase-1c	backup	dwarf	sonnet	-	trap	running cargo fmt p bookeeper core reformats other tasks files lookup tests lookup so format only your own files with	running `cargo fmt -p bookeeper-core` reformats other tasks' files (lookup/*, tests/lookup_*), so format only your own files with… [crates/bookeeper-core/src/lookup/mod.rs]	513	1
+2026-11-24T20:10:49Z	bookeeper-fase-1c	backup	dwarf	sonnet	-	verify	zip 2 zipwriter raw copy file rename lets a test build a 1 gb decompressed hostile archive cheaply by copying one compressed entry	zip 2 `ZipWriter::raw_copy_file_rename` lets a test build a >1 GB-decompressed hostile archive cheaply by copying one compressed entry [crates/bookeeper-core/tests/backup_api.rs]	513	1
+2026-11-24T20:12:05Z	bookeeper-fase-1c	transfer	qa	opus	PASS	-	-	-	236
+2026-11-24T20:15:07Z	bookeeper-fase-1c	backup	qa	opus	PASS	-	-	-	253
+2026-11-24T20:21:01Z	bookeeper-fase-1c	backup-schedule	dwarf	sonnet	-	trap	cargo fmt p crate reformats files owned by other tasks restore them with git show head path path or run rustfmt only on	`cargo fmt -p <crate>` reformats files owned by other tasks; restore them with `git show HEAD:<path> > <path>` or run `rustfmt` only on… [crates/bookeeper-core/src/lookup/mod.rs]	349	1
+2026-11-24T20:21:01Z	bookeeper-fase-1c	backup-schedule	dwarf	sonnet	-	trap	cargo check p bookeeper desktop tauri takes over 2 minutes cold so run it in the background	`cargo check -p bookeeper-desktop` (Tauri) takes over 2 minutes cold, so run it in the background [apps/desktop/src-tauri/src/lib.rs]	349	1
+2026-11-24T20:23:49Z	bookeeper-fase-1c	backup-schedule	qa	opus	FAIL	-	-	-	163
+2026-11-24T20:24:50Z	bookeeper-fase-1c	backup-schedule	dwarf	sonnet	-	-	-	-	55
+2026-11-24T20:27:45Z	bookeeper-fase-1c	backup-schedule	qa	opus	PASS	-	-	-	170
+2026-11-24T20:30:21Z	bookeeper-fase-1c	api-client-c	dwarf	sonnet	-	verify	npm ci offline npm run gen w bookeeper api npm test w bookeeper api	npm ci --offline && npm run gen -w @bookeeper/api && npm test -w @bookeeper/api [packages/api/package.json]	149	1
+2026-11-24T20:36:26Z	bookeeper-fase-1c	api-client-c	qa	opus	FAIL	-	-	-	361
+2026-11-24T20:37:06Z	bookeeper-fase-1c	api-client-c	dwarf	sonnet	-	-	-	-	35
+2026-11-24T20:38:38Z	bookeeper-fase-1c	api-client-c	qa	opus	PASS	-	-	-	87
+2026-11-24T20:43:24Z	bookeeper-fase-1c	desktop-raw	dwarf	sonnet	-	trap	tauri commands convert rust snake case args to camelcase from the webview unless tauri command rename all snake case is set	Tauri commands convert Rust snake_case args to camelCase from the webview unless `#[tauri::command(rename_all = "snake_case")]` is set [apps/desktop/src-tauri/src/lib.rs]	282	1
+2026-11-24T20:43:24Z	bookeeper-fase-1c	desktop-raw	dwarf	sonnet	-	trap	vitest toequal on multi mb uint8arrays times out at 5s compare via buffer equals	vitest `toEqual` on multi-MB Uint8Arrays times out at 5s; compare via Buffer.equals [apps/desktop/src/transport.test.ts]	282	1
