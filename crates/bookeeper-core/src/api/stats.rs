@@ -88,7 +88,7 @@ pub struct Stats {
     security(("bearer" = [])),
     responses(
         (status = 200, description = "Library statistics", body = Stats),
-        (status = 401, description = "Missing or invalid token", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
     )
 )]
 pub async fn get_stats(State(state): State<AppState>, who: AuthUser) -> ApiResult<Json<Stats>> {

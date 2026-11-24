@@ -52,9 +52,10 @@ fn confirmation_required() -> ApiError {
     request_body = ConfirmRequest,
     responses(
         (status = 200, description = "Confirmation token", body = ConfirmOut),
-        (status = 401, description = "Wrong password", body = ApiErrorBody),
-        (status = 422, description = "Password required", body = ApiErrorBody),
-        (status = 429, description = "Too many wrong attempts", body = ApiErrorBody),
+        (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
+        (status = 401, description = "invalid_credentials: wrong password; or unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 422, description = "validation: password required", body = ApiErrorBody),
+        (status = 429, description = "rate_limited: too many wrong attempts (Retry-After header)", body = ApiErrorBody),
     )
 )]
 pub async fn confirm(

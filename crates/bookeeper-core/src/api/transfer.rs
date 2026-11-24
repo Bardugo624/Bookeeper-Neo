@@ -115,9 +115,11 @@ fn imported_from(b: &crate::api::books::NewBook) -> ImportedBook {
     request_body = ImportRequest,
     responses(
         (status = 200, description = "Import report", body = ImportReport),
-        (status = 403, description = "Admin only", body = ApiErrorBody),
-        (status = 413, description = "Body over 10 MB", body = ApiErrorBody),
-        (status = 422, description = "Unknown format or too many rows", body = ApiErrorBody),
+        (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: admin only", body = ApiErrorBody),
+        (status = 413, description = "payload_too_large: body over 10 MB", body = ApiErrorBody),
+        (status = 422, description = "validation: unknown format or too many rows", body = ApiErrorBody),
     )
 )]
 pub async fn import_books(
@@ -369,8 +371,9 @@ fn to_csv(books: &[ExportBook]) -> Result<Vec<u8>, csv::Error> {
     params(("format" = Option<String>, Query, description = "`json` (default) or `csv`")),
     responses(
         (status = 200, description = "File to download (JSON body is ExportJson)", content_type = "application/octet-stream", body = Vec<u8>),
-        (status = 403, description = "Guests cannot export", body = ApiErrorBody),
-        (status = 422, description = "Unknown format", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: guests cannot export", body = ApiErrorBody),
+        (status = 422, description = "validation: unknown format", body = ApiErrorBody),
     )
 )]
 pub async fn export_books(

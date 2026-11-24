@@ -48,8 +48,8 @@ fn invalid_code() -> ApiError {
     security(("bearer" = [])),
     responses(
         (status = 201, description = "Code created", body = PairingCode),
-        (status = 401, description = "Not authenticated", body = ApiErrorBody),
-        (status = 403, description = "Guests cannot pair devices", body = ApiErrorBody),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: guests cannot pair devices", body = ApiErrorBody),
     )
 )]
 pub async fn create_code(
@@ -87,8 +87,10 @@ pub async fn create_code(
     request_body = RedeemRequest,
     responses(
         (status = 200, description = "Device paired", body = AuthOut),
-        (status = 401, description = "Code wrong, expired or already used", body = ApiErrorBody),
-        (status = 422, description = "Invalid fields", body = ApiErrorBody),
+        (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
+        (status = 401, description = "pairing_code_invalid: code wrong, expired or already used", body = ApiErrorBody),
+        (status = 422, description = "validation: invalid fields", body = ApiErrorBody),
+        (status = 429, description = "rate_limited: too many attempts (Retry-After header)", body = ApiErrorBody),
     )
 )]
 pub async fn redeem(
