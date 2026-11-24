@@ -45,9 +45,11 @@ async fn run(cfg: Config) -> Result<(), StartError> {
             server.serve(app).await
         }
         TlsChoice::Acme => {
-            if let Some(domain) = &cfg.domain {
+            let domains = cfg.domain_names();
+            if !domains.is_empty() {
                 println!(
-                    "Certificato richiesto per {domain}: la porta 443 deve essere raggiungibile da Internet."
+                    "Certificato richiesto per {}: la porta 443 deve essere raggiungibile da Internet.",
+                    domains.join(", ")
                 );
             }
             let server = TlsServer::acme(listener, &cfg)?;

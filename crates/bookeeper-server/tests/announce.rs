@@ -21,7 +21,7 @@ fn announcement_carries_port_version_and_mode() {
         let mut c = cfg();
         c.tls = tls;
         if tls == TlsChoice::Acme {
-            c.domain = Some("libri.example.org".into());
+            c.domains = vec!["libri.example.org".into()];
         }
         let a = announcement(&c, 5555);
         assert_eq!(a.tls, want);
@@ -41,7 +41,7 @@ fn announcement_url_follows_the_public_url() {
     );
     let mut c = cfg();
     c.tls = TlsChoice::Acme;
-    c.domain = Some("libri.example.org".into());
+    c.domains = vec!["libri.example.org".into()];
     c.port = Some(443);
     assert_eq!(
         announcement(&c, 1).url.as_deref(),
