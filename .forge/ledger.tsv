@@ -112,3 +112,38 @@
 2026-11-24T22:04:48Z	bookeeper-fase-1d	p3-covers-labels	dwarf	sonnet	-	-	-	-	238
 2026-11-24T22:08:48Z	bookeeper-fase-1d	p3-covers-labels	qa	opus	PASS	-	-	-	235
 2026-11-24T22:08:48Z	bookeeper-fase-1d	p3-desktop	dwarf	sonnet	-	-	-	-	283
+2026-11-24T22:12:35Z	bookeeper-fase-1d	p3-desktop	qa	opus	PASS	-	-	-	222
+2026-11-24T22:13:35Z	bookeeper-fase-1d	plumbing-d	dwarf	sonnet	-	trap	rcgen needs default features false features pem ring or it pulls aws lc rs	`rcgen` needs `default-features = false, features = ["pem","ring"]` or it pulls aws-lc-rs [crates/bookeeper-net/Cargo.toml]	283	1
+2026-11-24T22:15:44Z	bookeeper-fase-1d	plumbing-d	qa	opus	PASS	-	-	-	125
+2026-11-24T22:18:50Z	bookeeper-fase-1d	p3-transfer	dwarf	sonnet	-	-	-	-	180
+2026-11-24T22:21:40Z	bookeeper-fase-1d	p3-transfer	qa	opus	PASS	-	-	-	167
+2026-11-24T22:24:26Z	bookeeper-fase-1d	config-d	dwarf	sonnet	-	-	-	-	517
+2026-11-24T22:24:42Z	bookeeper-fase-1d	server-info	dwarf	sonnet	-	-	-	-	171
+2026-11-24T22:27:24Z	bookeeper-fase-1d	server-info	qa	opus	PASS	-	-	-	158
+2026-11-24T22:27:54Z	bookeeper-fase-1d	config-d	qa	opus	PASS	-	-	-	203
+2026-11-24T22:28:44Z	bookeeper-fase-1d	net-mdns	dwarf	sonnet	-	-	-	-	68
+2026-11-24T22:29:43Z	bookeeper-fase-1d	net-tls	dwarf	sonnet	-	-	-	-	104
+2026-11-24T22:30:10Z	bookeeper-fase-1d	net-mdns	qa	opus	PASS	trap	mdns sd 0 13 silently truncates txt key value entries longer than 255 bytes instead of returning an error	mdns-sd 0.13 silently truncates TXT key=value entries longer than 255 bytes instead of returning an error [crates/bookeeper-net/src/mdns.rs]	83	1
+2026-11-24T22:30:53Z	bookeeper-fase-1d	net-tls	qa	opus	FAIL	trap	rustls 0 23 46 with single cert rejects a cert key mismatch certifiedkey from der runs keys match so a forged server test must use	rustls 0.23.46 `with_single_cert` rejects a cert/key mismatch (`CertifiedKey::from_der` runs `keys_match`), so a "forged server" test must use… [crates/bookeeper-net/tests/tls.rs]	65	1
+2026-11-24T22:31:34Z	bookeeper-fase-1d	net-tls	dwarf	sonnet	-	trap	rustls 0 23 46 with single cert rejects a cert key mismatch certifiedkey from der runs keys match so a forged server test must use	rustls 0.23.46 `with_single_cert` rejects a cert/key mismatch (`CertifiedKey::from_der` runs `keys_match`), so a "forged server" test must use… [crates/bookeeper-net/tests/tls.rs]	37	1
+2026-11-24T22:33:02Z	bookeeper-fase-1d	net-tls	qa	opus	PASS	-	-	-	80
+2026-11-24T22:33:20Z	bookeeper-fase-1d	layers	dwarf	sonnet	-	-	-	-	187
+2026-11-24T22:36:15Z	bookeeper-fase-1d	layers	qa	opus	PASS	-	-	-	170
+2026-11-24T22:38:35Z	bookeeper-fase-1d	openapi-errors	dwarf	sonnet	-	trap	cargo test p bookeeper core needs a free network less run only if tests plumbing c rs stub lookup is unaffected utoipa response edits	`cargo test -p bookeeper-core` needs a free network-less run only if `tests/plumbing_c.rs` stub_lookup is unaffected; utoipa response edits… [crates/bookeeper-core/src/api/mod.rs]	328	1
+2026-11-24T22:40:41Z	bookeeper-fase-1d	tls-serve	dwarf	sonnet	-	-	-	-	261
+2026-11-24T22:41:27Z	bookeeper-fase-1d	openapi-errors	qa	opus	PASS	-	-	-	167
+2026-11-24T22:43:40Z	bookeeper-fase-1d	api-client-d	dwarf	sonnet	-	-	-	-	129
+2026-11-24T22:45:00Z	bookeeper-fase-1d	tls-serve	qa	opus	PASS	-	-	-	256
+2026-11-24T22:45:32Z	bookeeper-fase-1d	api-client-d	qa	opus	PASS	-	-	-	108
+2026-11-24T22:47:30Z	bookeeper-fase-1d	mdns-serve	dwarf	sonnet	-	-	-	-	147
+2026-11-24T22:50:00Z	bookeeper-fase-1d	mdns-serve	qa	opus	PASS	-	-	-	147
+2026-11-24T22:52:46Z	bookeeper-fase-1d	healthcheck	dwarf	sonnet	-	-	-	-	161
+2026-11-24T22:55:37Z	bookeeper-fase-1d	healthcheck	qa	opus	FAIL	-	-	-	168
+2026-11-24T22:56:49Z	bookeeper-fase-1d	healthcheck	dwarf	sonnet	-	trap	clap global true on flattened config args lets server flags work before or after a subcommand setup code fingerprint keep their own	clap `global = true` on flattened Config args lets server flags work before or after a subcommand; setup-code/fingerprint keep their own… [crates/bookeeper-server/src/config.rs]	67	1
+2026-11-24T22:58:58Z	bookeeper-fase-1d	healthcheck	qa	opus	PASS	-	-	-	125
+2026-11-24T23:03:53Z	bookeeper-fase-1d	docker	dwarf	sonnet	-	-	-	-	290
+2026-11-24T23:06:31Z	bookeeper-fase-1d	docker	qa	opus	PASS	-	-	-	154
+2026-11-24T23:14:47Z	bookeeper-fase-1d	release	dwarf	sonnet	-	verify	cargo zigbuild release locked p bookeeper server target x86 64 unknown linux musl needs pip install ziglang cargo install locked	cargo zigbuild --release --locked -p bookeeper-server --target x86_64-unknown-linux-musl (needs `pip install ziglang`, `cargo install --locked… [.github/workflows/release.yml]	492	1
+2026-11-24T23:18:36Z	bookeeper-fase-1d	release	qa	opus	FAIL	-	-	-	224
+2026-11-24T23:18:52Z	bookeeper-fase-1d	release	dwarf	sonnet	-	-	-	-	14
+2026-11-24T23:22:13Z	bookeeper-fase-1d	release	qa	opus	PASS	-	-	-	196

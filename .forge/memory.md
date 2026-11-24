@@ -10,6 +10,7 @@
 - UPDATE_OPENAPI=1 cargo test -p bookeeper-core --test openapi -- --include-ignored && npm run gen -w @bookeeper/api && npm test -w @bookeeper/api [packages/api/openapi.json]
 
 ## Known traps
+- `cargo test -p bookeeper-core` needs a free network-less run only if `tests/plumbing_c.rs` stub_lookup is unaffected; utoipa response edits… [crates/bookeeper-core/src/api/mod.rs]
 - Tauri commands convert Rust snake_case args to camelCase from the webview unless `#[tauri::command(rename_all = "snake_case")]` is set [apps/desktop/src-tauri/src/lib.rs]
 - vitest `toEqual` on multi-MB Uint8Arrays times out at 5s; compare via Buffer.equals [apps/desktop/src/transport.test.ts]
 - `cargo check -p bookeeper-desktop` (Tauri) takes over 2 minutes cold, so run it in the background [apps/desktop/src-tauri/src/lib.rs]
