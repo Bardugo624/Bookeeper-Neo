@@ -110,6 +110,10 @@ fn latin1_letter_width(b: u8) -> u16 {
         0xDE => return 667,
         0xFE => return 556,
         0xD7 | 0xF7 => return 584,
+        0xEC..=0xEF => return 278,
+        0xF8 => return 611,
+        // Helvetica-Bold is 556 here; the 1.1 bold factor on 500 gives only 550.
+        0xE7 | 0xFD | 0xFF => return 506,
         0xC0..=0xC5 => b'A',
         0xC7 => b'C',
         0xC8..=0xCB => b'E',
@@ -119,13 +123,10 @@ fn latin1_letter_width(b: u8) -> u16 {
         0xD9..=0xDC => b'U',
         0xDD => b'Y',
         0xE0..=0xE5 => b'a',
-        0xE7 => b'c',
         0xE8..=0xEB => b'e',
-        0xEC..=0xEF => b'i',
         0xF1 => b'n',
-        0xF2..=0xF6 | 0xF8 => b'o',
+        0xF2..=0xF6 => b'o',
         0xF9..=0xFC => b'u',
-        0xFD | 0xFF => b'y',
         _ => return 1000,
     };
     WIDTHS[usize::from(base - 0x20)]
@@ -380,5 +381,61 @@ mod width_tests {
         let out = fit(&title, 10.0, false, 100.0);
         assert!(text_width(&out, 10.0, false) <= 100.0);
         assert_eq!(out.last(), Some(&ELLIPSIS));
+    }
+
+    #[test]
+    fn latin1_widths_are_never_below_helvetica() {
+        // (first, last, Helvetica, Helvetica-Bold)
+        let t: [(u8, u8, u16, u16); 26] = [
+            (0xC0, 0xC5, 667, 722),
+            (0xC6, 0xC6, 1000, 1000),
+            (0xC7, 0xC7, 722, 722),
+            (0xC8, 0xCB, 667, 667),
+            (0xCC, 0xCF, 278, 278),
+            (0xD0, 0xD0, 722, 722),
+            (0xD1, 0xD1, 722, 722),
+            (0xD2, 0xD6, 778, 778),
+            (0xD7, 0xD7, 584, 584),
+            (0xD8, 0xD8, 778, 778),
+            (0xD9, 0xDC, 722, 722),
+            (0xDD, 0xDD, 667, 667),
+            (0xDE, 0xDE, 667, 667),
+            (0xDF, 0xDF, 611, 611),
+            (0xE0, 0xE5, 556, 556),
+            (0xE6, 0xE6, 889, 889),
+            (0xE7, 0xE7, 500, 556),
+            (0xE8, 0xEB, 556, 556),
+            (0xEC, 0xEF, 278, 278),
+            (0xF0, 0xF1, 556, 611),
+            (0xF2, 0xF6, 556, 611),
+            (0xF7, 0xF7, 584, 584),
+            (0xF8, 0xF8, 611, 611),
+            (0xF9, 0xFC, 556, 611),
+            (0xFD, 0xFF, 500, 556),
+            (0xFE, 0xFE, 556, 611),
+        ];
+        for (lo, hi, plain, bold) in t {
+            for b in lo..=hi {
+                assert!(glyph_width(b, false) >= f64::from(plain), "{b:#x} plain");
+                assert!(glyph_width(b, true) >= f64::from(bold), "{b:#x} bold");
+            }
+        }
+    }
+
+    #[test]
+    fn a_title_full_of_accented_i_fits() {
+        let title = "così lunedì sì ".repeat(20);
+        let out = fit(&title, 10.0, false, 100.0);
+        let real: f64 = out
+            .iter()
+            .map(|&b| match b {
+                0xEC => 278.0,
+                ELLIPSIS => 1000.0,
+                _ => glyph_width(b, false),
+            })
+            .sum::<f64>()
+            * 10.0
+            / 1000.0;
+        assert!(real <= 100.0, "{real}");
     }
 }
