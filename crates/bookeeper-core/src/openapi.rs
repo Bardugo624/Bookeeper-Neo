@@ -1,7 +1,9 @@
 use utoipa::OpenApi;
 
 use crate::{
-    api::{auth, devices, health, pairing, setup},
+    api::{
+        auth, books, books_search, devices, health, loans, pairing, setup, shelves, stats, wishlist,
+    },
     error::ApiErrorBody,
 };
 
@@ -20,6 +22,12 @@ pub fn openapi() -> utoipa::openapi::OpenApi {
     doc.merge(auth::Doc::openapi());
     doc.merge(pairing::Doc::openapi());
     doc.merge(devices::Doc::openapi());
+    doc.merge(books::Doc::openapi());
+    doc.merge(books_search::Doc::openapi());
+    doc.merge(shelves::Doc::openapi());
+    doc.merge(loans::Doc::openapi());
+    doc.merge(wishlist::Doc::openapi());
+    doc.merge(stats::Doc::openapi());
     doc.info.version = crate::VERSION.to_string();
     doc
 }
