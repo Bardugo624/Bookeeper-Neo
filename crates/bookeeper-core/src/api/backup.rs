@@ -87,14 +87,10 @@ pub async fn create_backup(State(state): State<AppState>, who: AuthUser) -> ApiR
     who.require(Role::Admin)?;
     let files = state.files.clone();
     let now = now_secs();
-    let (bytes, name) = state
+    let (bytes, name) = backup::create(&state.db, &files, &who.library_id, now).await?;
+    state
         .db
         .run(move |conn| {
-            let bytes = match backup::create_archive(conn, &files, &who.library_id, now) {
-                Ok(b) => b,
-                Err(e) => return Ok(Err(e)),
-            };
-            let name = backup::archive_filename(conn, &who.library_id, now)?;
             let detail = serde_json::json!({ "size_bytes": bytes.len() });
             audit::record(
                 conn,
@@ -105,10 +101,11 @@ pub async fn create_backup(State(state): State<AppState>, who: AuthUser) -> ApiR
                 Some(&detail),
                 now,
             )?;
-            Ok(Ok((bytes, name)))
+            Ok(bytes)
         })
-        .await??;
-    Ok(download(bytes, "application/zip", &name))
+        .await
+        .map(|bytes| download(bytes, "application/zip", &name))
+        .map_err(Into::into)
 }
 
 /// Replace the library with the content of an archive (owner, needs a confirm token).
@@ -135,9 +132,12 @@ pub async fn restore(
     let bytes = read_body(body, backup::MAX_ARCHIVE_BYTES).await?;
     let files = state.files.clone();
     let now = now_secs();
+    let parsed = tokio::task::spawn_blocking(move || backup::analyze_archive(&bytes))
+        .await
+        .map_err(|_| ApiError::internal())??;
     let report = state
         .db
-        .run(move |conn| Ok(backup::restore_archive(conn, &files, &who, &bytes, now)))
+        .run(move |conn| Ok(backup::restore_archive(conn, &files, &who, parsed, now)))
         .await??;
     Ok(Json(report))
 }

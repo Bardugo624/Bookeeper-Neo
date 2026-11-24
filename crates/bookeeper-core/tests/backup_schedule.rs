@@ -322,3 +322,39 @@ async fn routes_need_a_token() {
         assert_eq!(st, 401, "{m} {p}");
     }
 }
+
+fn auto_name(t: i64) -> String {
+    chrono::DateTime::from_timestamp(t, 0)
+        .unwrap()
+        .format("auto-%Y%m%d-%H%M%S.zip")
+        .to_string()
+}
+
+fn plant_future(state: &AppState, lib: &str, at: i64) -> String {
+    let dir = dir_of(state, lib);
+    std::fs::create_dir_all(&dir).unwrap();
+    let name = auto_name(at);
+    std::fs::write(dir.join(&name), b"future").unwrap();
+    name
+}
+
+#[tokio::test]
+async fn a_future_dated_backup_does_not_make_backups_due_forever() {
+    let s = seed(Role::Owner, None, None).await;
+    plant_future(&s.state, &s.library_id, T0 + 10 * DAY);
+    assert_eq!(run_once(&s.state, T0).await, 1);
+    assert_eq!(run_once(&s.state, T0 + 60).await, 0);
+    assert_eq!(autos(&s.state, &s.library_id).len(), 2);
+}
+
+#[tokio::test]
+async fn rotation_ignores_future_dated_backups() {
+    let s = seed(Role::Owner, None, None).await;
+    set_config(&s.state, &s.library_id, 1, 1).await;
+    let future = plant_future(&s.state, &s.library_id, T0 + 10 * DAY);
+    assert_eq!(run_once(&s.state, T0).await, 1);
+    assert_eq!(run_once(&s.state, T0 + DAY).await, 1);
+    let mut want = vec![future, auto_name(T0 + DAY)];
+    want.sort();
+    assert_eq!(autos(&s.state, &s.library_id), want);
+}
