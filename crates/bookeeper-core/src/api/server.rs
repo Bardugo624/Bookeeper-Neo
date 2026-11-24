@@ -10,6 +10,7 @@ pub struct ServerOut {
     pub version: String,
     pub tls: TlsMode,
     /// Always present in the JSON; `null` when there is no public address.
+    #[schema(required = true)]
     pub public_url: Option<String>,
     pub phone_ready: bool,
 }
