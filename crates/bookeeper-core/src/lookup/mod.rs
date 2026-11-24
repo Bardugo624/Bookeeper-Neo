@@ -197,7 +197,9 @@ fn nonempty(s: &Option<String>) -> bool {
 }
 
 fn isbn10_from_13(isbn13: &str) -> Option<String> {
-    if isbn13.len() != 13 || !isbn13.starts_with("978") || !isbn13.bytes().all(|b| b.is_ascii_digit())
+    if isbn13.len() != 13
+        || !isbn13.starts_with("978")
+        || !isbn13.bytes().all(|b| b.is_ascii_digit())
     {
         return None;
     }

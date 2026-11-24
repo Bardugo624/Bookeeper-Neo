@@ -33,7 +33,10 @@ impl Provider for GoogleBooks {
     }
 
     async fn lookup(&self, isbn_13: &str) -> Result<Option<Metadata>, ProviderError> {
-        let isbn: String = isbn_13.chars().filter(|c| c.is_ascii_alphanumeric()).collect();
+        let isbn: String = isbn_13
+            .chars()
+            .filter(|c| c.is_ascii_alphanumeric())
+            .collect();
         let url = format!("{}/books/v1/volumes?q=isbn:{}", self.base_url, isbn);
         let resp = self
             .http
@@ -47,7 +50,10 @@ impl Provider for GoogleBooks {
             return Ok(None);
         }
         if status.as_u16() == 429 || status.is_server_error() {
-            return Err(ProviderError(format!("google-books: status {}", status.as_u16())));
+            return Err(ProviderError(format!(
+                "google-books: status {}",
+                status.as_u16()
+            )));
         }
         if !status.is_success() {
             // Other 4xx: definitive "no record" from the provider's side.
@@ -82,7 +88,9 @@ pub fn parse(body: &str, isbn_13: &str) -> Result<Option<Metadata>, ProviderErro
     let item = items
         .iter()
         .find(|i| {
-            identifiers(i).iter().any(|(_, id)| normalize_isbn(id) == wanted)
+            identifiers(i)
+                .iter()
+                .any(|(_, id)| normalize_isbn(id) == wanted)
         })
         .unwrap_or(&items[0]);
     let empty = Value::Null;
@@ -140,7 +148,11 @@ fn str_field(v: &Value, key: &str) -> Option<String> {
 fn str_list(v: &Value, key: &str) -> Vec<String> {
     v.get(key)
         .and_then(Value::as_array)
-        .map(|a| a.iter().filter_map(|x| x.as_str().and_then(clean)).collect())
+        .map(|a| {
+            a.iter()
+                .filter_map(|x| x.as_str().and_then(clean))
+                .collect()
+        })
         .unwrap_or_default()
 }
 
@@ -184,11 +196,20 @@ fn cover_candidates(links: Option<&Value>) -> Vec<String> {
             out.push(u);
         }
     };
-    for key in ["extraLarge", "large", "medium", "small", "thumbnail", "smallThumbnail"] {
+    for key in [
+        "extraLarge",
+        "large",
+        "medium",
+        "small",
+        "thumbnail",
+        "smallThumbnail",
+    ] {
         let Some(raw) = str_field(links, key) else {
             continue;
         };
-        let base = raw.replacen("http://", "https://", 1).replace("&edge=curl", "");
+        let base = raw
+            .replacen("http://", "https://", 1)
+            .replace("&edge=curl", "");
         if let Some(z) = with_zoom_zero(&base) {
             push(z);
         }
@@ -232,7 +253,10 @@ fn strip_html(s: &str) -> String {
                 .take_while(|c| c.is_ascii_alphanumeric())
                 .collect::<String>()
                 .to_lowercase();
-            if matches!(name.as_str(), "br" | "p" | "div" | "li") && !out.ends_with(['\n', ' ']) && !out.is_empty() {
+            if matches!(name.as_str(), "br" | "p" | "div" | "li")
+                && !out.ends_with(['\n', ' '])
+                && !out.is_empty()
+            {
                 out.push('\n');
             }
         } else {

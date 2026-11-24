@@ -5,8 +5,8 @@ use axum::{
 };
 use base64::{engine::general_purpose::STANDARD, Engine as _};
 use http_body_util::BodyExt;
-use std::collections::BTreeMap;
 use serde::Serialize;
+use std::collections::BTreeMap;
 use tower::ServiceExt;
 
 #[derive(Debug, Serialize)]
@@ -256,8 +256,7 @@ mod tests {
             .route(
                 "/api/echo-headers",
                 get(|h: HeaderMap| async move {
-                    let mut names: Vec<String> =
-                        h.keys().map(|k| k.as_str().to_owned()).collect();
+                    let mut names: Vec<String> = h.keys().map(|k| k.as_str().to_owned()).collect();
                     names.sort();
                     names.join(",")
                 }),
@@ -268,7 +267,10 @@ mod tests {
                     (
                         [
                             (header::ETAG, "\"abc\""),
-                            (header::CONTENT_DISPOSITION, "attachment; filename=\"a.pdf\""),
+                            (
+                                header::CONTENT_DISPOSITION,
+                                "attachment; filename=\"a.pdf\"",
+                            ),
                             (header::SET_COOKIE, "s=1"),
                         ],
                         "ok",
@@ -280,19 +282,34 @@ mod tests {
 
     #[tokio::test]
     async fn raw_get_returns_bytes_and_content_type() {
-        let r = dispatch_raw(test_router(), "GET", "/api/v1/health", None, None, BTreeMap::new())
-            .await;
+        let r = dispatch_raw(
+            test_router(),
+            "GET",
+            "/api/v1/health",
+            None,
+            None,
+            BTreeMap::new(),
+        )
+        .await;
         assert_eq!(r.status, 200);
         assert_eq!(r.content_type.as_deref(), Some("application/json"));
-        assert!(String::from_utf8(decode(&r)).unwrap().contains("\"status\":\"ok\""));
+        assert!(String::from_utf8(decode(&r))
+            .unwrap()
+            .contains("\"status\":\"ok\""));
     }
 
     #[tokio::test]
     async fn raw_rejects_paths_outside_api_and_bad_methods() {
-        for (m, p) in [("GET", "/etc/passwd"), ("TRACE", "/api/v1/health"), ("get", "/api/v1/health")] {
+        for (m, p) in [
+            ("GET", "/etc/passwd"),
+            ("TRACE", "/api/v1/health"),
+            ("get", "/api/v1/health"),
+        ] {
             let r = dispatch_raw(test_router(), m, p, None, None, BTreeMap::new()).await;
             assert_eq!(r.status, 400, "{m} {p}");
-            assert!(String::from_utf8(decode(&r)).unwrap().contains("\"error_code\":\"bad_request\""));
+            assert!(String::from_utf8(decode(&r))
+                .unwrap()
+                .contains("\"error_code\":\"bad_request\""));
         }
     }
 
@@ -308,7 +325,9 @@ mod tests {
         )
         .await;
         assert_eq!(r.status, 400);
-        assert!(String::from_utf8(decode(&r)).unwrap().contains("bad_request"));
+        assert!(String::from_utf8(decode(&r))
+            .unwrap()
+            .contains("bad_request"));
     }
 
     #[tokio::test]
@@ -319,15 +338,33 @@ mod tests {
             ("Authorization".to_owned(), "Bearer x".to_owned()),
             ("Host".to_owned(), "evil".to_owned()),
         ]);
-        let r = dispatch_raw(probe_router(), "GET", "/api/echo-headers", None, None, headers).await;
+        let r = dispatch_raw(
+            probe_router(),
+            "GET",
+            "/api/echo-headers",
+            None,
+            None,
+            headers,
+        )
+        .await;
         assert_eq!(r.status, 200);
-        assert_eq!(String::from_utf8(decode(&r)).unwrap(), "if-none-match,x-confirm-token");
+        assert_eq!(
+            String::from_utf8(decode(&r)).unwrap(),
+            "if-none-match,x-confirm-token"
+        );
     }
 
     #[tokio::test]
     async fn raw_returns_selected_response_headers() {
-        let r = dispatch_raw(probe_router(), "GET", "/api/resp-headers", None, None, BTreeMap::new())
-            .await;
+        let r = dispatch_raw(
+            probe_router(),
+            "GET",
+            "/api/resp-headers",
+            None,
+            None,
+            BTreeMap::new(),
+        )
+        .await;
         assert_eq!(r.headers.get("etag").map(String::as_str), Some("\"abc\""));
         assert!(r.headers.contains_key("content-disposition"));
         assert!(!r.headers.contains_key("set-cookie"));

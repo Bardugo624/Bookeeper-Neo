@@ -50,7 +50,10 @@ fn parses_a_result_page() {
     assert_eq!(m.language.as_deref(), Some("it"));
     assert_eq!(m.isbn_13.as_deref(), Some(ISBN));
     assert_eq!(m.isbn_10.as_deref(), Some("8845292614"));
-    assert_eq!(m.cover_candidates, vec!["https://covers.example.org/rosa.jpg"]);
+    assert_eq!(
+        m.cover_candidates,
+        vec!["https://covers.example.org/rosa.jpg"]
+    );
     assert_eq!(m.sources, vec!["annas-archive"]);
     assert!(m.subtitle.is_none() && m.genre.is_none());
 }
@@ -64,20 +67,29 @@ fn page_without_results_is_none() {
 fn only_https_cover_urls_are_kept() {
     let m = parse(&fixture("http_cover.html"), ISBN).unwrap().unwrap();
     assert_eq!(m.cover_candidates, vec!["https://covers.example.org/a.jpg"]);
-    let m = parse(&fixture("relative_cover.html"), ISBN).unwrap().unwrap();
+    let m = parse(&fixture("relative_cover.html"), ISBN)
+        .unwrap()
+        .unwrap();
     assert!(m.cover_candidates.is_empty());
     assert!(m.cover_candidates.iter().all(|u| u.starts_with("https://")));
 }
 
 #[test]
 fn description_is_plain_text() {
-    let m = parse(&fixture("html_description.html"), ISBN).unwrap().unwrap();
-    assert_eq!(m.description.as_deref(), Some("Una storia di \"lupi\" & agnelli"));
+    let m = parse(&fixture("html_description.html"), ISBN)
+        .unwrap()
+        .unwrap();
+    assert_eq!(
+        m.description.as_deref(),
+        Some("Una storia di \"lupi\" & agnelli")
+    );
 }
 
 #[test]
 fn no_download_links_leak_into_metadata() {
-    let m = parse(&fixture("with_downloads.html"), ISBN).unwrap().unwrap();
+    let m = parse(&fixture("with_downloads.html"), ISBN)
+        .unwrap()
+        .unwrap();
     assert_eq!(m.title.as_deref(), Some("Libro di prova"));
     let dump = format!("{m:?}").to_lowercase();
     for needle in ["download", "libgen", "md5", "abc123", "get.php"] {
@@ -166,7 +178,8 @@ async fn invalid_utf8_body_is_an_error() {
         if let Ok((mut s, _)) = listener.accept() {
             let mut buf = [0u8; 4096];
             let _ = s.read(&mut buf);
-            let mut resp = b"HTTP/1.1 200 OK\r\nContent-Length: 4\r\nConnection: close\r\n\r\n".to_vec();
+            let mut resp =
+                b"HTTP/1.1 200 OK\r\nContent-Length: 4\r\nConnection: close\r\n\r\n".to_vec();
             resp.extend_from_slice(&[0xff, 0xfe, 0xfd, 0xfc]);
             let _ = s.write_all(&resp);
         }
@@ -177,7 +190,10 @@ async fn invalid_utf8_body_is_an_error() {
 
 #[test]
 fn name_is_stable() {
-    assert_eq!(AnnasArchive::new(reqwest::Client::new()).name(), "annas-archive");
+    assert_eq!(
+        AnnasArchive::new(reqwest::Client::new()).name(),
+        "annas-archive"
+    );
 }
 
 /// Local server answering every request with `respond(request_line)`; counts requests.
@@ -199,7 +215,9 @@ fn serve_loop(respond: impl Fn(&str) -> String + Send + 'static) -> (String, Arc
 }
 
 fn redirect_to(loc: &str) -> String {
-    format!("HTTP/1.1 302 Found\r\nLocation: {loc}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n")
+    format!(
+        "HTTP/1.1 302 Found\r\nLocation: {loc}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+    )
 }
 
 fn ok_page() -> String {
@@ -225,7 +243,10 @@ async fn redirect_inside_the_mirror_list_is_followed() {
     let (second, _) = serve_loop(|_| ok_page());
     let target = second.clone();
     let (first, _) = serve_loop(move |_| redirect_to(&format!("{target}/isbn/{ISBN}")));
-    let client = reqwest::Client::builder().redirect(reqwest::redirect::Policy::none()).build().unwrap();
+    let client = reqwest::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .build()
+        .unwrap();
     let p = AnnasArchive::with_mirrors(client, vec![first, second]);
     let m = p.lookup(ISBN).await.unwrap().unwrap();
     assert_eq!(m.title.as_deref(), Some("Il nome della rosa"));
@@ -235,7 +256,10 @@ async fn redirect_inside_the_mirror_list_is_followed() {
 async fn redirect_to_a_foreign_host_is_not_followed() {
     let (foreign, foreign_hits) = serve_loop(|_| ok_page());
     let (first, _) = serve_loop(move |_| redirect_to(&format!("{foreign}/isbn/{ISBN}")));
-    let client = reqwest::Client::builder().redirect(reqwest::redirect::Policy::none()).build().unwrap();
+    let client = reqwest::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .build()
+        .unwrap();
     let p = AnnasArchive::with_mirrors(client, vec![first]);
     assert!(p.lookup(ISBN).await.is_err());
     assert_eq!(foreign_hits.load(Ordering::SeqCst), 0);
@@ -244,7 +268,10 @@ async fn redirect_to_a_foreign_host_is_not_followed() {
 #[tokio::test]
 async fn redirect_loops_stop_after_three_hops() {
     let (base, hits) = serve_loop(|_| redirect_to("/isbn/9788845292613"));
-    let client = reqwest::Client::builder().redirect(reqwest::redirect::Policy::none()).build().unwrap();
+    let client = reqwest::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .build()
+        .unwrap();
     let p = AnnasArchive::with_base_url(client, &base);
     assert!(p.lookup(ISBN).await.is_err());
     assert_eq!(hits.load(Ordering::SeqCst), 4);
@@ -253,7 +280,10 @@ async fn redirect_loops_stop_after_three_hops() {
 #[test]
 fn first_language_label_wins() {
     let body = "<html><head><meta property=\"og:title\" content=\"T\"></head><body>Lingua: it Language: en</body></html>";
-    assert_eq!(parse(body, ISBN).unwrap().unwrap().language.as_deref(), Some("it"));
+    assert_eq!(
+        parse(body, ISBN).unwrap().unwrap().language.as_deref(),
+        Some("it")
+    );
 }
 
 #[tokio::test]
