@@ -1,16 +1,13 @@
 import type { components } from './schema';
-import { ApiError, type Transport, type TransportResponse } from './transport';
+import type { Transport } from './transport';
+import { P, unwrap, unwrapEmpty } from './resources/util';
+import { booksApi } from './resources/books';
+import { shelvesApi } from './resources/shelves';
+import { loansApi } from './resources/loans';
+import { wishlistApi } from './resources/wishlist';
+import { statsApi } from './resources/stats';
 
 export type Health = components['schemas']['Health'];
-
-function isErrorBody(b: unknown): b is components['schemas']['ApiErrorBody'] {
-  return (
-    typeof b === 'object' &&
-    b !== null &&
-    typeof (b as Record<string, unknown>).error_code === 'string' &&
-    typeof (b as Record<string, unknown>).message === 'string'
-  );
-}
 
 type S = components['schemas'];
 export type AuthOut = S['AuthOut'];
@@ -30,32 +27,13 @@ export type MeOut = S['MeOut'];
 export type PairingCode = S['PairingCode'];
 export type DeviceList = S['DeviceList'];
 
-function fail(r: TransportResponse): never {
-  if (isErrorBody(r.body)) {
-    throw new ApiError(r.status, r.body.error_code, r.body.message, r.status === 429 ? r.retryAfter : undefined);
-  }
-  throw new ApiError(r.status, 'unknown', `Unexpected response (${r.status})`, r.status === 429 ? r.retryAfter : undefined);
-}
-
-function unwrap<T>(r: TransportResponse): T {
-  if (r.status >= 200 && r.status < 300) {
-    // A proxy or SPA fallback can answer 200 with HTML: never pass that off as data.
-    if (typeof r.body !== 'object' || r.body === null) {
-      throw new ApiError(r.status, 'unknown', `Unexpected response (${r.status})`);
-    }
-    return r.body as T;
-  }
-  return fail(r);
-}
-
-function unwrapEmpty(r: TransportResponse): void {
-  if (r.status >= 200 && r.status < 300) return;
-  fail(r);
-}
-
 export function createClient(t: Transport) {
-  const P = '/api/v1';
   return {
+    ...booksApi(t),
+    ...shelvesApi(t),
+    ...loansApi(t),
+    ...wishlistApi(t),
+    ...statsApi(t),
     async health() {
       return unwrap<Health>(await t.request('GET', `${P}/health`));
     },

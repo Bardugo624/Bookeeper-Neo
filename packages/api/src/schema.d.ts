@@ -84,6 +84,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/books": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_books"];
+        put?: never;
+        post: operations["create_book"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/books/batch-delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["batch_delete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/books/next-progressive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["next_progressive"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/books/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_book"];
+        put?: never;
+        post?: never;
+        delete: operations["delete_book"];
+        options?: never;
+        head?: never;
+        patch: operations["patch_book"];
+        trace?: never;
+    };
+    "/api/v1/books/{id}/placement": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["place_book"];
+        post?: never;
+        delete: operations["unplace_book"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/devices": {
         parameters: {
             query?: never;
@@ -142,6 +222,70 @@ export interface paths {
         get: operations["health"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/loans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_loans"];
+        put?: never;
+        post: operations["create_loan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/loans/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["delete_loan"];
+        options?: never;
+        head?: never;
+        patch: operations["patch_loan"];
+        trace?: never;
+    };
+    "/api/v1/loans/{id}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["reopen_loan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/loans/{id}/return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["return_loan"];
         delete?: never;
         options?: never;
         head?: never;
@@ -212,6 +356,134 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/shelves": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_shelves"];
+        put?: never;
+        post: operations["create_shelf"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shelves/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_shelf"];
+        put?: never;
+        post?: never;
+        delete: operations["delete_shelf"];
+        options?: never;
+        head?: never;
+        patch: operations["update_shelf"];
+        trace?: never;
+    };
+    "/api/v1/shelves/{id}/batch-assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["batch_assign"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shelves/{id}/books": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["shelf_books"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_stats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/wishlist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_wishlist"];
+        put?: never;
+        post: operations["create_wish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/wishlist/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["delete_wish"];
+        options?: never;
+        head?: never;
+        patch: operations["patch_wish"];
+        trace?: never;
+    };
+    "/api/v1/wishlist/{id}/convert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["convert_wish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -227,6 +499,121 @@ export interface components {
             library: components["schemas"]["LibraryOut"];
             session: components["schemas"]["Session"];
             user: components["schemas"]["UserOut"];
+        };
+        BatchAssignIn: {
+            /** @description At most 500 ids. */
+            book_ids: string[];
+        };
+        BatchAssignOut: {
+            placed: components["schemas"]["PlacedItem"][];
+            /** Format: int64 */
+            skipped_already_placed: number;
+            /** Format: int64 */
+            skipped_no_space: number;
+        };
+        BatchDelete: {
+            ids: string[];
+        };
+        BatchDeleted: {
+            /** Format: int64 */
+            deleted: number;
+        };
+        BookList: {
+            items: components["schemas"]["BookOut"][];
+            /**
+             * Format: int64
+             * @description Count with the same filters, ignoring `limit` and `offset`.
+             */
+            total: number;
+        };
+        BookOut: {
+            /** Format: int64 */
+            acquired_at?: number | null;
+            authors: string[];
+            condition?: string | null;
+            cover_color?: string | null;
+            /** Format: int64 */
+            created_at: number;
+            description?: string | null;
+            /** @description `hardcover`, `paperback`, `ebook` or `audiobook`. */
+            format?: string | null;
+            genre?: string | null;
+            id: string;
+            isbn_10?: string | null;
+            isbn_13?: string | null;
+            language?: string | null;
+            notes?: string | null;
+            on_loan: boolean;
+            /** Format: int64 */
+            page_count?: number | null;
+            placement?: null | components["schemas"]["Placement"];
+            /** Format: int64 */
+            price_cents?: number | null;
+            /** Format: int64 */
+            progressive_number?: number | null;
+            /** Format: int64 */
+            published_year?: number | null;
+            publisher?: string | null;
+            subtitle?: string | null;
+            title: string;
+            /** Format: int64 */
+            updated_at: number;
+        };
+        CountBy: {
+            /** Format: int64 */
+            count: number;
+            key: string;
+        };
+        /** @description Body of `POST /books`. Only `title` is required. */
+        CreateBook: {
+            /** Format: int64 */
+            acquired_at?: number | null;
+            authors?: string[];
+            condition?: string | null;
+            description?: string | null;
+            format?: string | null;
+            genre?: string | null;
+            isbn_10?: string | null;
+            isbn_13?: string | null;
+            language?: string | null;
+            notes?: string | null;
+            /** Format: int64 */
+            page_count?: number | null;
+            /** Format: int64 */
+            price_cents?: number | null;
+            /** Format: int64 */
+            progressive_number?: number | null;
+            /** Format: int64 */
+            published_year?: number | null;
+            publisher?: string | null;
+            subtitle?: string | null;
+            title: string;
+        };
+        /** @description Body of `POST /loans`. */
+        CreateLoan: {
+            book_id: string;
+            borrower_name: string;
+            /** Format: int64 */
+            due_at?: number | null;
+            /**
+             * Format: int64
+             * @description Unix seconds; defaults to now.
+             */
+            lent_at?: number | null;
+            notes?: string | null;
+        };
+        /** @description Body of `POST /wishlist`. */
+        CreateWish: {
+            authors?: string | null;
+            isbn?: string | null;
+            notes?: string | null;
+            /**
+             * Format: int64
+             * @description 0 to 2, default 0.
+             */
+            priority?: number | null;
+            source_url?: string | null;
+            title: string;
         };
         /** @enum {string} */
         DeviceKind: "desktop" | "mobile";
@@ -264,6 +651,66 @@ export interface components {
             id: string;
             name: string;
         };
+        ListBooksQuery: {
+            /** @description `hardcover`, `paperback`, `ebook` or `audiobook`. */
+            format?: string | null;
+            genre?: string | null;
+            language?: string | null;
+            /** Format: int64 */
+            limit?: number | null;
+            /** Format: int64 */
+            offset?: number | null;
+            /** @description `true`: only books with an open loan; `false`: only the others. */
+            on_loan?: string | null;
+            /** @description `asc` or `desc`; default `desc` for `created_at`, `asc` otherwise. */
+            order?: string | null;
+            /** @description Full-text search over title, subtitle, authors, description, notes and ISBN. */
+            q?: string | null;
+            shelf_id?: string | null;
+            /** @description `created_at` (default), `title`, `author`, `year` or `progressive`. */
+            sort?: string | null;
+            /** @description `true`: only books without a placement. */
+            unshelved?: string | null;
+        };
+        ListLoansQuery: {
+            book_id?: string | null;
+            /** Format: int64 */
+            limit?: number | null;
+            /** Format: int64 */
+            offset?: number | null;
+            /** @description `active` (default), `returned`, `overdue` or `all`. */
+            status?: string | null;
+        };
+        LoanList: {
+            items: components["schemas"]["LoanOut"][];
+            /** Format: int64 */
+            total: number;
+        };
+        LoanMonth: {
+            /** Format: int64 */
+            lent: number;
+            /** Format: int64 */
+            returned: number;
+            /** @description `YYYY-MM`, UTC. */
+            ym: string;
+        };
+        LoanOut: {
+            book_authors: string[];
+            book_id: string;
+            book_title: string;
+            borrower_name: string;
+            borrower_user_id?: string | null;
+            /** Format: int64 */
+            due_at?: number | null;
+            id: string;
+            /** Format: int64 */
+            lent_at: number;
+            notes?: string | null;
+            /** @description Open loan whose `due_at` is in the past. */
+            overdue: boolean;
+            /** Format: int64 */
+            returned_at?: number | null;
+        };
         LoginRequest: {
             device_kind: components["schemas"]["DeviceKind"];
             device_name: string;
@@ -276,6 +723,44 @@ export interface components {
             library: components["schemas"]["LibraryOut"];
             user: components["schemas"]["UserOut"];
         };
+        MonthCount: {
+            /** Format: int64 */
+            count: number;
+            /** @description `YYYY-MM`, UTC. */
+            ym: string;
+        };
+        NewShelf: {
+            /** @description Defaults to `sage`. */
+            color?: string | null;
+            icon?: string | null;
+            name: string;
+            /** Format: int64 */
+            rows: number;
+            /** Format: int64 */
+            slots_per_row: number;
+        };
+        NextProgressive: {
+            /** Format: int64 */
+            next: number;
+        };
+        Overview: {
+            /** Format: int64 */
+            active_loans: number;
+            /** Format: int64 */
+            overdue_loans: number;
+            /** Format: int64 */
+            returned_loans: number;
+            /** Format: int64 */
+            total_authors: number;
+            /** Format: int64 */
+            total_books: number;
+            /** Format: int64 */
+            total_pages: number;
+            /** Format: int64 */
+            total_shelves: number;
+            /** Format: int64 */
+            wishlist_count: number;
+        };
         PairingCode: {
             /** @description Clear-text code; shown only in this response. */
             code: string;
@@ -285,6 +770,86 @@ export interface components {
         PasswordRequest: {
             current_password?: string | null;
             new_password: string;
+        };
+        /**
+         * @description Body of `PATCH /books/{id}`: an absent field is left alone, `null` clears
+         *     an optional field (`title` cannot be cleared).
+         */
+        PatchBook: {
+            /** Format: int64 */
+            acquired_at?: number | null;
+            authors?: string[] | null;
+            condition?: string | null;
+            description?: string | null;
+            format?: string | null;
+            genre?: string | null;
+            isbn_10?: string | null;
+            isbn_13?: string | null;
+            language?: string | null;
+            notes?: string | null;
+            /** Format: int64 */
+            page_count?: number | null;
+            /** Format: int64 */
+            price_cents?: number | null;
+            /** Format: int64 */
+            progressive_number?: number | null;
+            /** Format: int64 */
+            published_year?: number | null;
+            publisher?: string | null;
+            subtitle?: string | null;
+            title?: string | null;
+        };
+        /**
+         * @description Body of `PATCH /loans/{id}`: absent = unchanged, `null` clears `due_at` and
+         *     `notes`. `book_id` is accepted only to be rejected.
+         */
+        PatchLoan: {
+            book_id?: string | null;
+            borrower_name?: string | null;
+            /** Format: int64 */
+            due_at?: number | null;
+            /** Format: int64 */
+            lent_at?: number | null;
+            notes?: string | null;
+        };
+        /**
+         * @description Body of `PATCH /wishlist/{id}`: absent = unchanged, `null` clears an
+         *     optional field (`title` and `priority` cannot be null).
+         */
+        PatchWish: {
+            authors?: string | null;
+            isbn?: string | null;
+            notes?: string | null;
+            /** Format: int64 */
+            priority?: number | null;
+            source_url?: string | null;
+            title?: string | null;
+        };
+        PlaceIn: {
+            /** Format: int64 */
+            row_index: number;
+            shelf_id: string;
+            /** Format: int64 */
+            slot_index: number;
+            /**
+             * Format: int64
+             * @description 1–3; absent keeps the current value.
+             */
+            spine_width?: number | null;
+        };
+        PlacedItem: {
+            book_id: string;
+            /** Format: int64 */
+            row_index: number;
+            /** Format: int64 */
+            slot_index: number;
+        };
+        Placement: {
+            /** Format: int64 */
+            row_index: number;
+            shelf_id: string;
+            /** Format: int64 */
+            slot_index: number;
         };
         RedeemRequest: {
             code: string;
@@ -299,6 +864,13 @@ export interface components {
         };
         RenameDevice: {
             name: string;
+        };
+        ReturnLoan: {
+            /**
+             * Format: int64
+             * @description Unix seconds; defaults to now.
+             */
+            returned_at?: number | null;
         };
         /** @enum {string} */
         Role: "owner" | "admin" | "member" | "guest";
@@ -322,11 +894,109 @@ export interface components {
             code_required: boolean;
             needs_setup: boolean;
         };
+        ShelfBook: {
+            authors: string[];
+            book_id: string;
+            cover_color?: string | null;
+            /** Format: int64 */
+            progressive_number?: number | null;
+            /** Format: int64 */
+            row_index: number;
+            /** Format: int64 */
+            slot_index: number;
+            /** Format: int64 */
+            spine_width?: number | null;
+            title: string;
+        };
+        ShelfBookList: {
+            items: components["schemas"]["ShelfBook"][];
+        };
+        ShelfFill: {
+            /** Format: int64 */
+            capacity: number;
+            color: string;
+            id: string;
+            name: string;
+            /**
+             * Format: double
+             * @description `used / capacity`, 0 to 1, rounded to 4 decimals.
+             */
+            pct: number;
+            /** Format: int64 */
+            used: number;
+        };
+        ShelfList: {
+            items: components["schemas"]["ShelfOut"][];
+        };
+        ShelfOut: {
+            /**
+             * Format: int64
+             * @description Number of books placed on the shelf.
+             */
+            book_count: number;
+            /**
+             * Format: int64
+             * @description `rows * slots_per_row`.
+             */
+            capacity: number;
+            color: string;
+            /** Format: int64 */
+            created_at: number;
+            icon?: string | null;
+            id: string;
+            /** Format: int64 */
+            label_code: number;
+            name: string;
+            room_id?: string | null;
+            /** Format: int64 */
+            rows: number;
+            /** Format: int64 */
+            slots_per_row: number;
+            /** Format: int64 */
+            updated_at: number;
+        };
+        ShelfPatch: {
+            color?: string | null;
+            /** @description `null` clears the icon. */
+            icon?: string | null;
+            name?: string | null;
+            /** Format: int64 */
+            rows?: number | null;
+            /** Format: int64 */
+            slots_per_row?: number | null;
+        };
+        Stats: {
+            additions_by_month: components["schemas"]["MonthCount"][];
+            by_decade: components["schemas"]["CountBy"][];
+            by_format: components["schemas"]["CountBy"][];
+            by_genre: components["schemas"]["CountBy"][];
+            by_language: components["schemas"]["CountBy"][];
+            loans_by_month: components["schemas"]["LoanMonth"][];
+            overview: components["schemas"]["Overview"];
+            shelf_fill: components["schemas"]["ShelfFill"][];
+            top_authors: components["schemas"]["CountBy"][];
+        };
         UserOut: {
             display_name: string;
             email?: string | null;
             id: string;
             role: components["schemas"]["Role"];
+        };
+        WishList: {
+            items: components["schemas"]["WishOut"][];
+        };
+        WishOut: {
+            authors?: string | null;
+            /** Format: int64 */
+            created_at: number;
+            id: string;
+            isbn?: string | null;
+            notes?: string | null;
+            /** Format: int64 */
+            priority: number;
+            source_url?: string | null;
+            title: string;
+            user_id: string;
         };
     };
     responses: never;
@@ -539,6 +1209,425 @@ export interface operations {
             };
         };
     };
+    list_books: {
+        parameters: {
+            query?: {
+                /** @description Full-text search; the last word matches by prefix */
+                q?: string;
+                /** @description Exact match */
+                genre?: string;
+                /** @description Exact match */
+                language?: string;
+                /** @description hardcover, paperback, ebook or audiobook */
+                format?: string;
+                /** @description Only books placed on this shelf */
+                shelf_id?: string;
+                /** @description true: only books without a placement */
+                unshelved?: boolean;
+                /** @description true: open loan; false: no open loan */
+                on_loan?: boolean;
+                /** @description created_at (default), title, author, year or progressive */
+                sort?: string;
+                /** @description asc or desc */
+                order?: string;
+                /** @description 1 to 200, default 50 */
+                limit?: number;
+                /** @description Default 0 */
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Books */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookList"];
+                };
+            };
+            /** @description Invalid query */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    create_book: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateBook"];
+            };
+        };
+        responses: {
+            /** @description Created book */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookOut"];
+                };
+            };
+            /** @description Guests cannot write */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description progressive_taken */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Invalid body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    batch_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BatchDelete"];
+            };
+        };
+        responses: {
+            /** @description Number of books deleted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchDeleted"];
+                };
+            };
+            /** @description Guests cannot write */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description More than 500 ids */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    next_progressive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Highest progressive number plus one, or 1 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NextProgressive"];
+                };
+            };
+        };
+    };
+    get_book: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Book id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The book */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookOut"];
+                };
+            };
+            /** @description Unknown book */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    delete_book: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Book id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Guests cannot write */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Unknown book */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    patch_book: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Book id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchBook"];
+            };
+        };
+        responses: {
+            /** @description Updated book */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookOut"];
+                };
+            };
+            /** @description Guests cannot write */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Unknown book */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description progressive_taken */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Invalid body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    place_book: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Book id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlaceIn"];
+            };
+        };
+        responses: {
+            /** @description New placement */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Placement"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Role too low */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Unknown book or shelf */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Slot occupied (slot_taken) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Slot outside the shelf or bad spine_width */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    unplace_book: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Book id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Book is not placed (idempotent) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Role too low */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Unknown book */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
     list_devices: {
         parameters: {
             query?: never;
@@ -695,6 +1784,301 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Health"];
+                };
+            };
+        };
+    };
+    list_loans: {
+        parameters: {
+            query?: {
+                /** @description active (default), returned, overdue or all */
+                status?: string;
+                /** @description Only the loans of this book */
+                book_id?: string;
+                /** @description 1 to 200, default 50 */
+                limit?: number;
+                /** @description Default 0 */
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Loans */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanList"];
+                };
+            };
+            /** @description Invalid query */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    create_loan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateLoan"];
+            };
+        };
+        responses: {
+            /** @description Created loan */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanOut"];
+                };
+            };
+            /** @description Guests cannot write */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Unknown book */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description book_already_lent */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Invalid body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    delete_loan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Loan id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Guests cannot write */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Unknown loan */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    patch_loan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Loan id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchLoan"];
+            };
+        };
+        responses: {
+            /** @description Updated loan */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanOut"];
+                };
+            };
+            /** @description Guests cannot write */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Unknown loan */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Invalid body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    reopen_loan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Loan id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Reopened loan */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanOut"];
+                };
+            };
+            /** @description Guests cannot write */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Unknown loan */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description book_already_lent */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    return_loan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Loan id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": null | components["schemas"]["ReturnLoan"];
+            };
+        };
+        responses: {
+            /** @description Returned loan */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanOut"];
+                };
+            };
+            /** @description Guests cannot write */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Unknown loan */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description returned_at before lent_at */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
         };
@@ -869,6 +2253,594 @@ export interface operations {
                 };
             };
             /** @description Invalid fields */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    list_shelves: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Shelves ordered by label code */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShelfList"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    create_shelf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NewShelf"];
+            };
+        };
+        responses: {
+            /** @description Created shelf */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShelfOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Role too low */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Invalid field */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    get_shelf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Shelf id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The shelf */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShelfOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Unknown shelf */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    delete_shelf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Shelf id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted; its books stay, unplaced */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Role too low */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Unknown shelf */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    update_shelf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Shelf id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShelfPatch"];
+            };
+        };
+        responses: {
+            /** @description Updated shelf */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShelfOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Role too low */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Unknown shelf */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description A placed book would not fit (shelf_too_small) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Invalid field */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    batch_assign: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Shelf id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BatchAssignIn"];
+            };
+        };
+        responses: {
+            /** @description What was placed and what was skipped */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchAssignOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Role too low */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Unknown shelf */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description More than 500 ids */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    shelf_books: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Shelf id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Placed books by row then slot */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShelfBookList"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Unknown shelf */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    get_stats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Library statistics */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Stats"];
+                };
+            };
+            /** @description Missing or invalid token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    list_wishlist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The caller's wishlist */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WishList"];
+                };
+            };
+        };
+    };
+    create_wish: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateWish"];
+            };
+        };
+        responses: {
+            /** @description Created item */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WishOut"];
+                };
+            };
+            /** @description Guests cannot write */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Invalid body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    delete_wish: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Wishlist item id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Guests cannot write */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Unknown item */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    patch_wish: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Wishlist item id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchWish"];
+            };
+        };
+        responses: {
+            /** @description Updated item */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WishOut"];
+                };
+            };
+            /** @description Guests cannot write */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Unknown item */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Invalid body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    convert_wish: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Wishlist item id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The new book; the item is removed */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookOut"];
+                };
+            };
+            /** @description Guests cannot write */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Unknown item */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Book conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description The item does not make a valid book */
             422: {
                 headers: {
                     [name: string]: unknown;
