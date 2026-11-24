@@ -10,7 +10,10 @@ use bookeeper_core::lookup::{GoogleBooks, Provider};
 const ISBN: &str = "9788845292613";
 
 fn fixture(name: &str) -> String {
-    let p = format!("{}/tests/fixtures/google/{name}", env!("CARGO_MANIFEST_DIR"));
+    let p = format!(
+        "{}/tests/fixtures/google/{name}",
+        env!("CARGO_MANIFEST_DIR")
+    );
     std::fs::read_to_string(p).unwrap()
 }
 
@@ -58,7 +61,9 @@ fn picks_the_item_matching_the_isbn() {
     let m = parse(&fixture("two_items.json"), ISBN).unwrap().unwrap();
     assert_eq!(m.title.as_deref(), Some("Right Book"));
     // No match: the first one.
-    let m = parse(&fixture("two_items.json"), "9781111111111").unwrap().unwrap();
+    let m = parse(&fixture("two_items.json"), "9781111111111")
+        .unwrap()
+        .unwrap();
     assert_eq!(m.title.as_deref(), Some("Wrong Book"));
 }
 
@@ -71,7 +76,8 @@ fn zero_items_is_none() {
 #[test]
 fn year_is_extracted_from_partial_dates() {
     let year = |d: &str| {
-        let body = format!(r#"{{"totalItems":1,"items":[{{"volumeInfo":{{"publishedDate":"{d}"}}}}]}}"#);
+        let body =
+            format!(r#"{{"totalItems":1,"items":[{{"volumeInfo":{{"publishedDate":"{d}"}}}}]}}"#);
         parse(&body, ISBN).unwrap().unwrap().published_year
     };
     assert_eq!(year("1980"), Some(1980));
@@ -124,7 +130,9 @@ fn missing_volume_info_fields_are_absent() {
     assert_eq!(m.genre, None);
     assert!(m.cover_candidates.is_empty());
     assert_eq!(m.isbn_13, None);
-    let m = parse(&fixture("no_volume_info.json"), ISBN).unwrap().unwrap();
+    let m = parse(&fixture("no_volume_info.json"), ISBN)
+        .unwrap()
+        .unwrap();
     assert_eq!(m.title, None);
 }
 
@@ -162,5 +170,7 @@ fn malformed_body_is_an_error_not_a_panic() {
     assert!(parse("not json", ISBN).is_err());
     assert!(parse("", ISBN).is_err());
     assert!(parse("[1,2]", ISBN).is_err());
-    assert!(parse(r#"{"totalItems":"x","items":[1,null,"s"]}"#, ISBN).unwrap().is_none());
+    assert!(parse(r#"{"totalItems":"x","items":[1,null,"s"]}"#, ISBN)
+        .unwrap()
+        .is_none());
 }

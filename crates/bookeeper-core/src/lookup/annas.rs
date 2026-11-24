@@ -48,13 +48,17 @@ impl AnnasArchive {
 
     /// For tests: custom ordered list of mirrors.
     pub fn with_mirrors(http: reqwest::Client, mirrors: Vec<String>) -> Self {
-        let mirrors = mirrors.into_iter().map(|m| m.trim_end_matches('/').to_string()).collect();
+        let mirrors = mirrors
+            .into_iter()
+            .map(|m| m.trim_end_matches('/').to_string())
+            .collect();
         Self { http, mirrors }
     }
 
     fn allowed(&self, url: &reqwest::Url) -> bool {
         let key = |u: &reqwest::Url| {
-            u.host_str().map(|h| (h.to_ascii_lowercase(), u.port_or_known_default()))
+            u.host_str()
+                .map(|h| (h.to_ascii_lowercase(), u.port_or_known_default()))
         };
         let Some(k) = key(url) else { return false };
         self.mirrors
@@ -92,7 +96,9 @@ impl AnnasArchive {
                 .and_then(|loc| url.join(loc.trim()).ok())
                 .ok_or_else(|| ProviderError("annas-archive: bad redirect".into()))?;
             if !self.allowed(&next) {
-                return Err(ProviderError("annas-archive: redirect outside the mirror list".into()));
+                return Err(ProviderError(
+                    "annas-archive: redirect outside the mirror list".into(),
+                ));
             }
             url = next;
         };
@@ -126,7 +132,11 @@ impl AnnasArchive {
         Ok(Some(body))
     }
 
-    async fn lookup_all(&self, isbn: &str, isbn_13: &str) -> Result<Option<Metadata>, ProviderError> {
+    async fn lookup_all(
+        &self,
+        isbn: &str,
+        isbn_13: &str,
+    ) -> Result<Option<Metadata>, ProviderError> {
         let mut last_err = None;
         for mirror in &self.mirrors {
             let attempt = tokio::time::timeout(PER_MIRROR_TIMEOUT, self.fetch(mirror, isbn)).await;
@@ -202,7 +212,10 @@ pub fn parse(body: &str, isbn_13: &str) -> Result<Option<Metadata>, ProviderErro
     }
 
     let text = page_text(&doc);
-    let mut m = Metadata { title, ..Default::default() };
+    let mut m = Metadata {
+        title,
+        ..Default::default()
+    };
     if let Some(c) = cover {
         m.cover_candidates.push(c);
     }
@@ -216,12 +229,25 @@ pub fn parse(body: &str, isbn_13: &str) -> Result<Option<Metadata>, ProviderErro
     }
 
     // ISBNs: the requested one wins; the page fills what is missing.
-    let tokens: Vec<&str> =
-        text.split(|c: char| !c.is_ascii_alphanumeric()).filter(|t| !t.is_empty()).collect();
+    let tokens: Vec<&str> = text
+        .split(|c: char| !c.is_ascii_alphanumeric())
+        .filter(|t| !t.is_empty())
+        .collect();
     let body_13 = tokens.iter().find(|t| is_isbn13(t)).map(|t| t.to_string());
-    let body_10 = tokens.iter().find(|t| is_isbn10(t)).map(|t| t.to_ascii_uppercase());
-    m.isbn_13 = if isbn.len() == 13 { Some(isbn.clone()) } else { body_13 };
-    m.isbn_10 = if isbn.len() == 10 { Some(isbn.clone()) } else { body_10 };
+    let body_10 = tokens
+        .iter()
+        .find(|t| is_isbn10(t))
+        .map(|t| t.to_ascii_uppercase());
+    m.isbn_13 = if isbn.len() == 13 {
+        Some(isbn.clone())
+    } else {
+        body_13
+    };
+    m.isbn_10 = if isbn.len() == 10 {
+        Some(isbn.clone())
+    } else {
+        body_10
+    };
     if m.isbn_10 == m.isbn_13 {
         m.isbn_10 = None;
     }
@@ -230,7 +256,9 @@ pub fn parse(body: &str, isbn_13: &str) -> Result<Option<Metadata>, ProviderErro
 }
 
 fn is_isbn13(t: &str) -> bool {
-    t.len() == 13 && t.bytes().all(|b| b.is_ascii_digit()) && (t.starts_with("978") || t.starts_with("979"))
+    t.len() == 13
+        && t.bytes().all(|b| b.is_ascii_digit())
+        && (t.starts_with("978") || t.starts_with("979"))
 }
 
 fn is_isbn10(t: &str) -> bool {
@@ -324,7 +352,9 @@ fn find_pages(s: &str) -> Option<i32> {
             if b.get(k) == Some(&b's') {
                 k += 1;
             }
-            let boundary = b.get(k).is_none_or(|c| !(c.is_ascii_alphanumeric() || *c == b'_'));
+            let boundary = b
+                .get(k)
+                .is_none_or(|c| !(c.is_ascii_alphanumeric() || *c == b'_'));
             if boundary {
                 if let Ok(n) = digits.parse::<i32>() {
                     if n > 0 && n < 20000 {
@@ -399,7 +429,8 @@ fn populate_from_description(m: &mut Metadata, desc: &str) {
             continue;
         }
         if let Some(i) = seg.find('(') {
-            if i > 0 && i + 5 < seg.len() && find_year(&seg[i..]).is_some() && m.publisher.is_none() {
+            if i > 0 && i + 5 < seg.len() && find_year(&seg[i..]).is_some() && m.publisher.is_none()
+            {
                 m.publisher = clean(&seg[..i]);
                 continue;
             }

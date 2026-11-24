@@ -166,7 +166,10 @@ pub struct BackupList {
         (status = 403, description = "Admin or owner only", body = ApiErrorBody),
     )
 )]
-pub async fn list_backups(State(state): State<AppState>, who: AuthUser) -> ApiResult<Json<BackupList>> {
+pub async fn list_backups(
+    State(state): State<AppState>,
+    who: AuthUser,
+) -> ApiResult<Json<BackupList>> {
     who.require(Role::Admin)?;
     let files = state.files.clone();
     let lib = who.library_id.clone();
@@ -201,7 +204,10 @@ pub async fn list_backups(State(state): State<AppState>, who: AuthUser) -> ApiRe
         (status = 403, description = "Admin or owner only", body = ApiErrorBody),
     )
 )]
-pub async fn get_config(State(state): State<AppState>, who: AuthUser) -> ApiResult<Json<BackupConfig>> {
+pub async fn get_config(
+    State(state): State<AppState>,
+    who: AuthUser,
+) -> ApiResult<Json<BackupConfig>> {
     who.require(Role::Admin)?;
     let lib = who.library_id.clone();
     let cfg = state
