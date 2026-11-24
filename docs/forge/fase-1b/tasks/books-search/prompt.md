@@ -53,10 +53,19 @@ Usa `mod common;`. Crea i libri con `POST /api/v1/books` (così l'indice è aggi
 - `never_returns_another_library`: anche con `q` che corrisponde a un libro dell'altra libreria.
 - `guest_can_list`; `needs_a_token`.
 
+## Correzione richiesta dopo la prima revisione
+
+Il codice di `books_search.rs` ha superato la revisione. Resta un test di un'altra task diventato falso, che ora appartiene a questa task:
+
+- In `crates/bookeeper-core/tests/skeleton_b.rs`, il test `empty_modules_are_mounted` afferma che `GET /api/v1/books` risponde 404. Non è più vero: la rotta esiste. Sostituiscilo con `unknown_api_path_is_not_found`: `GET /api/v1/does-not-exist` con un token valido → 404 `not_found`, e `bookeeper_core::openapi()` si costruisce. Non toccare gli altri test di quel file.
+
+
 ## Acceptance criteria
 
 - `cargo test -p bookeeper-core --test books_search_api` passa con tutti i test elencati.
-- Solo `api/books_search.rs` e `tests/books_search_api.rs` sono cambiati.
+- Cambiano solo `api/books_search.rs`, `tests/books_search_api.rs` e il test indicato in `tests/skeleton_b.rs`.
 - Nessuna stringa SQL è costruita con valori presi dalla richiesta (`format!` solo con frammenti fissi).
 - La rotta compare in `bookeeper_core::openapi()` con tutti i parametri.
 - `cargo clippy -p bookeeper-core --all-targets -- -D warnings` è pulito.
+- `cargo test -p bookeeper-core --test skeleton_b` passa.
+- In `tests/skeleton_b.rs` cambia solo quel test.
