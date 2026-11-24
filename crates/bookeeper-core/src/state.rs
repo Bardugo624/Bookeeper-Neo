@@ -15,6 +15,45 @@ pub enum SetupPolicy {
     CodeRequired,
 }
 
+/// How the server is reached; serialized with the contract names.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, utoipa::ToSchema)]
+pub enum TlsMode {
+    #[serde(rename = "local")]
+    Local,
+    #[serde(rename = "off")]
+    Off,
+    #[serde(rename = "self")]
+    SelfSigned,
+    #[serde(rename = "acme")]
+    Acme,
+}
+
+/// What the server knows about how phones can reach it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ServerInfo {
+    pub tls: TlsMode,
+    pub public_url: Option<String>,
+}
+
+impl ServerInfo {
+    /// The core embedded in the app: no public address.
+    pub fn local() -> Self {
+        ServerInfo {
+            tls: TlsMode::Local,
+            public_url: None,
+        }
+    }
+
+    /// True when a phone can use the address with a trusted certificate.
+    pub fn phone_ready(&self) -> bool {
+        self.tls != TlsMode::SelfSigned
+            && self
+                .public_url
+                .as_deref()
+                .is_some_and(|u| u.starts_with("https://"))
+    }
+}
+
 /// Folders where the server keeps its files.
 #[derive(Clone, Debug)]
 pub struct Files {
@@ -33,6 +72,7 @@ pub struct AppState {
     pub http: reqwest::Client,
     pub allow_private_fetch: bool,
     pub lookup: Arc<LookupService>,
+    pub server: Arc<ServerInfo>,
 }
 
 // Manual impl so the signing secret can never leak through `{:?}`.
@@ -118,7 +158,14 @@ impl AppState {
             lookup: Arc::new(LookupService::new(http.clone())),
             http,
             allow_private_fetch: false,
+            server: Arc::new(ServerInfo::local()),
         })
+    }
+
+    /// Replaces the server description.
+    pub fn with_server(mut self, info: ServerInfo) -> Self {
+        self.server = Arc::new(info);
+        self
     }
 
     /// State backed by an in-memory database, for tests.

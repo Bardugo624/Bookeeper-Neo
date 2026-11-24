@@ -17,6 +17,6 @@ pub use db::{Db, DbError};
 pub use error::{ApiError, ApiErrorBody, ApiResult};
 pub use extract::ApiJson;
 pub use openapi::openapi;
-pub use state::{AppState, Files, SetupPolicy};
+pub use state::{AppState, Files, ServerInfo, SetupPolicy, TlsMode};
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
