@@ -474,3 +474,13 @@ async fn order_with_sort_on_a_search_is_honoured() {
         ["Zebra beta", "Zebra alfa"]
     );
 }
+
+#[tokio::test]
+async fn decomposed_accents_match_composed_text() {
+    let s = seed(Role::Owner, None, None).await;
+    create(&s, json!({"title": "Pérez", "authors": []})).await;
+    create(&s, json!({"title": "Altro"})).await;
+    let q = "Pe\u{0301}rez";
+    let encoded: String = q.bytes().map(|b| format!("%{b:02X}")).collect();
+    assert_eq!(titles(&ok(&s, &format!("q={encoded}")).await), ["Pérez"]);
+}

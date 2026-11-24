@@ -543,9 +543,14 @@ async fn lent_at_cannot_pass_returned_at() {
     let path = format!("/api/v1/loans/{id}");
     let (st, b) = req(&s, "PATCH", &path, Some(json!({"lent_at": t - 100}))).await;
     assert_eq!((st, b["error_code"].as_str()), (422, Some("validation")));
+    // The rejected patch changed nothing.
+    let (st, b) = req(&s, "GET", "/api/v1/loans?status=returned", None).await;
+    assert_eq!(
+        (st, b["items"][0]["lent_at"].as_i64()),
+        (200, Some(t - 1000))
+    );
     let (st, b) = req(&s, "PATCH", &path, Some(json!({"lent_at": t - 500}))).await;
     assert_eq!((st, b["lent_at"].as_i64()), (200, Some(t - 500)));
-    // The rejected patch changed nothing before the valid one.
     let (_, b) = req(&s, "GET", "/api/v1/loans?status=returned", None).await;
     assert_eq!(b["items"][0]["lent_at"].as_i64(), Some(t - 500));
 }
@@ -611,4 +616,61 @@ fn return_body_is_optional_in_openapi() {
     let rb = &doc["paths"]["/api/v1/loans/{id}/return"]["post"]["requestBody"];
     assert!(rb.is_object(), "{rb}");
     assert_ne!(rb["required"], json!(true), "{rb}");
+}
+
+async fn raw_return(s: &Seeded, id: &str, content_type: Option<&str>, body: &str) -> (u16, Value) {
+    use axum::body::Body;
+    use axum::http::Request;
+    use http_body_util::BodyExt;
+    use tower::ServiceExt;
+    let mut r = Request::builder()
+        .method("POST")
+        .uri(format!("/api/v1/loans/{id}/return"))
+        .header(
+            "authorization",
+            format!("Bearer {}", s.session.access_token),
+        );
+    if let Some(ct) = content_type {
+        r = r.header("content-type", ct);
+    }
+    let resp = bookeeper_core::router(s.state.clone())
+        .oneshot(r.body(Body::from(body.to_string())).unwrap())
+        .await
+        .unwrap();
+    let st = resp.status().as_u16();
+    let bytes = resp.into_body().collect().await.unwrap().to_bytes();
+    (st, serde_json::from_slice(&bytes).unwrap_or(Value::Null))
+}
+
+async fn open_loan(s: &Seeded) -> String {
+    let book = insert_book(&s.state, &s.library_id, "Dune").await;
+    let l = lend(s, &book, json!({"lent_at": now() - 1000})).await;
+    l["id"].as_str().unwrap().to_string()
+}
+
+#[tokio::test]
+async fn return_with_a_non_json_content_type_is_bad_request() {
+    let s = seed(Role::Owner, None, None).await;
+    let id = open_loan(&s).await;
+    let (st, b) = raw_return(&s, &id, Some("text/plain"), r#"{"returned_at": 123}"#).await;
+    assert_eq!((st, b["error_code"].as_str()), (400, Some("bad_request")));
+}
+
+#[tokio::test]
+async fn return_accepts_json_with_a_charset() {
+    let s = seed(Role::Owner, None, None).await;
+    let id = open_loan(&s).await;
+    let t = now() - 500;
+    let body = format!(r#"{{"returned_at": {t}}}"#);
+    let (st, b) = raw_return(&s, &id, Some("application/json; charset=utf-8"), &body).await;
+    assert_eq!((st, b["returned_at"].as_i64()), (200, Some(t)));
+}
+
+#[tokio::test]
+async fn return_without_a_body_ignores_the_content_type() {
+    let s = seed(Role::Owner, None, None).await;
+    let id = open_loan(&s).await;
+    let (st, b) = raw_return(&s, &id, Some("text/plain"), "").await;
+    assert_eq!(st, 200, "{b}");
+    assert!(b["returned_at"].as_i64().is_some());
 }

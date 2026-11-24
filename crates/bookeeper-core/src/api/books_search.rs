@@ -56,6 +56,8 @@ const MAX_WORDS: usize = 16;
 /// Turns free text into a safe FTS5 expression: every word is a quoted
 /// string, the last one is a prefix. `None` when no word is left.
 fn fts_expression(q: &str) -> Option<String> {
+    use unicode_normalization::UnicodeNormalization;
+    let q: String = q.nfc().collect();
     let words: Vec<&str> = q
         .split(|c: char| !c.is_alphanumeric())
         .filter(|w| !w.is_empty())

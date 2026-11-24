@@ -87,7 +87,13 @@ describe('resource routes', () => {
     expect(await c.deleteLoan('1')).toBeUndefined();
     expect(await c.deleteWish('1')).toBeUndefined();
     expect(calls.map((x) => x[0])).toEqual(['DELETE', 'DELETE', 'DELETE', 'DELETE', 'DELETE']);
-    expect(calls[2]![1]).toBe(`${B}/books/1/placement`);
+    expect(calls.map((x) => [x[0], x[1]])).toEqual([
+      ['DELETE', `${B}/books/1`],
+      ['DELETE', `${B}/shelves/1`],
+      ['DELETE', `${B}/books/1/placement`],
+      ['DELETE', `${B}/loans/1`],
+      ['DELETE', `${B}/wishlist/1`],
+    ]);
   });
 });
 
