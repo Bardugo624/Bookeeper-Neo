@@ -21,7 +21,7 @@ Preparare il core perché le altre task non tocchino `Cargo.toml`, `state.rs`, `
    - `lookup/google.rs`, `lookup/openlibrary.rs`, `lookup/annas.rs`: ognuno con una struct (`GoogleBooks`, `OpenLibrary`, `AnnasArchive`), `pub fn new(http: reqwest::Client) -> Self`, e un `impl Provider` che per ora restituisce `Ok(None)` e il `name()` del contratto. `LookupService::new` li mette nell'ordine Google, Anna's, Open Library.
    - `covers.rs`, `import.rs`, `backup.rs`, `labels.rs`: solo il commento di modulo.
 
-4. **Eseguibili**: `crates/bookeeper-server/src/lib.rs` passa la cartella dati a `open_with_data`; `apps/desktop/src-tauri/src/lib.rs` passa la cartella dati dell'app.
+4. **Eseguibili**: `apps/desktop/src-tauri/src/lib.rs` passa la cartella dati dell'app a `open_with_data`. Nel server, il binario costruisce il router in `crates/bookeeper-server/src/main.rs` con `build_with_db(db)`, non con `build()`: **anche quel percorso** deve usare la cartella dati. Fai sì che `main.rs` chiami `build_with_data(db, &cfg.data_dir)` e che nel crate del server non resti alcun modo di costruire il router di produzione con una cartella temporanea (`build_with_db` sparisce, oppure prende anch'essa la cartella dati; i test esistenti che la usano si adattano passando una cartella temporanea).
 
 ## Test (`crates/bookeeper-core/tests/plumbing_c.rs`)
 
@@ -34,7 +34,15 @@ Preparare il core perché le altre task non tocchino `Cargo.toml`, `state.rs`, `
 - `stub_lookup_returns_none`.
 - `metadata_serializes_with_snake_case_and_nulls`: un `Metadata::default()` in JSON ha `title: null`, `authors: []`, `cover_candidates: []`.
 
+## Test del binario (`crates/bookeeper-server/tests/data_dir.rs`)
+
+- `server_binary_keeps_files_in_its_data_dir`: avvia il binario (`env!("CARGO_BIN_EXE_bookeeper-server")`) con `--port 0 --bind 127.0.0.1 --data-dir <tmp>`, aspetta la riga `in ascolto su`, poi verifica che esistano `<tmp>/covers` e `<tmp>/backups`; termina il processo.
+- `library_build_keeps_files_in_its_data_dir`: `build(&cfg)` su una cartella temporanea crea le due sottocartelle lì.
+
 ## Acceptance criteria
+
+- `cargo test -p bookeeper-server --test data_dir` passa con i due test.
+- `grep -rn "AppState::open(" crates/bookeeper-server/src` non trova nulla: il server usa solo `open_with_data`.
 
 - `cargo test -p bookeeper-core --test plumbing_c` passa con gli otto test.
 - `cargo test -p bookeeper-core --test plumbing --test setup_api --test limits` passa senza modifiche a quei file.

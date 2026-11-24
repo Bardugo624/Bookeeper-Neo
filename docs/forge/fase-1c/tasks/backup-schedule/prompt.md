@@ -38,7 +38,7 @@ pub fn spawn(state: AppState) -> tokio::task::JoinHandle<()>;
 
 ## Eseguibili
 
-`crates/bookeeper-server/src/lib.rs` (in `serve` o dove nasce lo stato) e `apps/desktop/src-tauri/src/lib.rs` chiamano `backup::schedule::spawn(state.clone())` una volta. Se per farlo serve esporre lo stato da `build()`, aggiungi una funzione accanto senza cambiare la firma di `build()`.
+Il binario del server costruisce il router in `crates/bookeeper-server/src/main.rs`: è lì che il pianificatore deve partire davvero, non solo in `build()`. Fai sì che il percorso usato da `main.rs` e `apps/desktop/src-tauri/src/lib.rs` chiamino `backup::schedule::spawn(state.clone())` una volta ciascuno. Se serve esporre lo stato dal crate del server, aggiungi una funzione in `lib.rs` senza cambiare la firma di `build()`.
 
 ## Test (`crates/bookeeper-core/tests/backup_schedule.rs`)
 
@@ -61,5 +61,6 @@ pub fn spawn(state: AppState) -> tokio::task::JoinHandle<()>;
 - `cargo test -p bookeeper-core --test backup_schedule` passa con tutti i test elencati.
 - `cargo test -p bookeeper-core --test backup_api` e `cargo test -p bookeeper-server --test serve --test setup_code` passano ancora.
 - `cargo check -p bookeeper-desktop` compila.
-- Cambiano solo `backup.rs` (la sola riga del sottomodulo), `backup_schedule.rs`, `api/backup.rs`, `tests/backup_schedule.rs`, i due `lib.rs` degli eseguibili.
+- Cambiano solo `backup.rs` (la sola riga del sottomodulo), `backup_schedule.rs`, `api/backup.rs`, `tests/backup_schedule.rs`, i due `lib.rs` degli eseguibili, `crates/bookeeper-server/src/main.rs` e `crates/bookeeper-server/tests/schedule.rs`.
+- `cargo test -p bookeeper-server --test schedule` passa: `server_binary_writes_an_automatic_backup` avvia il binario su una cartella dati che contiene già una libreria (creata prima con le funzioni della libreria) e trova un file `auto-*.zip` sotto `<dati>/backups/<id libreria>/` entro 20 secondi.
 - `cargo clippy -p bookeeper-core -p bookeeper-server --all-targets -- -D warnings` è pulito.
