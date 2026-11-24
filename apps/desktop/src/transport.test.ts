@@ -26,3 +26,48 @@ it('maps a failed invoke to ApiError code "network"', async () => {
   await expect(p).rejects.toBeInstanceOf(ApiError);
   await expect(p).rejects.toMatchObject({ status: 0, code: 'network' });
 });
+
+it('requestRaw sends base64 and decodes the response bytes', async () => {
+  invoke.mockResolvedValueOnce({ status: 200, body_base64: 'AP+A', content_type: 'application/pdf', headers: { etag: '"x"' } });
+  const r = await createTauriTransport().requestRaw!({
+    method: 'POST',
+    path: '/api/v1/f',
+    body: new Uint8Array([0, 255, 128]),
+    contentType: 'application/octet-stream',
+  });
+  expect(invoke).toHaveBeenLastCalledWith(
+    'api_request_raw',
+    expect.objectContaining({ method: 'POST', path: '/api/v1/f', body_base64: 'AP+A', content_type: 'application/octet-stream' }),
+  );
+  expect(r.bytes).toEqual(new Uint8Array([0, 255, 128]));
+  expect(r.contentType).toBe('application/pdf');
+  expect(r.headers).toEqual({ etag: '"x"' });
+});
+
+it('requestRaw handles a 2 MB body', async () => {
+  const big = new Uint8Array(2 * 1024 * 1024);
+  for (let i = 0; i < big.length; i++) big[i] = i % 256;
+  invoke.mockImplementationOnce(async (_c: string, a: { body_base64: string }) => ({
+    status: 200,
+    body_base64: a.body_base64,
+    content_type: null,
+    headers: {},
+  }));
+  const r = await createTauriTransport().requestRaw!({ method: 'PUT', path: '/api/v1/f', body: big });
+  expect(r.bytes.length).toBe(big.length);
+  expect(Buffer.from(r.bytes).equals(Buffer.from(big))).toBe(true);
+});
+
+it('requestRaw sends body_base64 null without a body', async () => {
+  invoke.mockResolvedValueOnce({ status: 200, body_base64: '', content_type: null, headers: {} });
+  await createTauriTransport().requestRaw!({ method: 'GET', path: '/api/v1/f' });
+  expect(invoke).toHaveBeenLastCalledWith('api_request_raw', expect.objectContaining({ body_base64: null }));
+});
+
+it('requestRaw maps a failed invoke to ApiError "network"', async () => {
+  invoke.mockRejectedValueOnce('ipc closed');
+  await expect(createTauriTransport().requestRaw!({ method: 'GET', path: '/api/v1/f' })).rejects.toMatchObject({
+    status: 0,
+    code: 'network',
+  });
+});
