@@ -10,6 +10,7 @@ use utoipa::ToSchema;
 pub mod annas;
 pub mod google;
 pub mod openlibrary;
+mod text;
 
 pub use annas::AnnasArchive;
 pub use google::GoogleBooks;
