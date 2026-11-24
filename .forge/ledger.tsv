@@ -41,3 +41,11 @@
 2026-11-24T11:59:12Z	bookeeper-fase-1b	books-search	qa	opus	FAIL	trap	tests skeleton b rs empty modules are mounted asserts 404 on routes that later tasks implement it breaks whenever one of them lands	tests/skeleton_b.rs `empty_modules_are_mounted` asserts 404 on routes that later tasks implement; it breaks whenever one of them lands [crates/bookeeper-core/tests/skeleton_b.rs]	145	1
 2026-11-24T12:00:48Z	bookeeper-fase-1b	wishlist	dwarf	sonnet	-	-	-	-	141
 2026-11-24T12:02:40Z	bookeeper-fase-1b	wishlist	qa	opus	PASS	-	-	-	107
+2026-11-24T12:13:37Z	bookeeper-fase-1b	books-search	dwarf	sonnet	-	trap	tests skeleton b rs asserted 404 on routes that later tasks implement it breaks whenever one of them lands	tests/skeleton_b.rs asserted 404 on routes that later tasks implement; it breaks whenever one of them lands [crates/bookeeper-core/tests/skeleton_b.rs]	20	1
+2026-11-24T12:15:20Z	bookeeper-fase-1b	books-search	qa	opus	PASS	-	-	-	98
+2026-11-24T12:15:53Z	bookeeper-fase-1b	hardening-b2	dwarf	sonnet	-	-	-	-	156
+2026-11-24T12:18:01Z	bookeeper-fase-1b	hardening-b1	dwarf	sonnet	-	-	-	-	156
+2026-11-24T12:18:16Z	bookeeper-fase-1b	hardening-b2	qa	opus	PASS	-	-	-	138
+2026-11-24T12:19:52Z	bookeeper-fase-1b	hardening-b1	qa	opus	PASS	-	-	-	106
+2026-11-24T12:21:49Z	bookeeper-fase-1b	api-client-b	dwarf	sonnet	-	-	-	-	112
+2026-11-24T12:23:12Z	bookeeper-fase-1b	api-client-b	qa	opus	PASS	-	-	-	79
