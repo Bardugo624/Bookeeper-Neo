@@ -7,5 +7,10 @@
 - UPDATE_OPENAPI=1 cargo test -p bookeeper-core --test openapi -- --include-ignored && npm run gen -w @bookeeper/api && npm test -w @bookeeper/api [packages/api/openapi.json]
 
 ## Known traps
+- the bookeeper-server binary builds its router through `build_with_db` in main.rs, not lib.rs `build()`; changing only `build()` does not… [crates/bookeeper-server/src/main.rs]
+- the `uuid` dependency only enables the `v7` feature, so use `Uuid::now_v7()`, not `new_v4()` [crates/bookeeper-core/Cargo.toml]
+- tests/skeleton_b.rs asserted 404 on routes that later tasks implement; it breaks whenever one of them lands [crates/bookeeper-core/tests/skeleton_b.rs]
+- tests/skeleton_b.rs `empty_modules_are_mounted` asserts 404 on routes that later tasks implement; it breaks whenever one of them lands [crates/bookeeper-core/tests/skeleton_b.rs]
+- serde_urlencoded (axum Query) cannot parse numbers in `#[serde(flatten)]` structs: `?limit=5` → "invalid type: string" → 422 when Page… [crates/bookeeper-core/src/api/util.rs]
 - jsonwebtoken 10 needs an explicit crypto backend feature (rust_crypto) with default-features off [crates/bookeeper-core/Cargo.toml]
 

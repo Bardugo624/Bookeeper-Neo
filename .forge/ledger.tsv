@@ -49,3 +49,7 @@
 2026-11-24T12:19:52Z	bookeeper-fase-1b	hardening-b1	qa	opus	PASS	-	-	-	106
 2026-11-24T12:21:49Z	bookeeper-fase-1b	api-client-b	dwarf	sonnet	-	-	-	-	112
 2026-11-24T12:23:12Z	bookeeper-fase-1b	api-client-b	qa	opus	PASS	-	-	-	79
+2026-11-24T12:45:16Z	bookeeper-fase-1c	skeleton-c	dwarf	sonnet	-	-	-	-	127
+2026-11-24T12:47:46Z	bookeeper-fase-1c	skeleton-c	qa	opus	PASS	-	-	-	145
+2026-11-24T12:49:29Z	bookeeper-fase-1c	plumbing-c	dwarf	sonnet	-	trap	the uuid dependency only enables the v7 feature so use uuid now v7 not new v4	the `uuid` dependency only enables the `v7` feature, so use `Uuid::now_v7()`, not `new_v4()` [crates/bookeeper-core/Cargo.toml]	379	1
+2026-11-24T12:52:59Z	bookeeper-fase-1c	plumbing-c	qa	opus	FAIL	trap	the bookeeper server binary builds its router through build with db in main rs not lib rs build changing only build does not	the bookeeper-server binary builds its router through `build_with_db` in main.rs, not lib.rs `build()`; changing only `build()` does not… [crates/bookeeper-server/src/main.rs]	205	1
