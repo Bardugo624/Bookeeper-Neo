@@ -1,5 +1,7 @@
 use axum::extract::{FromRequestParts, Query};
 use axum::http::request::Parts;
+use axum::http::{header, StatusCode};
+use axum::response::{IntoResponse, Response};
 use serde::{de::DeserializeOwned, Deserialize};
 
 use crate::error::{ApiError, ApiResult};
@@ -90,4 +92,44 @@ pub fn normalize_isbn10(raw: &str) -> Option<String> {
         sum += v * (10 - i as u32);
     }
     sum.is_multiple_of(11).then_some(s)
+}
+
+/// 200 response with the bytes, the given Content-Type and
+/// `Content-Disposition: attachment; filename="<name>"`.
+/// The name keeps only ASCII letters, digits, `-`, `_` and `.`; anything else becomes `_`.
+pub fn download(bytes: Vec<u8>, content_type: &'static str, filename: &str) -> Response {
+    let name: String = filename
+        .chars()
+        .map(|c| {
+            if c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '.') {
+                c
+            } else {
+                '_'
+            }
+        })
+        .collect();
+    (
+        StatusCode::OK,
+        [
+            (header::CONTENT_TYPE, content_type.to_string()),
+            (
+                header::CONTENT_DISPOSITION,
+                format!("attachment; filename=\"{name}\""),
+            ),
+        ],
+        bytes,
+    )
+        .into_response()
+}
+
+/// Reads the whole body up to `max_bytes`. Larger bodies give 413 `payload_too_large`.
+pub async fn read_body(body: axum::body::Body, max_bytes: usize) -> ApiResult<Vec<u8>> {
+    match axum::body::to_bytes(body, max_bytes).await {
+        Ok(b) => Ok(b.to_vec()),
+        Err(_) => Err(ApiError::coded(
+            StatusCode::PAYLOAD_TOO_LARGE,
+            "payload_too_large",
+            "Request body is too large",
+        )),
+    }
 }
