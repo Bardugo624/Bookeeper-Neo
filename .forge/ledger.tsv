@@ -103,3 +103,8 @@
 2026-11-24T20:49:55Z	bookeeper-fase-1c	fmt-fix	qa	opus	PASS	-	-	-	85
 2026-11-24T20:57:24Z	bookeeper-fase-1c	stale-test	dwarf	sonnet	-	-	-	-	79
 2026-11-24T20:58:46Z	bookeeper-fase-1c	stale-test	qa	opus	PASS	-	-	-	77
+2026-11-24T21:56:48Z	bookeeper-fase-1d	p3-lookup	dwarf	sonnet	-	-	-	-	224
+2026-11-24T21:57:29Z	bookeeper-fase-1d	p3-backup	dwarf	sonnet	-	-	-	-	266
+2026-11-24T22:00:19Z	bookeeper-fase-1d	p3-lookup	qa	opus	FAIL	-	-	-	207
+2026-11-24T22:00:44Z	bookeeper-fase-1d	p3-backup	qa	opus	PASS	-	-	-	190
+2026-11-24T22:00:56Z	bookeeper-fase-1d	p3-lookup	dwarf	sonnet	-	-	-	-	31
