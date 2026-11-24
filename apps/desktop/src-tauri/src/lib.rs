@@ -25,7 +25,7 @@ pub fn run() {
             let dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&dir)?;
             let db = Db::open(&dir.join("bookeeper.sqlite"))?;
-            let state = AppState::open(db, SetupPolicy::Open)?;
+            let state = AppState::open_with_data(db, SetupPolicy::Open, &dir)?;
             app.manage(CoreRouter(bookeeper_core::router(state)));
             Ok(())
         })

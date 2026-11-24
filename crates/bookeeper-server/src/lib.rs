@@ -82,17 +82,28 @@ pub fn issue_setup_code(db: &Db) -> Result<String, StartError> {
 
 /// Creates the data directory if missing, opens the database and builds the router.
 pub fn build(cfg: &Config) -> Result<axum::Router, StartError> {
-    build_with_db(open_db(&cfg.data_dir)?)
+    build_with_data(open_db(&cfg.data_dir)?, &cfg.data_dir)
+}
+
+/// Builds the router on an opened database, keeping files under `data_dir`.
+pub fn build_with_data(db: Db, data_dir: &Path) -> Result<axum::Router, StartError> {
+    finish(AppState::open_with_data(
+        db,
+        SetupPolicy::CodeRequired,
+        data_dir,
+    )?)
 }
 
 /// Builds the router on an already opened database.
 pub fn build_with_db(db: Db) -> Result<axum::Router, StartError> {
+    finish(AppState::open(db, SetupPolicy::CodeRequired)?)
+}
+
+fn finish(state: AppState) -> Result<axum::Router, StartError> {
     // The core router already has a JSON fallback and `merge` panics when both sides
     // have one: drop the core's so `web_routes()` carries the only fallback (which
     // still answers `/api/*` with the JSON 404).
-    Ok(router(AppState::open(db, SetupPolicy::CodeRequired)?)
-        .reset_fallback()
-        .merge(web_routes()))
+    Ok(router(state).reset_fallback().merge(web_routes()))
 }
 
 /// Binds the TCP listener on the configured address and port.
