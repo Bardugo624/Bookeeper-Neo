@@ -20,3 +20,8 @@ export type {
   PairingCode,
   DeviceList,
 } from './client';
+export type { BookOut, CreateBook, PatchBook, BookList, BatchDeleted, NextProgressive, Placement, ListBooksParams } from './resources/books';
+export type { ShelfOut, ShelfBook, ShelfList, ShelfBookList, NewShelf, ShelfPatch, PlaceIn, BatchAssignOut } from './resources/shelves';
+export type { LoanOut, LoanList, CreateLoan, PatchLoan, ReturnLoan, ListLoansParams } from './resources/loans';
+export type { WishOut, WishList, CreateWish, PatchWish } from './resources/wishlist';
+export type { Stats } from './resources/stats';

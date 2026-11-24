@@ -1,5 +1,6 @@
 use axum::{
     extract::{rejection::JsonRejection, FromRequest, Request},
+    http::StatusCode,
     Json,
 };
 use serde::de::DeserializeOwned;
@@ -26,6 +27,15 @@ where
             Err(JsonRejection::MissingJsonContentType(_)) => Err(ApiError::bad_request(
                 "Expected content-type: application/json",
             )),
+            Err(JsonRejection::BytesRejection(e))
+                if e.status() == StatusCode::PAYLOAD_TOO_LARGE =>
+            {
+                Err(ApiError::coded(
+                    StatusCode::PAYLOAD_TOO_LARGE,
+                    "payload_too_large",
+                    "Request body is too large",
+                ))
+            }
             Err(_) => Err(ApiError::bad_request("Invalid request body")),
         }
     }

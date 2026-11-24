@@ -86,6 +86,77 @@ fn expired_entries_are_dropped() {
     assert_eq!(l.len(), 1);
 }
 
+#[test]
+fn begin_counts_in_flight_attempts() {
+    let l = RateLimiter::default();
+    let held: Vec<_> = (0..3)
+        .map(|_| l.begin("k", RULE, 1000).expect("slot"))
+        .collect();
+    assert!(l.begin("k", RULE, 1000).is_err());
+    drop(held);
+}
+
+const RULE5: Rule = Rule {
+    max_failures: 5,
+    window_secs: 900,
+};
+
+#[test]
+fn retry_after_is_short_when_only_in_flight_attempts_block() {
+    let l = RateLimiter::default();
+    for _ in 0..4 {
+        l.record_failure("k", RULE5, 1000);
+    }
+    let _open = l.begin("k", RULE5, 1000).expect("fifth slot");
+    assert_eq!(l.begin("k", RULE5, 1000).err(), Some(1));
+}
+
+#[test]
+fn retry_after_follows_the_oldest_failure_when_failures_alone_block() {
+    let l = RateLimiter::default();
+    for _ in 0..5 {
+        l.record_failure("k", RULE5, 1000);
+    }
+    assert_eq!(
+        l.begin("k", RULE5, 1100).err(),
+        Some((RULE5.window_secs - 100) as u64)
+    );
+}
+
+#[test]
+fn neutral_and_drop_release_the_reservation() {
+    let l = RateLimiter::default();
+    let a = l.begin("k", RULE, 1000).unwrap();
+    let b = l.begin("k", RULE, 1000).unwrap();
+    let c = l.begin("k", RULE, 1000).unwrap();
+    assert!(l.begin("k", RULE, 1000).is_err());
+    a.neutral();
+    let d = l.begin("k", RULE, 1000).expect("neutral freed a slot");
+    assert!(l.begin("k", RULE, 1000).is_err());
+    drop(b);
+    assert!(l.begin("k", RULE, 1000).is_ok());
+    drop((c, d));
+    assert!(l.is_empty());
+}
+
+#[test]
+fn failed_keeps_the_slot_and_succeeded_clears_the_key() {
+    let l = RateLimiter::default();
+    for _ in 0..3 {
+        l.begin("k", RULE, 1000).unwrap().failed();
+    }
+    assert!(l.begin("k", RULE, 1001).is_err());
+    l.reset("k");
+    for _ in 0..2 {
+        l.begin("k", RULE, 1000).unwrap().failed();
+    }
+    l.begin("k", RULE, 1000).unwrap().succeeded();
+    assert!(l.is_empty());
+    for _ in 0..3 {
+        assert!(l.begin("k", RULE, 1002).is_ok());
+    }
+}
+
 // ---- through the router ----
 
 const PW: &str = "correct horse";
@@ -143,13 +214,16 @@ async fn another_email_is_not_affected() {
     for _ in 0..5 {
         login(&s.state, "ada@example.com", "nope nope").await;
     }
-    assert_eq!(login(&s.state, "ada@example.com", "x").await.0, 429);
-    assert_eq!(login(&s.state, "other@example.com", "x").await.0, 401);
+    assert_eq!(login(&s.state, "ada@example.com", "xxxxxxxx").await.0, 429);
+    assert_eq!(
+        login(&s.state, "other@example.com", "xxxxxxxx").await.0,
+        401
+    );
     // Unknown emails get the same 429 shape as existing ones.
     for _ in 0..5 {
-        login(&s.state, "ghost@example.com", "x").await;
+        login(&s.state, "ghost@example.com", "xxxxxxxx").await;
     }
-    let (status, _, body) = login(&s.state, "ghost@example.com", "x").await;
+    let (status, _, body) = login(&s.state, "ghost@example.com", "xxxxxxxx").await;
     assert_eq!(status, 429);
     assert_eq!(body["error_code"], "rate_limited");
 }
@@ -176,10 +250,16 @@ async fn successful_login_resets_the_counter() {
 async fn libraries_and_login_share_the_counter() {
     let s = seed(Role::Owner, Some("ada@example.com"), Some(PW)).await;
     for _ in 0..3 {
-        assert_eq!(libraries(&s.state, "ada@example.com", "bad").await, 401);
+        assert_eq!(
+            libraries(&s.state, "ada@example.com", "bad bad bad").await,
+            401
+        );
     }
     for _ in 0..2 {
-        assert_eq!(login(&s.state, "ada@example.com", "bad").await.0, 401);
+        assert_eq!(
+            login(&s.state, "ada@example.com", "bad bad bad").await.0,
+            401
+        );
     }
     assert_eq!(libraries(&s.state, "ada@example.com", PW).await, 429);
     assert_eq!(login(&s.state, "ada@example.com", PW).await.0, 429);
@@ -279,18 +359,71 @@ async fn open_setup_is_not_limited() {
 async fn validation_errors_do_not_count() {
     let s = seed(Role::Owner, Some("ada@example.com"), Some(PW)).await;
     for _ in 0..8 {
-        let (st, _, _) = login(&s.state, "not-an-email", "x").await;
+        let (st, _, _) = login(&s.state, "not-an-email", "xxxxxxxx").await;
         assert_eq!(st, 422);
         let (st, _, _) = call(
             &s.state,
             "POST",
             "/api/v1/auth/login",
             None,
-            Some(json!({"email": "ada@example.com", "password": "x", "device_name": "  ", "device_kind": "desktop"})),
+            Some(json!({"email": "ada@example.com", "password": "xxxxxxxx", "device_name": "  ", "device_kind": "desktop"})),
         )
         .await;
         assert_eq!(st, 422);
     }
     assert_eq!(login(&s.state, "ada@example.com", PW).await.0, 200);
     let _ = LOGIN;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn burst_of_wrong_logins_is_capped() {
+    let s = seed(Role::Owner, Some("ada@example.com"), Some(PW)).await;
+    let mut set = tokio::task::JoinSet::new();
+    for _ in 0..30 {
+        let state = s.state.clone();
+        set.spawn(async move { login(&state, "ada@example.com", "nope nope").await.0 });
+    }
+    let (mut unauthorized, mut limited) = (0, 0);
+    while let Some(st) = set.join_next().await {
+        match st.unwrap() {
+            401 => unauthorized += 1,
+            429 => limited += 1,
+            other => panic!("unexpected status {other}"),
+        }
+    }
+    assert!(unauthorized <= 5, "{unauthorized} wrong logins got through");
+    assert_eq!(unauthorized + limited, 30);
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn burst_of_wrong_redeems_is_capped() {
+    let s = seed(Role::Owner, Some("ada@example.com"), Some(PW)).await;
+    let mut set = tokio::task::JoinSet::new();
+    for i in 0..30 {
+        let state = s.state.clone();
+        set.spawn(async move {
+            call(
+                &state,
+                "POST",
+                "/api/v1/pairing/redeem",
+                None,
+                Some(json!({"code": format!("WRONG-{i}"), "device_name": "Phone", "device_kind": "mobile"})),
+            )
+            .await
+            .0
+        });
+    }
+    let (mut unauthorized, mut limited) = (0, 0);
+    while let Some(st) = set.join_next().await {
+        match st.unwrap() {
+            401 => unauthorized += 1,
+            429 => limited += 1,
+            other => panic!("unexpected status {other}"),
+        }
+    }
+    assert!(
+        unauthorized <= 10,
+        "{unauthorized} wrong redeems got through"
+    );
+    assert_eq!(unauthorized + limited, 30);
 }

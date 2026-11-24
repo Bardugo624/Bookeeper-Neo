@@ -367,6 +367,41 @@ async fn setting_a_password_without_email_is_validation() {
 }
 
 #[tokio::test]
+async fn changing_password_without_email_is_validation_even_with_a_password() {
+    let s = seed(Role::Owner, None, Some(PW)).await;
+    let (st, b) = pw_call(
+        &s,
+        &s.session.access_token,
+        json!({"current_password": PW, "new_password": "brand new pass"}),
+    )
+    .await;
+    assert_eq!(st, 422);
+    assert_eq!(b["error_code"], "validation");
+}
+
+#[tokio::test]
+async fn short_password_at_login_is_validation() {
+    let s = seed(Role::Owner, Some("ada@example.com"), Some(PW)).await;
+    for _ in 0..6 {
+        let (st, b) = login(&s.state, login_body("ada@example.com", "short")).await;
+        assert_eq!(st, 422);
+        assert_eq!(b["error_code"], "validation");
+        let (st, _, b) = call(
+            &s.state,
+            "POST",
+            "/api/v1/auth/libraries",
+            None,
+            Some(json!({"email": "ada@example.com", "password": "short"})),
+        )
+        .await;
+        assert_eq!(st, 422);
+        assert_eq!(b["error_code"], "validation");
+    }
+    let (st, _) = login(&s.state, login_body("ada@example.com", PW)).await;
+    assert_eq!(st, 200);
+}
+
+#[tokio::test]
 async fn protected_routes_need_a_token() {
     let s = seed(Role::Owner, None, None).await;
     for (method, path, body) in [
