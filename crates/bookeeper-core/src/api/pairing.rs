@@ -104,9 +104,9 @@ pub async fn redeem(
     let hash = tokens::hash_code(&req.code);
     let kind = req.device_kind;
     let secret = state.jwt_secret.clone();
-    state
+    let attempt = state
         .limiter
-        .check("redeem", limit::REDEEM, now_secs())
+        .begin("redeem", limit::REDEEM, now_secs())
         .map_err(ApiError::too_many_requests)?;
 
     let out = state
@@ -123,13 +123,9 @@ pub async fn redeem(
         })
         .await?;
     match &out {
-        Err(e) if e.code == "pairing_code_invalid" => {
-            state
-                .limiter
-                .record_failure("redeem", limit::REDEEM, now_secs())
-        }
-        Ok(_) => state.limiter.reset("redeem"),
-        Err(_) => {}
+        Err(e) if e.code == "pairing_code_invalid" => attempt.failed(),
+        Ok(_) => attempt.succeeded(),
+        Err(_) => attempt.neutral(),
     }
     Ok(Json(out?))
 }
@@ -142,69 +138,65 @@ fn redeem_in_tx(
     kind: DeviceKind,
     now: i64,
 ) -> rusqlite::Result<Result<AuthOut, ApiError>> {
-    {
-        {
-            let used = conn.execute(
-                "UPDATE pairing_codes SET used_at = ?1
-                 WHERE code_hash = ?2 AND used_at IS NULL AND expires_at > ?1 AND kind = 'device'",
-                params![now, hash],
-            )?;
-            if used == 0 {
-                return Ok(Err(invalid_code()));
-            }
-            let row = conn
-                .query_row(
-                    "SELECT l.id, l.name, u.id, u.display_name, u.email, u.role
-                     FROM pairing_codes p
-                     JOIN users u ON u.id = p.user_id
-                     JOIN libraries l ON l.id = p.library_id
-                     WHERE p.code_hash = ?1",
-                    params![hash],
-                    |r| {
-                        Ok((
-                            r.get::<_, String>(0)?,
-                            r.get::<_, String>(1)?,
-                            r.get::<_, String>(2)?,
-                            r.get::<_, String>(3)?,
-                            r.get::<_, Option<String>>(4)?,
-                            r.get::<_, String>(5)?,
-                        ))
-                    },
-                )
-                .optional()?;
-            let Some((library_id, library_name, user_id, display_name, email, role)) = row else {
-                return Ok(Err(invalid_code()));
-            };
-            let Ok(role) = role.parse::<Role>() else {
-                return Ok(Err(ApiError::internal()));
-            };
-            let session: Session = create_device(
-                conn,
-                secret,
-                NewDevice {
-                    library_id: &library_id,
-                    user_id: &user_id,
-                    role,
-                    name,
-                    kind,
-                },
-                now,
-            )?;
-            Ok(Ok(AuthOut {
-                library: LibraryOut {
-                    id: library_id,
-                    name: library_name,
-                },
-                user: UserOut {
-                    id: user_id,
-                    display_name,
-                    email,
-                    role,
-                },
-                session,
-            }))
-        }
+    let used = conn.execute(
+        "UPDATE pairing_codes SET used_at = ?1
+         WHERE code_hash = ?2 AND used_at IS NULL AND expires_at > ?1 AND kind = 'device'",
+        params![now, hash],
+    )?;
+    if used == 0 {
+        return Ok(Err(invalid_code()));
     }
+    let row = conn
+        .query_row(
+            "SELECT l.id, l.name, u.id, u.display_name, u.email, u.role
+             FROM pairing_codes p
+             JOIN users u ON u.id = p.user_id
+             JOIN libraries l ON l.id = p.library_id
+             WHERE p.code_hash = ?1",
+            params![hash],
+            |r| {
+                Ok((
+                    r.get::<_, String>(0)?,
+                    r.get::<_, String>(1)?,
+                    r.get::<_, String>(2)?,
+                    r.get::<_, String>(3)?,
+                    r.get::<_, Option<String>>(4)?,
+                    r.get::<_, String>(5)?,
+                ))
+            },
+        )
+        .optional()?;
+    let Some((library_id, library_name, user_id, display_name, email, role)) = row else {
+        return Ok(Err(invalid_code()));
+    };
+    let Ok(role) = role.parse::<Role>() else {
+        return Ok(Err(ApiError::internal()));
+    };
+    let session: Session = create_device(
+        conn,
+        secret,
+        NewDevice {
+            library_id: &library_id,
+            user_id: &user_id,
+            role,
+            name,
+            kind,
+        },
+        now,
+    )?;
+    Ok(Ok(AuthOut {
+        library: LibraryOut {
+            id: library_id,
+            name: library_name,
+        },
+        user: UserOut {
+            id: user_id,
+            display_name,
+            email,
+            role,
+        },
+        session,
+    }))
 }
 
 pub fn routes() -> axum::Router<AppState> {

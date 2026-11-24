@@ -1,7 +1,7 @@
 //! First-run setup: create a library, its owner and the first device.
 
 use axum::{extract::State, http::StatusCode, routing::get, Json};
-use rusqlite::{params, Connection};
+use rusqlite::{params, Connection, TransactionBehavior};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
@@ -161,22 +161,26 @@ pub async fn post_setup(
     let code = req.setup_code;
     let kind = req.device_kind;
     let secret = s.jwt_secret.clone();
-    let limited = policy == SetupPolicy::CodeRequired;
-    if limited {
-        s.limiter
-            .check("setup", limit::SETUP, now_secs())
-            .map_err(ApiError::too_many_requests)?;
-    }
+    let attempt = if policy == SetupPolicy::CodeRequired {
+        Some(
+            s.limiter
+                .begin("setup", limit::SETUP, now_secs())
+                .map_err(ApiError::too_many_requests)?,
+        )
+    } else {
+        None
+    };
 
     let out = s
         .db
         .run(move |conn| {
             let now = now_secs();
-            conn.execute_batch("BEGIN IMMEDIATE")?;
+            let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
+            let conn = &*tx;
             let result = (|| -> rusqlite::Result<Result<AuthOut, ApiError>> {
             match policy {
                 SetupPolicy::Open => {
-                    if library_count(conn)? > 0 {
+                    if conn.query_row("SELECT COUNT(*) FROM libraries", [], |r| r.get::<_, i64>(0))? > 0 {
                         return Ok(Err(ApiError::conflict(
                             "setup_closed",
                             "Setup has already been done",
@@ -242,20 +246,18 @@ pub async fn post_setup(
                 session,
             }))
             })();
-            match &result {
-                Ok(Ok(_)) => conn.execute_batch("COMMIT")?,
-                _ => conn.execute_batch("ROLLBACK")?,
+            if matches!(result, Ok(Ok(_))) {
+                tx.commit()?;
             }
+            // Otherwise `tx` drops and rolls back.
             result
         })
         .await?;
-    if limited {
+    if let Some(attempt) = attempt {
         match &out {
-            Err(e) if e.code == "setup_code_invalid" => {
-                s.limiter.record_failure("setup", limit::SETUP, now_secs())
-            }
-            Ok(_) => s.limiter.reset("setup"),
-            Err(_) => {}
+            Err(e) if e.code == "setup_code_invalid" => attempt.failed(),
+            Ok(_) => attempt.succeeded(),
+            Err(_) => attempt.neutral(),
         }
     }
     let out = out?;

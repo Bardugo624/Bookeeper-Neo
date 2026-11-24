@@ -13,7 +13,7 @@ use utoipa::ToSchema;
 use crate::api::devices::DeviceOut;
 use crate::api::setup::{AuthOut, LibraryOut, UserOut};
 use crate::auth::guard::AuthUser;
-use crate::auth::limit::{self, RateLimiter};
+use crate::auth::limit::{self, Attempt, RateLimiter};
 use crate::auth::sessions::{self, create_device, NewDevice, RefreshError};
 use crate::auth::{password, DeviceKind, Role, Session};
 use crate::error::{ApiError, ApiErrorBody, ApiResult};
@@ -88,10 +88,17 @@ fn login_key(email: &str) -> String {
     format!("login:{email}")
 }
 
-fn check_limit(limiter: &RateLimiter, key: &str) -> ApiResult<()> {
+fn begin_attempt<'a>(limiter: &'a RateLimiter, key: &str) -> ApiResult<Attempt<'a>> {
     limiter
-        .check(key, limit::LOGIN, now_secs())
+        .begin(key, limit::LOGIN, now_secs())
         .map_err(ApiError::too_many_requests)
+}
+
+fn check_password_len(pw: &str) -> ApiResult<()> {
+    if !(8..=256).contains(&pw.chars().count()) {
+        return Err(ApiError::validation("password must be 8 to 256 characters"));
+    }
+    Ok(())
 }
 
 fn device_name(name: &str) -> ApiResult<String> {
@@ -178,13 +185,14 @@ pub async fn login(
     State(s): State<AppState>,
     ApiJson(req): ApiJson<LoginRequest>,
 ) -> ApiResult<Json<AuthOut>> {
+    check_password_len(&req.password)?;
     let email = normalize_email(&req.email)?;
     let name = device_name(&req.device_name)?;
     let kind = req.device_kind;
     let (pw, library_id) = (req.password, req.library_id);
     let secret = s.jwt_secret.clone();
     let key = login_key(&email);
-    check_limit(&s.limiter, &key)?;
+    let attempt = begin_attempt(&s.limiter, &key)?;
 
     let out =
         s.db.run(move |conn| {
@@ -219,11 +227,9 @@ pub async fn login(
         })
         .await?;
     match &out {
-        Err(e) if e.code == "invalid_credentials" => {
-            s.limiter.record_failure(&key, limit::LOGIN, now_secs())
-        }
-        Ok(_) => s.limiter.reset(&key),
-        Err(_) => {}
+        Err(e) if e.code == "invalid_credentials" => attempt.failed(),
+        Ok(_) => attempt.succeeded(),
+        Err(_) => attempt.neutral(),
     }
     Ok(Json(out?))
 }
@@ -243,18 +249,19 @@ pub async fn libraries(
     State(s): State<AppState>,
     ApiJson(req): ApiJson<LibrariesRequest>,
 ) -> ApiResult<Json<LibrariesOut>> {
+    check_password_len(&req.password)?;
     let email = normalize_email(&req.email)?;
     let pw = req.password;
     let key = login_key(&email);
-    check_limit(&s.limiter, &key)?;
+    let attempt = begin_attempt(&s.limiter, &key)?;
     let found =
         s.db.run(move |conn| find_matches(conn, &email, None, &pw))
             .await?;
     if found.is_empty() {
-        s.limiter.record_failure(&key, limit::LOGIN, now_secs());
+        attempt.failed();
         return Err(invalid_credentials());
     }
-    s.limiter.reset(&key);
+    attempt.succeeded();
     Ok(Json(LibrariesOut {
         libraries: found.into_iter().map(|m| m.library).collect(),
     }))
@@ -354,24 +361,20 @@ pub async fn change_password(
         let Some((hash, email)) = row else {
             return Ok(Err(ApiError::unauthorized()));
         };
-        match hash {
-            Some(h) => {
-                let Some(cur) = current else {
-                    return Ok(Err(ApiError::conflict(
-                        "password_required",
-                        "The current password is required",
-                    )));
-                };
-                if !password::verify(&cur, &h) {
-                    return Ok(Err(invalid_credentials()));
-                }
-            }
-            None => {
-                if email.is_none() {
-                    return Ok(Err(ApiError::validation(
-                        "an email is required before setting a password",
-                    )));
-                }
+        if email.is_none() {
+            return Ok(Err(ApiError::validation(
+                "an email is required before setting a password",
+            )));
+        }
+        if let Some(h) = hash {
+            let Some(cur) = current else {
+                return Ok(Err(ApiError::conflict(
+                    "password_required",
+                    "The current password is required",
+                )));
+            };
+            if !password::verify(&cur, &h) {
+                return Ok(Err(invalid_credentials()));
             }
         }
         let Ok(new_hash) = password::hash(&new_pw) else {
