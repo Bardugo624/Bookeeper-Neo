@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use bookeeper_net::tls::{pinned_client_config, Identity};
 use bookeeper_net::NetError;
+use rustls::pki_types::pem::PemObject;
 use rustls::pki_types::ServerName;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
@@ -156,15 +157,35 @@ async fn a_stolen_certificate_without_its_key_cannot_impersonate() {
     let (d1, d2) = (tempfile::tempdir().unwrap(), tempfile::tempdir().unwrap());
     let a = Identity::load_or_create(d1.path(), &names()).unwrap();
     let b = Identity::load_or_create(d2.path(), &names()).unwrap();
-    let forged = Identity {
-        cert_pem: a.cert_pem.clone(),
-        key_pem: b.key_pem.clone(),
-        fingerprint: a.fingerprint,
-    };
-    // `server_config` itself may reject the mismatch; if it does not, the
-    // client must.
-    if let Ok(cfg) = forged.server_config() {
-        let addr = serve_once(cfg).await;
-        assert!(ping(addr, a.fingerprint).await.is_err());
+    // `server_config` rejects the mismatch, so build the forged config by hand
+    // with a resolver that skips the key check.
+    #[derive(Debug)]
+    struct Forged(Arc<rustls::sign::CertifiedKey>);
+    impl rustls::server::ResolvesServerCert for Forged {
+        fn resolve(
+            &self,
+            _: rustls::server::ClientHello<'_>,
+        ) -> Option<Arc<rustls::sign::CertifiedKey>> {
+            Some(self.0.clone())
+        }
     }
+    let certs: Vec<_> = rustls::pki_types::CertificateDer::pem_slice_iter(a.cert_pem.as_bytes())
+        .collect::<Result<_, _>>()
+        .unwrap();
+    let key = rustls::pki_types::PrivateKeyDer::from_pem_slice(b.key_pem.as_bytes()).unwrap();
+    let signer = rustls::crypto::ring::sign::any_supported_type(&key).unwrap();
+    let ck = rustls::sign::CertifiedKey::new(certs, signer);
+    let cfg = rustls::ServerConfig::builder()
+        .with_no_client_auth()
+        .with_cert_resolver(Arc::new(Forged(Arc::new(ck))));
+    let addr = serve_once(Arc::new(cfg)).await;
+    assert!(ping(addr, a.fingerprint).await.is_err());
+}
+
+#[test]
+fn non_utf8_pair_is_a_tls_error() {
+    let dir = tempfile::tempdir().unwrap();
+    Identity::load_or_create(dir.path(), &names()).unwrap();
+    std::fs::write(dir.path().join("cert.pem"), [0xFF, 0xFE]).unwrap();
+    assert!(matches!(Identity::load(dir.path()), Err(NetError::Tls(_))));
 }

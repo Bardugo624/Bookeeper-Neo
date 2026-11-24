@@ -48,8 +48,11 @@ impl Identity {
                 )))
             }
         }
-        let cert_pem = fs::read_to_string(&cert_path)?;
-        let key_pem = fs::read_to_string(&key_path)?;
+        let read = |p: &Path| {
+            fs::read_to_string(p).map_err(|e| tls_err(format!("cannot read {}: {e}", p.display())))
+        };
+        let cert_pem = read(&cert_path)?;
+        let key_pem = read(&key_path)?;
         Self::from_pems(cert_pem, key_pem).map(Some)
     }
 
