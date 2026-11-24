@@ -70,6 +70,14 @@ async fn main() {
         )
         .init();
     let cli = Cli::parse();
+    if let Some(Command::Healthcheck { config }) = &cli.command {
+        // Silent on success; one line on stderr and exit 1 otherwise.
+        if let Err(e) = bookeeper_server::health::check(config).await {
+            eprintln!("healthcheck: {e}");
+            std::process::exit(1);
+        }
+        return;
+    }
     let result = match cli.command {
         Some(Command::SetupCode { data_dir }) => {
             let dir = data_dir.unwrap_or(cli.config.data_dir);
@@ -93,6 +101,7 @@ async fn main() {
                 Err(e) => Err(StartError::Config(format!("TLS: {e}"))),
             }
         }
+        Some(Command::Healthcheck { .. }) => unreachable!("handled above"),
         None => run(cli.config).await,
     };
     if let Err(e) = result {

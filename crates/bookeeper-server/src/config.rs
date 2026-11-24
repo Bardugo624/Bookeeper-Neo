@@ -85,6 +85,12 @@ pub enum Command {
         #[arg(long)]
         data_dir: Option<PathBuf>,
     },
+    /// Exit 0 if the server on this machine answers, 1 otherwise. Reads the same
+    /// flags and `BOOKEEPER_*` variables as the server; opens nothing.
+    Healthcheck {
+        #[command(flatten)]
+        config: Box<Config>,
+    },
 }
 
 impl Config {
