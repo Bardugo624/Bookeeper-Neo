@@ -192,6 +192,62 @@ async fn next_progressive() {
 }
 
 #[tokio::test]
+async fn progressive_above_the_maximum_is_validation() {
+    let s = seed(Role::Owner, None, None).await;
+    let (st, e) = post(
+        &s,
+        "/api/v1/books",
+        json!({"title": "T", "progressive_number": 2147483648i64}),
+    )
+    .await;
+    assert_eq!((st, e["error_code"].as_str()), (422, Some("validation")));
+    let b = create(&s, json!({"title": "U"})).await;
+    let (st, e) = patch(
+        &s,
+        b["id"].as_str().unwrap(),
+        json!({"progressive_number": 2147483648i64}),
+    )
+    .await;
+    assert_eq!((st, e["error_code"].as_str()), (422, Some("validation")));
+}
+
+#[tokio::test]
+async fn next_progressive_at_the_maximum_is_conflict() {
+    let s = seed(Role::Owner, None, None).await;
+    create(&s, json!({"title": "A", "progressive_number": 2147483647})).await;
+    let (st, e) = get(
+        &s.state,
+        &s.session.access_token,
+        "/api/v1/books/next-progressive",
+    )
+    .await;
+    assert_eq!(
+        (st, e["error_code"].as_str()),
+        (409, Some("progressive_taken"))
+    );
+}
+
+#[tokio::test]
+async fn rapid_patches_never_run_ahead_of_the_clock() {
+    let s = seed(Role::Owner, None, None).await;
+    let b = create(&s, json!({"title": "T"})).await;
+    let id = b["id"].as_str().unwrap().to_string();
+    let mut last = 0;
+    for _ in 0..10 {
+        let (st, p) = patch(&s, &id, json!({})).await;
+        assert_eq!(st, 200);
+        let u = p["updated_at"].as_i64().unwrap();
+        assert!(u >= last);
+        last = u;
+    }
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs() as i64;
+    assert!(last <= now + 1, "updated_at {last} vs now {now}");
+}
+
+#[tokio::test]
 async fn patch_changes_only_what_is_sent() {
     let s = seed(Role::Owner, None, None).await;
     let b = create(
@@ -247,7 +303,15 @@ async fn patch_bumps_updated_at() {
         .unwrap();
     let (st, p) = patch(&s, &id, json!({})).await;
     assert_eq!(st, 200);
-    assert!(p["updated_at"].as_i64().unwrap() > 1);
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs() as i64;
+    let u = p["updated_at"].as_i64().unwrap();
+    assert!(
+        (now - 5..=now + 1).contains(&u),
+        "updated_at {u} vs now {now}"
+    );
     assert_eq!(p["title"], "T");
     assert_eq!(p["created_at"], b["created_at"]);
 }

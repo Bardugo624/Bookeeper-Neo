@@ -82,10 +82,15 @@ impl RateLimiter {
         if entry.failures.len() + entry.pending < rule.max_failures as usize {
             return Ok(());
         }
-        let wait = match entry.failures.front() {
-            Some(&oldest) => oldest.saturating_add(rule.window_secs).saturating_sub(now),
-            // Only in-flight attempts: they resolve shortly.
-            None => 1,
+        let wait = if entry.failures.len() < rule.max_failures as usize {
+            // Without the in-flight attempts the key would be under the limit: they
+            // resolve shortly.
+            1
+        } else {
+            match entry.failures.front() {
+                Some(&oldest) => oldest.saturating_add(rule.window_secs).saturating_sub(now),
+                None => 1,
+            }
         };
         Err(wait.max(1) as u64)
     }
