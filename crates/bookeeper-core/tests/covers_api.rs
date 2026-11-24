@@ -763,3 +763,10 @@ fn guard_rechecks_redirect_targets() {
     // With the test switch the same private targets pass the syntactic check.
     assert!(covers::redirect_target(&base, "http://127.0.0.1:9/x", true).is_ok());
 }
+
+#[test]
+fn jpeg_with_trailing_data_is_accepted() {
+    let mut b = encode(&noisy(200, 200), image::ImageFormat::Jpeg);
+    b.extend_from_slice(b"\n");
+    assert!(bookeeper_core::covers::process(&b).is_ok());
+}

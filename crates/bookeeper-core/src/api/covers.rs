@@ -253,7 +253,7 @@ pub async fn get_cover(
 ) -> ApiResult<Response> {
     let id = book_id(&state, &who, id).await?;
     let bid = id.clone();
-    let has_cover: bool = state
+    let has_cover: Option<bool> = state
         .db
         .run(move |conn| {
             conn.query_row(
@@ -261,9 +261,10 @@ pub async fn get_cover(
                 [&bid],
                 |r| r.get(0),
             )
+            .optional()
         })
         .await?;
-    if !has_cover {
+    if has_cover != Some(true) {
         return Err(not_found_cover());
     }
     let path = covers::cover_path(&state.files.covers_dir, &id).ok_or_else(ApiError::internal)?;
@@ -324,11 +325,14 @@ pub async fn delete_cover(
         .db
         .run(move |conn| {
             let tx = conn.transaction()?;
-            let had: bool = tx.query_row(
-                "SELECT cover_file IS NOT NULL FROM books WHERE id = ?1 AND library_id = ?2",
-                params![bid, who.library_id],
-                |r| r.get(0),
-            )?;
+            let had: bool = tx
+                .query_row(
+                    "SELECT cover_file IS NOT NULL FROM books WHERE id = ?1 AND library_id = ?2",
+                    params![bid, who.library_id],
+                    |r| r.get(0),
+                )
+                .optional()?
+                .unwrap_or(false);
             if had {
                 let now = now_secs();
                 tx.execute(

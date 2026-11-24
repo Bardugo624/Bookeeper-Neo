@@ -45,8 +45,8 @@ pub fn process(bytes: &[u8]) -> Result<Processed, CoverError> {
     };
     // Lenient JPEG decoders paper over a cut file with grey; a complete one ends with EOI.
     if format == ImageFormat::Jpeg {
-        let end = bytes.iter().rposition(|&b| b != 0).map_or(0, |i| i + 1);
-        if end < 2 || bytes[end - 2..end] != [0xff, 0xd9] {
+        // Data may legitimately follow the EOI (motion photos, vendor trailers).
+        if !bytes.windows(2).any(|w| w == [0xff, 0xd9]) {
             return err("truncated JPEG");
         }
     }
