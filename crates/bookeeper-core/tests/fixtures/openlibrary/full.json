@@ -1,0 +1,28 @@
+{
+  "ISBN:9788804668237": {
+    "url": "https://openlibrary.org/books/OL1M/Il_nome_della_rosa",
+    "key": "/books/OL1M",
+    "title": "  Il nome della rosa ",
+    "subtitle": "romanzo",
+    "authors": [
+      {"url": "https://openlibrary.org/authors/OL1A/Umberto_Eco", "name": "Umberto Eco"},
+      {"url": "https://openlibrary.org/authors/OL2A/X", "name": "  "},
+      {"url": "https://openlibrary.org/authors/OL3A/William_Weaver", "name": "William Weaver"}
+    ],
+    "number_of_pages": 503,
+    "identifiers": {
+      "isbn_10": ["880466823x"],
+      "isbn_13": ["9788804668237"],
+      "openlibrary": ["OL1M"]
+    },
+    "publishers": [{"name": "Mondadori"}, {"name": "Altro"}],
+    "publish_date": "March 1980",
+    "subjects": [{"name": "Fiction", "url": "https://openlibrary.org/subjects/fiction"}],
+    "excerpts": [{"text": "<p>In principio era il <b>Verbo</b> &amp; basta.</p>", "comment": "first"}],
+    "cover": {
+      "small": "http://covers.openlibrary.org/b/id/1-S.jpg",
+      "medium": "http://covers.openlibrary.org/b/id/1-M.jpg",
+      "large": "https://covers.openlibrary.org/b/id/1-L.jpg"
+    }
+  }
+}

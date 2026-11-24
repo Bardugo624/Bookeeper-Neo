@@ -19,6 +19,11 @@ pub enum DbError {
     Migration(String),
     #[error("database task failed: {0}")]
     Task(String),
+    #[error("i/o error at {}: {source}", path.display())]
+    Io {
+        path: PathBuf,
+        source: std::io::Error,
+    },
 }
 
 #[derive(Clone, Debug)]

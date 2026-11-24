@@ -1,3 +1,4 @@
+import type { Placement } from './books';
 import { P, S, enc, unwrap, unwrapEmpty, type Transport } from './util';
 
 export type ShelfOut = S['ShelfOut'];
@@ -8,7 +9,6 @@ export type NewShelf = S['NewShelf'];
 export type ShelfPatch = S['ShelfPatch'];
 export type PlaceIn = S['PlaceIn'];
 export type BatchAssignOut = S['BatchAssignOut'];
-export type PlacementOut = S['Placement'];
 
 export function shelvesApi(t: Transport) {
   return {
@@ -31,7 +31,7 @@ export function shelvesApi(t: Transport) {
       return unwrap<ShelfBookList>(await t.request('GET', `${P}/shelves/${enc(id)}/books`));
     },
     async placeBook(bookId: string, placement: PlaceIn) {
-      return unwrap<PlacementOut>(await t.request('PUT', `${P}/books/${enc(bookId)}/placement`, placement));
+      return unwrap<Placement>(await t.request('PUT', `${P}/books/${enc(bookId)}/placement`, placement));
     },
     async unplaceBook(bookId: string) {
       unwrapEmpty(await t.request('DELETE', `${P}/books/${enc(bookId)}/placement`));

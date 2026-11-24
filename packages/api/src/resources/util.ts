@@ -51,3 +51,54 @@ export function qs(params?: object): string {
   }
   return parts.length ? `?${parts.join('&')}` : '';
 }
+
+import type { RawRequest, RawResponse } from '../transport';
+
+export async function raw(t: Transport, req: RawRequest): Promise<RawResponse> {
+  if (!t.requestRaw) throw new ApiError(0, 'raw_unsupported', 'This transport cannot send or receive files');
+  return t.requestRaw(req);
+}
+
+/** Returns the response when 2xx; otherwise throws the same ApiError a JSON request would. */
+export function okRaw(r: RawResponse): RawResponse {
+  if (r.status >= 200 && r.status < 300) return r;
+  let body: unknown = null;
+  try {
+    body = JSON.parse(new TextDecoder().decode(r.bytes));
+  } catch {
+    body = null;
+  }
+  const ra = r.headers['retry-after'];
+  const retryAfter = ra != null && /^\s*\d+\s*$/.test(ra) ? Number(ra) : undefined;
+  return fail({ status: r.status, body, ...(retryAfter === undefined ? {} : { retryAfter }) });
+}
+
+export function parseJsonRaw<T>(r: RawResponse): T {
+  okRaw(r);
+  try {
+    const v: unknown = JSON.parse(new TextDecoder().decode(r.bytes));
+    if (typeof v === 'object' && v !== null) return v as T;
+  } catch {
+    /* fall through */
+  }
+  throw new ApiError(r.status, 'unknown', `Unexpected response (${r.status})`);
+}
+
+export function filenameOf(r: RawResponse, fallback: string): string {
+  const cd = r.headers['content-disposition'];
+  if (!cd) return fallback;
+  const star = /filename\*\s*=\s*(?:[\w-]+)?''([^;]+)/i.exec(cd);
+  if (star) {
+    try {
+      return decodeURIComponent(star[1].trim());
+    } catch {
+      /* fall through */
+    }
+  }
+  const m = /filename\s*=\s*(?:"([^"]*)"|([^;]+))/i.exec(cd);
+  const n = (m?.[1] ?? m?.[2] ?? '').trim();
+  return n === '' ? fallback : n;
+}
+
+export const JSON_CT = 'application/json';
+export const encodeJson = (v: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(v));

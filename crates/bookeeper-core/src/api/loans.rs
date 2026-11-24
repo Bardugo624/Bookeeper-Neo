@@ -122,6 +122,11 @@ where
     type Rejection = ApiError;
 
     async fn from_request(req: axum::extract::Request, state: &S) -> Result<Self, ApiError> {
+        let content_type = req
+            .headers()
+            .get(axum::http::header::CONTENT_TYPE)
+            .and_then(|v| v.to_str().ok())
+            .map(str::to_string);
         let bytes = axum::body::Bytes::from_request(req, state)
             .await
             .map_err(|e| {
@@ -137,6 +142,16 @@ where
             })?;
         if bytes.iter().all(u8::is_ascii_whitespace) {
             return Ok(OptionalJson(T::default()));
+        }
+        let is_json = content_type.is_some_and(|ct| {
+            ct.split(';')
+                .next()
+                .is_some_and(|m| m.trim().eq_ignore_ascii_case("application/json"))
+        });
+        if !is_json {
+            return Err(ApiError::bad_request(
+                "Content-Type must be application/json",
+            ));
         }
         match serde_json::from_slice::<T>(&bytes) {
             Ok(v) => Ok(OptionalJson(v)),

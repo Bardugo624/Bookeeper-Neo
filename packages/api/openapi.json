@@ -9,6 +9,71 @@
     "version": "2.0.0-dev"
   },
   "paths": {
+    "/api/v1/auth/confirm": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "operationId": "confirm",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Confirmation token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfirmOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Wrong password",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Password required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many wrong attempts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/auth/libraries": {
       "post": {
         "tags": [
@@ -243,6 +308,203 @@
             }
           }
         }
+      }
+    },
+    "/api/v1/backup": {
+      "post": {
+        "tags": [
+          "backup"
+        ],
+        "summary": "Download a zip archive with the whole library, covers included.",
+        "operationId": "create_backup",
+        "responses": {
+          "200": {
+            "description": "The archive",
+            "content": {
+              "application/zip": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin or owner only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/backups": {
+      "get": {
+        "tags": [
+          "backup"
+        ],
+        "summary": "Automatic backups of this library, newest first (admin).",
+        "operationId": "list_backups",
+        "responses": {
+          "200": {
+            "description": "Automatic backups",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin or owner only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/backups/config": {
+      "get": {
+        "tags": [
+          "backup"
+        ],
+        "summary": "Effective automatic backup configuration (admin).",
+        "operationId": "get_config",
+        "responses": {
+          "200": {
+            "description": "Effective configuration",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupConfig"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin or owner only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "backup"
+        ],
+        "summary": "Saves the automatic backup configuration (admin).",
+        "operationId": "put_config",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackupConfig"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Saved configuration",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupConfig"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin or owner only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
     "/api/v1/books": {
@@ -517,6 +779,16 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "progressive_taken",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -687,6 +959,276 @@
           },
           "422": {
             "description": "Invalid body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/books/{id}/cover": {
+      "get": {
+        "tags": [
+          "covers"
+        ],
+        "summary": "The cover as `image/jpeg`.",
+        "operationId": "get_cover",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JPEG image",
+            "content": {
+              "image/jpeg": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not modified"
+          },
+          "404": {
+            "description": "Unknown book or cover_not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "covers"
+        ],
+        "summary": "Upload a cover image (JPEG, PNG or WebP, at most 5 MB).",
+        "operationId": "put_cover",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int32",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Stored",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoverColor"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "unsupported_image",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Guests cannot write",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown book",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "covers"
+        ],
+        "summary": "Remove the cover; 204 even when there was none.",
+        "operationId": "delete_cover",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No cover any more"
+          },
+          "403": {
+            "description": "Guests cannot write",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown book",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/books/{id}/cover/fetch": {
+      "post": {
+        "tags": [
+          "covers"
+        ],
+        "summary": "Download a cover from the first usable candidate URL.",
+        "operationId": "fetch_cover",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FetchCover"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Stored",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoverFetched"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Guests cannot write",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown book",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation or cover_fetch_failed",
             "content": {
               "application/json": {
                 "schema": {
@@ -1036,6 +1578,68 @@
         ]
       }
     },
+    "/api/v1/export": {
+      "get": {
+        "tags": [
+          "transfer"
+        ],
+        "summary": "Downloads the whole library as JSON or CSV (member or higher).",
+        "operationId": "export_books",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "description": "`json` (default) or `csv`",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File to download (JSON body is ExportJson)",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Guests cannot export",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unknown format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/health": {
       "get": {
         "tags": [
@@ -1054,6 +1658,135 @@
             }
           }
         }
+      }
+    },
+    "/api/v1/import": {
+      "post": {
+        "tags": [
+          "transfer"
+        ],
+        "summary": "Imports books from a Goodreads, Calibre or LibraryThing export (admin).",
+        "description": "With `dry_run` nothing is written. Otherwise all new rows go in one transaction\nand one `library.import` audit row is written.",
+        "operationId": "import_books",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Import report",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportReport"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Body over 10 MB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unknown format or too many rows",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/labels/pdf": {
+      "post": {
+        "tags": [
+          "labels"
+        ],
+        "summary": "A4 sheet of labels (4 × 11) with a Data Matrix per book.",
+        "description": "Books that are unknown, in another library or without a progressive number are skipped;\ntheir count is in the `X-Labels-Skipped` header.",
+        "operationId": "labels_pdf",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LabelsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "PDF file; header X-Labels-Skipped",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid ids or nothing to print",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
     "/api/v1/loans": {
@@ -1475,6 +2208,82 @@
         ]
       }
     },
+    "/api/v1/lookup/isbn/{isbn}": {
+      "get": {
+        "tags": [
+          "lookup"
+        ],
+        "summary": "Merged book metadata from external providers.",
+        "operationId": "lookup_isbn",
+        "parameters": [
+          {
+            "name": "isbn",
+            "in": "path",
+            "description": "ISBN-13 or ISBN-10, hyphens allowed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fresh",
+            "in": "query",
+            "description": "Skip the cache and refresh it",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Metadata"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No provider knows the ISBN (isbn_not_found)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid ISBN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/me": {
       "get": {
         "tags": [
@@ -1603,6 +2412,93 @@
             }
           }
         }
+      }
+    },
+    "/api/v1/restore": {
+      "post": {
+        "tags": [
+          "backup"
+        ],
+        "summary": "Replace the library with the content of an archive (owner, needs a confirm token).",
+        "operationId": "restore",
+        "parameters": [
+          {
+            "name": "X-Confirm-Token",
+            "in": "header",
+            "description": "Token from POST /auth/confirm",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/zip": {
+              "schema": {
+                "$ref": "#/components/schemas/ArchiveBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Restored",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestoreReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_archive",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "confirmation_required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Owner only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
     "/api/v1/setup": {
@@ -2463,6 +3359,11 @@
           }
         }
       },
+      "ArchiveBody": {
+        "type": "string",
+        "format": "binary",
+        "description": "Documentation-only schema of the restore request body."
+      },
       "AuthOut": {
         "type": "object",
         "required": [
@@ -2479,6 +3380,61 @@
           },
           "user": {
             "$ref": "#/components/schemas/UserOut"
+          }
+        }
+      },
+      "BackupConfig": {
+        "type": "object",
+        "required": [
+          "interval_days",
+          "keep"
+        ],
+        "properties": {
+          "interval_days": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "keep": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          }
+        }
+      },
+      "BackupItem": {
+        "type": "object",
+        "required": [
+          "name",
+          "created_at",
+          "size_bytes"
+        ],
+        "properties": {
+          "created_at": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        }
+      },
+      "BackupList": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BackupItem"
+            }
           }
         }
       },
@@ -2715,6 +3671,33 @@
           }
         }
       },
+      "ConfirmOut": {
+        "type": "object",
+        "required": [
+          "confirm_token",
+          "expires_in"
+        ],
+        "properties": {
+          "confirm_token": {
+            "type": "string"
+          },
+          "expires_in": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "ConfirmRequest": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
       "CountBy": {
         "type": "object",
         "required": [
@@ -2727,6 +3710,33 @@
             "format": "int64"
           },
           "key": {
+            "type": "string"
+          }
+        }
+      },
+      "CoverColor": {
+        "type": "object",
+        "required": [
+          "cover_color"
+        ],
+        "properties": {
+          "cover_color": {
+            "type": "string",
+            "description": "Dominant colour, `#rrggbb`."
+          }
+        }
+      },
+      "CoverFetched": {
+        "type": "object",
+        "required": [
+          "cover_color",
+          "source_url"
+        ],
+        "properties": {
+          "cover_color": {
+            "type": "string"
+          },
+          "source_url": {
             "type": "string"
           }
         }
@@ -2997,6 +4007,212 @@
           }
         }
       },
+      "ExportBook": {
+        "type": "object",
+        "description": "A book in the JSON export: `BookOut` without `placement` and `on_loan`,\nplus the shelf name and the 0-based row and slot.",
+        "required": [
+          "id",
+          "title",
+          "authors",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "acquired_at": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "authors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "condition": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cover_color": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "format": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "genre": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "type": "string"
+          },
+          "isbn_10": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isbn_13": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "language": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "page_count": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "price_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "progressive_number": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "published_year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "publisher": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "row_index": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "shelf_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "slot_index": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "subtitle": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "ExportJson": {
+        "type": "object",
+        "required": [
+          "exported_at",
+          "library",
+          "books"
+        ],
+        "properties": {
+          "books": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExportBook"
+            }
+          },
+          "exported_at": {
+            "type": "string"
+          },
+          "library": {
+            "$ref": "#/components/schemas/ExportLibrary"
+          }
+        }
+      },
+      "ExportLibrary": {
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "FetchCover": {
+        "type": "object",
+        "required": [
+          "candidates"
+        ],
+        "properties": {
+          "candidates": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "1 to 8 image URLs, tried in order."
+          }
+        }
+      },
       "Health": {
         "type": "object",
         "required": [
@@ -3013,6 +4229,175 @@
           },
           "version": {
             "type": "string"
+          }
+        }
+      },
+      "ImportReport": {
+        "type": "object",
+        "required": [
+          "format",
+          "total",
+          "new",
+          "duplicates",
+          "invalid",
+          "preview",
+          "errors"
+        ],
+        "properties": {
+          "duplicates": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportRowError"
+            },
+            "description": "The first 50 invalid rows."
+          },
+          "format": {
+            "type": "string"
+          },
+          "invalid": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "new": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "preview": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportedBook"
+            },
+            "description": "The first 20 new books."
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "ImportRequest": {
+        "type": "object",
+        "required": [
+          "content"
+        ],
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "The whole file as text, up to 10 MB."
+          },
+          "dry_run": {
+            "type": "boolean"
+          },
+          "format": {
+            "$ref": "#/components/schemas/RequestFormat",
+            "description": "`auto` (default), `goodreads`, `calibre` or `librarything`."
+          }
+        }
+      },
+      "ImportRowError": {
+        "type": "object",
+        "required": [
+          "row",
+          "message"
+        ],
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "row": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Line of the file where the record starts.",
+            "minimum": 0
+          }
+        }
+      },
+      "ImportedBook": {
+        "type": "object",
+        "description": "A normalized record read from an import file.",
+        "required": [
+          "title",
+          "authors"
+        ],
+        "properties": {
+          "authors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "format": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`hardcover`, `paperback`, `ebook` or `audiobook`."
+          },
+          "isbn_10": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isbn_13": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "language": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "page_count": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "published_year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "publisher": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "LabelsRequest": {
+        "type": "object",
+        "required": [
+          "book_ids"
+        ],
+        "properties": {
+          "book_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "1 to 2000 book ids."
           }
         }
       },
@@ -3323,6 +4708,98 @@
           },
           "user": {
             "$ref": "#/components/schemas/UserOut"
+          }
+        }
+      },
+      "Metadata": {
+        "type": "object",
+        "required": [
+          "authors",
+          "cover_candidates",
+          "sources"
+        ],
+        "properties": {
+          "authors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "cover_candidates": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "https URLs, most authoritative first."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "genre": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isbn_10": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isbn_13": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "language": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "page_count": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "published_year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "publisher": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Providers that contributed at least one field."
+          },
+          "subtitle": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       },
@@ -3787,6 +5264,53 @@
         "properties": {
           "name": {
             "type": "string"
+          }
+        }
+      },
+      "RequestFormat": {
+        "type": "string",
+        "enum": [
+          "auto",
+          "goodreads",
+          "calibre",
+          "librarything"
+        ]
+      },
+      "RestoreReport": {
+        "type": "object",
+        "required": [
+          "books",
+          "shelves",
+          "loans",
+          "wishlist",
+          "covers",
+          "users_remapped"
+        ],
+        "properties": {
+          "books": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "covers": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "loans": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "shelves": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "users_remapped": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Archive users that do not exist in this library."
+          },
+          "wishlist": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },

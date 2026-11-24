@@ -4,7 +4,7 @@ use std::path::Path;
 use std::process::{Command, Stdio};
 
 use bookeeper_server::{
-    bind, build_with_db, issue_setup_code, open_db, serve, startup_setup_code, Config,
+    bind, build_with_data, issue_setup_code, open_db, serve, startup_setup_code, Config,
 };
 use serde_json::{json, Value};
 
@@ -27,7 +27,7 @@ async fn start(dir: &Path) -> (SocketAddr, bookeeper_core::Db) {
     };
     let listener = bind(&cfg).await.unwrap();
     let addr = listener.local_addr().unwrap();
-    let app = build_with_db(db.clone()).unwrap();
+    let app = build_with_data(db.clone(), dir).unwrap();
     tokio::spawn(serve(listener, app));
     (addr, db)
 }

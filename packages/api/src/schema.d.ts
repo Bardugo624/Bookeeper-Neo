@@ -4,6 +4,22 @@
  */
 
 export interface paths {
+    "/api/v1/auth/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["confirm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/libraries": {
         parameters: {
             query?: never;
@@ -84,6 +100,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/backup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Download a zip archive with the whole library, covers included. */
+        post: operations["create_backup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/backups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Automatic backups of this library, newest first (admin). */
+        get: operations["list_backups"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/backups/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Effective automatic backup configuration (admin). */
+        get: operations["get_config"];
+        /** Saves the automatic backup configuration (admin). */
+        put: operations["put_config"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/books": {
         parameters: {
             query?: never;
@@ -146,6 +214,42 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["patch_book"];
+        trace?: never;
+    };
+    "/api/v1/books/{id}/cover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The cover as `image/jpeg`. */
+        get: operations["get_cover"];
+        /** Upload a cover image (JPEG, PNG or WebP, at most 5 MB). */
+        put: operations["put_cover"];
+        post?: never;
+        /** Remove the cover; 204 even when there was none. */
+        delete: operations["delete_cover"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/books/{id}/cover/fetch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Download a cover from the first usable candidate URL. */
+        post: operations["fetch_cover"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/books/{id}/placement": {
@@ -212,6 +316,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Downloads the whole library as JSON or CSV (member or higher). */
+        get: operations["export_books"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -222,6 +343,48 @@ export interface paths {
         get: operations["health"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Imports books from a Goodreads, Calibre or LibraryThing export (admin).
+         * @description With `dry_run` nothing is written. Otherwise all new rows go in one transaction
+         *     and one `library.import` audit row is written.
+         */
+        post: operations["import_books"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/labels/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * A4 sheet of labels (4 × 11) with a Data Matrix per book.
+         * @description Books that are unknown, in another library or without a progressive number are skipped;
+         *     their count is in the `X-Labels-Skipped` header.
+         */
+        post: operations["labels_pdf"];
         delete?: never;
         options?: never;
         head?: never;
@@ -292,6 +455,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/lookup/isbn/{isbn}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Merged book metadata from external providers. */
+        get: operations["lookup_isbn"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me": {
         parameters: {
             query?: never;
@@ -334,6 +514,23 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["redeem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Replace the library with the content of an archive (owner, needs a confirm token). */
+        post: operations["restore"];
         delete?: never;
         options?: never;
         head?: never;
@@ -495,10 +692,31 @@ export interface components {
             /** @description Human-readable description. */
             message: string;
         };
+        /**
+         * Format: binary
+         * @description Documentation-only schema of the restore request body.
+         */
+        ArchiveBody: string;
         AuthOut: {
             library: components["schemas"]["LibraryOut"];
             session: components["schemas"]["Session"];
             user: components["schemas"]["UserOut"];
+        };
+        BackupConfig: {
+            /** Format: int32 */
+            interval_days: number;
+            /** Format: int32 */
+            keep: number;
+        };
+        BackupItem: {
+            /** Format: int64 */
+            created_at: number;
+            name: string;
+            /** Format: int64 */
+            size_bytes: number;
+        };
+        BackupList: {
+            items: components["schemas"]["BackupItem"][];
         };
         BatchAssignIn: {
             /** @description At most 500 ids. */
@@ -559,10 +777,26 @@ export interface components {
             /** Format: int64 */
             updated_at: number;
         };
+        ConfirmOut: {
+            confirm_token: string;
+            /** Format: int64 */
+            expires_in: number;
+        };
+        ConfirmRequest: {
+            password?: string | null;
+        };
         CountBy: {
             /** Format: int64 */
             count: number;
             key: string;
+        };
+        CoverColor: {
+            /** @description Dominant colour, `#rrggbb`. */
+            cover_color: string;
+        };
+        CoverFetched: {
+            cover_color: string;
+            source_url: string;
         };
         /** @description Body of `POST /books`. Only `title` is required. */
         CreateBook: {
@@ -635,10 +869,112 @@ export interface components {
             user_id: string;
             user_name: string;
         };
+        /**
+         * @description A book in the JSON export: `BookOut` without `placement` and `on_loan`,
+         *     plus the shelf name and the 0-based row and slot.
+         */
+        ExportBook: {
+            /** Format: int64 */
+            acquired_at?: number | null;
+            authors: string[];
+            condition?: string | null;
+            cover_color?: string | null;
+            /** Format: int64 */
+            created_at: number;
+            description?: string | null;
+            format?: string | null;
+            genre?: string | null;
+            id: string;
+            isbn_10?: string | null;
+            isbn_13?: string | null;
+            language?: string | null;
+            notes?: string | null;
+            /** Format: int64 */
+            page_count?: number | null;
+            /** Format: int64 */
+            price_cents?: number | null;
+            /** Format: int64 */
+            progressive_number?: number | null;
+            /** Format: int64 */
+            published_year?: number | null;
+            publisher?: string | null;
+            /** Format: int64 */
+            row_index?: number | null;
+            shelf_name?: string | null;
+            /** Format: int64 */
+            slot_index?: number | null;
+            subtitle?: string | null;
+            title: string;
+            /** Format: int64 */
+            updated_at: number;
+        };
+        ExportJson: {
+            books: components["schemas"]["ExportBook"][];
+            exported_at: string;
+            library: components["schemas"]["ExportLibrary"];
+        };
+        ExportLibrary: {
+            id: string;
+            name: string;
+        };
+        FetchCover: {
+            /** @description 1 to 8 image URLs, tried in order. */
+            candidates: string[];
+        };
         Health: {
             status: string;
             time: string;
             version: string;
+        };
+        ImportReport: {
+            /** Format: int64 */
+            duplicates: number;
+            /** @description The first 50 invalid rows. */
+            errors: components["schemas"]["ImportRowError"][];
+            format: string;
+            /** Format: int64 */
+            invalid: number;
+            /** Format: int64 */
+            new: number;
+            /** @description The first 20 new books. */
+            preview: components["schemas"]["ImportedBook"][];
+            /** Format: int64 */
+            total: number;
+        };
+        ImportRequest: {
+            /** @description The whole file as text, up to 10 MB. */
+            content: string;
+            dry_run?: boolean;
+            /** @description `auto` (default), `goodreads`, `calibre` or `librarything`. */
+            format?: components["schemas"]["RequestFormat"];
+        };
+        ImportRowError: {
+            message: string;
+            /**
+             * Format: int64
+             * @description Line of the file where the record starts.
+             */
+            row: number;
+        };
+        /** @description A normalized record read from an import file. */
+        ImportedBook: {
+            authors: string[];
+            /** @description `hardcover`, `paperback`, `ebook` or `audiobook`. */
+            format?: string | null;
+            isbn_10?: string | null;
+            isbn_13?: string | null;
+            language?: string | null;
+            notes?: string | null;
+            /** Format: int64 */
+            page_count?: number | null;
+            /** Format: int64 */
+            published_year?: number | null;
+            publisher?: string | null;
+            title: string;
+        };
+        LabelsRequest: {
+            /** @description 1 to 2000 book ids. */
+            book_ids: string[];
         };
         LibrariesOut: {
             libraries: components["schemas"]["LibraryOut"][];
@@ -722,6 +1058,25 @@ export interface components {
             device: components["schemas"]["DeviceOut"];
             library: components["schemas"]["LibraryOut"];
             user: components["schemas"]["UserOut"];
+        };
+        Metadata: {
+            authors: string[];
+            /** @description https URLs, most authoritative first. */
+            cover_candidates: string[];
+            description?: string | null;
+            genre?: string | null;
+            isbn_10?: string | null;
+            isbn_13?: string | null;
+            language?: string | null;
+            /** Format: int32 */
+            page_count?: number | null;
+            /** Format: int32 */
+            published_year?: number | null;
+            publisher?: string | null;
+            /** @description Providers that contributed at least one field. */
+            sources: string[];
+            subtitle?: string | null;
+            title?: string | null;
         };
         MonthCount: {
             /** Format: int64 */
@@ -865,6 +1220,25 @@ export interface components {
         RenameDevice: {
             name: string;
         };
+        /** @enum {string} */
+        RequestFormat: "auto" | "goodreads" | "calibre" | "librarything";
+        RestoreReport: {
+            /** Format: int64 */
+            books: number;
+            /** Format: int64 */
+            covers: number;
+            /** Format: int64 */
+            loans: number;
+            /** Format: int64 */
+            shelves: number;
+            /**
+             * Format: int64
+             * @description Archive users that do not exist in this library.
+             */
+            users_remapped: number;
+            /** Format: int64 */
+            wishlist: number;
+        };
         ReturnLoan: {
             /**
              * Format: int64
@@ -1007,6 +1381,57 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    confirm: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfirmRequest"];
+            };
+        };
+        responses: {
+            /** @description Confirmation token */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmOut"];
+                };
+            };
+            /** @description Wrong password */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Password required */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Too many wrong attempts */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
     libraries: {
         parameters: {
             query?: never;
@@ -1209,6 +1634,162 @@ export interface operations {
             };
         };
     };
+    create_backup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The archive */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/zip": number[];
+                };
+            };
+            /** @description Admin or owner only */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    list_backups: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Automatic backups */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupList"];
+                };
+            };
+            /** @description Missing or invalid token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Admin or owner only */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    get_config: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Effective configuration */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupConfig"];
+                };
+            };
+            /** @description Missing or invalid token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Admin or owner only */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    put_config: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BackupConfig"];
+            };
+        };
+        responses: {
+            /** @description Saved configuration */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupConfig"];
+                };
+            };
+            /** @description Missing or invalid token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Admin or owner only */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description validation */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
     list_books: {
         parameters: {
             query?: {
@@ -1372,6 +1953,15 @@ export interface operations {
                     "application/json": components["schemas"]["NextProgressive"];
                 };
             };
+            /** @description progressive_taken */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
         };
     };
     get_book: {
@@ -1498,6 +2088,201 @@ export interface operations {
                 };
             };
             /** @description Invalid body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    get_cover: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Book id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description JPEG image */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/jpeg": number[];
+                };
+            };
+            /** @description Not modified */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unknown book or cover_not_found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    put_cover: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Book id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/octet-stream": number[];
+            };
+        };
+        responses: {
+            /** @description Stored */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoverColor"];
+                };
+            };
+            /** @description unsupported_image */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Guests cannot write */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Unknown book */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    delete_cover: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Book id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No cover any more */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Guests cannot write */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Unknown book */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    fetch_cover: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Book id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FetchCover"];
+            };
+        };
+        responses: {
+            /** @description Stored */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoverFetched"];
+                };
+            };
+            /** @description Guests cannot write */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Unknown book */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description validation or cover_fetch_failed */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -1768,6 +2553,47 @@ export interface operations {
             };
         };
     };
+    export_books: {
+        parameters: {
+            query?: {
+                /** @description `json` (default) or `csv` */
+                format?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description File to download (JSON body is ExportJson) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": number[];
+                };
+            };
+            /** @description Guests cannot export */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Unknown format */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
     health: {
         parameters: {
             query?: never;
@@ -1784,6 +2610,99 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Health"];
+                };
+            };
+        };
+    };
+    import_books: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportRequest"];
+            };
+        };
+        responses: {
+            /** @description Import report */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportReport"];
+                };
+            };
+            /** @description Admin only */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Body over 10 MB */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Unknown format or too many rows */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    labels_pdf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LabelsRequest"];
+            };
+        };
+        responses: {
+            /** @description PDF file; header X-Labels-Skipped */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": number[];
+                };
+            };
+            /** @description Missing or invalid token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Invalid ids or nothing to print */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
         };
@@ -2083,6 +3002,59 @@ export interface operations {
             };
         };
     };
+    lookup_isbn: {
+        parameters: {
+            query?: {
+                /** @description Skip the cache and refresh it */
+                fresh?: boolean;
+            };
+            header?: never;
+            path: {
+                /** @description ISBN-13 or ISBN-10, hyphens allowed */
+                isbn: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Metadata */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Metadata"];
+                };
+            };
+            /** @description Missing or invalid token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description No provider knows the ISBN (isbn_not_found) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Invalid ISBN */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
     me: {
         parameters: {
             query?: never;
@@ -2183,6 +3155,69 @@ export interface operations {
             };
             /** @description Invalid fields */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    restore: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Token from POST /auth/confirm */
+                "X-Confirm-Token": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/zip": components["schemas"]["ArchiveBody"];
+            };
+        };
+        responses: {
+            /** @description Restored */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RestoreReport"];
+                };
+            };
+            /** @description invalid_archive */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description confirmation_required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description Owner only */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };
