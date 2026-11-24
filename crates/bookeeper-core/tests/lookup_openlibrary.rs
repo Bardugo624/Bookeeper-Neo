@@ -151,3 +151,20 @@ fn malformed_body_is_an_error_not_a_panic() {
     assert!(parse("[1,2]", ISBN).is_err());
     assert!(parse("", ISBN).is_err());
 }
+
+#[test]
+fn a_bare_less_than_is_kept() {
+    let body =
+        format!(r#"{{"ISBN:{ISBN}": {{"title": "T", "notes": "se a < b allora <b>c</b> > d"}}}}"#);
+    let m = parse(&body, ISBN).unwrap().unwrap();
+    assert_eq!(m.description.as_deref(), Some("se a < b allora c > d"));
+}
+
+#[tokio::test]
+async fn an_oversized_body_is_a_provider_error() {
+    let body: &'static str =
+        Box::leak(format!(r#"{{"pad":"{}"}}"#, "x".repeat(2 << 20)).into_boxed_str());
+    let (base, _rx) = serve(200, body);
+    let p = OpenLibrary::with_base_url(reqwest::Client::new(), &base);
+    assert!(p.lookup(ISBN).await.is_err());
+}
