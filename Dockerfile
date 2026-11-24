@@ -29,7 +29,7 @@ COPY --from=build /out/bookeeper-server /usr/local/bin/bookeeper-server
 COPY --from=build /out/data /data
 ENV BOOKEEPER_DATA=/data BOOKEEPER_MDNS=off
 VOLUME /data
-EXPOSE 7842
+EXPOSE 7842 443
 HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=3 \
   CMD ["/usr/local/bin/bookeeper-server", "healthcheck"]
 ENTRYPOINT ["/usr/local/bin/bookeeper-server"]
