@@ -75,6 +75,10 @@ fn not_found_cover() -> ApiError {
     )
 }
 
+/// Serialises cover mutations (file + row) so a `PUT` racing a `DELETE` cannot
+/// leave the columns set while the file is gone, or the reverse.
+static COVER_WRITES: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
+
 /// The id as stored (server-generated) when the book belongs to the library.
 async fn book_id(state: &AppState, who: &AuthUser, id: String) -> ApiResult<String> {
     let lib = who.library_id.clone();
@@ -100,6 +104,7 @@ async fn store(
     p: Processed,
     detail: Option<serde_json::Value>,
 ) -> ApiResult<String> {
+    let _guard = COVER_WRITES.lock().await;
     let dir = state.files.covers_dir.clone();
     let (bid, jpeg) = (id.clone(), p.jpeg);
     tokio::task::spawn_blocking(move || covers::write_atomic(&dir, &bid, &jpeg))
@@ -320,6 +325,7 @@ pub async fn delete_cover(
 ) -> ApiResult<StatusCode> {
     who.require(Role::Member)?;
     let id = book_id(&state, &who, id).await?;
+    let _guard = COVER_WRITES.lock().await;
     let bid = id.clone();
     state
         .db
