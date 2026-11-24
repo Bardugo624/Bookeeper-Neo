@@ -78,6 +78,13 @@ pub enum Command {
         #[arg(long)]
         data_dir: Option<PathBuf>,
     },
+    /// Print the fingerprint and verification phrase of the self-signed
+    /// certificate, then exit (no port is opened, nothing is created).
+    Fingerprint {
+        /// Directory holding the data (defaults to the top-level `--data-dir`).
+        #[arg(long)]
+        data_dir: Option<PathBuf>,
+    },
 }
 
 impl Config {

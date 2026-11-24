@@ -570,6 +570,7 @@ dependencies = [
  "bookeeper-core",
  "bookeeper-net",
  "clap",
+ "futures-util",
  "gethostname",
  "mime_guess",
  "reqwest 0.12.28",

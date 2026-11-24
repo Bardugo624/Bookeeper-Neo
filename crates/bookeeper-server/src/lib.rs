@@ -10,8 +10,10 @@ use tokio::net::TcpListener;
 
 mod config;
 mod layers;
+pub mod tls;
 mod web;
 pub use config::{Cli, Command, Config, Switch, TlsChoice};
+pub use tls::{load_self_identity, self_dir, TlsServer};
 pub use web::web_routes;
 
 #[derive(Debug, thiserror::Error)]
@@ -101,7 +103,7 @@ pub async fn serve(listener: TcpListener, app: axum::Router) -> io::Result<()> {
 }
 
 /// Resolves on Ctrl+C or, on Unix, on SIGTERM (what Docker and systemd send).
-async fn shutdown_signal() {
+pub(crate) async fn shutdown_signal() {
     let ctrl_c = async {
         let _ = tokio::signal::ctrl_c().await;
     };
@@ -120,4 +122,15 @@ async fn shutdown_signal() {
     }
     #[cfg(not(unix))]
     ctrl_c.await;
+}
+
+/// The two certificate lines shown at startup and by `fingerprint`.
+pub fn identity_lines(identity: &bookeeper_net::tls::Identity) -> [String; 2] {
+    [
+        format!("Impronta del certificato: {}", identity.fingerprint_hex()),
+        format!(
+            "Frase di verifica: {}",
+            bookeeper_net::phrase::verification_phrase(&identity.fingerprint)
+        ),
+    ]
 }
