@@ -10,7 +10,26 @@ export interface Transport {
     method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE',
     path: string,
     body?: unknown,
+    headers?: Record<string, string>,
   ): Promise<TransportResponse>;
+  /** Binary requests/responses (files). Optional: transports without it cannot move files. */
+  requestRaw?(req: RawRequest): Promise<RawResponse>;
+}
+
+export interface RawRequest {
+  method: 'GET' | 'POST' | 'PUT';
+  path: string;
+  body?: Uint8Array;
+  contentType?: string;
+  headers?: Record<string, string>;
+}
+
+export interface RawResponse {
+  status: number;
+  bytes: Uint8Array;
+  contentType: string | null;
+  /** Lower-case names; at least etag, content-disposition, x-labels-skipped, retry-after when present. */
+  headers: Record<string, string>;
 }
 
 export class ApiError extends Error {
@@ -36,6 +55,8 @@ function parseRetryAfter(v: string | null | undefined): number | undefined {
   return Number(v);
 }
 
+const RAW_HEADERS = ['etag', 'content-disposition', 'x-labels-skipped', 'retry-after'];
+
 export function createFetchTransport(
   baseUrl: string,
   fetchImpl: typeof fetch = (...a) => fetch(...a),
@@ -43,11 +64,12 @@ export function createFetchTransport(
 ): Transport {
   const base = baseUrl.replace(/\/+$/, '');
   return {
-    async request(method, path, body) {
+    async request(method, path, body, extra) {
       let res: Response;
       let text: string;
       try {
         const headers: Record<string, string> = {};
+        for (const [k, v] of Object.entries(extra ?? {})) headers[k.toLowerCase()] = v;
         if (body !== undefined) headers['content-type'] = 'application/json';
         const token = options.getAccessToken ? await options.getAccessToken() : null;
         if (typeof token === 'string' && token !== '') headers.authorization = `Bearer ${token}`;
@@ -68,6 +90,29 @@ export function createFetchTransport(
       }
       const retryAfter = parseRetryAfter(res.headers?.get('retry-after'));
       return retryAfter === undefined ? { status: res.status, body: parsed } : { status: res.status, body: parsed, retryAfter };
+    },
+    async requestRaw(req) {
+      try {
+        const headers: Record<string, string> = {};
+        for (const [k, v] of Object.entries(req.headers ?? {})) headers[k.toLowerCase()] = v;
+        if (req.body !== undefined && req.contentType) headers['content-type'] = req.contentType;
+        const token = options.getAccessToken ? await options.getAccessToken() : null;
+        if (typeof token === 'string' && token !== '') headers.authorization = `Bearer ${token}`;
+        const res = await fetchImpl(`${base}${req.path}`, {
+          method: req.method,
+          headers: Object.keys(headers).length === 0 ? undefined : headers,
+          body: req.body === undefined ? undefined : (req.body as unknown as BodyInit),
+        });
+        const bytes = new Uint8Array(await res.arrayBuffer());
+        const out: Record<string, string> = {};
+        for (const name of RAW_HEADERS) {
+          const v = res.headers?.get(name);
+          if (v != null) out[name] = v;
+        }
+        return { status: res.status, bytes, contentType: res.headers?.get('content-type') ?? null, headers: out };
+      } catch (e) {
+        throw new ApiError(0, 'network', e instanceof Error ? e.message : 'network error');
+      }
     },
   };
 }
