@@ -98,3 +98,6 @@
 2026-11-24T20:38:38Z	bookeeper-fase-1c	api-client-c	qa	opus	PASS	-	-	-	87
 2026-11-24T20:43:24Z	bookeeper-fase-1c	desktop-raw	dwarf	sonnet	-	trap	tauri commands convert rust snake case args to camelcase from the webview unless tauri command rename all snake case is set	Tauri commands convert Rust snake_case args to camelCase from the webview unless `#[tauri::command(rename_all = "snake_case")]` is set [apps/desktop/src-tauri/src/lib.rs]	282	1
 2026-11-24T20:43:24Z	bookeeper-fase-1c	desktop-raw	dwarf	sonnet	-	trap	vitest toequal on multi mb uint8arrays times out at 5s compare via buffer equals	vitest `toEqual` on multi-MB Uint8Arrays times out at 5s; compare via Buffer.equals [apps/desktop/src/transport.test.ts]	282	1
+2026-11-24T20:47:09Z	bookeeper-fase-1c	desktop-raw	qa	opus	PASS	-	-	-	221
+2026-11-24T20:48:26Z	bookeeper-fase-1c	fmt-fix	dwarf	sonnet	-	-	-	-	74
+2026-11-24T20:49:55Z	bookeeper-fase-1c	fmt-fix	qa	opus	PASS	-	-	-	85
