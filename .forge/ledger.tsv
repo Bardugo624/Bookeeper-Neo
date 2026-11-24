@@ -108,3 +108,7 @@
 2026-11-24T22:00:19Z	bookeeper-fase-1d	p3-lookup	qa	opus	FAIL	-	-	-	207
 2026-11-24T22:00:44Z	bookeeper-fase-1d	p3-backup	qa	opus	PASS	-	-	-	190
 2026-11-24T22:00:56Z	bookeeper-fase-1d	p3-lookup	dwarf	sonnet	-	-	-	-	31
+2026-11-24T22:04:00Z	bookeeper-fase-1d	p3-lookup	qa	opus	PASS	-	-	-	180
+2026-11-24T22:04:48Z	bookeeper-fase-1d	p3-covers-labels	dwarf	sonnet	-	-	-	-	238
+2026-11-24T22:08:48Z	bookeeper-fase-1d	p3-covers-labels	qa	opus	PASS	-	-	-	235
+2026-11-24T22:08:48Z	bookeeper-fase-1d	p3-desktop	dwarf	sonnet	-	-	-	-	283
