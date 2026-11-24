@@ -76,10 +76,12 @@ export function okRaw(r: RawResponse): RawResponse {
 export function parseJsonRaw<T>(r: RawResponse): T {
   okRaw(r);
   try {
-    return JSON.parse(new TextDecoder().decode(r.bytes)) as T;
+    const v: unknown = JSON.parse(new TextDecoder().decode(r.bytes));
+    if (typeof v === 'object' && v !== null) return v as T;
   } catch {
-    throw new ApiError(r.status, 'unknown', `Unexpected response (${r.status})`);
+    /* fall through */
   }
+  throw new ApiError(r.status, 'unknown', `Unexpected response (${r.status})`);
 }
 
 export function filenameOf(r: RawResponse, fallback: string): string {

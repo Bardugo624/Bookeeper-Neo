@@ -1,6 +1,7 @@
 import { P, S, filenameOf, okRaw, parseJsonRaw, raw, unwrap, type Transport } from './util';
 
 export type ConfirmOut = S['ConfirmOut'];
+export type ConfirmRequest = S['ConfirmRequest'];
 export type RestoreReport = S['RestoreReport'];
 export type BackupList = S['BackupList'];
 export type BackupItem = S['BackupItem'];

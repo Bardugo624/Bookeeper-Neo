@@ -48,18 +48,16 @@ describe('files client', () => {
     expect(rawCalls[0].body).toBe(bytes);
   });
   it('fetchCover and deleteCover', async () => {
-    const { c, rawCalls, calls } = mk(raw(200, enc({ cover_color: '#fff', source_url: 'u' })));
+    const { c, calls } = mk();
     await c.fetchCover('b1', ['https://a/b.jpg']);
-    expect(rawCalls[0]).toMatchObject({ method: 'POST', path: '/api/v1/books/b1/cover/fetch' });
-    expect(JSON.parse(new TextDecoder().decode(rawCalls[0].body))).toEqual({ candidates: ['https://a/b.jpg'] });
+    expect(calls[0]).toEqual(['POST', '/api/v1/books/b1/cover/fetch', { candidates: ['https://a/b.jpg'] }]);
     await c.deleteCover('b1');
-    expect(calls[0].slice(0, 2)).toEqual(['DELETE', '/api/v1/books/b1/cover']);
+    expect(calls[1].slice(0, 2)).toEqual(['DELETE', '/api/v1/books/b1/cover']);
   });
   it('importBooks posts JSON', async () => {
-    const { c, rawCalls } = mk(raw(200, enc({ total: 1 })));
+    const { c, calls } = mk();
     await c.importBooks({ format: 'auto', content: 'x', dry_run: true });
-    expect(rawCalls[0]).toMatchObject({ method: 'POST', path: '/api/v1/import', contentType: 'application/json' });
-    expect(JSON.parse(new TextDecoder().decode(rawCalls[0].body))).toEqual({ format: 'auto', content: 'x', dry_run: true });
+    expect(calls[0]).toEqual(['POST', '/api/v1/import', { format: 'auto', content: 'x', dry_run: true }]);
   });
   it('exportLibrary reads filename from Content-Disposition', async () => {
     const { c, rawCalls } = mk(raw(200, new Uint8Array([1]), { 'content-disposition': 'attachment; filename="bookeeper-casa-20261124.csv"' }));

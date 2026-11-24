@@ -1,7 +1,8 @@
-import { P, S, enc, encodeJson, JSON_CT, okRaw, parseJsonRaw, raw, unwrapEmpty, type Transport } from './util';
+import { P, S, enc, okRaw, parseJsonRaw, raw, unwrap, unwrapEmpty, type Transport } from './util';
 
 export type CoverColor = S['CoverColor'];
 export type CoverFetched = S['CoverFetched'];
+export type FetchCover = S['FetchCover'];
 
 export function coversApi(t: Transport) {
   return {
@@ -25,13 +26,7 @@ export function coversApi(t: Transport) {
       return parseJsonRaw<CoverColor>(r);
     },
     async fetchCover(bookId: string, candidates: string[]) {
-      const r = await raw(t, {
-        method: 'POST',
-        path: `${P}/books/${enc(bookId)}/cover/fetch`,
-        body: encodeJson({ candidates }),
-        contentType: JSON_CT,
-      });
-      return parseJsonRaw<CoverFetched>(r);
+      return unwrap<CoverFetched>(await t.request('POST', `${P}/books/${enc(bookId)}/cover/fetch`, { candidates }));
     },
     async deleteCover(bookId: string) {
       unwrapEmpty(await t.request('DELETE', `${P}/books/${enc(bookId)}/cover`));

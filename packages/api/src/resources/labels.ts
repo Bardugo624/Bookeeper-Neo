@@ -1,4 +1,6 @@
-import { P, encodeJson, JSON_CT, okRaw, raw, type Transport } from './util';
+import { P, S, encodeJson, JSON_CT, okRaw, raw, type Transport } from './util';
+
+export type LabelsRequest = S['LabelsRequest'];
 
 export function labelsApi(t: Transport) {
   return {

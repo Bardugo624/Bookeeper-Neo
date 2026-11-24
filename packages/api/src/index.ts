@@ -26,6 +26,7 @@ export type { LoanOut, LoanList, CreateLoan, PatchLoan, ReturnLoan, ListLoansPar
 export type { WishOut, WishList, CreateWish, PatchWish } from './resources/wishlist';
 export type { Stats } from './resources/stats';
 export type { Metadata } from './resources/lookup';
-export type { CoverColor, CoverFetched } from './resources/covers';
-export type { ImportReport, ImportRequest, ImportFormat } from './resources/transfer';
-export type { ConfirmOut, RestoreReport, BackupList, BackupItem, BackupConfig } from './resources/backup';
+export type { CoverColor, CoverFetched, FetchCover } from './resources/covers';
+export type { ImportReport, ImportRequest, ImportFormat, ImportRowError, ImportedBook, ExportJson, ExportBook } from './resources/transfer';
+export type { ConfirmOut, ConfirmRequest, RestoreReport, BackupList, BackupItem, BackupConfig } from './resources/backup';
+export type { LabelsRequest } from './resources/labels';
