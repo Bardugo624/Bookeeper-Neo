@@ -1,6 +1,6 @@
 use bookeeper_core::VERSION;
 use bookeeper_server::{
-    bind, build_with_db, issue_setup_code, open_db, serve, startup_setup_code, Cli, Command,
+    bind, build_with_data, issue_setup_code, open_db, serve, startup_setup_code, Cli, Command,
     Config, StartError,
 };
 use clap::Parser;
@@ -13,7 +13,7 @@ async fn run(cfg: Config) -> Result<(), StartError> {
     if let Some(code) = startup_setup_code(&db)? {
         println!("Codice di setup: {code}");
     }
-    let app = build_with_db(db)?;
+    let app = build_with_data(db, &cfg.data_dir)?;
     let addr = listener.local_addr().map_err(|source| StartError::Bind {
         addr: std::net::SocketAddr::new(cfg.bind, cfg.port),
         source,
