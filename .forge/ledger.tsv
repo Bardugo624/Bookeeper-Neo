@@ -69,3 +69,12 @@
 2026-11-24T13:21:41Z	bookeeper-fase-1c	confirm	dwarf	sonnet	-	-	-	-	252
 2026-11-24T13:23:09Z	bookeeper-fase-1c	lookup-annas	qa	opus	FAIL	-	-	-	275
 2026-11-24T13:24:13Z	bookeeper-fase-1c	lookup-annas	dwarf	sonnet	-	-	-	-	42
+2026-11-24T13:33:11Z	bookeeper-fase-1c	confirm	dwarf	sonnet	-	-	-	-	43
+2026-11-24T13:33:25Z	bookeeper-fase-1c	lookup-annas	dwarf	sonnet	-	trap	tests plumbing c rs stub lookup returns none calls real provider endpoints google 429 offline and fails without network	tests/plumbing_c.rs `stub_lookup_returns_none` calls real provider endpoints (google 429 offline) and fails without network [crates/bookeeper-core/tests/plumbing_c.rs]	57	1
+2026-11-24T13:33:53Z	bookeeper-fase-1c	covers	dwarf	sonnet	-	-	-	-	39
+2026-11-24T13:36:07Z	bookeeper-fase-1c	lookup-annas	qa	opus	PASS	-	-	-	158
+2026-11-24T13:36:45Z	bookeeper-fase-1c	covers	qa	opus	FAIL	verify	cargo test offline p bookeeper core test name works from committed files cargo registry cache is present	cargo test --offline -p bookeeper-core --test <name> works from committed files (cargo registry cache is present) [crates/bookeeper-core/Cargo.toml]	167	1
+2026-11-24T13:37:32Z	bookeeper-fase-1c	covers	dwarf	sonnet	-	-	-	-	42
+2026-11-24T13:41:09Z	bookeeper-fase-1c	covers	qa	opus	FAIL	finding	does the jpeg contain ff d9 truncation checks are fooled by the exif thumbnail s own end marker inside app1 look only after the	"does the JPEG contain FF D9" truncation checks are fooled by the EXIF thumbnail's own end marker inside APP1; look only after the… [crates/bookeeper-core/src/covers.rs]	212	1
+2026-11-24T13:41:20Z	bookeeper-fase-1c	labels	dwarf	sonnet	-	trap	printpdf 0 7 stamps creation date and a document id so pdfs built with it are not byte deterministic labels rs writes raw pdf instead	printpdf 0.7 stamps creation date and a document id, so PDFs built with it are not byte-deterministic; labels.rs writes raw PDF instead [crates/bookeeper-core/src/labels.rs]	299	1
+2026-11-24T13:44:17Z	bookeeper-fase-1c	labels	qa	opus	PASS	-	-	-	172
