@@ -102,17 +102,21 @@ fn header_of(content: &str, delimiter: u8) -> Vec<String> {
 pub fn detect(content: &str) -> Option<Format> {
     let content = strip_bom(content);
     let tab = header_of(content, b'\t');
-    if tab.iter().any(|h| h == "primary author") && tab.iter().any(|h| h == "title") {
-        return Some(Format::LibraryThing);
-    }
+    let tab_separated = content.lines().next().is_some_and(|l| l.contains('\t'));
     let comma = header_of(content, b',');
     let has = |name: &str| comma.iter().any(|h| h == name);
     if has("title") && has("author") && (has("isbn13") || has("exclusive shelf") || has("book id"))
     {
         return Some(Format::Goodreads);
     }
+    if tab_separated && tab.iter().any(|h| h == "primary author" || h == "title") {
+        return Some(Format::LibraryThing);
+    }
     if has("title") && has("authors") {
         return Some(Format::Calibre);
+    }
+    if tab_separated {
+        return Some(Format::LibraryThing);
     }
     None
 }

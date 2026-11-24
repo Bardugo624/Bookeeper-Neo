@@ -122,14 +122,54 @@ pub fn download(bytes: Vec<u8>, content_type: &'static str, filename: &str) -> R
         .into_response()
 }
 
-/// Reads the whole body up to `max_bytes`. Larger bodies give 413 `payload_too_large`.
+/// Reads the whole body up to `max_bytes`. Larger bodies give 413 `payload_too_large`;
+/// any other read failure gives 400 `bad_request`.
 pub async fn read_body(body: axum::body::Body, max_bytes: usize) -> ApiResult<Vec<u8>> {
     match axum::body::to_bytes(body, max_bytes).await {
         Ok(b) => Ok(b.to_vec()),
-        Err(_) => Err(ApiError::coded(
-            StatusCode::PAYLOAD_TOO_LARGE,
-            "payload_too_large",
-            "Request body is too large",
-        )),
+        Err(e) => {
+            let mut cur: Option<&(dyn std::error::Error + 'static)> = Some(&e);
+            while let Some(err) = cur {
+                if err.is::<http_body_util::LengthLimitError>() {
+                    return Err(ApiError::coded(
+                        StatusCode::PAYLOAD_TOO_LARGE,
+                        "payload_too_large",
+                        "Request body is too large",
+                    ));
+                }
+                cur = err.source();
+            }
+            Err(ApiError::coded(
+                StatusCode::BAD_REQUEST,
+                "bad_request",
+                "Could not read the request body",
+            ))
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn a_body_over_the_limit_is_413() {
+        let err = read_body(axum::body::Body::from(vec![0u8; 100]), 10)
+            .await
+            .unwrap_err();
+        assert_eq!(err.status, StatusCode::PAYLOAD_TOO_LARGE);
+        assert_eq!(err.code, "payload_too_large");
+    }
+
+    #[tokio::test]
+    async fn a_broken_body_is_400() {
+        let chunks: Vec<Result<Vec<u8>, std::io::Error>> = vec![
+            Ok(b"abc".to_vec()),
+            Err(std::io::Error::other("connection reset")),
+        ];
+        let body = axum::body::Body::from_stream(futures_util::stream::iter(chunks));
+        let err = read_body(body, 1000).await.unwrap_err();
+        assert_eq!(err.status, StatusCode::BAD_REQUEST);
+        assert_eq!(err.code, "bad_request");
     }
 }
