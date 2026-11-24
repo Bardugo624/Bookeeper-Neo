@@ -32,8 +32,8 @@ pub fn routes() -> axum::Router<AppState> {
 
 #[derive(utoipa::OpenApi)]
 #[openapi(
-    paths(create_backup, restore),
-    components(schemas(RestoreReport, ArchiveBody))
+    paths(create_backup, restore, list_backups, get_config, put_config),
+    components(schemas(RestoreReport, ArchiveBody, BackupItem, BackupList, BackupConfig))
 )]
 pub struct Doc;
 
@@ -142,20 +142,31 @@ pub async fn restore(
     Ok(Json(report))
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, ToSchema)]
 pub struct BackupItem {
     pub name: String,
     pub created_at: i64,
     pub size_bytes: u64,
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, ToSchema)]
 pub struct BackupList {
     pub items: Vec<BackupItem>,
 }
 
 /// Automatic backups of this library, newest first (admin).
-async fn list_backups(State(state): State<AppState>, who: AuthUser) -> ApiResult<Json<BackupList>> {
+#[utoipa::path(
+    get,
+    path = "/api/v1/backups",
+    tag = "backup",
+    security(("bearer" = [])),
+    responses(
+        (status = 200, description = "Automatic backups", body = BackupList),
+        (status = 401, description = "Missing or invalid token", body = ApiErrorBody),
+        (status = 403, description = "Admin or owner only", body = ApiErrorBody),
+    )
+)]
+pub async fn list_backups(State(state): State<AppState>, who: AuthUser) -> ApiResult<Json<BackupList>> {
     who.require(Role::Admin)?;
     let files = state.files.clone();
     let lib = who.library_id.clone();
@@ -179,7 +190,18 @@ async fn list_backups(State(state): State<AppState>, who: AuthUser) -> ApiResult
 }
 
 /// Effective automatic backup configuration (admin).
-async fn get_config(State(state): State<AppState>, who: AuthUser) -> ApiResult<Json<BackupConfig>> {
+#[utoipa::path(
+    get,
+    path = "/api/v1/backups/config",
+    tag = "backup",
+    security(("bearer" = [])),
+    responses(
+        (status = 200, description = "Effective configuration", body = BackupConfig),
+        (status = 401, description = "Missing or invalid token", body = ApiErrorBody),
+        (status = 403, description = "Admin or owner only", body = ApiErrorBody),
+    )
+)]
+pub async fn get_config(State(state): State<AppState>, who: AuthUser) -> ApiResult<Json<BackupConfig>> {
     who.require(Role::Admin)?;
     let lib = who.library_id.clone();
     let cfg = state
@@ -190,7 +212,20 @@ async fn get_config(State(state): State<AppState>, who: AuthUser) -> ApiResult<J
 }
 
 /// Saves the automatic backup configuration (admin).
-async fn put_config(
+#[utoipa::path(
+    put,
+    path = "/api/v1/backups/config",
+    tag = "backup",
+    security(("bearer" = [])),
+    request_body = BackupConfig,
+    responses(
+        (status = 200, description = "Saved configuration", body = BackupConfig),
+        (status = 401, description = "Missing or invalid token", body = ApiErrorBody),
+        (status = 403, description = "Admin or owner only", body = ApiErrorBody),
+        (status = 422, description = "validation", body = ApiErrorBody),
+    )
+)]
+pub async fn put_config(
     State(state): State<AppState>,
     who: AuthUser,
     ApiJson(cfg): ApiJson<BackupConfig>,

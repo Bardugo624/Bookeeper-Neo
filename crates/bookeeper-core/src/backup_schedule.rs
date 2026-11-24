@@ -220,7 +220,7 @@ async fn backup_library(state: &AppState, library_id: &str, now: i64) -> Result<
                 remove_stale_tmp(&dir, now);
             }
             let newest = list_auto(&files, &lib)?.first().map(|b| b.created_at);
-            Ok(newest.is_none_or(|t| now - t >= interval))
+            Ok(newest.is_none_or(|t| !(0..interval).contains(&(now - t))))
         })
         .await?
     };
