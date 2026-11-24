@@ -14,9 +14,17 @@ async fn api_request(
     method: String,
     path: String,
     body: Option<String>,
+    headers: Option<std::collections::BTreeMap<String, String>>,
 ) -> Result<ApiResponse, ()> {
     // Never `Err`: transport failures are reported inside `ApiResponse`.
-    Ok(dispatch(router.0.clone(), &method, &path, body).await)
+    Ok(dispatch(
+        router.0.clone(),
+        &method,
+        &path,
+        body,
+        headers.unwrap_or_default(),
+    )
+    .await)
 }
 
 // snake_case: the webview sends `body_base64` / `content_type` as-is.
