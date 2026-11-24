@@ -1,8 +1,8 @@
 use bookeeper_core::VERSION;
 use bookeeper_server::{
-    app_state, bind, build_with_state, identity_lines, issue_setup_code, load_self_identity,
-    open_db, self_dir, serve, startup_setup_code, Cli, Command, Config, StartError, TlsChoice,
-    TlsServer,
+    announce, app_state, bind, build_with_state, identity_lines, issue_setup_code,
+    load_self_identity, open_db, self_dir, serve, startup_setup_code, Cli, Command, Config,
+    StartError, TlsChoice, TlsServer,
 };
 use clap::Parser;
 
@@ -29,16 +29,20 @@ async fn run(cfg: Config) -> Result<(), StartError> {
         "https"
     };
     println!("Bookeeper {VERSION} in ascolto su {scheme}://{addr}");
+    let port = addr.port();
     let result = match cfg.tls {
-        TlsChoice::Off => serve(listener, app).await,
+        TlsChoice::Off => {
+            let _announcer = announce::start(&cfg, port);
+            serve(listener, app).await
+        }
         TlsChoice::SelfSigned => {
             let identity = load_self_identity(&cfg)?;
             for line in identity_lines(&identity) {
                 println!("{line}");
             }
-            TlsServer::self_signed(listener, &identity)?
-                .serve(app)
-                .await
+            let server = TlsServer::self_signed(listener, &identity)?;
+            let _announcer = announce::start(&cfg, port);
+            server.serve(app).await
         }
         TlsChoice::Acme => {
             if let Some(domain) = &cfg.domain {
@@ -46,7 +50,9 @@ async fn run(cfg: Config) -> Result<(), StartError> {
                     "Certificato richiesto per {domain}: la porta 443 deve essere raggiungibile da Internet."
                 );
             }
-            TlsServer::acme(listener, &cfg)?.serve(app).await
+            let server = TlsServer::acme(listener, &cfg)?;
+            let _announcer = announce::start(&cfg, port);
+            server.serve(app).await
         }
     };
     if let Err(e) = result {
