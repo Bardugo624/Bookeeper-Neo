@@ -25,35 +25,74 @@ pub enum TokenError {
     Invalid,
 }
 
-pub fn issue_access(secret: &[u8], who: &Identity, now: i64) -> String {
-    let claims = AccessClaims {
-        lid: who.library_id.clone(),
-        uid: who.user_id.clone(),
-        did: who.device_id.clone(),
-        role: who.role,
-        iat: now,
-        exp: now + ACCESS_TTL_SECS,
+/// Lifetime of a confirmation token.
+pub const CONFIRM_TTL_SECS: i64 = 300;
+
+const KIND_ACCESS: &str = "access";
+const KIND_CONFIRM: &str = "confirm";
+
+/// Wire format: the claims plus the token kind. A missing `knd` means `access`
+/// (tokens issued before the field existed).
+#[derive(Serialize, Deserialize)]
+struct Wire {
+    #[serde(flatten)]
+    claims: AccessClaims,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    knd: Option<String>,
+}
+
+fn issue(secret: &[u8], who: &Identity, now: i64, kind: &str, ttl: i64) -> String {
+    let wire = Wire {
+        claims: AccessClaims {
+            lid: who.library_id.clone(),
+            uid: who.user_id.clone(),
+            did: who.device_id.clone(),
+            role: who.role,
+            iat: now,
+            exp: now + ttl,
+        },
+        knd: Some(kind.to_string()),
     };
     // Serializing plain claims with an HMAC key cannot fail.
     encode(
         &Header::new(Algorithm::HS256),
-        &claims,
+        &wire,
         &EncodingKey::from_secret(secret),
     )
     .unwrap_or_default()
 }
 
-pub fn verify_access(secret: &[u8], token: &str, now: i64) -> Result<AccessClaims, TokenError> {
+fn verify(secret: &[u8], token: &str, now: i64, kind: &str) -> Result<AccessClaims, TokenError> {
     let mut validation = Validation::new(Algorithm::HS256);
     validation.validate_exp = false;
     validation.validate_nbf = false;
     validation.required_spec_claims.clear();
-    let data = decode::<AccessClaims>(token, &DecodingKey::from_secret(secret), &validation)
+    let data = decode::<Wire>(token, &DecodingKey::from_secret(secret), &validation)
         .map_err(|_| TokenError::Invalid)?;
-    if data.claims.exp <= now {
+    if data.claims.knd.as_deref().unwrap_or(KIND_ACCESS) != kind {
+        return Err(TokenError::Invalid);
+    }
+    if data.claims.claims.exp <= now {
         return Err(TokenError::Expired);
     }
-    Ok(data.claims)
+    Ok(data.claims.claims)
+}
+
+pub fn issue_access(secret: &[u8], who: &Identity, now: i64) -> String {
+    issue(secret, who, now, KIND_ACCESS, ACCESS_TTL_SECS)
+}
+
+pub fn verify_access(secret: &[u8], token: &str, now: i64) -> Result<AccessClaims, TokenError> {
+    verify(secret, token, now, KIND_ACCESS)
+}
+
+/// HS256 JWT distinct from access tokens: never accepted as one, nor the other way round.
+pub fn issue_confirm(secret: &[u8], who: &Identity, now: i64) -> String {
+    issue(secret, who, now, KIND_CONFIRM, CONFIRM_TTL_SECS)
+}
+
+pub fn verify_confirm(secret: &[u8], token: &str, now: i64) -> Result<AccessClaims, TokenError> {
+    verify(secret, token, now, KIND_CONFIRM)
 }
 
 fn base64url(bytes: &[u8]) -> String {
