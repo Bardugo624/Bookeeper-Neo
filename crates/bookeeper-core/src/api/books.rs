@@ -698,6 +698,12 @@ fn delete_one(
     Ok(true)
 }
 
+/// Removes the cover files of deleted books, after the commit. Failures are not errors.
+async fn remove_covers(state: &AppState, ids: Vec<String>) {
+    let dir = state.files.covers_dir.clone();
+    let _ = tokio::task::spawn_blocking(move || crate::covers::remove_files(&dir, &ids)).await;
+}
+
 #[utoipa::path(
     delete,
     path = "/api/v1/books/{id}",
@@ -716,6 +722,7 @@ pub async fn delete_book(
     Path(id): Path<String>,
 ) -> ApiResult<StatusCode> {
     who.require(Role::Member)?;
+    let id_for_cover = id.clone();
     let found = state
         .db
         .run(move |conn| {
@@ -726,6 +733,7 @@ pub async fn delete_book(
         })
         .await?;
     if found {
+        remove_covers(&state, vec![id_for_cover]).await;
         Ok(StatusCode::NO_CONTENT)
     } else {
         Err(ApiError::not_found())
@@ -758,17 +766,19 @@ pub async fn batch_delete(
         .run(move |conn| {
             let tx = conn.transaction()?;
             let now = now_secs();
-            let mut deleted = 0;
+            let mut deleted = Vec::new();
             for id in &body.ids {
                 if delete_one(&tx, &who, id, now)? {
-                    deleted += 1;
+                    deleted.push(id.clone());
                 }
             }
             tx.commit()?;
             Ok(deleted)
         })
         .await?;
-    Ok(Json(BatchDeleted { deleted }))
+    let count = deleted.len() as i64;
+    remove_covers(&state, deleted).await;
+    Ok(Json(BatchDeleted { deleted: count }))
 }
 
 #[utoipa::path(
