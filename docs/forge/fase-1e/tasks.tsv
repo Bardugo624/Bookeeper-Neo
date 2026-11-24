@@ -1,0 +1,7 @@
+# id	deps	difficulty	files	dwarf	qa	title
+core-e	-	medium	crates/bookeeper-core/src/backup_schedule.rs,crates/bookeeper-core/tests/backup_schedule.rs,crates/bookeeper-core/src/labels.rs	-	-	Core: backup nel futuro e larghezze dei caratteri accentati
+openapi-e	-	medium	crates/bookeeper-core/src/openapi.rs,crates/bookeeper-core/src/api/server.rs,crates/bookeeper-core/tests/openapi_errors.rs,packages/api/openapi.json,packages/api/src/schema.d.ts,packages/api/src/resources/server.ts,packages/api/src/resources.test.ts	-	-	OpenAPI: errori delle rotte JSON e public_url obbligatorio
+net-e	-	low	crates/bookeeper-net/src/mdns.rs	-	-	mDNS: url troppo lungo omesso
+domains	-	high	crates/bookeeper-server/src/config.rs,crates/bookeeper-server/src/tls.rs,crates/bookeeper-server/src/main.rs,crates/bookeeper-server/tests/config.rs,crates/bookeeper-server/tests/tls.rs,crates/bookeeper-server/tests/announce.rs	-	-	Server: più domini, indirizzo pubblico valido, limite all'handshake
+server-e	domains,net-e	medium	crates/bookeeper-server/src/main.rs,crates/bookeeper-server/src/lib.rs,crates/bookeeper-server/src/tls.rs,crates/bookeeper-server/src/layers.rs,crates/bookeeper-server/src/announce.rs,crates/bookeeper-server/tests/announce.rs,crates/bookeeper-server/tests/tls.rs,crates/bookeeper-server/tests/serve.rs	-	-	Server: ordine delle righe, messaggi, log e nome annunciato
+docker-e	-	low	Dockerfile,.dockerignore,docker-compose.yml	-	-	Docker: toolchain, porta 443, esempio con dominio
