@@ -537,6 +537,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/server": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["server_info"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/setup": {
         parameters: {
             query?: never;
@@ -1248,6 +1264,14 @@ export interface components {
         };
         /** @enum {string} */
         Role: "owner" | "admin" | "member" | "guest";
+        /** @description How clients can reach this server. */
+        ServerOut: {
+            phone_ready: boolean;
+            /** @description Always present in the JSON; `null` when there is no public address. */
+            public_url?: string | null;
+            tls: components["schemas"]["TlsMode"];
+            version: string;
+        };
         Session: {
             access_token: string;
             device_id: string;
@@ -1350,6 +1374,11 @@ export interface components {
             shelf_fill: components["schemas"]["ShelfFill"][];
             top_authors: components["schemas"]["CountBy"][];
         };
+        /**
+         * @description How the server is reached; serialized with the contract names.
+         * @enum {string}
+         */
+        TlsMode: "local" | "off" | "self" | "acme";
         UserOut: {
             display_name: string;
             email?: string | null;
@@ -1403,7 +1432,16 @@ export interface operations {
                     "application/json": components["schemas"]["ConfirmOut"];
                 };
             };
-            /** @description Wrong password */
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description invalid_credentials: wrong password; or unauthorized, token_expired or device_revoked */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -1412,7 +1450,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Password required */
+            /** @description validation: password required */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -1421,7 +1459,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Too many wrong attempts */
+            /** @description rate_limited: too many wrong attempts (Retry-After header) */
             429: {
                 headers: {
                     [name: string]: unknown;
@@ -1454,7 +1492,16 @@ export interface operations {
                     "application/json": components["schemas"]["LibrariesOut"];
                 };
             };
-            /** @description Wrong email or password */
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description invalid_credentials: wrong email or password */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -1463,8 +1510,17 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Invalid fields */
+            /** @description validation: invalid fields */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description rate_limited: too many attempts (Retry-After header) */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1496,7 +1552,16 @@ export interface operations {
                     "application/json": components["schemas"]["AuthOut"];
                 };
             };
-            /** @description Wrong email or password */
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description invalid_credentials: wrong email or password */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -1505,7 +1570,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description The credentials match several libraries */
+            /** @description library_choice_required: the credentials match several libraries */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -1514,8 +1579,17 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Invalid fields */
+            /** @description validation: invalid fields */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description rate_limited: too many attempts (Retry-After header) */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1541,7 +1615,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Not signed in */
+            /** @description unauthorized, token_expired or device_revoked */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -1572,7 +1646,16 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Current password is wrong */
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description invalid_credentials: current password is wrong; or unauthorized, token_expired or device_revoked */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -1581,7 +1664,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Current password is required */
+            /** @description password_required: current password is required */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -1590,7 +1673,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Invalid fields */
+            /** @description validation: invalid fields */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -1623,6 +1706,15 @@ export interface operations {
                     "application/json": components["schemas"]["RefreshOut"];
                 };
             };
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
             /** @description refresh_invalid, refresh_reused or device_revoked */
             401: {
                 headers: {
@@ -1652,7 +1744,16 @@ export interface operations {
                     "application/zip": number[];
                 };
             };
-            /** @description Admin or owner only */
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: admin or owner only */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -1681,7 +1782,7 @@ export interface operations {
                     "application/json": components["schemas"]["BackupList"];
                 };
             };
-            /** @description Missing or invalid token */
+            /** @description unauthorized, token_expired or device_revoked */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -1690,7 +1791,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Admin or owner only */
+            /** @description forbidden: admin or owner only */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -1719,7 +1820,7 @@ export interface operations {
                     "application/json": components["schemas"]["BackupConfig"];
                 };
             };
-            /** @description Missing or invalid token */
+            /** @description unauthorized, token_expired or device_revoked */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -1728,7 +1829,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Admin or owner only */
+            /** @description forbidden: admin or owner only */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -1761,7 +1862,16 @@ export interface operations {
                     "application/json": components["schemas"]["BackupConfig"];
                 };
             };
-            /** @description Missing or invalid token */
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -1770,7 +1880,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Admin or owner only */
+            /** @description forbidden: admin or owner only */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -1831,7 +1941,16 @@ export interface operations {
                     "application/json": components["schemas"]["BookList"];
                 };
             };
-            /** @description Invalid query */
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description validation: invalid query */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -1864,7 +1983,25 @@ export interface operations {
                     "application/json": components["schemas"]["BookOut"];
                 };
             };
-            /** @description Guests cannot write */
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot write */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -1882,7 +2019,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Invalid body */
+            /** @description validation: invalid body */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -1915,7 +2052,25 @@ export interface operations {
                     "application/json": components["schemas"]["BatchDeleted"];
                 };
             };
-            /** @description Guests cannot write */
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot write */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -1924,7 +2079,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description More than 500 ids */
+            /** @description validation: more than 500 ids */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -1951,6 +2106,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["NextProgressive"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
             /** @description progressive_taken */
@@ -1985,7 +2149,16 @@ export interface operations {
                     "application/json": components["schemas"]["BookOut"];
                 };
             };
-            /** @description Unknown book */
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description not_found: unknown book */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -2015,7 +2188,16 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Guests cannot write */
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot write */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -2024,7 +2206,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Unknown book */
+            /** @description not_found: unknown book */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -2060,7 +2242,25 @@ export interface operations {
                     "application/json": components["schemas"]["BookOut"];
                 };
             };
-            /** @description Guests cannot write */
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot write */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -2069,7 +2269,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Unknown book */
+            /** @description not_found: unknown book */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -2087,7 +2287,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Invalid body */
+            /** @description validation: invalid body */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -2126,7 +2326,16 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Unknown book or cover_not_found */
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description not_found or cover_not_found */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -2162,7 +2371,7 @@ export interface operations {
                     "application/json": components["schemas"]["CoverColor"];
                 };
             };
-            /** @description unsupported_image */
+            /** @description unsupported_image or bad_request */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -2171,7 +2380,16 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Guests cannot write */
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot write */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -2180,7 +2398,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Unknown book */
+            /** @description not_found: unknown book */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -2219,7 +2437,16 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Guests cannot write */
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot write */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -2228,7 +2455,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Unknown book */
+            /** @description not_found: unknown book */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -2264,7 +2491,25 @@ export interface operations {
                     "application/json": components["schemas"]["CoverFetched"];
                 };
             };
-            /** @description Guests cannot write */
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot write */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -2273,7 +2518,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Unknown book */
+            /** @description not_found: unknown book */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -2318,7 +2563,16 @@ export interface operations {
                     "application/json": components["schemas"]["Placement"];
                 };
             };
-            /** @description Not authenticated */
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -2327,7 +2581,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Role too low */
+            /** @description forbidden: role too low */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -2336,7 +2590,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Unknown book or shelf */
+            /** @description not_found: unknown book or shelf */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -2345,7 +2599,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Slot occupied (slot_taken) */
+            /** @description slot_taken: slot occupied */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -2354,7 +2608,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Slot outside the shelf or bad spine_width */
+            /** @description validation: slot outside the shelf or bad spine_width */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -2384,7 +2638,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Not authenticated */
+            /** @description unauthorized, token_expired or device_revoked */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -2393,7 +2647,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Role too low */
+            /** @description forbidden: role too low */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -2402,7 +2656,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Unknown book */
+            /** @description not_found: unknown book */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -2431,7 +2685,7 @@ export interface operations {
                     "application/json": components["schemas"]["DeviceList"];
                 };
             };
-            /** @description Not authenticated */
+            /** @description unauthorized, token_expired or device_revoked */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -2467,7 +2721,16 @@ export interface operations {
                     "application/json": components["schemas"]["DeviceOut"];
                 };
             };
-            /** @description Not authenticated */
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -2476,7 +2739,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Not your device */
+            /** @description forbidden: not your device */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -2485,7 +2748,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Unknown device */
+            /** @description not_found: unknown device */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -2494,7 +2757,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Invalid name */
+            /** @description validation: invalid name */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -2524,7 +2787,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Not authenticated */
+            /** @description unauthorized, token_expired or device_revoked */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -2533,7 +2796,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Not your device */
+            /** @description forbidden: not your device */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -2542,7 +2805,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Unknown device */
+            /** @description not_found: unknown device */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -2574,7 +2837,16 @@ export interface operations {
                     "application/octet-stream": number[];
                 };
             };
-            /** @description Guests cannot export */
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot export */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -2583,7 +2855,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Unknown format */
+            /** @description validation: unknown format */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -2636,7 +2908,25 @@ export interface operations {
                     "application/json": components["schemas"]["ImportReport"];
                 };
             };
-            /** @description Admin only */
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: admin only */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -2645,7 +2935,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Body over 10 MB */
+            /** @description payload_too_large: body over 10 MB */
             413: {
                 headers: {
                     [name: string]: unknown;
@@ -2654,7 +2944,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Unknown format or too many rows */
+            /** @description validation: unknown format or too many rows */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -2687,7 +2977,16 @@ export interface operations {
                     "application/pdf": number[];
                 };
             };
-            /** @description Missing or invalid token */
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -2696,7 +2995,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Invalid ids or nothing to print */
+            /** @description validation: invalid ids or nothing to print */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -2734,7 +3033,16 @@ export interface operations {
                     "application/json": components["schemas"]["LoanList"];
                 };
             };
-            /** @description Invalid query */
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description validation: invalid query */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -2767,7 +3075,25 @@ export interface operations {
                     "application/json": components["schemas"]["LoanOut"];
                 };
             };
-            /** @description Guests cannot write */
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot write */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -2776,7 +3102,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Unknown book */
+            /** @description not_found: unknown book */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -2794,7 +3120,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Invalid body */
+            /** @description validation: invalid body */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -2824,7 +3150,16 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Guests cannot write */
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot write */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -2833,7 +3168,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Unknown loan */
+            /** @description not_found: unknown loan */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -2869,7 +3204,25 @@ export interface operations {
                     "application/json": components["schemas"]["LoanOut"];
                 };
             };
-            /** @description Guests cannot write */
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot write */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -2878,7 +3231,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Unknown loan */
+            /** @description not_found: unknown loan */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -2887,7 +3240,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Invalid body */
+            /** @description validation: invalid body */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -2919,7 +3272,16 @@ export interface operations {
                     "application/json": components["schemas"]["LoanOut"];
                 };
             };
-            /** @description Guests cannot write */
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot write */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -2928,7 +3290,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Unknown loan */
+            /** @description not_found: unknown loan */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -2973,7 +3335,25 @@ export interface operations {
                     "application/json": components["schemas"]["LoanOut"];
                 };
             };
-            /** @description Guests cannot write */
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot write */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -2982,7 +3362,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Unknown loan */
+            /** @description not_found: unknown loan */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -2991,7 +3371,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description returned_at before lent_at */
+            /** @description validation: returned_at before lent_at */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -3026,7 +3406,7 @@ export interface operations {
                     "application/json": components["schemas"]["Metadata"];
                 };
             };
-            /** @description Missing or invalid token */
+            /** @description unauthorized, token_expired or device_revoked */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -3035,7 +3415,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description No provider knows the ISBN (isbn_not_found) */
+            /** @description isbn_not_found: no provider knows the ISBN */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -3044,7 +3424,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Invalid ISBN */
+            /** @description validation: invalid ISBN */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -3073,7 +3453,7 @@ export interface operations {
                     "application/json": components["schemas"]["MeOut"];
                 };
             };
-            /** @description Not signed in */
+            /** @description unauthorized, token_expired or device_revoked */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -3102,7 +3482,7 @@ export interface operations {
                     "application/json": components["schemas"]["PairingCode"];
                 };
             };
-            /** @description Not authenticated */
+            /** @description unauthorized, token_expired or device_revoked */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -3111,7 +3491,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Guests cannot pair devices */
+            /** @description forbidden: guests cannot pair devices */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -3144,7 +3524,16 @@ export interface operations {
                     "application/json": components["schemas"]["AuthOut"];
                 };
             };
-            /** @description Code wrong, expired or already used */
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description pairing_code_invalid: code wrong, expired or already used */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -3153,8 +3542,17 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Invalid fields */
+            /** @description validation: invalid fields */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description rate_limited: too many attempts (Retry-After header) */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3189,7 +3587,7 @@ export interface operations {
                     "application/json": components["schemas"]["RestoreReport"];
                 };
             };
-            /** @description invalid_archive */
+            /** @description invalid_archive or bad_request */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -3198,7 +3596,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description confirmation_required */
+            /** @description confirmation_required, unauthorized, token_expired or device_revoked */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -3207,7 +3605,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Owner only */
+            /** @description forbidden: owner only */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -3223,6 +3621,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    server_info: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Connection information */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerOut"];
                 };
             };
         };
@@ -3269,7 +3687,16 @@ export interface operations {
                     "application/json": components["schemas"]["AuthOut"];
                 };
             };
-            /** @description Setup code missing or wrong */
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description setup_code_invalid: setup code missing or wrong */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -3278,7 +3705,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Setup already done */
+            /** @description setup_closed: setup already done */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -3287,8 +3714,17 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Invalid fields */
+            /** @description validation: invalid fields */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description rate_limited: too many setup attempts (Retry-After header) */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3316,7 +3752,7 @@ export interface operations {
                     "application/json": components["schemas"]["ShelfList"];
                 };
             };
-            /** @description Not authenticated */
+            /** @description unauthorized, token_expired or device_revoked */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -3349,7 +3785,16 @@ export interface operations {
                     "application/json": components["schemas"]["ShelfOut"];
                 };
             };
-            /** @description Not authenticated */
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -3358,7 +3803,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Role too low */
+            /** @description forbidden: role too low */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -3367,7 +3812,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Invalid field */
+            /** @description validation: invalid field */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -3399,7 +3844,7 @@ export interface operations {
                     "application/json": components["schemas"]["ShelfOut"];
                 };
             };
-            /** @description Not authenticated */
+            /** @description unauthorized, token_expired or device_revoked */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -3408,7 +3853,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Unknown shelf */
+            /** @description not_found: unknown shelf */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -3438,7 +3883,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Not authenticated */
+            /** @description unauthorized, token_expired or device_revoked */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -3447,7 +3892,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Role too low */
+            /** @description forbidden: role too low */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -3456,7 +3901,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Unknown shelf */
+            /** @description not_found: unknown shelf */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -3492,7 +3937,16 @@ export interface operations {
                     "application/json": components["schemas"]["ShelfOut"];
                 };
             };
-            /** @description Not authenticated */
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -3501,7 +3955,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Role too low */
+            /** @description forbidden: role too low */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -3510,7 +3964,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Unknown shelf */
+            /** @description not_found: unknown shelf */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -3519,7 +3973,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description A placed book would not fit (shelf_too_small) */
+            /** @description shelf_too_small: a placed book would not fit */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -3528,7 +3982,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Invalid field */
+            /** @description validation: invalid field */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -3564,7 +4018,16 @@ export interface operations {
                     "application/json": components["schemas"]["BatchAssignOut"];
                 };
             };
-            /** @description Not authenticated */
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -3573,7 +4036,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Role too low */
+            /** @description forbidden: role too low */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -3582,7 +4045,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Unknown shelf */
+            /** @description not_found: unknown shelf */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -3591,7 +4054,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description More than 500 ids */
+            /** @description validation: more than 500 ids */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -3623,7 +4086,7 @@ export interface operations {
                     "application/json": components["schemas"]["ShelfBookList"];
                 };
             };
-            /** @description Not authenticated */
+            /** @description unauthorized, token_expired or device_revoked */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -3632,7 +4095,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Unknown shelf */
+            /** @description not_found: unknown shelf */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -3661,7 +4124,7 @@ export interface operations {
                     "application/json": components["schemas"]["Stats"];
                 };
             };
-            /** @description Missing or invalid token */
+            /** @description unauthorized, token_expired or device_revoked */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -3690,6 +4153,15 @@ export interface operations {
                     "application/json": components["schemas"]["WishList"];
                 };
             };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
         };
     };
     create_wish: {
@@ -3714,7 +4186,25 @@ export interface operations {
                     "application/json": components["schemas"]["WishOut"];
                 };
             };
-            /** @description Guests cannot write */
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot write */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -3723,7 +4213,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Invalid body */
+            /** @description validation: invalid body */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -3753,7 +4243,16 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Guests cannot write */
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot write */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -3762,7 +4261,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Unknown item */
+            /** @description not_found: unknown item */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -3798,7 +4297,25 @@ export interface operations {
                     "application/json": components["schemas"]["WishOut"];
                 };
             };
-            /** @description Guests cannot write */
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot write */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -3807,7 +4324,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Unknown item */
+            /** @description not_found: unknown item */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -3816,7 +4333,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Invalid body */
+            /** @description validation: invalid body */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -3848,7 +4365,16 @@ export interface operations {
                     "application/json": components["schemas"]["BookOut"];
                 };
             };
-            /** @description Guests cannot write */
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot write */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -3857,7 +4383,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Unknown item */
+            /** @description not_found: unknown item */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -3866,7 +4392,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description Book conflict */
+            /** @description progressive_taken: book conflict */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -3875,7 +4401,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description The item does not make a valid book */
+            /** @description validation: the item does not make a valid book */
             422: {
                 headers: {
                     [name: string]: unknown;
