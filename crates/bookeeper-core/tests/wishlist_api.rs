@@ -60,9 +60,22 @@ async fn validation_table() {
 async fn list_is_personal_and_ordered() {
     let s = seed(Role::Owner, None, None).await;
     let (_, other) = add_user(&s.state, &s.library_id, Role::Member, "Bob").await;
-    wish(&s, json!({"title": "low", "priority": 0})).await;
-    wish(&s, json!({"title": "high", "priority": 2})).await;
-    wish(&s, json!({"title": "low-newer", "priority": 0})).await;
+    let old = wish(&s, json!({"title": "low-old", "priority": 0})).await;
+    let high = wish(&s, json!({"title": "high", "priority": 2})).await;
+    let new = wish(&s, json!({"title": "low-new", "priority": 0})).await;
+    for (w, t) in [(&old, 100), (&high, 50), (&new, 200)] {
+        let id = w["id"].as_str().unwrap().to_string();
+        s.state
+            .db
+            .run(move |c| {
+                c.execute(
+                    "UPDATE wishlist SET created_at = ?1 WHERE id = ?2",
+                    rusqlite::params![t, id],
+                )
+            })
+            .await
+            .unwrap();
+    }
     let (st, _) = req_as(
         &s,
         &other.access_token,
@@ -73,14 +86,17 @@ async fn list_is_personal_and_ordered() {
     .await;
     assert_eq!(st, 201);
     let (_, b) = req(&s, "GET", "/api/v1/wishlist", None).await;
-    let titles: Vec<&str> = b["items"]
+    let ids: Vec<&str> = b["items"]
         .as_array()
         .unwrap()
         .iter()
-        .map(|i| i["title"].as_str().unwrap())
+        .map(|i| i["id"].as_str().unwrap())
         .collect();
-    assert_eq!(titles.len(), 3);
-    assert_eq!(titles[0], "high");
+    let want: Vec<&str> = [&high, &new, &old]
+        .iter()
+        .map(|w| w["id"].as_str().unwrap())
+        .collect();
+    assert_eq!(ids, want);
     let (_, b) = req_as(&s, &other.access_token, "GET", "/api/v1/wishlist", None).await;
     assert_eq!(b["items"].as_array().unwrap().len(), 1);
     assert_eq!(b["items"][0]["title"], "bob");

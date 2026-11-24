@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use axum::{extract::State, routing::get, Json};
 use chrono::{Datelike, TimeZone, Utc};
@@ -178,27 +178,31 @@ pub fn compute(conn: &Connection, who: &AuthUser, now: i64) -> rusqlite::Result<
             },
         )?;
 
-    // Authors: one row per (book, spelling), then folded case-insensitively.
-    let mut author_map: HashMap<String, (i64, HashMap<String, i64>)> = HashMap::new();
+    // Authors: one row per (book, spelling), folded case-insensitively; each
+    // author counts the distinct books that list them.
+    let mut author_map: HashMap<String, (HashSet<String>, HashMap<String, i64>)> = HashMap::new();
     {
         let mut stmt = conn.prepare(
-            "SELECT TRIM(j.value) AS a, COUNT(DISTINCT b.id)
+            "SELECT DISTINCT b.id, TRIM(j.value) AS a
              FROM books b, json_each(b.authors_json) j
-             WHERE b.library_id = ?1 AND j.type = 'text' AND TRIM(j.value) <> ''
-             GROUP BY a",
+             WHERE b.library_id = ?1 AND j.type = 'text' AND TRIM(j.value) <> ''",
         )?;
-        let rows = stmt.query_map([lib], |r| Ok((r.get::<_, String>(0)?, r.get::<_, i64>(1)?)))?;
+        let rows = stmt.query_map([lib], |r| {
+            Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?))
+        })?;
         for row in rows {
-            let (name, n) = row?;
+            let (book, name) = row?;
             let entry = author_map.entry(name.to_lowercase()).or_default();
-            entry.0 += n;
-            *entry.1.entry(name).or_default() += n;
+            // A spelling also gets a vote when the book was already counted.
+            entry.0.insert(book);
+            *entry.1.entry(name).or_default() += 1;
         }
     }
     let total_authors = author_map.len() as i64;
     let mut top_authors: Vec<CountBy> = author_map
         .into_values()
-        .map(|(count, spellings)| {
+        .map(|(books, spellings)| {
+            let count = books.len() as i64;
             let key = spellings
                 .into_iter()
                 .max_by(|a, b| a.1.cmp(&b.1).then_with(|| b.0.cmp(&a.0)))

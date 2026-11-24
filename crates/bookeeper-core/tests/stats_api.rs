@@ -524,3 +524,36 @@ async fn route_returns_the_same_shape() {
     }
     assert_eq!(body["additions_by_month"].as_array().unwrap().len(), 12);
 }
+
+#[tokio::test]
+async fn top_authors_counts_each_book_once_per_author() {
+    let s = seed(Role::Owner, None, None).await;
+    let l = s.library_id.clone();
+    add(
+        &s,
+        &l,
+        B {
+            authors: r#"["Umberto Eco", "umberto eco"]"#,
+            ..b("A")
+        },
+    )
+    .await;
+    let top = stats_at(&s, now()).await.top_authors;
+    assert_eq!(pairs(&top), vec![("Umberto Eco".to_string(), 1)]);
+}
+
+#[tokio::test]
+async fn total_authors_ignores_duplicate_spellings_in_one_book() {
+    let s = seed(Role::Owner, None, None).await;
+    let l = s.library_id.clone();
+    add(
+        &s,
+        &l,
+        B {
+            authors: r#"["Umberto Eco", " UMBERTO ECO ", "Italo Calvino"]"#,
+            ..b("A")
+        },
+    )
+    .await;
+    assert_eq!(stats_at(&s, now()).await.overview.total_authors, 2);
+}
