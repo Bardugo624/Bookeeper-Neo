@@ -10,6 +10,7 @@ use tokio::net::TcpListener;
 
 pub mod announce;
 mod config;
+pub mod health;
 mod layers;
 pub mod tls;
 mod web;
