@@ -31,6 +31,12 @@ pub fn strip_html(s: &str) -> String {
                 }
                 rest = &after[e + 1..];
             }
+            None if opens_tag => {
+                // No `>` anywhere after this point: the rest is plain text (keeps this linear).
+                out.push('<');
+                rest = after;
+                break;
+            }
             None => {
                 out.push('<');
                 rest = after;
@@ -50,8 +56,9 @@ pub fn decode_entities(s: &str) -> String {
         out.push_str(&rest[..i]);
         rest = &rest[i..];
         let decoded = rest
-            .find(';')
-            .filter(|&e| e <= 10)
+            .bytes()
+            .take(11)
+            .position(|b| b == b';')
             .and_then(|e| entity(&rest[1..e]).map(|c| (c, e + 1)));
         match decoded {
             Some((c, len)) => {
@@ -139,7 +146,7 @@ pub async fn read_limited(mut resp: reqwest::Response, max: usize) -> Result<Str
         }
         buf.extend_from_slice(&chunk);
     }
-    String::from_utf8(buf).map_err(|_| "body is not valid UTF-8".to_string())
+    Ok(String::from_utf8_lossy(&buf).into_owned())
 }
 
 #[cfg(test)]
@@ -160,6 +167,14 @@ mod tests {
     #[test]
     fn unclosed_tag_stays_text() {
         assert_eq!(strip_html("ciao <b non chiuso"), "ciao <b non chiuso");
+    }
+
+    #[test]
+    fn many_unclosed_tags_are_linear() {
+        let s = "<a".repeat(500_000);
+        assert_eq!(strip_html(&s), s);
+        let amp = "&".repeat(500_000);
+        assert_eq!(decode_entities(&amp), amp);
     }
 
     #[test]
