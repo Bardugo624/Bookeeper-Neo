@@ -19,6 +19,9 @@ use crate::auth::guard::AuthUser;
 use crate::covers::{self, Processed};
 use crate::state::Files;
 
+#[path = "backup_schedule.rs"]
+pub mod schedule;
+
 pub const FORMAT: &str = "bookeeper-backup";
 pub const FORMAT_VERSION: i64 = 1;
 /// Largest archive accepted by the restore route.

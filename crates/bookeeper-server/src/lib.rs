@@ -87,18 +87,33 @@ pub fn build(cfg: &Config) -> Result<axum::Router, StartError> {
 
 /// Builds the router on an opened database, keeping files under `data_dir`.
 pub fn build_with_data(db: Db, data_dir: &Path) -> Result<axum::Router, StartError> {
-    finish(AppState::open_with_data(
+    finish(app_state(db, data_dir)?)
+}
+
+/// The application state for a data directory, for callers that also need to start
+/// background work (the scheduled backups) on it.
+pub fn app_state(db: Db, data_dir: &Path) -> Result<AppState, StartError> {
+    Ok(AppState::open_with_data(
         db,
         SetupPolicy::CodeRequired,
         data_dir,
     )?)
 }
 
+/// Same router as [`build_with_data`], on an existing state.
+pub fn build_with_state(state: AppState) -> axum::Router {
+    router_for(state)
+}
+
 fn finish(state: AppState) -> Result<axum::Router, StartError> {
+    Ok(router_for(state))
+}
+
+fn router_for(state: AppState) -> axum::Router {
     // The core router already has a JSON fallback and `merge` panics when both sides
     // have one: drop the core's so `web_routes()` carries the only fallback (which
     // still answers `/api/*` with the JSON 404).
-    Ok(router(state).reset_fallback().merge(web_routes()))
+    router(state).reset_fallback().merge(web_routes())
 }
 
 /// Binds the TCP listener on the configured address and port.

@@ -4,7 +4,7 @@ use axum::{
     extract::{FromRequestParts, State},
     http::{request::Parts, StatusCode},
     response::Response,
-    routing::post,
+    routing::{get, post},
     Json,
 };
 use utoipa::ToSchema;
@@ -16,8 +16,9 @@ use crate::{
     },
     audit,
     auth::{guard::AuthUser, Role},
-    backup::{self, BackupError, RestoreReport},
+    backup::{self, schedule::BackupConfig, BackupError, RestoreReport},
     error::{ApiError, ApiErrorBody, ApiResult},
+    extract::ApiJson,
     state::AppState,
 };
 
@@ -25,12 +26,14 @@ pub fn routes() -> axum::Router<AppState> {
     axum::Router::new()
         .route("/api/v1/backup", post(create_backup))
         .route("/api/v1/restore", post(restore))
+        .route("/api/v1/backups", get(list_backups))
+        .route("/api/v1/backups/config", get(get_config).put(put_config))
 }
 
 #[derive(utoipa::OpenApi)]
 #[openapi(
-    paths(create_backup, restore),
-    components(schemas(RestoreReport, ArchiveBody))
+    paths(create_backup, restore, list_backups, get_config, put_config),
+    components(schemas(RestoreReport, ArchiveBody, BackupItem, BackupList, BackupConfig))
 )]
 pub struct Doc;
 
@@ -137,4 +140,109 @@ pub async fn restore(
         .run(move |conn| Ok(backup::restore_archive(conn, &files, &who, &bytes, now)))
         .await??;
     Ok(Json(report))
+}
+
+#[derive(serde::Serialize, ToSchema)]
+pub struct BackupItem {
+    pub name: String,
+    pub created_at: i64,
+    pub size_bytes: u64,
+}
+
+#[derive(serde::Serialize, ToSchema)]
+pub struct BackupList {
+    pub items: Vec<BackupItem>,
+}
+
+/// Automatic backups of this library, newest first (admin).
+#[utoipa::path(
+    get,
+    path = "/api/v1/backups",
+    tag = "backup",
+    security(("bearer" = [])),
+    responses(
+        (status = 200, description = "Automatic backups", body = BackupList),
+        (status = 401, description = "Missing or invalid token", body = ApiErrorBody),
+        (status = 403, description = "Admin or owner only", body = ApiErrorBody),
+    )
+)]
+pub async fn list_backups(State(state): State<AppState>, who: AuthUser) -> ApiResult<Json<BackupList>> {
+    who.require(Role::Admin)?;
+    let files = state.files.clone();
+    let lib = who.library_id.clone();
+    let list = tokio::task::spawn_blocking(move || backup::schedule::list_auto(&files, &lib))
+        .await
+        .map_err(|_| ApiError::internal())?
+        .map_err(|e| {
+            tracing::error!(error = %e, "cannot list backups");
+            ApiError::internal()
+        })?;
+    Ok(Json(BackupList {
+        items: list
+            .into_iter()
+            .map(|b| BackupItem {
+                name: b.name,
+                created_at: b.created_at,
+                size_bytes: b.size_bytes,
+            })
+            .collect(),
+    }))
+}
+
+/// Effective automatic backup configuration (admin).
+#[utoipa::path(
+    get,
+    path = "/api/v1/backups/config",
+    tag = "backup",
+    security(("bearer" = [])),
+    responses(
+        (status = 200, description = "Effective configuration", body = BackupConfig),
+        (status = 401, description = "Missing or invalid token", body = ApiErrorBody),
+        (status = 403, description = "Admin or owner only", body = ApiErrorBody),
+    )
+)]
+pub async fn get_config(State(state): State<AppState>, who: AuthUser) -> ApiResult<Json<BackupConfig>> {
+    who.require(Role::Admin)?;
+    let lib = who.library_id.clone();
+    let cfg = state
+        .db
+        .run(move |c| backup::schedule::load_config(c, &lib))
+        .await?;
+    Ok(Json(cfg))
+}
+
+/// Saves the automatic backup configuration (admin).
+#[utoipa::path(
+    put,
+    path = "/api/v1/backups/config",
+    tag = "backup",
+    security(("bearer" = [])),
+    request_body = BackupConfig,
+    responses(
+        (status = 200, description = "Saved configuration", body = BackupConfig),
+        (status = 401, description = "Missing or invalid token", body = ApiErrorBody),
+        (status = 403, description = "Admin or owner only", body = ApiErrorBody),
+        (status = 422, description = "validation", body = ApiErrorBody),
+    )
+)]
+pub async fn put_config(
+    State(state): State<AppState>,
+    who: AuthUser,
+    ApiJson(cfg): ApiJson<BackupConfig>,
+) -> ApiResult<Json<BackupConfig>> {
+    who.require(Role::Admin)?;
+    if cfg.interval_days > backup::schedule::MAX_INTERVAL_DAYS {
+        return Err(ApiError::validation(
+            "interval_days must be between 0 and 90",
+        ));
+    }
+    if !(1..=backup::schedule::MAX_KEEP).contains(&cfg.keep) {
+        return Err(ApiError::validation("keep must be between 1 and 50"));
+    }
+    let lib = who.library_id.clone();
+    state
+        .db
+        .run(move |c| backup::schedule::save_config(c, &lib, &cfg))
+        .await?;
+    Ok(Json(cfg))
 }

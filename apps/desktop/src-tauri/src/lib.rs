@@ -26,6 +26,11 @@ pub fn run() {
             std::fs::create_dir_all(&dir)?;
             let db = Db::open(&dir.join("bookeeper.sqlite"))?;
             let state = AppState::open_with_data(db, SetupPolicy::Open, &dir)?;
+            {
+                // `setup` runs outside the runtime: enter Tauri's before spawning.
+                let _guard = tauri::async_runtime::handle().inner().enter();
+                bookeeper_core::backup::schedule::spawn(state.clone());
+            }
             app.manage(CoreRouter(bookeeper_core::router(state)));
             Ok(())
         })
