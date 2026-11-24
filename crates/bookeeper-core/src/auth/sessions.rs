@@ -30,7 +30,7 @@ fn session(secret: &[u8], who: &Identity, refresh_token: String, now: i64) -> Se
 }
 
 pub fn create_device(
-    conn: &mut Connection,
+    conn: &Connection,
     secret: &[u8],
     new: NewDevice<'_>,
     now: i64,

@@ -90,3 +90,12 @@ fn role_and_kind_serialize_lowercase() {
         "\"mobile\""
     );
 }
+
+#[tokio::test]
+async fn oversized_body_is_payload_too_large() {
+    let big = format!(r#"{{"name":"{}"}}"#, "a".repeat(3 * 1024 * 1024));
+    let (status, ct, body) = send("application/json", &big).await;
+    assert_eq!(status, StatusCode::PAYLOAD_TOO_LARGE);
+    assert_eq!(ct, "application/json");
+    assert_eq!(body["error_code"], "payload_too_large");
+}
