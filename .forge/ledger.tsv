@@ -147,3 +147,12 @@
 2026-11-24T23:18:36Z	bookeeper-fase-1d	release	qa	opus	FAIL	-	-	-	224
 2026-11-24T23:18:52Z	bookeeper-fase-1d	release	dwarf	sonnet	-	-	-	-	14
 2026-11-24T23:22:13Z	bookeeper-fase-1d	release	qa	opus	PASS	-	-	-	196
+2026-11-24T23:49:14Z	bookeeper-fase-1e	core-e	dwarf	sonnet	-	-	-	-	191
+2026-11-24T23:49:15Z	bookeeper-fase-1e	openapi-e	dwarf	sonnet	-	trap	utoipa 5 leaves option t fields out of required use schema required true to list a nullable field as required	utoipa 5 leaves `Option<T>` fields out of `required`; use `#[schema(required = true)]` to list a nullable field as required [crates/bookeeper-core/src/api/server.rs]	192	1
+2026-11-24T23:51:41Z	bookeeper-fase-1e	openapi-e	qa	opus	PASS	-	-	-	142
+2026-11-24T23:52:10Z	bookeeper-fase-1e	core-e	qa	opus	PASS	-	-	-	173
+2026-11-24T23:52:28Z	bookeeper-fase-1e	net-e	dwarf	sonnet	-	-	-	-	36
+2026-11-24T23:53:08Z	bookeeper-fase-1e	net-e	qa	opus	PASS	-	-	-	37
+2026-11-24T23:53:24Z	bookeeper-fase-1e	docker-e	dwarf	sonnet	-	-	-	-	12
+2026-11-24T23:53:51Z	bookeeper-fase-1e	docker-e	qa	opus	PASS	-	-	-	22
+2026-11-24T23:55:46Z	bookeeper-fase-1e	domains	dwarf	sonnet	-	-	-	-	206

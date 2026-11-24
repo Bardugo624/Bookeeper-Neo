@@ -4,13 +4,19 @@
      overwritten. Facts only, one per line. -->
 
 ## Verify
+- cargo zigbuild --release --locked -p bookeeper-server --target x86_64-unknown-linux-musl (needs `pip install ziglang`, `cargo install --locked… [.github/workflows/release.yml]
 - npm ci --offline && npm run gen -w @bookeeper/api && npm test -w @bookeeper/api [packages/api/package.json]
 - zip 2 `ZipWriter::raw_copy_file_rename` lets a test build a >1 GB-decompressed hostile archive cheaply by copying one compressed entry [crates/bookeeper-core/tests/backup_api.rs]
 - cargo test --offline -p bookeeper-core --test <name> works from committed files (cargo registry cache is present) [crates/bookeeper-core/Cargo.toml]
 - UPDATE_OPENAPI=1 cargo test -p bookeeper-core --test openapi -- --include-ignored && npm run gen -w @bookeeper/api && npm test -w @bookeeper/api [packages/api/openapi.json]
 
 ## Known traps
+- utoipa 5 leaves `Option<T>` fields out of `required`; use `#[schema(required = true)]` to list a nullable field as required [crates/bookeeper-core/src/api/server.rs]
+- clap `global = true` on flattened Config args lets server flags work before or after a subcommand; setup-code/fingerprint keep their own… [crates/bookeeper-server/src/config.rs]
 - `cargo test -p bookeeper-core` needs a free network-less run only if `tests/plumbing_c.rs` stub_lookup is unaffected; utoipa response edits… [crates/bookeeper-core/src/api/mod.rs]
+- rustls 0.23.46 `with_single_cert` rejects a cert/key mismatch (`CertifiedKey::from_der` runs `keys_match`), so a "forged server" test must use… [crates/bookeeper-net/tests/tls.rs]
+- mdns-sd 0.13 silently truncates TXT key=value entries longer than 255 bytes instead of returning an error [crates/bookeeper-net/src/mdns.rs]
+- `rcgen` needs `default-features = false, features = ["pem","ring"]` or it pulls aws-lc-rs [crates/bookeeper-net/Cargo.toml]
 - Tauri commands convert Rust snake_case args to camelCase from the webview unless `#[tauri::command(rename_all = "snake_case")]` is set [apps/desktop/src-tauri/src/lib.rs]
 - vitest `toEqual` on multi-MB Uint8Arrays times out at 5s; compare via Buffer.equals [apps/desktop/src/transport.test.ts]
 - `cargo check -p bookeeper-desktop` (Tauri) takes over 2 minutes cold, so run it in the background [apps/desktop/src-tauri/src/lib.rs]
@@ -23,6 +29,4 @@
 - the `uuid` dependency only enables the `v7` feature, so use `Uuid::now_v7()`, not `new_v4()` [crates/bookeeper-core/Cargo.toml]
 - tests/skeleton_b.rs asserted 404 on routes that later tasks implement; it breaks whenever one of them lands [crates/bookeeper-core/tests/skeleton_b.rs]
 - tests/skeleton_b.rs `empty_modules_are_mounted` asserts 404 on routes that later tasks implement; it breaks whenever one of them lands [crates/bookeeper-core/tests/skeleton_b.rs]
-- serde_urlencoded (axum Query) cannot parse numbers in `#[serde(flatten)]` structs: `?limit=5` → "invalid type: string" → 422 when Page… [crates/bookeeper-core/src/api/util.rs]
-- jsonwebtoken 10 needs an explicit crypto backend feature (rust_crypto) with default-features off [crates/bookeeper-core/Cargo.toml]
 
