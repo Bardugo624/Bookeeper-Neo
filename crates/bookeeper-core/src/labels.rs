@@ -99,10 +99,45 @@ fn encode_text(s: &str) -> Vec<u8> {
         .collect()
 }
 
+/// Width of a WinAnsi letter in `0xC0..=0xFF`: its base letter's, never less than Helvetica's.
+fn latin1_letter_width(b: u8) -> u16 {
+    let base = match b {
+        0xC6 => return 1000,
+        0xE6 => return 889,
+        0xDF => return 611,
+        0xD0 => return 722,
+        0xF0 => return 556,
+        0xDE => return 667,
+        0xFE => return 556,
+        0xD7 | 0xF7 => return 584,
+        0xC0..=0xC5 => b'A',
+        0xC7 => b'C',
+        0xC8..=0xCB => b'E',
+        0xCC..=0xCF => b'I',
+        0xD1 => b'N',
+        0xD2..=0xD6 | 0xD8 => b'O',
+        0xD9..=0xDC => b'U',
+        0xDD => b'Y',
+        0xE0..=0xE5 => b'a',
+        0xE7 => b'c',
+        0xE8..=0xEB => b'e',
+        0xEC..=0xEF => b'i',
+        0xF1 => b'n',
+        0xF2..=0xF6 | 0xF8 => b'o',
+        0xF9..=0xFC => b'u',
+        0xFD | 0xFF => b'y',
+        _ => return 1000,
+    };
+    WIDTHS[usize::from(base - 0x20)]
+}
+
 fn glyph_width(b: u8, bold: bool) -> f64 {
     let w = match b {
         0x20..=0x7E => f64::from(WIDTHS[usize::from(b - 0x20)]),
         ELLIPSIS => 1000.0,
+        0x80..=0x9F => 1000.0,
+        0xA0..=0xBF => 840.0,
+        0xC0..=0xFF => f64::from(latin1_letter_width(b)),
         _ => 600.0,
     };
     if bold {
@@ -313,4 +348,37 @@ pub fn render_pdf(labels: &[Label]) -> Result<Vec<u8>, LabelError> {
         .as_bytes(),
     );
     Ok(out)
+}
+
+#[cfg(test)]
+mod width_tests {
+    use super::*;
+
+    fn w(s: &str, bold: bool) -> f64 {
+        text_width(&encode_text(s), 10.0, bold)
+    }
+
+    #[test]
+    fn accented_letters_are_as_wide_as_their_base() {
+        for bold in [false, true] {
+            assert_eq!(w("ÈÀÒ", bold), w("EAO", bold));
+            assert_eq!(w("èàò", bold), w("eao", bold));
+        }
+    }
+
+    #[test]
+    fn symbols_are_never_underestimated() {
+        for c in ["©", "®", "¼"] {
+            assert!(w(c, false) * 100.0 >= 834.0, "{c}");
+        }
+        assert!(w("Æ", false) * 100.0 >= 1000.0);
+    }
+
+    #[test]
+    fn a_title_of_wide_accented_capitals_fits_its_box() {
+        let title = "Ò".repeat(40);
+        let out = fit(&title, 10.0, false, 100.0);
+        assert!(text_width(&out, 10.0, false) <= 100.0);
+        assert_eq!(out.last(), Some(&ELLIPSIS));
+    }
 }

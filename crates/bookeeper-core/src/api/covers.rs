@@ -75,10 +75,6 @@ fn not_found_cover() -> ApiError {
     )
 }
 
-/// Serialises cover mutations (file + row) so a `PUT` racing a `DELETE` cannot
-/// leave the columns set while the file is gone, or the reverse.
-static COVER_WRITES: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
-
 /// The id as stored (server-generated) when the book belongs to the library.
 async fn book_id(state: &AppState, who: &AuthUser, id: String) -> ApiResult<String> {
     let lib = who.library_id.clone();
@@ -104,18 +100,27 @@ async fn store(
     p: Processed,
     detail: Option<serde_json::Value>,
 ) -> ApiResult<String> {
-    let _guard = COVER_WRITES.lock().await;
     let dir = state.files.covers_dir.clone();
-    let (bid, jpeg) = (id.clone(), p.jpeg);
-    tokio::task::spawn_blocking(move || covers::write_atomic(&dir, &bid, &jpeg))
-        .await
-        .map_err(|_| ApiError::internal())?
-        .map_err(|e| {
-            tracing::error!(error = %e, "cannot write cover");
-            ApiError::internal()
-        })?;
+    let target = covers::cover_path(&dir, &id).ok_or_else(ApiError::internal)?;
+    let tmp = dir.join(format!(".tmp-{}", uuid::Uuid::now_v7()));
+    let jpeg = p.jpeg;
+    let (wtmp, wdir) = (tmp.clone(), dir.clone());
+    let wrote = tokio::task::spawn_blocking(move || {
+        std::fs::create_dir_all(&wdir)?;
+        std::fs::write(&wtmp, jpeg)
+    })
+    .await
+    .map_err(|_| ApiError::internal())?;
+    if let Err(e) = wrote {
+        let _ = std::fs::remove_file(&tmp);
+        tracing::error!(error = %e, "cannot write cover");
+        return Err(ApiError::internal());
+    }
     let (bid, color, file) = (id.clone(), p.color.clone(), format!("{id}.jpg"));
-    let updated = state
+    let (rtmp, rtarget) = (tmp.clone(), target);
+    // Row update and final file move share one closure: the database has a single
+    // connection, so no other cover mutation can interleave.
+    let res = state
         .db
         .run(move |conn| {
             let tx = conn.transaction()?;
@@ -125,15 +130,20 @@ async fn store(
                  WHERE id = ?4 AND library_id = ?5",
                 params![file, color, now, bid, who.library_id],
             )?;
-            if n > 0 {
-                audit::record(&tx, &who, "book.cover", "book", &bid, detail.as_ref(), now)?;
+            if n == 0 {
+                return Ok(false);
             }
+            audit::record(&tx, &who, "book.cover", "book", &bid, detail.as_ref(), now)?;
+            std::fs::rename(&rtmp, &rtarget)
+                .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
             tx.commit()?;
-            Ok(n > 0)
+            Ok(true)
         })
-        .await?;
-    if !updated {
-        covers::remove_files(&state.files.covers_dir, &[id]);
+        .await;
+    if !matches!(res, Ok(true)) {
+        let _ = std::fs::remove_file(&tmp);
+    }
+    if !res? {
         return Err(ApiError::not_found());
     }
     Ok(p.color)
@@ -325,8 +335,7 @@ pub async fn delete_cover(
 ) -> ApiResult<StatusCode> {
     who.require(Role::Member)?;
     let id = book_id(&state, &who, id).await?;
-    let _guard = COVER_WRITES.lock().await;
-    let bid = id.clone();
+    let (bid, dir) = (id, state.files.covers_dir.clone());
     state
         .db
         .run(move |conn| {
@@ -349,10 +358,9 @@ pub async fn delete_cover(
                 audit::record(&tx, &who, "book.cover_delete", "book", &bid, None, now)?;
             }
             tx.commit()?;
+            covers::remove_files(&dir, &[bid]);
             Ok(())
         })
         .await?;
-    let dir = state.files.covers_dir.clone();
-    let _ = tokio::task::spawn_blocking(move || covers::remove_files(&dir, &[id])).await;
     Ok(StatusCode::NO_CONTENT)
 }
