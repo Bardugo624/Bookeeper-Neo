@@ -25,3 +25,19 @@
 2026-11-22T19:47:46Z	bookeeper-fase-1a	setup-code	qa	opus	PASS	-	-	-	88
 2026-11-22T19:49:19Z	bookeeper-fase-1a	api-client	dwarf	sonnet	-	verify	update openapi 1 cargo test p bookeeper core test openapi include ignored npm run gen w bookeeper api npm test w bookeeper api	UPDATE_OPENAPI=1 cargo test -p bookeeper-core --test openapi -- --include-ignored && npm run gen -w @bookeeper/api && npm test -w @bookeeper/api [packages/api/openapi.json]	90	1
 2026-11-22T19:50:37Z	bookeeper-fase-1a	api-client	qa	opus	PASS	-	-	-	73
+2026-11-24T11:40:07Z	bookeeper-fase-1b	skeleton-b	dwarf	sonnet	-	-	-	-	139
+2026-11-24T11:42:29Z	bookeeper-fase-1b	skeleton-b	qa	opus	PASS	trap	serde urlencoded axum query cannot parse numbers in serde flatten structs limit 5 invalid type string 422 when page	serde_urlencoded (axum Query) cannot parse numbers in `#[serde(flatten)]` structs: `?limit=5` → "invalid type: string" → 422 when Page… [crates/bookeeper-core/src/api/util.rs]	136	1
+2026-11-24T11:43:24Z	bookeeper-fase-1b	hardening	dwarf	sonnet	-	-	-	-	336
+2026-11-24T11:45:49Z	bookeeper-fase-1b	books	dwarf	sonnet	-	-	-	-	186
+2026-11-24T11:47:02Z	bookeeper-fase-1b	hardening	qa	opus	PASS	-	-	-	213
+2026-11-24T11:47:42Z	bookeeper-fase-1b	books	qa	opus	PASS	-	-	-	107
+2026-11-24T11:50:51Z	bookeeper-fase-1b	loans	dwarf	sonnet	-	-	-	-	186
+2026-11-24T11:50:52Z	bookeeper-fase-1b	shelves	dwarf	sonnet	-	-	-	-	225
+2026-11-24T11:53:11Z	bookeeper-fase-1b	loans	qa	opus	PASS	-	-	-	136
+2026-11-24T11:53:23Z	bookeeper-fase-1b	shelves	qa	opus	PASS	-	-	-	145
+2026-11-24T11:56:19Z	bookeeper-fase-1b	stats	dwarf	sonnet	-	-	-	-	183
+2026-11-24T11:56:42Z	bookeeper-fase-1b	books-search	dwarf	sonnet	-	-	-	-	195
+2026-11-24T11:58:22Z	bookeeper-fase-1b	stats	qa	opus	PASS	-	-	-	118
+2026-11-24T11:59:12Z	bookeeper-fase-1b	books-search	qa	opus	FAIL	trap	tests skeleton b rs empty modules are mounted asserts 404 on routes that later tasks implement it breaks whenever one of them lands	tests/skeleton_b.rs `empty_modules_are_mounted` asserts 404 on routes that later tasks implement; it breaks whenever one of them lands [crates/bookeeper-core/tests/skeleton_b.rs]	145	1
+2026-11-24T12:00:48Z	bookeeper-fase-1b	wishlist	dwarf	sonnet	-	-	-	-	141
+2026-11-24T12:02:40Z	bookeeper-fase-1b	wishlist	qa	opus	PASS	-	-	-	107
