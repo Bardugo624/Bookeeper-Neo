@@ -1,12 +1,12 @@
 use axum::{
-    extract::{Path, Query, State},
+    extract::{Path, State},
     routing::get,
     Json,
 };
 use serde::Deserialize;
 
 use crate::{
-    api::util::{normalize_isbn10, normalize_isbn13, now_secs},
+    api::util::{normalize_isbn10, normalize_isbn13, now_secs, ApiQuery},
     auth::guard::AuthUser,
     error::{ApiError, ApiErrorBody, ApiResult},
     lookup::Metadata,
@@ -62,7 +62,7 @@ pub async fn lookup_isbn(
     State(state): State<AppState>,
     _who: AuthUser,
     Path(isbn): Path<String>,
-    Query(q): Query<LookupQuery>,
+    ApiQuery(q): ApiQuery<LookupQuery>,
 ) -> ApiResult<Json<Metadata>> {
     let isbn13 = to_isbn13(&isbn).ok_or_else(|| ApiError::validation("Invalid ISBN"))?;
     state

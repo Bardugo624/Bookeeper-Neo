@@ -324,6 +324,22 @@ async fn route_unknown_isbn_is_isbn_not_found() {
 }
 
 #[tokio::test]
+async fn route_rejects_malformed_fresh_with_validation() {
+    let (a, _) = fake("a", Behavior::Found(meta("Dune")));
+    let s = route_state(vec![a]).await;
+    let (st, _, body) = call(
+        &s.state,
+        "GET",
+        &format!("/api/v1/lookup/isbn/{ISBN}?fresh=yes"),
+        Some(&s.session.access_token),
+        None,
+    )
+    .await;
+    assert_eq!(st, 422);
+    assert_eq!(body["error_code"], "validation");
+}
+
+#[tokio::test]
 async fn route_needs_a_token() {
     let (a, _) = fake("a", Behavior::Found(meta("Dune")));
     let s = route_state(vec![a]).await;
