@@ -801,3 +801,56 @@ fn fill_bytes_before_the_end_marker_are_accepted() {
     b.splice(eoi..eoi, [0xff, 0xff]);
     assert!(process(&b).is_ok());
 }
+
+// ------------------------------------------------------------------ concurrency
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn concurrent_put_and_delete_keep_row_and_file_consistent() {
+    let (s, id) = setup().await;
+    let path = format!("/api/v1/books/{id}/cover");
+    let token = s.session.access_token.clone();
+    for round in 0..30u8 {
+        let img = png(200, 200, [round, 9, 9]);
+        let (s1, s2) = (s.state.clone(), s.state.clone());
+        let (p1, p2, t1, t2) = (path.clone(), path.clone(), token.clone(), token.clone());
+        let put_task =
+            tokio::spawn(async move { raw(&s1, "PUT", &p1, Some(&t1), img, &[]).await.0 });
+        let del_task =
+            tokio::spawn(async move { raw(&s2, "DELETE", &p2, Some(&t2), vec![], &[]).await.0 });
+        assert_eq!(put_task.await.unwrap(), 200);
+        assert_eq!(del_task.await.unwrap(), 204);
+
+        let bid = id.clone();
+        let (file, color): (Option<String>, Option<String>) = s
+            .state
+            .db
+            .run(move |c| {
+                c.query_row(
+                    "SELECT cover_file, cover_color FROM books WHERE id = ?1",
+                    [bid],
+                    |r| Ok((r.get(0)?, r.get(1)?)),
+                )
+            })
+            .await
+            .unwrap();
+        let on_disk = cover_file(&s, &id).exists();
+        match file {
+            Some(_) => {
+                assert!(on_disk, "round {round}: row without file");
+                assert!(color.is_some());
+            }
+            None => {
+                assert!(color.is_none(), "round {round}: colour without cover");
+                assert!(!on_disk, "round {round}: file without row");
+            }
+        }
+        let names: Vec<String> = std::fs::read_dir(&s.state.files.covers_dir)
+            .unwrap()
+            .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+            .collect();
+        assert!(
+            names.iter().all(|n| n == &format!("{id}.jpg")),
+            "round {round}: stray files {names:?}"
+        );
+    }
+}
