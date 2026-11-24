@@ -94,11 +94,6 @@ pub fn build_with_data(db: Db, data_dir: &Path) -> Result<axum::Router, StartErr
     )?)
 }
 
-/// Builds the router on an already opened database.
-pub fn build_with_db(db: Db) -> Result<axum::Router, StartError> {
-    finish(AppState::open(db, SetupPolicy::CodeRequired)?)
-}
-
 fn finish(state: AppState) -> Result<axum::Router, StartError> {
     // The core router already has a JSON fallback and `merge` panics when both sides
     // have one: drop the core's so `web_routes()` carries the only fallback (which
