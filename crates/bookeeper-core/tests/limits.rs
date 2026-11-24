@@ -96,6 +96,33 @@ fn begin_counts_in_flight_attempts() {
     drop(held);
 }
 
+const RULE5: Rule = Rule {
+    max_failures: 5,
+    window_secs: 900,
+};
+
+#[test]
+fn retry_after_is_short_when_only_in_flight_attempts_block() {
+    let l = RateLimiter::default();
+    for _ in 0..4 {
+        l.record_failure("k", RULE5, 1000);
+    }
+    let _open = l.begin("k", RULE5, 1000).expect("fifth slot");
+    assert_eq!(l.begin("k", RULE5, 1000).err(), Some(1));
+}
+
+#[test]
+fn retry_after_follows_the_oldest_failure_when_failures_alone_block() {
+    let l = RateLimiter::default();
+    for _ in 0..5 {
+        l.record_failure("k", RULE5, 1000);
+    }
+    assert_eq!(
+        l.begin("k", RULE5, 1100).err(),
+        Some((RULE5.window_secs - 100) as u64)
+    );
+}
+
 #[test]
 fn neutral_and_drop_release_the_reservation() {
     let l = RateLimiter::default();

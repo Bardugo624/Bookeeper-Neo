@@ -451,3 +451,26 @@ async fn route_is_in_openapi() {
         assert!(names.contains(&n), "missing {n}");
     }
 }
+
+#[tokio::test]
+async fn order_without_sort_on_a_search_is_validation() {
+    let s = seed(Role::Owner, None, None).await;
+    create(&s, json!({"title": "Zebra"})).await;
+    let (st, b) = list(&s, "q=zebra&order=asc").await;
+    assert_eq!((st, b["error_code"].as_str()), (422, Some("validation")));
+}
+
+#[tokio::test]
+async fn order_with_sort_on_a_search_is_honoured() {
+    let s = seed(Role::Owner, None, None).await;
+    create(&s, json!({"title": "Zebra alfa"})).await;
+    create(&s, json!({"title": "Zebra beta"})).await;
+    assert_eq!(
+        titles(&ok(&s, "q=zebra&sort=title&order=asc").await),
+        ["Zebra alfa", "Zebra beta"]
+    );
+    assert_eq!(
+        titles(&ok(&s, "q=zebra&sort=title&order=desc").await),
+        ["Zebra beta", "Zebra alfa"]
+    );
+}

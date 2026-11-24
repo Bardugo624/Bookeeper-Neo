@@ -148,6 +148,30 @@ async fn api_query_rejections_are_validation() {
     assert_eq!(v["error_code"], "validation");
 }
 
+async fn direct_probe(ApiQuery(p): ApiQuery<Page>) -> String {
+    format!("{:?}", p.resolve().unwrap())
+}
+
+#[tokio::test]
+async fn api_query_accepts_valid_values() {
+    use http_body_util::BodyExt;
+    for (uri, want) in [("/d?limit=5&offset=2", "(5, 2)"), ("/d", "(50, 0)")] {
+        let app = Router::new().route("/d", get(direct_probe));
+        let resp = app
+            .oneshot(
+                axum::http::Request::builder()
+                    .uri(uri)
+                    .body(axum::body::Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status().as_u16(), 200, "{uri}");
+        let b = resp.into_body().collect().await.unwrap().to_bytes();
+        assert_eq!(std::str::from_utf8(&b).unwrap(), want, "{uri}");
+    }
+}
+
 #[test]
 fn page_defaults_and_bounds() {
     let p = |limit, offset| Page { limit, offset };

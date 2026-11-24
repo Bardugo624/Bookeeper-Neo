@@ -220,6 +220,8 @@ fn check_text(name: &str, value: &Option<String>, max: usize) -> ApiResult<()> {
     }
 }
 
+const MAX_PROGRESSIVE: i64 = 2_147_483_647;
+
 fn check_range(name: &str, value: Option<i64>, min: i64, max: i64) -> ApiResult<()> {
     match value {
         Some(v) if v < min || v > max => Err(ApiError::validation(format!(
@@ -266,7 +268,12 @@ pub fn validate_new(input: CreateBook) -> ApiResult<NewBook> {
     check_range("published_year", input.published_year, 1, 2100)?;
     check_range("page_count", input.page_count, 1, 50_000)?;
     check_range("price_cents", input.price_cents, 0, i64::MAX)?;
-    check_range("progressive_number", input.progressive_number, 1, i64::MAX)?;
+    check_range(
+        "progressive_number",
+        input.progressive_number,
+        1,
+        MAX_PROGRESSIVE,
+    )?;
     if let Some(f) = &input.format {
         if !["hardcover", "paperback", "ebook", "audiobook"].contains(&f.as_str()) {
             return Err(ApiError::validation(
@@ -591,8 +598,8 @@ pub async fn patch_book(
                     return Ok(Err(taken_error()));
                 }
             }
-            // Never leave `updated_at` unchanged, even within the same second.
-            let now = now_secs().max(old_updated + 1);
+            // Never goes back, never runs ahead of the clock.
+            let now = now_secs().max(old_updated);
             tx.execute(
                 "UPDATE books SET isbn_13 = ?1, isbn_10 = ?2, title = ?3, subtitle = ?4, \
                  authors_json = ?5, publisher = ?6, published_year = ?7, language = ?8, \
@@ -742,15 +749,18 @@ pub async fn next_progressive(
     State(state): State<AppState>,
     who: AuthUser,
 ) -> ApiResult<Json<NextProgressive>> {
-    let next = state
+    let max: i64 = state
         .db
         .run(move |conn| {
             conn.query_row(
-                "SELECT COALESCE(MAX(progressive_number), 0) + 1 FROM books WHERE library_id = ?1",
+                "SELECT COALESCE(MAX(progressive_number), 0) FROM books WHERE library_id = ?1",
                 [&who.library_id],
                 |r| r.get(0),
             )
         })
         .await?;
-    Ok(Json(NextProgressive { next }))
+    if max >= MAX_PROGRESSIVE {
+        return Err(taken_error());
+    }
+    Ok(Json(NextProgressive { next: max + 1 }))
 }

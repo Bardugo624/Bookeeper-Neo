@@ -195,6 +195,11 @@ pub async fn list_books(
     let filter = format!("WHERE {}", conds.join(" AND "));
 
     let dir = if desc { "DESC" } else { "ASC" };
+    if fts.is_some() && sort.is_none() && q.order.is_some() {
+        return Err(ApiError::validation(
+            "order requires sort when searching with q",
+        ));
+    }
     let order = match (sort_key, sort, fts.is_some()) {
         ("created_at", None, true) => "bm25(books_fts), b.created_at DESC, b.id DESC".to_string(),
         ("created_at", _, _) => format!("b.created_at {dir}, b.id {dir}"),
