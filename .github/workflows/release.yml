@@ -1,0 +1,229 @@
+name: Release
+
+on:
+  push:
+    tags: ["v2.*"]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Create the GitHub release and push the image (otherwise build only)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  # True only for a tag push or a manual run with `publish` ticked.
+  PUBLISH: ${{ startsWith(github.ref, 'refs/tags/v2.') || (github.event_name == 'workflow_dispatch' && inputs.publish) }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      prerelease: ${{ steps.v.outputs.prerelease }}
+      major: ${{ steps.v.outputs.major }}
+      minor: ${{ steps.v.outputs.minor }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tag matches the workspace version
+        id: v
+        run: |
+          version=$(awk '/^\[workspace\.package\]/{f=1;next} /^\[/{f=0} f && /^version[[:space:]]*=/{gsub(/"/,"",$3); print $3; exit}' Cargo.toml)
+          if [ -z "$version" ]; then
+            echo "::error::Cannot read the workspace version from Cargo.toml"
+            exit 1
+          fi
+          if [ "${GITHUB_REF_TYPE}" = "tag" ] && [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match the workspace version in Cargo.toml (expected v${version})"
+            exit 1
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "major=${version%%.*}" >> "$GITHUB_OUTPUT"
+          core=${version%%-*}
+          echo "minor=${core%.*}" >> "$GITHUB_OUTPUT"
+          case "$version" in *-*) echo "prerelease=true" >> "$GITHUB_OUTPUT";; *) echo "prerelease=false" >> "$GITHUB_OUTPUT";; esac
+
+  web:
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build -w @bookeeper/mobile
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mobile-dist
+          path: apps/mobile/dist
+          if-no-files-found: error
+
+  server:
+    needs: [check, web]
+    name: server (${{ matrix.name }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-amd64
+            runner: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            zig: true
+            run: true
+          - name: linux-arm64
+            runner: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+            zig: true
+            run: false
+          - name: windows-amd64
+            runner: windows-latest
+            target: x86_64-pc-windows-msvc
+            zig: false
+            run: true
+          - name: macos-arm64
+            runner: macos-latest
+            target: aarch64-apple-darwin
+            zig: false
+            run: true
+          - name: macos-amd64
+            runner: macos-latest
+            target: x86_64-apple-darwin
+            zig: false
+            run: false
+    env:
+      VERSION: ${{ needs.check.outputs.version }}
+      NAME: ${{ matrix.name }}
+      TARGET: ${{ matrix.target }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.name }}
+      # The binary embeds apps/mobile/dist: it must be in place before cargo runs.
+      - uses: actions/download-artifact@v4
+        with:
+          name: mobile-dist
+          path: apps/mobile/dist
+      - name: Install zig and cargo-zigbuild
+        if: matrix.zig
+        run: |
+          pip install ziglang
+          cargo install --locked cargo-zigbuild
+      - name: Build (zigbuild)
+        if: matrix.zig
+        run: cargo zigbuild --release --locked -p bookeeper-server --target ${{ matrix.target }}
+      - name: Build (windows, static CRT)
+        if: matrix.name == 'windows-amd64'
+        env:
+          RUSTFLAGS: -C target-feature=+crt-static
+        run: cargo build --release --locked -p bookeeper-server --target ${{ matrix.target }}
+      - name: Build (macos)
+        if: startsWith(matrix.name, 'macos-')
+        run: cargo build --release --locked -p bookeeper-server --target ${{ matrix.target }}
+      - name: Binary reports the version
+        if: matrix.run
+        shell: bash
+        run: |
+          exe=target/${TARGET}/release/bookeeper-server
+          [ "$RUNNER_OS" = Windows ] && exe="${exe}.exe"
+          out=$("$exe" --version)
+          echo "$out"
+          case "$out" in *"$VERSION"*) ;; *) echo "::error::--version does not print ${VERSION}"; exit 1;; esac
+      - name: Archive (tar.gz)
+        if: runner.os != 'Windows'
+        run: |
+          pkg=bookeeper-server-${VERSION}-${NAME}
+          mkdir "$pkg"
+          cp "target/${TARGET}/release/bookeeper-server" LICENSE "$pkg/"
+          tar -czf "${pkg}.tar.gz" "$pkg"
+      - name: Archive (zip)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $pkg = "bookeeper-server-$env:VERSION-$env:NAME"
+          New-Item -ItemType Directory $pkg | Out-Null
+          Copy-Item "target/$env:TARGET/release/bookeeper-server.exe", LICENSE $pkg
+          Compress-Archive -Path $pkg -DestinationPath "$pkg.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: archive-${{ matrix.name }}
+          path: |
+            bookeeper-server-*.tar.gz
+            bookeeper-server-*.zip
+          if-no-files-found: error
+
+  docker:
+    needs: [check, web]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Image name
+        id: img
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/bookeeper-server" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        if: env.PUBLISH == 'true'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.img.outputs.name }}
+          tags: |
+            type=raw,value=${{ needs.check.outputs.version }}
+            type=raw,value=${{ needs.check.outputs.minor }},enable=${{ needs.check.outputs.prerelease == 'false' }}
+            type=raw,value=${{ needs.check.outputs.major }},enable=${{ needs.check.outputs.prerelease == 'false' }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: ${{ env.PUBLISH == 'true' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  release:
+    needs: [check, server, docker]
+    if: ${{ startsWith(github.ref, 'refs/tags/v2.') || (github.event_name == 'workflow_dispatch' && inputs.publish) }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: archive-*
+          path: dist
+          merge-multiple: true
+      - name: Checksums
+        working-directory: dist
+        run: sha256sum bookeeper-server-* > SHA256SUMS && cat SHA256SUMS
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.check.outputs.version }}
+          target_commitish: ${{ github.sha }}
+          name: v${{ needs.check.outputs.version }}
+          generate_release_notes: true
+          prerelease: ${{ needs.check.outputs.prerelease == 'true' }}
+          files: |
+            dist/bookeeper-server-*
+            dist/SHA256SUMS
