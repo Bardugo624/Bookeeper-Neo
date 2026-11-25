@@ -49,6 +49,17 @@ fn is_busy(e: &rusqlite::Error) -> bool {
     )
 }
 
+/// `ulower(text)`: Unicode lowercase (SQLite's own `lower` folds ASCII only).
+fn register_functions(conn: &Connection) -> rusqlite::Result<()> {
+    use rusqlite::functions::FunctionFlags;
+    conn.create_scalar_function(
+        "ulower",
+        1,
+        FunctionFlags::SQLITE_UTF8 | FunctionFlags::SQLITE_DETERMINISTIC,
+        |ctx| Ok(ctx.get::<Option<String>>(0)?.map(|s| s.to_lowercase())),
+    )
+}
+
 fn schema_version(conn: &Connection) -> rusqlite::Result<usize> {
     conn.pragma_query_value(None, "user_version", |r| r.get(0))
 }
@@ -108,6 +119,7 @@ impl Db {
         // Wait for a concurrent opener instead of failing with SQLITE_BUSY.
         conn.busy_timeout(BUSY_TIMEOUT)?;
         conn.pragma_update(None, "foreign_keys", true)?;
+        register_functions(&conn)?;
         // Refuse newer schemas before any write (including the journal mode switch).
         refuse_newer(schema_version(&conn)?)?;
         if wal {

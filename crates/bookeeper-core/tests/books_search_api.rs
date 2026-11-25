@@ -996,3 +996,13 @@ async fn filtered_list_of_ten_thousand_books_is_fast() {
     assert!(r["total"].as_i64().unwrap() > 0);
     assert!(took.as_millis() < 300, "took {took:?}");
 }
+
+#[tokio::test]
+async fn genre_and_language_ignore_case_beyond_ascii() {
+    let s = seed(Role::Owner, None, None).await;
+    create(&s, json!({"title": "A", "genre": "Ética", "language": "ÉS"})).await;
+    create(&s, json!({"title": "B", "genre": "Saggio"})).await;
+    assert_eq!(titles(&ok(&s, "genre=%C3%A9tica").await), ["A"]);
+    assert_eq!(titles(&ok(&s, "genre=%C3%89TICA").await), ["A"]);
+    assert_eq!(titles(&ok(&s, "language=%C3%A9s").await), ["A"]);
+}
