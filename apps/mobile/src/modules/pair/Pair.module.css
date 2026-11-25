@@ -1,0 +1,84 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.lead {
+  margin: 0;
+  color: var(--bk-text);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  counter-reset: step;
+}
+
+.step {
+  position: relative;
+  min-height: 44px;
+  padding: 10px 0 10px 48px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  color: var(--bk-text-strong);
+  font-size: 16px;
+  line-height: 1.4;
+  counter-increment: step;
+}
+
+.step::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 32px;
+  height: 32px;
+  margin-top: -16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--bk-border-strong);
+  border-radius: 50%;
+  background: var(--bk-surface);
+  font-weight: 600;
+}
+
+.input {
+  height: 48px;
+  font-size: 16px;
+}
+
+.code {
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-family: var(--bk-font-mono, monospace);
+}
+
+.error {
+  margin: 0;
+  color: var(--bk-danger);
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.actions button {
+  min-height: 48px;
+  width: 100%;
+  font-size: 16px;
+}

@@ -1,0 +1,44 @@
+{
+  "link": {
+    "title": "Collega questo telefono",
+    "text": "Il telefono verrà collegato alla tua libreria Bookeeper. Il codice del QR vale per pochi minuti e si usa una volta sola.",
+    "action": "Collega",
+    "busy": "Collegamento in corso…"
+  },
+  "name": {
+    "label": "Nome del dispositivo",
+    "hint": "Lo vedrai nell'elenco dei dispositivi sul computer."
+  },
+  "intro": {
+    "title": "Collega questo telefono",
+    "text": "Per usare Bookeeper dal telefono serve un collegamento con la tua libreria. Si fa in un minuto.",
+    "stepsLabel": "Come ottenere il QR",
+    "step1": "Sul computer apri Bookeeper e vai in Dispositivi.",
+    "step2": "Tocca Aggiungi un telefono: compare un codice QR.",
+    "step3": "Inquadra il QR con la fotocamera del telefono e tocca il link.",
+    "haveCode": "Ho un codice"
+  },
+  "code": {
+    "title": "Inserisci il codice",
+    "text": "Sul computer, in Dispositivi → Aggiungi un telefono, trovi anche il codice scritto sotto il QR.",
+    "label": "Codice di abbinamento",
+    "hint": "Maiuscole, spazi e trattini non contano.",
+    "placeholder": "ABCD EFGH",
+    "action": "Collega",
+    "busy": "Collegamento in corso…",
+    "back": "Come si ottiene il codice?"
+  },
+  "already": {
+    "title": "Telefono già collegato",
+    "text": "Questo telefono è già collegato a {library}. Vuoi collegarlo di nuovo?",
+    "textUnknown": "Questo telefono è già collegato a una libreria. Vuoi collegarlo di nuovo?",
+    "keep": "Tieni la libreria attuale",
+    "again": "Collega di nuovo"
+  },
+  "errors": {
+    "codeEmpty": "Scrivi il codice mostrato sul computer.",
+    "nameEmpty": "Dai un nome a questo telefono.",
+    "invalid": "Il codice non è corretto o è scaduto. Genera un codice nuovo dal computer (Dispositivi → Aggiungi un telefono) e riprova.",
+    "network": "Non riesco a raggiungere Bookeeper. Controlla la connessione del telefono e riprova."
+  }
+}

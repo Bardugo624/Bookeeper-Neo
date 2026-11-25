@@ -13,18 +13,25 @@
     "@bookeeper/api": "*",
     "@bookeeper/i18n": "*",
     "@bookeeper/ui": "*",
+    "@tanstack/react-query": "^5.108.4",
+    "@zxing/browser": "^0.1.5",
+    "@zxing/library": "^0.21.3",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-router": "^7.18.7",
+    "zustand": "^5.1.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^14.6.13",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^5.0.0",
     "jsdom": "^26.0.0",
     "typescript": "^5.9.3",
     "vite": "^7.0.0",
+    "vite-plugin-pwa": "^1.0.0",
     "vitest": "^3.2.4"
   }
 }

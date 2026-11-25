@@ -1,0 +1,30 @@
+/* Stays at the top of the scrolling area; the negative margin swallows the area's own padding. */
+.top {
+  position: sticky;
+  top: -8px;
+  z-index: 1;
+  margin: -8px calc(-16px - env(safe-area-inset-right)) 0 calc(-16px - env(safe-area-inset-left));
+  padding: 8px calc(16px + env(safe-area-inset-right)) 4px calc(16px + env(safe-area-inset-left));
+  background: var(--bk-bg);
+}
+
+.filters {
+  padding-top: 10px;
+}
+
+.filters [role='tablist'] {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.filters [role='tab'] {
+  min-height: 44px;
+  padding-inline: 14px;
+}
+
+.count {
+  margin: 4px 0 0;
+  min-height: 20px;
+  font-size: 13px;
+  color: var(--bk-text-faint);
+}

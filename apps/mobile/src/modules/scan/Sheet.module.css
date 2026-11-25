@@ -1,0 +1,79 @@
+.book {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  align-items: flex-start;
+}
+
+.authors {
+  margin: 0;
+  color: var(--bk-text);
+  overflow-wrap: anywhere;
+}
+
+.muted {
+  margin: 0;
+  color: var(--bk-text-muted);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.where {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--bk-text-strong);
+  font-weight: 600;
+}
+
+.line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: var(--bk-text-strong);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.actions > button,
+.form > button {
+  min-height: 44px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.form input {
+  min-height: 44px;
+  font-size: 16px;
+}
+
+.error {
+  margin: 12px 0 0;
+  color: var(--bk-danger-strong);
+  font-size: 14px;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 24px 0;
+}

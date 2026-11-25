@@ -1,0 +1,66 @@
+{
+  "tab": "Account",
+  "title": "Account",
+  "who": {
+    "title": "Who you are",
+    "library": "Library",
+    "name": "Name",
+    "role": "Role",
+    "device": "This phone",
+    "rename": "Rename",
+    "renameLabel": "Phone name",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "roles": {
+      "owner": "Owner",
+      "admin": "Administrator",
+      "member": "Member",
+      "guest": "Guest"
+    },
+    "errors": {
+      "empty": "Enter a name for the phone.",
+      "tooLong": "The name can be at most 80 characters."
+    }
+  },
+  "look": {
+    "title": "Appearance",
+    "theme": "Theme",
+    "language": "Language",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark",
+    "it": "Italiano",
+    "en": "English"
+  },
+  "install": {
+    "title": "Install the app",
+    "text": "Add Bookeeper to your Home Screen to open it like a real app.",
+    "action": "Add to Home Screen",
+    "iosTitle": "How to add it on iPhone",
+    "ios1": "Tap Share in the Safari toolbar.",
+    "ios2": "Scroll and choose Add to Home Screen.",
+    "ios3": "Tap Add at the top right."
+  },
+  "about": {
+    "title": "About",
+    "app": "App version",
+    "server": "Server version",
+    "serverUnknown": "Not available",
+    "check": "Check for updates",
+    "upToDate": "The app is up to date.",
+    "updateReady": "A new version is available: use the banner to update."
+  },
+  "logout": {
+    "title": "Disconnect this phone",
+    "text": "The phone will not be able to use the library until you connect it again.",
+    "action": "Disconnect this phone",
+    "confirmTitle": "Disconnect this phone?",
+    "confirmText": "You will need a new QR code from the computer to connect it again.",
+    "confirm": "Disconnect",
+    "busy": "Disconnecting…",
+    "cancel": "Cancel",
+    "offline": "The server could not be told. The phone is disconnected here, but it must be revoked from the computer, in Devices.",
+    "offlineTitle": "Phone disconnected"
+  }
+}
