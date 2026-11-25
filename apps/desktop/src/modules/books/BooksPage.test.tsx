@@ -98,13 +98,13 @@ describe('filters', () => {
     expect(listCalls(platform).some((p) => p.get('unshelved') === 'true')).toBe(true);
   });
 
-  it('offers no reading-state filters', async () => {
-    renderBooks({ books: makeDb(1) });
+  it('offers no reading-state filters and no "mark as read"', async () => {
+    renderBooks({ books: makeDb(1), role: 'guest' });
     await screen.findByRole('tablist', { name: 'Filtri' });
     for (const name of ['Da leggere', 'In lettura', 'Letti', 'Filtri']) {
       expect(screen.queryByRole('tab', { name })).toBeNull();
     }
-    for (const name of [/Aggiungi/, /Modifica/, /Presta/, /Segna come letto/]) {
+    for (const name of [/Aggiungi/, /Modifica/, /Presta/, /Elimina/, /Seleziona/, /Segna come letto/]) {
       expect(screen.queryByRole('button', { name })).toBeNull();
     }
   });

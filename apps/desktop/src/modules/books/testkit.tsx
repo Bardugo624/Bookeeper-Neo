@@ -26,15 +26,22 @@ export interface Library {
   books: BookOut[];
   cover?: { bytes: Uint8Array; etag: string };
   fail?: { on: boolean };
+  role?: 'owner' | 'member' | 'guest';
+  /** Answers first; return undefined to fall through to the in-memory library. */
+  extra?: (r: { method: string; path: string; body?: unknown }) => { status: number; body: unknown } | undefined;
+  /** Raw (binary) requests that reached the transport, e.g. cover uploads. */
+  raw?: Array<{ method: string; path: string; bytes?: Uint8Array }>;
 }
 
 /** Handler that answers `/me`, `/books`, `/books/:id` and `/shelves` from an in-memory list. */
 export function libraryHandler(lib: Library) {
-  return (r: { method: string; path: string }) => {
+  return (r: { method: string; path: string; body?: unknown }) => {
+    const own = lib.extra?.(r);
+    if (own) return own;
     const url = new URL(r.path, 'http://x');
     const p = url.pathname;
     const q = url.searchParams;
-    if (p === '/api/v1/me') return ok(ME);
+    if (p === '/api/v1/me') return ok({ ...ME, user: { ...ME.user, role: lib.role ?? 'owner' } });
     if (p === '/api/v1/shelves') return ok({ items: [{ id: 's1', name: 'Salotto', color: '#888' }] });
     if (p === '/api/v1/books') {
       if (lib.fail?.on) return { status: 500, body: { error_code: 'internal', message: 'x' } };
@@ -42,7 +49,7 @@ export function libraryHandler(lib: Library) {
       if (q.get('on_loan') === 'true') rows = rows.filter((b) => b.on_loan);
       if (q.get('unshelved') === 'true') rows = rows.filter((b) => !b.placement);
       const text = q.get('q');
-      if (text) rows = rows.filter((b) => b.title.toLowerCase().includes(text.toLowerCase()));
+      if (text) rows = rows.filter((b) => [b.title, b.isbn_13, b.isbn_10].some((f) => f?.toLowerCase().includes(text.toLowerCase())));
       const offset = Number(q.get('offset') ?? 0);
       const limit = Number(q.get('limit') ?? 50);
       return ok({ items: rows.slice(offset, offset + limit), total: rows.length });
@@ -67,6 +74,11 @@ export function booksPlatform(lib: Library): FakePlatform {
     ...base(id),
     async requestRaw(req): Promise<RawResponse> {
       platform.calls.push({ method: req.method, path: req.path, headers: req.headers });
+      if (req.method === 'PUT') {
+        lib.raw?.push({ method: req.method, path: req.path, bytes: req.body });
+        const bytes = new TextEncoder().encode(JSON.stringify({ cover_color: '#112233' }));
+        return { status: 200, bytes, contentType: 'application/json', headers: {} as Record<string, string> };
+      }
       if (!lib.cover || !req.path.endsWith('/b1/cover')) {
         const bytes = new TextEncoder().encode(JSON.stringify({ error_code: 'not_found', message: 'x' }));
         return { status: 404, bytes, contentType: 'application/json', headers: {} as Record<string, string> };
