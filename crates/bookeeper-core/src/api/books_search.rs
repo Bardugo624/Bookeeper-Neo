@@ -5,8 +5,8 @@ use utoipa::ToSchema;
 
 use crate::{
     api::books::{map_book, BookOut, SELECT_BOOK},
-    api::reading::attach_reading,
     api::util::{ApiQuery, Page},
+    api::{reading::attach_reading, tags::attach_tags},
     auth::guard::AuthUser,
     error::{ApiError, ApiErrorBody, ApiResult},
     state::AppState,
@@ -240,6 +240,7 @@ pub async fn list_books(
                 .query_map(rusqlite::params_from_iter(args.iter()), map_book)?
                 .collect::<rusqlite::Result<Vec<_>>>()?;
             attach_reading(conn, &who.user_id, &mut items)?;
+            attach_tags(conn, &mut items)?;
             Ok(BookList { items, total })
         })
         .await?;

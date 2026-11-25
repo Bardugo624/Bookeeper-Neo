@@ -19,6 +19,7 @@ pub mod server;
 pub mod setup;
 pub mod shelves;
 pub mod stats;
+pub mod tags;
 pub mod transfer;
 pub mod util;
 pub mod wishlist;
@@ -46,6 +47,7 @@ pub fn router(state: AppState) -> Router {
         .merge(books::routes())
         .merge(books_search::routes())
         .merge(reading::routes())
+        .merge(tags::routes())
         .merge(shelves::routes())
         .merge(loans::routes())
         .merge(wishlist::routes())
