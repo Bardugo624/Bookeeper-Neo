@@ -1,0 +1,28 @@
+{
+  "title": "Labels",
+  "summary": {
+    "one": "{count} book",
+    "other": "{count} books"
+  },
+  "sheet": "A4 sheet · 4 × 11 labels, with a Data Matrix code per book",
+  "note": "Labels start from the first box of the sheet.",
+  "preview": {
+    "label": "Sheet preview: {used} of {total} boxes used",
+    "sheets": {
+      "one": "{count} sheet",
+      "other": "{count} sheets"
+    }
+  },
+  "create": "Create the PDF",
+  "creating": "Creating the PDF…",
+  "tooMany": "Too many books for one request: the limit is {max}. Select fewer.",
+  "toast": {
+    "saved": "Labels saved",
+    "skipped": {
+      "one": "Labels saved: {count} book skipped (no progressive number or not found)",
+      "other": "Labels saved: {count} books skipped (no progressive number or not found)"
+    }
+  },
+  "action": "Labels",
+  "menu": "Label"
+}
