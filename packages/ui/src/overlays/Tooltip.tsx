@@ -1,4 +1,4 @@
-import type { ReactElement, ReactNode } from 'react';
+import { createContext, useContext, type ReactElement, type ReactNode } from 'react';
 import { Tooltip as RadixTooltip } from 'radix-ui';
 import styles from './Tooltip.module.css';
 
@@ -10,9 +10,22 @@ export interface TooltipProps {
   children: ReactElement;
 }
 
-export function Tooltip({ content, side = 'top', children }: TooltipProps) {
+const DELAY = 300;
+const SKIP_DELAY = 150;
+const InProvider = createContext(false);
+
+/** Shares the open delay: moving from one tooltip to a neighbour shows the second at once. */
+export function TooltipProvider({ children }: { children: ReactNode }) {
   return (
-    <RadixTooltip.Provider delayDuration={300} skipDelayDuration={150}>
+    <RadixTooltip.Provider delayDuration={DELAY} skipDelayDuration={SKIP_DELAY}>
+      <InProvider.Provider value={true}>{children}</InProvider.Provider>
+    </RadixTooltip.Provider>
+  );
+}
+
+export function Tooltip({ content, side = 'top', children }: TooltipProps) {
+  const shared = useContext(InProvider);
+  const tip = (
       <RadixTooltip.Root>
         <RadixTooltip.Trigger asChild>{children}</RadixTooltip.Trigger>
         <RadixTooltip.Portal>
@@ -22,6 +35,11 @@ export function Tooltip({ content, side = 'top', children }: TooltipProps) {
           </RadixTooltip.Content>
         </RadixTooltip.Portal>
       </RadixTooltip.Root>
+  );
+  if (shared) return tip;
+  return (
+    <RadixTooltip.Provider delayDuration={DELAY} skipDelayDuration={SKIP_DELAY}>
+      {tip}
     </RadixTooltip.Provider>
   );
 }

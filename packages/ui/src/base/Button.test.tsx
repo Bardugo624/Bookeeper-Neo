@@ -47,3 +47,11 @@ it('renders an icon as decorative', () => {
   expect(container.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
   expect(screen.getByRole('button', { name: 'Add' })).toBeInTheDocument();
 });
+
+it('requires loadingLabel when loading and names the spinner with it', () => {
+  // @ts-expect-error loading without loadingLabel must not compile
+  const bad = <Button loading>Save</Button>;
+  expect(bad).toBeTruthy();
+  render(<Button loading loadingLabel="Salvataggio">Save</Button>);
+  expect(screen.getByRole('status', { name: 'Salvataggio' })).toBeInTheDocument();
+});

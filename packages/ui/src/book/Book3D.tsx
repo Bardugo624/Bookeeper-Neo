@@ -12,9 +12,9 @@ export interface Book3DProps {
   pages?: number;
 }
 
-/** Spine thickness in px: 14 up to 100 pages, 40 from 800, linear between, 24 when unknown. */
+/** Spine thickness in px: 14 up to 100 pages, 40 from 800, linear between, 24 when unknown (absent, NaN, zero or negative); Infinity counts as 800 or more. */
 export function spineThickness(pages?: number): number {
-  if (pages === undefined || !Number.isFinite(pages)) return 24;
+  if (pages === undefined || Number.isNaN(pages) || pages <= 0) return 24;
   const t = Math.min(1, Math.max(0, (pages - 100) / 700));
   return 14 + t * 26;
 }

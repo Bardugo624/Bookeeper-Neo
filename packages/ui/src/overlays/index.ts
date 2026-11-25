@@ -11,4 +11,4 @@ export {
   type ToastProviderProps,
   type ToastTone,
 } from './Toast';
-export { Tooltip, type TooltipProps } from './Tooltip';
+export { Tooltip, TooltipProvider, type TooltipProps } from './Tooltip';
