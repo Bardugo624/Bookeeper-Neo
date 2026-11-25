@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createClient } from '@bookeeper/api';
 import { usePlatform } from '../../platform';
+import { useSession } from '../../session';
 import { newLocalConnection } from './connections';
 
 export type LocalState = 'checking' | 'new' | 'exists';
@@ -9,10 +10,11 @@ export type LocalState = 'checking' | 'new' | 'exists';
 export function useLocalLibrary() {
   const platform = usePlatform();
   const [state, setState] = useState<LocalState>('checking');
+  const settledRef = useRef<Promise<void>>(Promise.resolve());
 
   useEffect(() => {
     let live = true;
-    (async () => {
+    settledRef.current = (async () => {
       let temporary: string | null = null;
       try {
         const all = await platform.connections.get();
@@ -31,7 +33,10 @@ export function useLocalLibrary() {
         if (live) setState('new');
       } finally {
         // Only needed to ask; leaving it would save an empty library nobody created.
-        if (temporary) await platform.connections.remove(temporary).catch(() => undefined);
+        // Remove only what this check created, and never a connection a session has taken over.
+        if (temporary && useSession.getState().connection?.id !== temporary) {
+          await platform.connections.remove(temporary).catch(() => undefined);
+        }
       }
     })();
     return () => {
@@ -39,5 +44,8 @@ export function useLocalLibrary() {
     };
   }, [platform]);
 
-  return { state };
+  /** Resolves once the check, and its cleanup, are over. */
+  const settled = useCallback(() => settledRef.current, []);
+
+  return { state, settled };
 }

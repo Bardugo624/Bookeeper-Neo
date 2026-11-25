@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { AuthOut } from '@bookeeper/api';
@@ -57,6 +57,9 @@ const ready = () => waitFor(() => expect(useSession.getState().status).toBe('rea
 function show(platform: FakePlatform) {
   renderApp({ platform, modules: [welcome], route: '/welcome' });
 }
+// The toast provider keeps an empty `alert` live region mounted; only alerts with text count here.
+const alerts = () => screen.queryAllByRole('alert').filter((a) => a.textContent);
+const findAlert = () => waitFor(() => expect(alerts()).toHaveLength(1)).then(() => alerts()[0]!);
 const user = () => userEvent.setup();
 const openCard = async (u: ReturnType<typeof user>, name: RegExp) => u.click(await screen.findByRole('button', { name }));
 const type = async (u: ReturnType<typeof user>, label: string, text: string) => u.type(await screen.findByRole('textbox', { name: label }), text);
@@ -69,7 +72,7 @@ describe('Crea qui', () => {
     show(p);
     const u = user();
     await u.click(await screen.findByRole('button', { name: 'Crea la libreria' }));
-    expect(screen.getAllByRole('alert')).toHaveLength(2);
+    expect(alerts()).toHaveLength(2);
     expect(screen.getByRole('textbox', { name: 'Nome della libreria' })).toHaveFocus();
     expect(screen.getByRole('textbox', { name: 'Nome della libreria' })).toBeInvalid();
     expect(credentialPosts(p)).toHaveLength(0);
@@ -89,6 +92,30 @@ describe('Crea qui', () => {
     const saved = p.state.items.find((c) => c.id === p.state.active);
     expect(saved).toMatchObject({ kind: 'local', access_token: 'new-access', refresh_token: 'new-refresh' });
     expect(call?.connectionId).toBe(saved?.id);
+  });
+
+  it('keeps the connection when creation starts while the setup check is pending', async () => {
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>((r) => (release = r));
+    const remote = fakeConnection({ id: 'rem', kind: 'remote', url: 'http://x', library_name: null, user_name: null, access_token: null, refresh_token: null });
+    const p = platformWith(
+      { 'GET /api/v1/setup': async () => (await gate, { status: 200, body: SETUP_OPEN }), 'POST /api/v1/setup': { status: 201, body: AUTH } },
+      { connections: { active: 'rem', items: [remote] } },
+    );
+    show(p);
+    const u = user();
+    await u.click(await screen.findByRole('button', { name: "Usa un'altra libreria" }));
+    expect(await screen.findByRole('button', { name: /Crea la libreria/ })).toHaveAttribute('aria-busy', 'true');
+    await type(u, 'Nome della libreria', 'Casa Rossi');
+    await type(u, 'Il tuo nome', 'Anna');
+    // The button is disabled while checking, so submit the form directly.
+    fireEvent.submit(screen.getByRole('textbox', { name: 'Il tuo nome' }).closest('form')!);
+    await new Promise((r) => setTimeout(r, 100));
+    release();
+    await ready();
+    await waitFor(() => expect(p.state.items.find((c) => c.kind === 'local')).toMatchObject({ access_token: 'new-access' }));
+    expect(p.state.active).toBe(p.state.items.find((c) => c.kind === 'local')?.id);
+    expect(useSession.getState().connection?.kind).toBe('local');
   });
 
   it('sends only one request on a double click', async () => {
@@ -190,7 +217,7 @@ describe('Unisciti', () => {
     await type(u, 'Indirizzo del server', 'https://casa.example');
     await type(u, 'Codice di abbinamento', '000000');
     await u.click(joinButton());
-    const alert = await screen.findByRole('alert');
+    const alert = await findAlert();
     expect(alert).toHaveTextContent('Il codice non è corretto oppure è scaduto');
     const field = screen.getByRole('textbox', { name: 'Codice di abbinamento' });
     expect(field).toHaveAttribute('aria-describedby', expect.stringContaining(alert.id));
@@ -207,7 +234,7 @@ describe('Unisciti', () => {
     await type(u, 'Indirizzo del server', 'https://casa.example');
     await type(u, 'Codice di abbinamento', '000000');
     await u.click(joinButton());
-    expect(await screen.findByRole('alert')).toHaveTextContent('30');
+    expect(await findAlert()).toHaveTextContent('30');
   });
 
   it('signs in directly when the account has one library', async () => {
@@ -257,7 +284,7 @@ describe('Unisciti', () => {
     await type(u, 'Indirizzo del server', 'https://casa.example');
     await type(u, 'Codice di abbinamento', '123456');
     await u.click(joinButton());
-    expect(await screen.findByRole('alert')).toHaveTextContent('non ha ancora una libreria');
+    expect(await findAlert()).toHaveTextContent('non ha ancora una libreria');
     await u.click(screen.getByRole('button', { name: /Vai a «Crea su un server»/ }));
     expect(screen.getByRole('button', { name: /Crea su un server/ })).toHaveAttribute('aria-expanded', 'true');
   });
@@ -314,7 +341,7 @@ describe('indirizzo non utilizzabile', () => {
     await type(u, 'Indirizzo del server', 'http://example.org');
     await type(u, 'Codice di abbinamento', '123456');
     await u.click(screen.getAllByRole('button', { name: 'Unisciti' }).find((b) => b.getAttribute('type') === 'submit')!);
-    expect(await screen.findByRole('alert')).toHaveTextContent(text);
+    expect(await findAlert()).toHaveTextContent(text);
     expect(screen.getByRole('textbox', { name: 'Codice di abbinamento' })).toHaveValue('123456');
     expect(credentialPosts(p)).toHaveLength(0);
   });
@@ -355,7 +382,7 @@ describe('Crea su un server', () => {
     show(p);
     const u = user();
     await fill(u);
-    expect(await screen.findByRole('alert')).toHaveTextContent('ha già una libreria');
+    expect(await findAlert()).toHaveTextContent('ha già una libreria');
     expect(credentialPosts(p)).toHaveLength(0);
     await u.click(screen.getByRole('button', { name: /Vai a «Unisciti»/ }));
     expect(screen.getByRole('button', { name: /^Unisciti Collega/ })).toHaveAttribute('aria-expanded', 'true');
@@ -370,8 +397,8 @@ describe('Crea su un server', () => {
     await u.type(screen.getByLabelText(/^Password/), 'corta');
     await u.click(screen.getByRole('button', { name: 'Crea la libreria' }));
     expect(screen.getByRole('textbox', { name: 'Indirizzo del server' })).toHaveFocus();
-    const alerts = screen.getAllByRole('alert').map((a) => a.textContent);
-    expect(alerts).toEqual(expect.arrayContaining([expect.stringContaining('con la @'), expect.stringContaining('almeno 8 caratteri')]));
+    const texts = alerts().map((a) => a.textContent);
+    expect(texts).toEqual(expect.arrayContaining([expect.stringContaining('con la @'), expect.stringContaining('almeno 8 caratteri')]));
     expect(p.calls.filter((c) => c.method === 'POST')).toHaveLength(0);
   });
 });
@@ -396,7 +423,7 @@ describe('Bentornato', () => {
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
     await u.type(screen.getByLabelText('Password'), 'sbagliata-di-molto');
     await u.click(screen.getByRole('button', { name: 'Accedi' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Email o password non corrette');
+    expect(await findAlert()).toHaveTextContent('Email o password non corrette');
     expect(useSession.getState().status).toBe('welcome');
   });
 

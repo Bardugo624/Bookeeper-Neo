@@ -15,7 +15,7 @@ export interface BookCardProps {
 
 export function BookCard({ book, from }: BookCardProps) {
   const t = useT();
-  const src = useCover(book.id);
+  const src = useCover(book.id, Boolean(book.cover_color));
   const author = authorsOf(book);
   const name = author ? t('books.list.cardName', { title: book.title, author }) : book.title;
   const state: FromList = { list: from };

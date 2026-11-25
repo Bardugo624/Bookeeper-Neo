@@ -58,7 +58,7 @@ export function CreateLocalCard({ open, onOpen }: PathProps) {
           </div>
           {s.errors.form ? <Notice text={s.errors.form} /> : null}
           <div className={styles.actions}>
-            <Button type="submit" variant="primary" loading={s.busy} loadingLabel={t('shell.loading')}>
+            <Button type="submit" variant="primary" loading={s.busy || s.checking} loadingLabel={t('shell.loading')}>
               {t('welcome.local.submit')}
             </Button>
           </div>
