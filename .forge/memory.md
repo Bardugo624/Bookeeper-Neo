@@ -13,8 +13,10 @@
 
 ## Known traps
 - a fresh worktree has no node_modules; run `npm ci --offline` at the root, then `npx vitest run <path>` from apps/desktop [apps/desktop/package.json]
+- `axum_server::Handle` è generico (`Handle<SocketAddr>`) in axum-server 0.8, a differenza di 0.7 [apps/desktop/src-tauri/Cargo.toml]
 - `t()` in @bookeeper/i18n returns the key itself when it is missing from both locales, so neither tsc nor the tests catch a new key that was never added [packages/i18n/src/index.ts]
 - in jsdom a `Uint8Array` built by a test's `TextEncoder` can fail `instanceof Uint8Array` in app code, so authTransport's `errorCode`… [apps/desktop/src/session/authTransport.ts]
+- `renderSettings` in `settings/testkit.tsx` has a fixed handler, so a section that needs extra routes (or `requestRaw` for… [apps/desktop/src/modules/settings/testkit.tsx]
 - a module's `routes.tsx` must not import the `app` barrel (use `app/i18n`, `app/types`): `app/index` globs all modules, so the cycle leaves… [apps/desktop/src/app/modules.ts]
 - jsdom's `navigator.language` is `en-US`, so tests that render `AppProviders` without a `locale` prop come out in English unless the test sets it [apps/desktop/src/app/i18n.tsx]
 - tauri-plugin-dialog needs its default features (gtk3 backend for rfd) or the `rfd` build script panics on Linux [apps/desktop/src-tauri/Cargo.toml]
@@ -27,5 +29,4 @@
 - desktop module tests that open a spine tooltip need `globalThis.ResizeObserver` stubbed locally, since… [apps/desktop/src/modules/shelves/testkit.tsx]
 - `userEvent.setup()` installa un suo `navigator.clipboard`: nei test di "Copia" si legge con `navigator.clipboard.readText()`… [apps/desktop/src/modules/devices/devices.test.tsx]
 - StatCard's count-up runs on requestAnimationFrame unless `window.matchMedia` reports reduced motion, and jsdom has no `matchMedia`, so… [apps/desktop/src/modules/stats/testkit.tsx]
-- react-router's functional `setSearchParams(prev => …)` does not see a write made earlier in the same handler, so a hook that patches the… [apps/desktop/src/kit/useListParams.ts]
 
