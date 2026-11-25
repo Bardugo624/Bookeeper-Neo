@@ -3,6 +3,7 @@ import { renderApp } from '../../app/testing';
 import type { AppModule } from '../../app';
 import { fakeConnection, fakePlatform, type FakePlatform } from '../../platform/testing';
 import { ME, ok } from '../../session/fixtures';
+import { book as makeBook } from '../books/testkit';
 import { module } from './routes';
 
 // jsdom lacks ResizeObserver, which the tooltip of a spine needs.
@@ -20,7 +21,7 @@ export function shelf(i: number, over: Partial<ShelfOut> = {}): ShelfOut {
 }
 
 export function book(id: string, over: Partial<BookOut> = {}): BookOut {
-  return { id, title: `Libro ${id}`, authors: [`Autore ${id}`], on_loan: false, created_at: 0, updated_at: 0, ...over };
+  return { ...makeBook(0), id, title: `Libro ${id}`, authors: [`Autore ${id}`], ...over };
 }
 
 export interface Spot {

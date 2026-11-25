@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { renderApp } from '../../app/testing';
 import { fakeConnection, fakePlatform, type FakePlatform } from '../../platform/testing';
 import { ME, ok } from '../../session/fixtures';
+import { book } from '../books/testkit';
 import type { AppModule } from '../../app';
 import { useClient, useSession } from '../../session';
 import { module } from './routes';
@@ -23,7 +24,7 @@ export interface Shop {
   listFails?: boolean;
 }
 
-const BOOK: BookOut = { id: 'b9', title: 'Nuovo libro', authors: [], on_loan: false, created_at: 0, updated_at: 0 };
+const BOOK: BookOut = book(9, { id: 'b9', title: 'Nuovo libro', authors: [] });
 
 /** Answers `/me` and the wishlist routes from an in-memory list. */
 export function wishPlatform(shop: Shop): FakePlatform {

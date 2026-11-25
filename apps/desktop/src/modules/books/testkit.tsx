@@ -13,6 +13,8 @@ export function book(i: number, over: Partial<BookOut> = {}): BookOut {
     title: `Libro ${i}`,
     authors: [`Autore ${i}`],
     on_loan: false,
+    tags: [],
+    reading: null,
     created_at: 0,
     updated_at: 0,
     ...over,
