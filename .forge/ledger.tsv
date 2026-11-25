@@ -159,3 +159,5 @@
 2026-11-24T23:59:52Z	bookeeper-fase-1e	domains	qa	opus	PASS	trap	bookeeper server writes its tracing logs to stdout so a test that waits for a fixed number of stdout lines depends on rust log and can hang	bookeeper-server writes its tracing logs to stdout, so a test that waits for a fixed number of stdout lines depends on RUST_LOG and can hang [crates/bookeeper-server/src/main.rs]	242	1
 2026-11-25T00:03:33Z	bookeeper-fase-1e	server-e	dwarf	sonnet	-	-	-	-	213
 2026-11-25T00:06:08Z	bookeeper-fase-1e	server-e	qa	opus	PASS	-	-	-	152
+2026-11-25T00:23:12Z	bookeeper-fase-1f	config-f	dwarf	sonnet	-	-	-	-	132
+2026-11-25T00:25:28Z	bookeeper-fase-1f	config-f	qa	opus	PASS	-	-	-	132
