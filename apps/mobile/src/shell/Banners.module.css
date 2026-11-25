@@ -1,0 +1,30 @@
+.banners {
+  flex: none;
+  padding-top: env(safe-area-inset-top);
+  background: var(--bk-surface);
+  border-bottom: 1px solid var(--bk-border);
+}
+
+.offline,
+.update {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 4px 16px;
+  font-size: 14px;
+}
+
+.offline {
+  color: var(--bk-warn-strong);
+  background: var(--bk-warn-bg);
+}
+
+.update {
+  justify-content: space-between;
+  color: var(--bk-text);
+}
+
+.text {
+  min-width: 0;
+}
