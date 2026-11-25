@@ -139,40 +139,65 @@ impl Store {
         }
         match serde_json::from_slice::<Connections>(&bytes) {
             Ok(c) => Ok(c),
-            Err(_) => {
-                let secs = std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .map(|d| d.as_secs())
-                    .unwrap_or(0);
-                // Never log the content: it may hold tokens.
-                tracing::warn!(
-                    "connections file is unreadable; setting it aside and starting empty"
-                );
-                // The name is claimed atomically: a hard link fails when it exists, so a file set
-                // aside earlier (even by another process) is never overwritten.
-                let mut n = 0u32;
-                loop {
-                    let name = if n == 0 {
-                        format!("connections.json.corrotto-{secs}")
-                    } else {
-                        format!("connections.json.corrotto-{secs}-{n}")
-                    };
-                    match std::fs::hard_link(&self.path, self.path.with_file_name(name)) {
-                        Ok(()) => break,
-                        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => n += 1,
-                        Err(e) => {
-                            return Err(format!(
-                                "cannot set aside corrupt connections: {}",
-                                e.kind()
-                            ))
-                        }
+            Err(_) => self.set_aside(&bytes),
+        }
+    }
+
+    /// Sets the corrupt `bytes` aside and starts empty. The copy is created exclusively
+    /// (`create_new`), so a copy made earlier, even by another process, is never overwritten.
+    /// The original is removed only if it still holds exactly `bytes`; if another process has
+    /// replaced it meanwhile it is left alone and reloaded. Public so tests can drive the
+    /// step between reading and removing.
+    #[doc(hidden)]
+    pub fn set_aside(&self, bytes: &[u8]) -> Result<Connections, String> {
+        let secs = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_secs())
+            .unwrap_or(0);
+        // Never log the content: it may hold tokens.
+        tracing::warn!("connections file is unreadable; setting it aside and starting empty");
+        let fail =
+            |e: std::io::Error| format!("cannot set aside corrupt connections: {}", e.kind());
+        let mut n = 0u32;
+        loop {
+            let name = if n == 0 {
+                format!("connections.json.corrotto-{secs}")
+            } else {
+                format!("connections.json.corrotto-{secs}-{n}")
+            };
+            let mut opts = std::fs::OpenOptions::new();
+            opts.write(true).create_new(true);
+            #[cfg(unix)]
+            std::os::unix::fs::OpenOptionsExt::mode(&mut opts, 0o600);
+            match opts.open(self.path.with_file_name(&name)) {
+                Ok(mut f) => {
+                    if let Err(e) = f.write_all(bytes).and_then(|()| f.sync_all()) {
+                        drop(f);
+                        let _ = std::fs::remove_file(self.path.with_file_name(&name));
+                        return Err(fail(e));
                     }
+                    break;
                 }
-                std::fs::remove_file(&self.path)
-                    .map_err(|e| format!("cannot set aside corrupt connections: {}", e.kind()))?;
-                Ok(Connections::default())
+                Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => n += 1,
+                Err(e) => return Err(fail(e)),
             }
         }
+        match std::fs::read(&self.path) {
+            Ok(now) if now == bytes => std::fs::remove_file(&self.path)
+                .or_else(|e| {
+                    if e.kind() == std::io::ErrorKind::NotFound {
+                        Ok(())
+                    } else {
+                        Err(e)
+                    }
+                })
+                .map_err(fail)?,
+            // Replaced or gone: not ours to delete; load what is there now.
+            Ok(_) => return self.read(),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+            Err(e) => return Err(fail(e)),
+        }
+        Ok(Connections::default())
     }
 
     fn write(&self, all: &Connections) -> Result<(), String> {
