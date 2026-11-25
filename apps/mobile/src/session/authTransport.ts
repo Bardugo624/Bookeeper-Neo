@@ -8,16 +8,24 @@ const NO_RENEW = /\/auth\/(refresh|login)$|\/pairing\/redeem$/;
 
 const RENEWABLE = new Set(['unauthorized', 'token_expired']);
 
-/** Error code of a response (`body.error_code`); null when absent. */
-function errorCode(body: unknown): string | null {
-  const code = (body as { error_code?: unknown } | null)?.error_code;
-  return typeof code === 'string' ? code : null;
+/** Error code of a response: `body.error_code`, or the same JSON arriving as raw bytes; null when absent. */
+function errorCode(res: { body?: unknown; bytes?: unknown }): string | null {
+  try {
+    let b: unknown = res.body;
+    if (b === undefined && res.bytes && typeof (res.bytes as Uint8Array).byteLength === 'number') {
+      b = JSON.parse(new TextDecoder().decode(res.bytes as Uint8Array));
+    }
+    const code = (b as { error_code?: unknown } | null)?.error_code;
+    return typeof code === 'string' ? code : null;
+  } catch {
+    return null;
+  }
 }
 
 /** `adopted`: the token came from another tab's renewal, not from our own refresh. */
 /** A 401 that a new access token may cure (no code counts as renewable). */
-function renewable(body: unknown): boolean {
-  const code = errorCode(body);
+function renewable(res: { body?: unknown; bytes?: unknown }): boolean {
+  const code = errorCode(res);
   return code === null || RENEWABLE.has(code);
 }
 
@@ -98,35 +106,47 @@ function build(platform: Platform): Transport {
   const withAuth = (token: string | null, headers?: Record<string, string>) =>
     token ? { ...headers, Authorization: `Bearer ${token}` } : headers;
 
-  return {
-    async request(method, path, body, headers) {
-      const sent = useSession.getState().tokens?.access_token ?? null;
-      const send = (token: string | null) => platform.transport().request(method, path, body, withAuth(token, headers));
-      const res = await send(sent);
-      if (res.status !== 401 || NO_RENEW.test(path) || sent === null) return res;
-      const code = errorCode(res.body);
-      if (code === 'device_revoked') {
+  /** Sends with the current token; on a renewable 401 renews once (shared) and retries. */
+  async function run<T extends { status: number; body?: unknown; bytes?: unknown }>(
+    path: string,
+    send: (token: string | null) => Promise<T>,
+  ): Promise<T> {
+    const sent = useSession.getState().tokens?.access_token ?? null;
+    const res = await send(sent);
+    if (res.status !== 401 || NO_RENEW.test(path) || sent === null) return res;
+    const code = errorCode(res);
+    if (code === 'device_revoked') {
+      useSession.getState().expire();
+      return res;
+    }
+    // Other 401s (wrong credentials, confirmation needed) are ordinary errors for the caller.
+    if (!renewable(res)) return res;
+    let renewal = await renew(sent);
+    let retry: T | null = null;
+    for (let tries = 1; ; tries++) {
+      // The session may still be good: report it as a network failure, not as a 401.
+      if (renewal === 'unreachable') throw new ApiError(0, 'network', 'The server could not be reached');
+      if (renewal === 'rejected') {
         useSession.getState().expire();
-        return res;
+        return retry ?? res;
       }
-      // Other 401s (wrong credentials, confirmation needed) are ordinary errors for the caller.
-      if (!renewable(res.body)) return res;
-      let renewal = await renew(sent);
-      let retry: Awaited<ReturnType<Transport['request']>> | null = null;
-      for (let tries = 1; ; tries++) {
-        // The session may still be good: report it as a network failure, not as a 401.
-        if (renewal === 'unreachable') throw new ApiError(0, 'network', 'The server could not be reached');
-        if (renewal === 'rejected') {
-          useSession.getState().expire();
-          return retry ?? res;
-        }
-        retry = await send(renewal.token);
-        // A token taken from another tab may itself have expired: refresh with its refresh token.
-        if (!renewal.adopted || tries >= 3 || retry.status !== 401 || !renewable(retry.body)) break;
-        renewal = await renew(renewal.token);
-      }
-      if (retry.status === 401) useSession.getState().expire();
-      return retry;
-    },
+      retry = await send(renewal.token);
+      // A token taken from another tab may itself have expired: refresh with its refresh token.
+      if (!renewal.adopted || tries >= 3 || retry.status !== 401 || !renewable(retry)) break;
+      renewal = await renew(renewal.token);
+    }
+    if (retry.status === 401) useSession.getState().expire();
+    return retry;
+  }
+
+  return {
+    request: (method, path, body, headers) =>
+      run(path, (token) => platform.transport().request(method, path, body, withAuth(token, headers))),
+    requestRaw: (req) =>
+      run(req.path, (token) => {
+        const base = platform.transport();
+        if (!base.requestRaw) throw new ApiError(0, 'unsupported', 'raw requests unsupported');
+        return base.requestRaw({ ...req, headers: withAuth(token, req.headers) });
+      }),
   };
 }

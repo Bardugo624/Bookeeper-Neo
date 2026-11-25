@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import type { Transport, TransportResponse } from '@bookeeper/api';
+import type { RawRequest, RawResponse, Transport, TransportResponse } from '@bookeeper/api';
 import { memoryStorage } from './storage';
 import type {
   BarcodeResult,
@@ -20,15 +20,27 @@ export interface RecordedCall {
 
 export type Handler = (call: RecordedCall) => TransportResponse | Promise<TransportResponse>;
 
+export type RawHandler = (req: RawRequest) => RawResponse | Promise<RawResponse>;
+
 export interface FakeTransport extends Transport {
   calls: RecordedCall[];
+  rawCalls: RawRequest[];
 }
 
 /** A transport that answers with `handler` and records every request. */
-export function fakeTransport(handler: Handler = () => ({ status: 404, body: null })): FakeTransport {
+export function fakeTransport(
+  handler: Handler = () => ({ status: 404, body: null }),
+  rawHandler: RawHandler = () => ({ status: 404, bytes: new Uint8Array(), contentType: null, headers: {} }),
+): FakeTransport {
   const calls: RecordedCall[] = [];
+  const rawCalls: RawRequest[] = [];
   return {
     calls,
+    rawCalls,
+    async requestRaw(req) {
+      rawCalls.push(req);
+      return rawHandler(req);
+    },
     async request(method, path, body, headers) {
       const call = { method, path, body, headers };
       calls.push(call);
@@ -124,10 +136,10 @@ export interface FakePlatform extends Platform {
 
 /** A platform with no browser behind it. Override any part, or give a `handler` for the API. */
 export function fakePlatform(
-  overrides: Partial<Platform> & { handler?: Handler; online?: boolean } = {},
+  overrides: Partial<Platform> & { handler?: Handler; rawHandler?: RawHandler; online?: boolean } = {},
 ): FakePlatform {
-  const { handler, online, ...rest } = overrides;
-  const fake = fakeTransport(handler);
+  const { handler, rawHandler, online, ...rest } = overrides;
+  const fake = fakeTransport(handler, rawHandler);
   return {
     secure: true,
     storage: memoryStorage(),

@@ -16,7 +16,7 @@ export interface SessionGateProps {
 export function SessionGate({ publicPaths, home }: SessionGateProps) {
   const t = useT();
   const status = useSession((s) => s.status);
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const isPublic = publicPaths.some((p) => matchPath({ path: p, end: false }, pathname));
 
   if (status === 'loading') {
@@ -27,6 +27,8 @@ export function SessionGate({ publicPaths, home }: SessionGateProps) {
     );
   }
   if (status === 'unpaired' && !isPublic) return <Navigate to={PAIR_PATH} replace />;
-  if (status === 'ready' && isPublic) return <Navigate to={home ?? '/'} replace />;
+  // A pairing link opened on a phone that is already paired keeps its code for the page.
+  const pairingLink = matchPath({ path: PAIR_PATH, end: false }, pathname) && new URLSearchParams(search).has('code');
+  if (status === 'ready' && isPublic && !pairingLink) return <Navigate to={home ?? '/'} replace />;
   return <Outlet />;
 }
