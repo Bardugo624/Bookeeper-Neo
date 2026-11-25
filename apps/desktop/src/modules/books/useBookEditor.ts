@@ -5,7 +5,7 @@ import { useT } from '../../app';
 import { useFormState } from '../../kit';
 import {
   applyMetadata, emptyForm, fromBook, toCreateBody, toPatchBody, validateBook, type BookFormValues,
-} from './bookForm';
+} from './bookFormModel';
 import { useNextProgressive, useTypedIsbnDuplicate, type LookupOutcome } from './useIsbnLookup';
 import { useBookWrites, type CoverPlan, type SaveResult } from './useBookWrites';
 
