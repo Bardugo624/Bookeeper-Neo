@@ -362,6 +362,7 @@ mod keychain {
         fail_set: AtomicBool,
         fail_all: AtomicBool,
         fail_get_key: std::sync::Mutex<Option<String>>,
+        fail_set_key: std::sync::Mutex<Option<String>>,
     }
     impl SecretStore for Flaky {
         fn get(&self, key: &str) -> Result<Option<String>, String> {
@@ -375,7 +376,11 @@ mod keychain {
             self.inner.get(key)
         }
         fn set(&self, key: &str, value: &str) -> Result<(), String> {
-            if self.fail_all.load(Ordering::SeqCst) || self.fail_set.load(Ordering::SeqCst) {
+            let k = self.fail_set_key.lock().unwrap().clone();
+            if self.fail_all.load(Ordering::SeqCst)
+                || self.fail_set.load(Ordering::SeqCst)
+                || k.as_deref().is_some_and(|k| key.starts_with(k))
+            {
                 return Err("boom".into());
             }
             self.inner.set(key, value)
@@ -465,6 +470,37 @@ mod keychain {
         // Other operations do not strip the tokens still in the file either.
         s.activate(&c.id).unwrap();
         assert!(file(&d).contains("OLD-A"));
+    }
+
+    #[test]
+    fn keychain_only_tokens_survive_a_failed_migration() {
+        let d = tempfile::tempdir().unwrap();
+        let a = with_tokens("https://a.example", "OLD-A", "OLD-R");
+        Store::new(d.path()).upsert(a.clone()).unwrap();
+        let f = Arc::new(Flaky::default());
+        *f.fail_set_key.lock().unwrap() = Some(a.id.clone());
+        let s = Store::with_secrets(d.path(), f, SecretsMode::Keychain);
+        let b = with_tokens("https://b.example", "B1", "B2");
+        s.upsert(b.clone()).unwrap();
+        let all = s.load().unwrap();
+        let got = all.items.iter().find(|c| c.id == b.id).unwrap();
+        assert_eq!(got, &b);
+        assert!(file(&d).contains("OLD-A"));
+    }
+
+    #[test]
+    fn file_mode_remove_clears_leftover_keychain_entries() {
+        let d = tempfile::tempdir().unwrap();
+        let m = Arc::new(MemoryStore::new());
+        let c = with_tokens("https://a.example", "A", "R");
+        Store::with_secrets(d.path(), m.clone(), SecretsMode::Keychain)
+            .upsert(c.clone())
+            .unwrap();
+        assert_eq!(m.len(), 2);
+        Store::with_secrets(d.path(), m.clone(), SecretsMode::File)
+            .remove(&c.id)
+            .unwrap();
+        assert!(m.is_empty());
     }
 
     #[test]

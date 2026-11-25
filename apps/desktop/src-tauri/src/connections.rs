@@ -102,8 +102,8 @@ impl Store {
 
     pub fn load(&self) -> Result<Connections, String> {
         let _g = self.guard();
-        let (mut all, clean) = self.read_migrated()?;
-        if self.keychain() && clean {
+        let (mut all, _clean) = self.read_migrated()?;
+        if self.keychain() {
             self.fill(&mut all);
         }
         Ok(all)
@@ -155,8 +155,12 @@ impl Store {
     }
 
     /// Fills the tokens from the keychain; a failure leaves that connection without tokens.
+    /// A connection whose tokens are still in the file (failed migration) keeps them.
     fn fill(&self, all: &mut Connections) {
         for c in &mut all.items {
+            if c.access_token.is_some() || c.refresh_token.is_some() {
+                continue;
+            }
             let access = self.secrets.get(&format!("{}/access", c.id));
             let refresh = self.secrets.get(&format!("{}/refresh", c.id));
             match (access, refresh) {
@@ -199,6 +203,12 @@ impl Store {
                 }
                 .map_err(|_| "cannot save tokens in the keychain".to_string())?;
             }
+        } else {
+            for (suffix, tok) in [("access", &tokens.0), ("refresh", &tokens.1)] {
+                if tok.is_none() {
+                    let _ = self.secrets.delete(&format!("{}/{suffix}", c.id));
+                }
+            }
         }
         if self.keychain() {
             if let Some(slot) = all.items.iter_mut().find(|o| o.id == c.id) {
@@ -207,7 +217,7 @@ impl Store {
             }
         }
         self.save(&all, clean)?;
-        if self.keychain() && clean {
+        if self.keychain() {
             self.fill(&mut all);
         }
         Ok(all)
@@ -223,7 +233,7 @@ impl Store {
         }
         all.active = Some(id.to_string());
         self.save(&all, clean)?;
-        if self.keychain() && clean {
+        if self.keychain() {
             self.fill(&mut all);
         }
         Ok(all)
@@ -239,15 +249,16 @@ impl Store {
             all.active = None;
         }
         self.save(&all, clean)?;
-        if self.keychain() {
+        {
+            // Best effort in every mode: entries left by an earlier keychain session.
             for suffix in ["access", "refresh"] {
                 if self.secrets.delete(&format!("{id}/{suffix}")).is_err() {
                     tracing::warn!(connection = %id, "cannot delete a keychain entry");
                 }
             }
-            if clean {
-                self.fill(&mut all);
-            }
+        }
+        if self.keychain() {
+            self.fill(&mut all);
         }
         Ok(all)
     }
