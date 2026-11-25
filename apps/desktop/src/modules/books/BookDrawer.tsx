@@ -7,7 +7,7 @@ import { apiErrorMessage } from '../../kit';
 import { BookFormFields } from './BookFormFields';
 import { CoverPicker } from './CoverPicker';
 import { IsbnStep } from './IsbnStep';
-import { LookupNotice } from './LookupNotice';
+import { ExistingNotice, LookupNotice } from './LookupNotice';
 import { authorsOf } from './format';
 import type { SaveResult } from './useBookWrites';
 import { useBookEditor } from './useBookEditor';
@@ -50,7 +50,7 @@ function BookEditor({ book, onClose, onSaved, onAnother }: BookDrawerProps & { o
     if (another) onAnother();
     else onClose();
   };
-  const editor = useBookEditor(book, done);
+  const editor = useBookEditor(book, done, Boolean(stored));
   const { form } = editor;
   const title = book ? t('books.edit.title') : t('books.new.title');
 
@@ -95,6 +95,7 @@ function BookEditor({ book, onClose, onSaved, onAnother }: BookDrawerProps & { o
             </p>
           ) : null}
           <LookupNotice outcome={editor.outcome} />
+          <ExistingNotice existing={editor.duplicate} />
           <BookFormFields form={form} />
           <CoverPicker
             title={form.values.title}
@@ -103,6 +104,8 @@ function BookEditor({ book, onClose, onSaved, onAnother }: BookDrawerProps & { o
             candidates={editor.candidates}
             plan={editor.plan}
             onPlan={editor.setPlan}
+            color={editor.color}
+            onColor={editor.setColor}
           />
         </form>
       )}

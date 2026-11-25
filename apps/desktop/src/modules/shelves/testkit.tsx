@@ -117,12 +117,25 @@ export function shelvesPlatform(w: World): FakePlatform {
           w.takenOnce = undefined;
           return err(409, 'slot_taken');
         }
-        const b = r.body as { shelf_id: string; row_index: number; slot_index: number };
-        const taken = Object.entries(w.spots).some(
-          ([id, s]) => id !== m![1] && s.shelf === b.shelf_id && s.row === b.row_index && s.slot === b.slot_index,
-        );
-        if (taken) return err(409, 'slot_taken');
-        w.spots[m[1]!] = { shelf: b.shelf_id, row: b.row_index, slot: b.slot_index };
+        const b = r.body as { shelf_id: string; row_index: number; slot_index: number; shift?: boolean };
+        const id = m[1]!;
+        const shelfOf = w.shelves.find((s) => s.id === b.shelf_id)!;
+        const inTarget = (s: Spot) => s.shelf === b.shelf_id && s.row === b.row_index;
+        const old = w.spots[id];
+        const others = Object.entries(w.spots).filter(([other, s]) => other !== id && inTarget(s));
+        const at = others.find(([, s]) => s.slot === b.slot_index);
+        if (at && !b.shift) return err(409, 'slot_taken');
+        if (at) {
+          // The core's shift: the contiguous run from the slot slides right; at the end of the row it
+          // slides left into the old slot instead when the book moves right inside the same row.
+          const run: string[] = [];
+          for (let n = b.slot_index; others.some(([, s]) => s.slot === n); n++) run.push(others.find(([, s]) => s.slot === n)![0]);
+          if (b.slot_index + run.length >= shelfOf.slots_per_row) {
+            if (!old || !inTarget(old) || old.slot > b.slot_index) return err(409, 'row_full');
+            for (const [, s] of others) if (s.slot > old.slot && s.slot <= b.slot_index) s.slot -= 1;
+          } else for (const other of run) w.spots[other]!.slot += 1;
+        }
+        w.spots[id] = { shelf: b.shelf_id, row: b.row_index, slot: b.slot_index };
         return ok({ shelf_id: b.shelf_id, row_index: b.row_index, slot_index: b.slot_index });
       }
       return err(404, 'not_found');
@@ -144,4 +157,11 @@ export function placements(platform: FakePlatform): Array<[string, number, numbe
       const b = c.body as { row_index: number; slot_index: number };
       return [/books\/([^/]+)\/placement/.exec(c.path)![1]!, b.row_index, b.slot_index];
     });
+}
+
+/** Every request sent to a placement route: method, path and whether it asked the core to shift. */
+export function placementRequests(platform: FakePlatform): Array<{ method: string; shift: unknown }> {
+  return platform.calls
+    .filter((c) => /\/books\/[^/]+\/placement$/.test(c.path))
+    .map((c) => ({ method: c.method, shift: (c.body as { shift?: unknown } | undefined)?.shift }));
 }
