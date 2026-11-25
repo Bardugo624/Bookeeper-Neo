@@ -26,7 +26,11 @@ Testi nello spazio dei nomi `maccount`.
 
 La task `m-foundation-2` è unita: le preferenze di tema e lingua vivono nelle fondamenta. Usa `useThemePreference()` e `useLocalePreference()` da `apps/mobile/src/app`; togli dal modulo ogni gestione propria di tema e lingua.
 
+## Aggiunta dopo la revisione
+
+`apps/mobile/src/platform/` e `apps/mobile/src/app/testing.tsx` sono ora file di questa task. "Cerca aggiornamenti" DEVE chiedere davvero al service worker se esiste una versione nuova: aggiungi all'interfaccia del service worker un metodo `checkForUpdate(): Promise<boolean>` (registrazione `update()`), con la versione finta per i test, e usalo. `renderMobile` accetta una lingua iniziale e non la fissa: il test della lingua controlla che lo schermo passi all'inglese senza ricaricare. Dopo "Scollega" con errore di rete anche lo stato in memoria torna `unpaired`.
+
 ## Acceptance criteria
 
 - `npm run typecheck -w @bookeeper/mobile`, `npm test -w @bookeeper/mobile`, `npm test -w @bookeeper/i18n`, `npm run build -w @bookeeper/mobile` passano.
-- Cambiano solo: file sotto `apps/mobile/src/modules/account/`, `packages/i18n/src/locales/{it,en}/maccount.json`.
+- Cambiano solo: file sotto `apps/mobile/src/modules/account/` e `apps/mobile/src/platform/`, `apps/mobile/src/app/testing.tsx`, `packages/i18n/src/locales/{it,en}/maccount.json`.
