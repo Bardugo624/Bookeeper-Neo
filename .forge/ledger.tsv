@@ -367,3 +367,5 @@
 2026-11-25T22:12:16Z	bookeeper-fase-4a	client-4a	qa	opus	FAIL	finding	the hand maintained role gated list in openapi errors rs can silently miss a new route compare it against grep n	the hand-maintained ROLE_GATED list in openapi_errors.rs can silently miss a new route; compare it against `grep -n… [crates/bookeeper-core/tests/openapi_errors.rs]	155	1
 2026-11-25T22:12:40Z	bookeeper-fase-4a	client-4a	dwarf	sonnet	-	trap	the hand maintained role gated list in openapi errors rs can silently miss a new route compare it against grep n	the hand-maintained ROLE_GATED list in openapi_errors.rs can silently miss a new route; compare it against `grep -n… [crates/bookeeper-core/tests/openapi_errors.rs]	18	1
 2026-11-25T22:14:15Z	bookeeper-fase-4a	client-4a	qa	opus	PASS	-	-	-	89
+2026-11-25T22:25:56Z	bookeeper-fase-4a	apps-compat	dwarf	sonnet	-	-	-	-	161
+2026-11-25T22:26:58Z	bookeeper-fase-4a	apps-compat	qa	opus	PASS	-	-	-	58
