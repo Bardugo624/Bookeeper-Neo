@@ -18,12 +18,18 @@ export function AboutSection() {
   const health = useQuery({ queryKey: ['health'], queryFn: () => client.health() });
   const [outcome, setOutcome] = useState<Outcome>(null);
 
-  const check = () => {
-    // Registering is safe to repeat; a version already waiting is announced at once.
-    serviceWorker.register();
-    let waiting = false;
-    serviceWorker.onUpdateReady(() => (waiting = true))();
-    setOutcome(waiting ? 'updateReady' : 'upToDate');
+  const [checking, setChecking] = useState(false);
+
+  const check = async () => {
+    if (checking) return;
+    setChecking(true);
+    try {
+      setOutcome((await serviceWorker.checkForUpdate()) ? 'updateReady' : 'upToDate');
+    } catch {
+      setOutcome('upToDate');
+    } finally {
+      setChecking(false);
+    }
   };
 
   return (
@@ -33,7 +39,7 @@ export function AboutSection() {
       </h2>
       <ListRow title={pkg.version} subtitle={t('maccount.about.app')} />
       <ListRow title={health.data?.version ?? t('maccount.about.serverUnknown')} subtitle={t('maccount.about.server')} />
-      <Button variant="secondary" onClick={check}>
+      <Button variant="secondary" onClick={() => void check()} disabled={checking}>
         {t('maccount.about.check')}
       </Button>
       {outcome ? (

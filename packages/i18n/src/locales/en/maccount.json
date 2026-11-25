@@ -59,8 +59,8 @@
     "confirmText": "You will need a new QR code from the computer to connect it again.",
     "confirm": "Disconnect",
     "busy": "Disconnecting…",
-    "understood": "Got it",
     "cancel": "Cancel",
-    "offline": "The server could not be told. The phone is disconnected here, but it must be revoked from the computer, in Devices."
+    "offline": "The server could not be told. The phone is disconnected here, but it must be revoked from the computer, in Devices.",
+    "offlineTitle": "Phone disconnected"
   }
 }

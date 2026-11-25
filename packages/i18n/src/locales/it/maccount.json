@@ -59,8 +59,8 @@
     "confirmText": "Dovrai collegarlo di nuovo con un nuovo codice QR dal computer.",
     "confirm": "Scollega",
     "busy": "Scollegamento in corso…",
-    "understood": "Ho capito",
     "cancel": "Annulla",
-    "offline": "Non è stato possibile avvisare il server. Il telefono è scollegato qui, ma va revocato dal computer, in Dispositivi."
+    "offline": "Non è stato possibile avvisare il server. Il telefono è scollegato qui, ma va revocato dal computer, in Dispositivi.",
+    "offlineTitle": "Telefono scollegato"
   }
 }

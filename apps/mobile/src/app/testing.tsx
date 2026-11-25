@@ -5,6 +5,7 @@ import { fakePlatform, type FakePlatform } from '../platform/testing';
 import type { Platform } from '../platform';
 import { useSession } from '../session';
 import { AppProviders } from './AppProviders';
+import { LOCALE_KEY, resetLocalePreferenceForTest } from './i18n';
 import { buildRoutes } from './routes';
 import type { MobileModule } from './types';
 
@@ -22,11 +23,14 @@ export function renderMobile<P extends Platform = FakePlatform>({
   route = '/',
   locale = 'it',
 }: RenderMobileOptions<P> = {}) {
+  // The language is only the starting choice: the screen can still switch it.
+  localStorage.setItem(LOCALE_KEY, locale);
+  resetLocalePreferenceForTest();
   // The session store is global: start every render from a fresh boot.
   useSession.setState({ status: 'loading', tokens: null, me: null, platform: null });
   const router = createMemoryRouter(buildRoutes(modules), { initialEntries: [route] });
   const view = render(
-    <AppProviders platform={platform} locale={locale}>
+    <AppProviders platform={platform}>
       <RouterProvider router={router} />
     </AppProviders>,
   );

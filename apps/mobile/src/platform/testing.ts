@@ -52,6 +52,7 @@ export function fakeTransport(
 export interface FakeServiceWorker extends ServiceWorkerApi {
   /** Simulates the browser announcing a waiting version. */
   emitUpdate(): void;
+  checkForUpdate: ReturnType<typeof vi.fn<() => Promise<boolean>>>;
   applyUpdate: ReturnType<typeof vi.fn<() => Promise<void>>>;
 }
 
@@ -65,6 +66,7 @@ export function fakeServiceWorker(): FakeServiceWorker {
       if (ready) listener();
       return () => void listeners.delete(listener);
     },
+    checkForUpdate: vi.fn(async () => ready),
     applyUpdate: vi.fn(async () => undefined),
     emitUpdate() {
       ready = true;

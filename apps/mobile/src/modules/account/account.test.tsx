@@ -7,7 +7,7 @@ import { renderMobile } from '../../app/testing';
 import { resetThemePreferenceForTest } from '../../app/theme';
 import type { MobileModule } from '../../app/types';
 import { fakePlatform, type FakePlatform, type Handler } from '../../platform/testing';
-import { SESSION_KEY } from '../../session';
+import { SESSION_KEY, useSession } from '../../session';
 import { ME, ok, pair } from '../../session/fixtures';
 import { AccountRoute } from './AccountRoute';
 import type { InstallState } from './install';
@@ -107,10 +107,10 @@ describe('appearance', () => {
   it('switches language without reloading and stores it', async () => {
     open(platformWith());
     const language = within(await screen.findByRole('radiogroup', { name: 'Lingua' }));
-    // A test render pins the locale, so only the stored choice is observable here.
     await userEvent.click(language.getByRole('radio', { name: 'English' }));
     expect(localStorage.getItem('bookeeper.locale')).toBe('en');
-    expect(language.getByRole('radio', { name: 'English' })).toBeChecked();
+    expect(await screen.findByRole('radiogroup', { name: 'Language' })).toBeInTheDocument();
+    expect(screen.queryByRole('radiogroup', { name: 'Lingua' })).toBeNull();
   });
 });
 
@@ -146,13 +146,13 @@ describe('updates', () => {
     const p = platformWith();
     open(p);
     await userEvent.click(await screen.findByRole('button', { name: 'Cerca aggiornamenti' }));
-    expect(p.serviceWorker.register).toHaveBeenCalled();
+    expect(p.serviceWorker.checkForUpdate).toHaveBeenCalledOnce();
     expect(await screen.findByText("L'app è aggiornata.")).toBeInTheDocument();
   });
 
   it('says so when a new version is already waiting', async () => {
     const p = platformWith();
-    p.serviceWorker.emitUpdate();
+    p.serviceWorker.checkForUpdate.mockResolvedValue(true);
     open(p);
     await userEvent.click(await screen.findByRole('button', { name: 'Cerca aggiornamenti' }));
     expect(await screen.findByText(/usa il banner/)).toBeInTheDocument();
@@ -191,10 +191,10 @@ describe('disconnect', () => {
     open(p);
     await userEvent.click(await screen.findByRole('button', { name: 'Scollega questo telefono' }));
     await userEvent.click(await screen.findByRole('button', { name: 'Scollega' }));
+    expect(await screen.findByText('Pagina abbinamento')).toBeInTheDocument();
     expect(await screen.findByText(/va revocato dal computer/)).toBeInTheDocument();
     expect(p.storage.get(SESSION_KEY)).toBeNull();
-    await userEvent.click(screen.getByRole('button', { name: 'Ho capito' }));
-    expect(await screen.findByText('Pagina abbinamento')).toBeInTheDocument();
+    expect(useSession.getState().status).toBe('unpaired');
   });
 });
 

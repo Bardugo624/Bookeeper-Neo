@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { ApiError } from '@bookeeper/api';
 import { Button } from '@bookeeper/ui/base';
+import { useToast } from '@bookeeper/ui/overlays';
 import { useT } from '../../app/i18n';
 import { BottomSheet } from '../../kit';
-import { usePlatform } from '../../platform';
-import { SESSION_KEY, useClient, useSession } from '../../session';
+import { useClient, useSession } from '../../session';
 import styles from './Account.module.css';
 
 /** Only a request that never reached the server leaves the device registered there. */
@@ -15,32 +15,24 @@ const unreachable = (e: unknown) => !(e instanceof ApiError) || e.code === 'netw
 export function LogoutSection() {
   const t = useT();
   const client = useClient();
-  const { storage } = usePlatform();
+  const toast = useToast();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [offline, setOffline] = useState(false);
-
-  const leave = () => {
-    useSession.getState().expire();
-    navigate('/pair', { replace: true });
-  };
 
   const confirm = async () => {
     if (busy) return;
     setBusy(true);
+    let offline = false;
     try {
       await client.logout();
     } catch (e) {
-      if (unreachable(e)) {
-        // The tokens go now; the sheet stays to say the server still lists this phone.
-        storage.remove(SESSION_KEY);
-        setBusy(false);
-        setOffline(true);
-        return;
-      }
+      offline = unreachable(e);
     }
-    leave();
+    // Tokens and in-memory state go either way; the session gate then leads to `/pair`.
+    useSession.getState().expire();
+    if (offline) toast.show({ title: t('maccount.logout.offlineTitle'), description: t('maccount.logout.offline'), tone: 'warn' });
+    navigate('/pair', { replace: true });
   };
 
   return (
@@ -55,32 +47,21 @@ export function LogoutSection() {
       <BottomSheet
         open={open}
         onOpenChange={(next) => {
-          if (busy) return;
-          // Closing after the failure is the way out: the phone is already disconnected.
-          if (!next && offline) return leave();
-          setOpen(next);
+          if (!busy) setOpen(next);
         }}
         title={t('maccount.logout.confirmTitle')}
-        description={offline ? undefined : t('maccount.logout.confirmText')}
+        description={t('maccount.logout.confirmText')}
         footer={
-          offline ? (
-            <Button variant="primary" onClick={leave}>
-              {t('maccount.logout.understood')}
+          <>
+            <Button variant="ghost" onClick={() => setOpen(false)} disabled={busy}>
+              {t('maccount.logout.cancel')}
             </Button>
-          ) : (
-            <>
-              <Button variant="ghost" onClick={() => setOpen(false)} disabled={busy}>
-                {t('maccount.logout.cancel')}
-              </Button>
-              <Button variant="danger" onClick={() => void confirm()} loading={busy} loadingLabel={t('maccount.logout.busy')}>
-                {t('maccount.logout.confirm')}
-              </Button>
-            </>
-          )
+            <Button variant="danger" onClick={() => void confirm()} loading={busy} loadingLabel={t('maccount.logout.busy')}>
+              {t('maccount.logout.confirm')}
+            </Button>
+          </>
         }
-      >
-        {offline ? <p className={styles.text}>{t('maccount.logout.offline')}</p> : null}
-      </BottomSheet>
+      />
     </section>
   );
 }
