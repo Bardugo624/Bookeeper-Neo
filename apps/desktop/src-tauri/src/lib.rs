@@ -4,6 +4,7 @@ mod dispatch;
 pub mod files;
 pub mod remote;
 pub mod secrets;
+pub mod sharing;
 
 use bookeeper_core::{AppState, Db, SetupPolicy};
 use tauri::Manager;
@@ -173,6 +174,22 @@ async fn save_file(
     .map_err(|e| e.to_string())?
 }
 
+#[tauri::command]
+async fn sharing_status(
+    sharing: tauri::State<'_, sharing::Sharing>,
+) -> Result<sharing::SharingStatus, ()> {
+    Ok(sharing.status().await)
+}
+
+#[tauri::command(rename_all = "snake_case")]
+async fn sharing_set(
+    sharing: tauri::State<'_, sharing::Sharing>,
+    enabled: bool,
+    port: Option<u16>,
+) -> Result<sharing::SharingStatus, ()> {
+    Ok(sharing.set(enabled, port).await)
+}
+
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
@@ -190,6 +207,11 @@ pub fn run() {
                 std::sync::Arc::new(secrets::SystemStore);
             let mode = secrets::probe(system.as_ref());
             app.manage(connections::Store::with_secrets(&dir, system, mode));
+            let sharing = sharing::Sharing::new(&dir, state.clone());
+            app.manage(sharing.clone());
+            tauri::async_runtime::spawn(async move {
+                sharing.restore().await;
+            });
             app.manage(CoreRouter(bookeeper_core::router(state)));
             Ok(())
         })
@@ -202,8 +224,18 @@ pub fn run() {
             connection_remove,
             server_probe,
             discover,
-            save_file
+            save_file,
+            sharing_status,
+            sharing_set
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running Bookeeper");
+        .build(tauri::generate_context!())
+        .expect("error while building Bookeeper")
+        .run(|app, event| {
+            // Closing the app stops sharing: the port never outlives it.
+            if let tauri::RunEvent::Exit = event {
+                if let Some(sharing) = app.try_state::<sharing::Sharing>() {
+                    tauri::async_runtime::block_on(sharing.shutdown());
+                }
+            }
+        });
 }
