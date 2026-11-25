@@ -67,7 +67,13 @@ pub fn txt_records(a: &Announcement) -> Vec<(String, String)> {
         ("tls".to_string(), a.tls.clone()),
         ("path".to_string(), "/api/v1".to_string()),
     ];
-    if let Some(url) = &a.url {
+    // mdns-sd silently truncates a TXT entry over 255 bytes, which would
+    // publish a broken address: leave the entry out instead.
+    if let Some(url) = a
+        .url
+        .as_ref()
+        .filter(|u| "url=".len() + u.len() <= MAX_TXT_VALUE_BYTES)
+    {
         v.push(("url".to_string(), url.clone()));
     }
     v
@@ -215,4 +221,46 @@ fn browse_blocking(timeout: Duration) -> Result<Vec<Found>, NetError> {
         let _ = rx.recv_timeout(Duration::from_millis(500));
     }
     Ok(found.into_values().collect())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn ann(url: String) -> Announcement {
+        Announcement {
+            instance: "Bookeeper".into(),
+            port: 8080,
+            version: "1".into(),
+            tls: "none".into(),
+            url: Some(url),
+        }
+    }
+
+    fn url_of(a: &Announcement) -> Option<String> {
+        txt_records(a)
+            .into_iter()
+            .find(|(k, _)| k == "url")
+            .map(|(_, v)| v)
+    }
+
+    #[test]
+    fn a_long_url_is_left_out() {
+        let a = ann(format!("https://example.org/{}", "a".repeat(300)));
+        assert_eq!(url_of(&a), None);
+    }
+
+    #[test]
+    fn a_url_at_the_limit_is_kept() {
+        let url = format!("https://example.org/{}", "a".repeat(255 - 4 - 20));
+        assert_eq!("url=".len() + url.len(), 255);
+        assert_eq!(url_of(&ann(url.clone())), Some(url));
+    }
+
+    #[test]
+    fn a_url_one_byte_over_is_left_out() {
+        let url = format!("https://example.org/{}", "a".repeat(255 - 4 - 20 + 1));
+        assert_eq!("url=".len() + url.len(), 256);
+        assert_eq!(url_of(&ann(url)), None);
+    }
 }

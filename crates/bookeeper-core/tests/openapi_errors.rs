@@ -186,3 +186,62 @@ fn rate_limited_operations_document_429() {
 fn role_gated_operations_document_403() {
     require_status(ROLE_GATED, "403", "role gated");
 }
+
+fn find_op(method: &str, path: &str) -> Value {
+    operations()
+        .into_iter()
+        .find(|(m, p, _)| m == method && p == path)
+        .unwrap_or_else(|| panic!("{} is not in the document", label(method, path)))
+        .2
+}
+
+#[test]
+fn json_operations_document_the_extractor_errors() {
+    let mut bad = Vec::new();
+    for (m, p, op) in operations() {
+        if op["requestBody"]["content"]
+            .get("application/json")
+            .is_none()
+        {
+            continue;
+        }
+        for status in ["400", "413", "422"] {
+            if !has(&op, status) {
+                bad.push(format!(
+                    "{} has a JSON body but no {} response",
+                    label(&m, &p),
+                    status
+                ));
+            }
+        }
+    }
+    check(bad);
+}
+
+#[test]
+fn refresh_documents_422() {
+    assert!(has(&find_op("post", "/api/v1/auth/refresh"), "422"));
+}
+
+#[test]
+fn server_public_url_is_required_and_nullable() {
+    let doc = serde_json::to_value(bookeeper_core::openapi()).unwrap();
+    let schema = &doc["components"]["schemas"]["ServerOut"];
+    let required = schema["required"].as_array().expect("required list");
+    assert!(required.iter().any(|v| v == "public_url"));
+    let ty = &schema["properties"]["public_url"]["type"];
+    let nullable = match ty {
+        Value::Array(a) => a.iter().any(|v| v == "null"),
+        _ => schema["properties"]["public_url"]["nullable"] == true,
+    };
+    assert!(nullable, "public_url must allow null: {schema}");
+}
+
+#[test]
+fn explicit_responses_are_kept() {
+    let op = find_op("post", "/api/v1/import");
+    assert_eq!(
+        op["responses"]["413"]["description"],
+        "payload_too_large: body over 10 MB"
+    );
+}

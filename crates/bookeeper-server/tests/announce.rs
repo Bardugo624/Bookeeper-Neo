@@ -2,7 +2,7 @@ use std::io::{BufRead, BufReader};
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
 
-use bookeeper_server::announce::{announcement, start};
+use bookeeper_server::announce::{announcement, instance_for, start};
 use bookeeper_server::{Config, Switch, TlsChoice};
 
 fn cfg() -> Config {
@@ -21,7 +21,7 @@ fn announcement_carries_port_version_and_mode() {
         let mut c = cfg();
         c.tls = tls;
         if tls == TlsChoice::Acme {
-            c.domain = Some("libri.example.org".into());
+            c.domains = vec!["libri.example.org".into()];
         }
         let a = announcement(&c, 5555);
         assert_eq!(a.tls, want);
@@ -41,7 +41,7 @@ fn announcement_url_follows_the_public_url() {
     );
     let mut c = cfg();
     c.tls = TlsChoice::Acme;
-    c.domain = Some("libri.example.org".into());
+    c.domains = vec!["libri.example.org".into()];
     c.port = Some(443);
     assert_eq!(
         announcement(&c, 1).url.as_deref(),
@@ -96,10 +96,17 @@ fn the_server_runs_with_mdns_on() {
     let deadline = Instant::now() + Duration::from_secs(30);
     let mut listening = false;
     while Instant::now() < deadline {
-        if let Ok(line) = rx.recv_timeout(Duration::from_millis(200)) {
-            if line.contains("in ascolto") {
-                listening = true;
-                break;
+        match rx.recv_timeout(Duration::from_millis(200)) {
+            Ok(line) => {
+                if line.contains("in ascolto") {
+                    listening = true;
+                    break;
+                }
+            }
+            Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {}
+            Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
+                let status = child.wait();
+                panic!("the server exited before listening: {status:?}");
             }
         }
     }
@@ -120,4 +127,14 @@ fn the_server_runs_with_mdns_on() {
     let _ = child.wait();
     assert!(listening, "no `in ascolto` line");
     assert!(health.unwrap(), "health check failed");
+}
+
+#[test]
+fn the_printed_name_is_the_published_name() {
+    for host in ["nas.home.lan".to_string(), "h".repeat(100)] {
+        let name = instance_for(&host);
+        assert_eq!(name, bookeeper_net::mdns::sanitize_instance(&name));
+        assert!(!name.contains('.'));
+    }
+    assert_eq!(instance_for("nas.home.lan"), "Bookeeper su nashomelan");
 }

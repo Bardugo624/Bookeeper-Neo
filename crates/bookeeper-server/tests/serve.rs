@@ -164,3 +164,57 @@ async fn pages_declare_utf8_and_forbid_sniffing() {
     assert_eq!(res.headers()["content-type"], "text/html; charset=utf-8");
     assert_eq!(res.headers()["x-content-type-options"], "nosniff");
 }
+
+#[test]
+fn piped_logs_carry_no_colour_codes() {
+    use std::io::{BufRead, BufReader, Read};
+    use std::process::{Command, Stdio};
+    let tmp = tempfile::tempdir().unwrap();
+    let mut child = Command::new(env!("CARGO_BIN_EXE_bookeeper-server"))
+        .args([
+            "--mdns",
+            "off",
+            "--bind",
+            "127.0.0.1",
+            "--port",
+            "0",
+            "--data-dir",
+        ])
+        .arg(tmp.path().join("data"))
+        .env("RUST_LOG", "info")
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .spawn()
+        .unwrap();
+    let mut out = BufReader::new(child.stdout.take().unwrap());
+    let mut seen = String::new();
+    let mut addr = None;
+    loop {
+        let mut line = String::new();
+        if out.read_line(&mut line).unwrap() == 0 {
+            break;
+        }
+        seen.push_str(&line);
+        if let Some(rest) = line.split("in ascolto su http://").nth(1) {
+            addr = Some(rest.trim().to_string());
+            break;
+        }
+    }
+    let addr = addr.unwrap_or_else(|| panic!("never listening: {seen}"));
+    let rt = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .unwrap();
+    let ok = rt.block_on(async {
+        reqwest::get(format!("http://{addr}/api/v1/health"))
+            .await
+            .map(|r| r.status().is_success())
+    });
+    let _ = Command::new("kill").arg(child.id().to_string()).status();
+    let mut rest = String::new();
+    let _ = out.read_to_string(&mut rest);
+    seen.push_str(&rest);
+    let _ = child.wait();
+    assert!(ok.unwrap());
+    assert!(!seen.as_bytes().contains(&0x1b), "{seen:?}");
+}

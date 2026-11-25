@@ -6,17 +6,23 @@ pub use bookeeper_net::mdns::Announcer;
 
 use crate::{Config, Switch, TlsChoice};
 
+/// The instance name for host `host`, exactly as published on the network.
+pub fn instance_for(host: &str) -> String {
+    let name = if host.is_empty() {
+        "Bookeeper".to_string()
+    } else {
+        format!("Bookeeper su {host}")
+    };
+    bookeeper_net::mdns::sanitize_instance(&name)
+}
+
 /// What to announce for `cfg`, listening on the port actually bound (`port`).
 pub fn announcement(cfg: &Config, port: u16) -> Announcement {
     let host = gethostname::gethostname()
         .to_string_lossy()
         .trim()
         .to_string();
-    let instance = if host.is_empty() {
-        "Bookeeper".to_string()
-    } else {
-        format!("Bookeeper su {host}")
-    };
+    let instance = instance_for(&host);
     let tls = match cfg.tls {
         TlsChoice::Off => "off",
         TlsChoice::SelfSigned => "self",

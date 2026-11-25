@@ -18,13 +18,47 @@ use crate::{shutdown_signal, Config, StartError};
 /// Longest wait for open connections after a shutdown request.
 const GRACE: Duration = Duration::from_secs(10);
 
+/// Longest time a client may take to complete the TLS handshake in `acme` mode.
+const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
+
+/// Wraps an acceptor so that its handshake must finish within [`HANDSHAKE_TIMEOUT`].
+#[derive(Clone)]
+struct TimeoutAcceptor<A>(A);
+
+impl<A, I, S> axum_server::accept::Accept<I, S> for TimeoutAcceptor<A>
+where
+    A: axum_server::accept::Accept<I, S>,
+    A::Future: Send + 'static,
+    A::Stream: 'static,
+    A::Service: 'static,
+{
+    type Stream = A::Stream;
+    type Service = A::Service;
+    type Future = std::pin::Pin<
+        Box<dyn std::future::Future<Output = io::Result<(A::Stream, A::Service)>> + Send>,
+    >;
+
+    fn accept(&self, stream: I, service: S) -> Self::Future {
+        let fut = self.0.accept(stream, service);
+        Box::pin(async move {
+            match tokio::time::timeout(HANDSHAKE_TIMEOUT, fut).await {
+                Ok(res) => res,
+                Err(_) => Err(io::Error::new(
+                    io::ErrorKind::TimedOut,
+                    "TLS handshake timed out",
+                )),
+            }
+        })
+    }
+}
+
 /// Directory of the self-signed identity.
 pub fn self_dir(data_dir: &Path) -> PathBuf {
     data_dir.join("tls").join("self")
 }
 
 fn tls_error(e: impl std::fmt::Display) -> StartError {
-    StartError::Config(format!("TLS: {e}"))
+    StartError::Tls(format!("TLS: {e}"))
 }
 
 /// Names the self-signed certificate must be valid for.
@@ -35,9 +69,7 @@ pub fn self_names(cfg: &Config) -> Vec<String> {
             names.push(host);
         }
     }
-    if let Some(domain) = &cfg.domain {
-        names.push(domain.clone());
-    }
+    names.extend(cfg.domain_names());
     if !is_unspecified(cfg.bind) {
         names.push(cfg.bind.to_string());
     }
@@ -81,12 +113,14 @@ impl TlsServer {
     /// task that obtains and renews the certificate; must run inside a Tokio runtime.
     pub fn acme(listener: TcpListener, cfg: &Config) -> Result<Self, StartError> {
         bookeeper_net::install_crypto_provider();
-        let domain = cfg
-            .domain
-            .clone()
-            .ok_or_else(|| StartError::Config("con --tls acme serve --domain".to_string()))?;
+        let domains = cfg.domain_names();
+        if domains.is_empty() {
+            return Err(StartError::Config(
+                "con --tls acme serve --domain".to_string(),
+            ));
+        }
         let provider = Arc::new(rustls::crypto::ring::default_provider());
-        let mut acme = AcmeConfig::new_with_provider([domain.as_str()], provider.clone())
+        let mut acme = AcmeConfig::new_with_provider(domains, provider.clone())
             .cache(DirCache::new(cfg.data_dir.join("tls").join("acme")))
             .challenge_type(UseChallenge::TlsAlpn01);
         if let Some(email) = &cfg.acme_email {
@@ -149,7 +183,7 @@ impl TlsServer {
                     .serve(make)
                     .await
             }
-            Kind::Acme(acceptor) => server.acceptor(acceptor).serve(make).await,
+            Kind::Acme(acceptor) => server.acceptor(TimeoutAcceptor(acceptor)).serve(make).await,
         }
     }
 }

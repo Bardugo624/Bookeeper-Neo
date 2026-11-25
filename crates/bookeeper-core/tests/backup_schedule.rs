@@ -358,3 +358,12 @@ async fn rotation_ignores_future_dated_backups() {
     want.sort();
     assert_eq!(autos(&s.state, &s.library_id), want);
 }
+
+#[tokio::test]
+async fn a_backup_dated_slightly_ahead_is_not_due() {
+    let s = seed(Role::Owner, None, None).await;
+    let name = plant_future(&s.state, &s.library_id, T0 + 200);
+    assert_eq!(run_once(&s.state, T0).await, 0);
+    assert_eq!(run_once(&s.state, T0 + 60).await, 0);
+    assert_eq!(autos(&s.state, &s.library_id), vec![name]);
+}

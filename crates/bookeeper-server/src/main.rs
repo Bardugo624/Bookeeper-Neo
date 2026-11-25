@@ -23,34 +23,39 @@ async fn run(cfg: Config) -> Result<(), StartError> {
         addr: std::net::SocketAddr::new(cfg.bind, cfg.listen_port()),
         source,
     })?;
+    let port = addr.port();
     let scheme = if cfg.tls == TlsChoice::Off {
         "http"
     } else {
         "https"
     };
-    println!("Bookeeper {VERSION} in ascolto su {scheme}://{addr}");
-    let port = addr.port();
+    let listening = format!("Bookeeper {VERSION} in ascolto su {scheme}://{addr}");
     let result = match cfg.tls {
         TlsChoice::Off => {
+            println!("{listening}");
             let _announcer = announce::start(&cfg, port);
             serve(listener, app).await
         }
         TlsChoice::SelfSigned => {
             let identity = load_self_identity(&cfg)?;
+            let server = TlsServer::self_signed(listener, &identity)?;
+            println!("{listening}");
             for line in identity_lines(&identity) {
                 println!("{line}");
             }
-            let server = TlsServer::self_signed(listener, &identity)?;
             let _announcer = announce::start(&cfg, port);
             server.serve(app).await
         }
         TlsChoice::Acme => {
-            if let Some(domain) = &cfg.domain {
+            let server = TlsServer::acme(listener, &cfg)?;
+            println!("{listening}");
+            let domains = cfg.domain_names();
+            if !domains.is_empty() {
                 println!(
-                    "Certificato richiesto per {domain}: la porta 443 deve essere raggiungibile da Internet."
+                    "Certificato richiesto per {}: la porta 443 deve essere raggiungibile da Internet.",
+                    domains.join(", ")
                 );
             }
-            let server = TlsServer::acme(listener, &cfg)?;
             let _announcer = announce::start(&cfg, port);
             server.serve(app).await
         }
@@ -65,6 +70,7 @@ async fn run(cfg: Config) -> Result<(), StartError> {
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt()
+        .with_ansi(std::io::IsTerminal::is_terminal(&std::io::stdout()))
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()),
         )
@@ -94,11 +100,11 @@ async fn main() {
                     }
                     Ok(())
                 }
-                Ok(None) => Err(StartError::Config(
+                Ok(None) => Err(StartError::Tls(
                     "nessun certificato autogenerato in questa cartella: avvia il server una volta con --tls self"
                         .to_string(),
                 )),
-                Err(e) => Err(StartError::Config(format!("TLS: {e}"))),
+                Err(e) => Err(StartError::Tls(format!("TLS: {e}"))),
             }
         }
         Some(Command::Healthcheck) => unreachable!("handled above"),

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ApiError, createClient, type Transport } from './index';
+import { ApiError, createClient, type ServerInfo, type Transport } from './index';
 
 const rec = (status = 200, body: unknown = {}) => {
   const calls: Array<[string, string, unknown]> = [];
@@ -142,5 +142,15 @@ describe('server info', () => {
     const body = { version: '1', tls: 'off', public_url: null, phone_ready: false };
     const { c } = rec(200, body);
     expect(await c.getServerInfo()).toEqual(body);
+  });
+});
+
+describe('server info types', () => {
+  it('public_url is string | null, never undefined', () => {
+    const ok: ServerInfo['public_url'] = null;
+    // @ts-expect-error public_url is required and cannot be undefined
+    const bad: ServerInfo['public_url'] = undefined;
+    expect(ok).toBeNull();
+    expect(bad).toBeUndefined();
   });
 });

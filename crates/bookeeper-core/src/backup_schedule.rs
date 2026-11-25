@@ -233,7 +233,7 @@ async fn backup_library(state: &AppState, library_id: &str, now: i64) -> Result<
             let newest = trusted(list_auto(&files, &lib)?, now)
                 .first()
                 .map(|b| b.created_at);
-            Ok(newest.is_none_or(|t| !(0..interval).contains(&(now - t))))
+            Ok(newest.is_none_or(|t| (now - t).max(0) >= interval))
         })
         .await?
     };
