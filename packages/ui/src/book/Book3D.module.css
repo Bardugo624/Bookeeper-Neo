@@ -1,0 +1,81 @@
+.scene {
+    /* Page-edge ivory: declared once, derived from tokens. */
+    --book-pages: color-mix(in srgb, var(--bk-neutral-0) 88%, var(--bk-warn));
+    --book-rest: rotateY(-8deg);
+    display: inline-block;
+    perspective: 900px;
+}
+
+.book {
+    display: flex;
+    width: var(--book-w);
+    aspect-ratio: 2 / 3;
+    transform: var(--book-rest);
+    transform-style: preserve-3d;
+    transform-origin: center;
+    filter: drop-shadow(0 6px 10px color-mix(in srgb, black 25%, transparent));
+}
+
+.spine {
+    flex: none;
+    width: var(--book-spine);
+    border-radius: 2px 0 0 2px;
+    background: color-mix(in srgb, var(--book-bg) 70%, black);
+}
+
+.cover {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 8% 9%;
+    background: var(--book-bg);
+    color: var(--bk-on-primary);
+    overflow: hidden;
+}
+
+.img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.title {
+    font-family: var(--bk-font-serif);
+    font-weight: 600;
+    font-size: 26px;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+}
+
+.author {
+    font-family: var(--bk-font-serif);
+    font-style: italic;
+    font-size: 14px;
+    opacity: 0.86;
+}
+
+.pages {
+    flex: none;
+    width: 8px;
+    border-radius: 0 5px 5px 0;
+    background: repeating-linear-gradient(
+        to bottom,
+        var(--book-pages) 0 2px,
+        color-mix(in srgb, var(--book-pages) 82%, black) 2px 3px
+    );
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .book {
+        transition: transform var(--bk-dur-slow) var(--bk-ease);
+    }
+
+    .scene:hover .book {
+        transform: rotateY(-18deg);
+    }
+}
