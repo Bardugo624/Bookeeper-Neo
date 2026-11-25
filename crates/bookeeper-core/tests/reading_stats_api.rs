@@ -228,3 +228,20 @@ async fn invalid_year_is_422_and_auth_required() {
     let (st, _, _) = call(&s.state, "GET", "/api/v1/stats/reading", None, None).await;
     assert_eq!(st, 401);
 }
+
+#[tokio::test]
+async fn out_of_range_finished_at_is_ignored() {
+    let s = seed(Role::Owner, None, None).await;
+    let a = book(&s, "A", None, Some(10)).await;
+    let b = book(&s, "B", None, Some(10)).await;
+    let c = book(&s, "C", None, Some(10)).await;
+    read_row(&s, &s.user_id, &a, "read", Some(1_732_000_000_000), None).await;
+    read_row(&s, &s.user_id, &b, "read", Some(-3_786_825_600), None).await;
+    read_row(&s, &s.user_id, &c, "read", Some(Y24 + DAY), None).await;
+    let (st, body) = stats(&s, &s.session.access_token, "?year=2024").await;
+    assert_eq!(st, 200);
+    assert_eq!(body["year"]["books"], 1);
+    let years = body["years"].as_array().unwrap();
+    assert_eq!(years.len(), 1);
+    assert_eq!(years[0]["year"], 2024);
+}

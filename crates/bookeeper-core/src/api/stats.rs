@@ -445,7 +445,8 @@ pub async fn get_reading_stats(
 }
 
 const FINISHED: &str = "r.user_id = ?1 AND b.library_id = ?2 AND r.status = 'read'
-     AND r.finished_at IS NOT NULL";
+     AND r.finished_at IS NOT NULL
+     AND CAST(strftime('%Y', r.finished_at, 'unixepoch') AS INTEGER) BETWEEN 1900 AND 2200";
 
 pub fn compute_reading(
     conn: &Connection,
