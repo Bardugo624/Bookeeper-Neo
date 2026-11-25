@@ -67,6 +67,18 @@ describe('authenticated transport', () => {
     expect(p.calls.filter((c) => c.path === '/api/v1/auth/refresh')).toHaveLength(1);
   });
 
+  it('does not renew or sign out on a 401 that is not an expired token', async () => {
+    const p = fakePlatform({
+      connections: { active: 'c1', items: [fakeConnection()] },
+      handler: () => ({ status: 401, body: { error: { code: 'invalid_credentials', message: 'x' } } }),
+    });
+    useSession.setState({ status: 'ready', connection: p.state.items[0]!, platform: p });
+    const res = await createAuthTransport(p).request('POST', '/api/v1/auth/confirm', {});
+    expect(res.status).toBe(401);
+    expect(p.calls.filter((c) => c.path === '/api/v1/auth/refresh')).toHaveLength(0);
+    expect(useSession.getState().status).toBe('ready');
+  });
+
   it('returns to welcome when the retried request is still 401', async () => {
     const p = fakePlatform({
       connections: { active: 'c1', items: [fakeConnection()] },

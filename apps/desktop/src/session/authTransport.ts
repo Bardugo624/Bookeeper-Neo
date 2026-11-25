@@ -4,6 +4,20 @@ import { useSession } from './store';
 
 const NO_RETRY = /\/auth\/(refresh|login|libraries)$|\/setup$|\/pairing\/redeem$/;
 
+const RENEWABLE = new Set(['unauthorized', 'token_expired']);
+
+/** Error code of a 401 response (JSON body or raw bytes); null when unreadable. */
+function errorCode(res: { body?: unknown; bytes?: unknown }): string | null {
+  try {
+    let b: unknown = res.body;
+    if (b === undefined && res.bytes instanceof Uint8Array) b = JSON.parse(new TextDecoder().decode(res.bytes));
+    const code = (b as { error?: { code?: unknown } } | null)?.error?.code;
+    return typeof code === 'string' ? code : null;
+  } catch {
+    return null;
+  }
+}
+
 const cache = new WeakMap<Platform, Transport>();
 
 /** One transport per platform, so every client shares the same in-flight renewal. */
@@ -22,6 +36,8 @@ export function createAuthTransport(platform: Platform): Transport {
  */
 function build(platform: Platform): Transport {
   let renewing: Promise<string | null> | null = null;
+  // Refresh token whose renewal already failed: never retry the same stale token.
+  let failedRefresh: string | null = null;
 
   const current = () => useSession.getState().connection;
 
@@ -32,7 +48,7 @@ function build(platform: Platform): Transport {
     if (renewing) return renewing;
     renewing = (async () => {
       const c = current();
-      if (!c?.refresh_token) return null;
+      if (!c?.refresh_token || c.refresh_token === failedRefresh) return null;
       try {
         const { session } = await createClient(platform.transport(c.id)).refresh(c.refresh_token);
         await useSession.getState().saveTokens(c, {
@@ -42,6 +58,7 @@ function build(platform: Platform): Transport {
         });
         return session.access_token;
       } catch {
+        failedRefresh = c.refresh_token;
         return null;
       }
     })().finally(() => {
@@ -60,6 +77,13 @@ function build(platform: Platform): Transport {
     const sentToken = conn.access_token;
     const res = await send((x) => withAuth(sentToken, x));
     if (res.status !== 401 || NO_RETRY.test(path)) return res;
+    // Other 401s (wrong password, confirmation required) are ordinary errors for the caller.
+    const code = errorCode(res as { body?: unknown; bytes?: unknown });
+    if (code === 'device_revoked') {
+      useSession.getState().expire();
+      return res;
+    }
+    if (code !== null && !RENEWABLE.has(code)) return res;
     const fresh = await renew(sentToken);
     if (!fresh) {
       useSession.getState().expire();

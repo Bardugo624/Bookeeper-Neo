@@ -69,7 +69,7 @@ export const useSession = create<SessionState>((set, get) => ({
     };
     await platform.connections.upsert(next);
     await platform.connections.activate(next.id);
-    set({ connection: next, status: 'loading', me: null });
+    set({ connection: next, me: null });
     try {
       const me = await authedClient(platform).me();
       set({ status: 'ready', me });

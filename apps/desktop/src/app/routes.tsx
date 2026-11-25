@@ -42,11 +42,16 @@ export function buildRoutes(modules: AppModule[]): RouteObject[] {
         ...(hasWelcome ? [] : [{ path: '/welcome', element: <Welcome /> }]),
         {
           element: <Shell modules={modules} />,
-          errorElement: <RouteError />,
+          // Errors stay inside the content area: sidebar and window controls remain usable.
           children: [
-            { index: true, element: <Home to={home} /> },
-            ...modules.flatMap((m) => m.routes),
-            { path: '*', element: <NotFound /> },
+            {
+              errorElement: <RouteError />,
+              children: [
+                { index: true, element: <Home to={home} /> },
+                ...modules.flatMap((m) => m.routes),
+                { path: '*', element: <NotFound /> },
+              ],
+            },
           ],
         },
       ],
