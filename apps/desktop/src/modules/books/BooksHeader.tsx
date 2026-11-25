@@ -1,3 +1,4 @@
+import { Button } from '@bookeeper/ui/base';
 import { PillTabs, type PillTabItem } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
 import { SearchField } from './SearchField';
@@ -8,9 +9,11 @@ export interface BooksHeaderProps {
   params: ListParams;
   total: number | undefined;
   onLoan: number | undefined;
+  /** Write actions ("Add", "Select"); absent for roles that cannot write. */
+  actions?: { selecting: boolean; onAdd(): void; onToggleSelect(): void };
 }
 
-export function BooksHeader({ params, total, onLoan }: BooksHeaderProps) {
+export function BooksHeader({ params, total, onLoan, actions }: BooksHeaderProps) {
   const t = useT();
   const views: PillTabItem[] = [
     { id: 'grid', label: t('books.view.grid'), icon: 'grid', iconOnly: true },
@@ -36,6 +39,16 @@ export function BooksHeader({ params, total, onLoan }: BooksHeaderProps) {
           size="sm"
           label={t('books.view.label')}
         />
+        {actions ? (
+          <>
+            <Button variant="secondary" aria-pressed={actions.selecting} onClick={actions.onToggleSelect}>
+              {t('books.selection.toggle')}
+            </Button>
+            <Button variant="primary" icon="plus" onClick={actions.onAdd}>
+              {t('books.new.button')}
+            </Button>
+          </>
+        ) : null}
       </div>
     </header>
   );

@@ -3,7 +3,10 @@ import { ApiError } from '@bookeeper/api';
 import { Button, EmptyState, Icon, Skeleton } from '@bookeeper/ui/base';
 import { Book3D } from '@bookeeper/ui/book';
 import { useT } from '../../app';
+import { usePermission } from '../../kit';
 import { DetailAside } from './DetailAside';
+import { DetailToolbar } from './DetailToolbar';
+import { LendButton } from './LendButton';
 import { authorsOf, type FromList } from './format';
 import { eyebrowOf, metaFields } from './detailFields';
 import { useBook } from './useBook';
@@ -16,6 +19,7 @@ export function BookDetailPage() {
   const location = useLocation();
   const listPath = { pathname: '/books', search: (location.state as FromList | null)?.list ?? '' };
   const { data: book, error, isPending, refetch } = useBook(id);
+  const canWrite = usePermission().can('write');
   const src = useCover(id, Boolean(book?.cover_color));
 
   const back = (
@@ -69,7 +73,10 @@ export function BookDetailPage() {
   const fields = metaFields(book, t);
   return (
     <div className={styles.page}>
-      {back}
+      <div className={styles.bar}>
+        {back}
+        {canWrite ? <DetailToolbar book={book} listPath={listPath} /> : null}
+      </div>
       <article className={styles.layout}>
         <div className={styles.cover}>
           <Book3D
@@ -79,6 +86,7 @@ export function BookDetailPage() {
             color={book.cover_color ?? undefined}
             pages={book.page_count ?? undefined}
           />
+          {canWrite ? <LendButton book={book} /> : null}
         </div>
         <div className={styles.main}>
           {eyebrow ? <p className={styles.eyebrow}>{eyebrow}</p> : null}
