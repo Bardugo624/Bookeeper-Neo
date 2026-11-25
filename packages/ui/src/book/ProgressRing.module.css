@@ -1,0 +1,41 @@
+.ring {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+}
+
+.svg {
+    position: absolute;
+    inset: 0;
+    transform: rotate(-90deg);
+}
+
+.track {
+    stroke: var(--bk-inset);
+}
+
+.arc {
+    stroke: var(--bk-primary-500);
+}
+
+.center {
+    position: relative;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--bk-text-strong);
+}
+
+/* Only allowed exception to "transform and opacity only": the ring fill. */
+@media (prefers-reduced-motion: no-preference) {
+    .arc {
+        animation: fill 600ms var(--bk-ease) both;
+    }
+
+    @keyframes fill {
+        from {
+            stroke-dashoffset: var(--ring-c);
+        }
+    }
+}
