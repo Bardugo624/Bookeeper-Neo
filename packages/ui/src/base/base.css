@@ -1,0 +1,48 @@
+/* Bookeeper — base styles: minimal reset, typography, focus ring, selection. */
+
+:root {
+    color-scheme: light;
+}
+
+html.dark {
+    color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--bk-font-ui);
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--bk-text);
+    background: var(--bk-bg);
+    -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea,
+select {
+    font: inherit;
+    color: inherit;
+}
+
+:focus-visible {
+    outline: 2px solid var(--bk-focus);
+    outline-offset: 2px;
+}
+
+::selection {
+    background: var(--bk-primary-200);
+    color: var(--bk-neutral-900);
+}

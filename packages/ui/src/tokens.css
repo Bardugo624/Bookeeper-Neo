@@ -84,6 +84,22 @@
     /* Ombra "libro": corta e densa sotto, come un volume su una mensola. */
     --bk-shadow-book: 0 1px 1px rgb(24 22 19 / 0.14), 0 3px 6px rgb(24 22 19 / 0.18);
     --bk-shadow-book-lift: 0 2px 3px rgb(24 22 19 / 0.14), 0 8px 18px rgb(24 22 19 / 0.24);
+    /* ===== Stati, focus, tooltip (light) =====
+     * `-strong` è la variante leggibile come testo su --bk-surface (>= 4,5:1). */
+    --bk-ok: #4d8369;
+    --bk-ok-bg: rgb(77 131 105 / 0.12);
+    --bk-ok-strong: #2f6049;
+    --bk-warn: #b7791f;
+    --bk-warn-bg: rgb(183 121 31 / 0.14);
+    --bk-warn-strong: #7d5010;
+    --bk-danger: #b4493b;
+    --bk-danger-bg: rgb(180 73 59 / 0.12);
+    --bk-danger-strong: #98382b;
+    --bk-on-primary: #ffffff;
+    --bk-focus: var(--bk-primary-400);
+    --bk-tooltip-bg: #27241f;
+    --bk-tooltip-text: #fbfaf8;
+    --bk-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 html.dark {
@@ -118,6 +134,20 @@ html.dark {
     --bk-shadow-3: 0 4px 8px rgb(0 0 0 / 0.3), 0 14px 36px rgb(0 0 0 / 0.5);
     --bk-shadow-book: 0 1px 1px rgb(0 0 0 / 0.4), 0 3px 6px rgb(0 0 0 / 0.45);
     --bk-shadow-book-lift: 0 2px 3px rgb(0 0 0 / 0.4), 0 8px 18px rgb(0 0 0 / 0.55);
+    --bk-ok: #6fb392;
+    --bk-ok-bg: rgb(111 179 146 / 0.16);
+    --bk-ok-strong: #8cc9aa;
+    --bk-warn: #d9a043;
+    --bk-warn-bg: rgb(217 160 67 / 0.16);
+    --bk-warn-strong: #e8b963;
+    --bk-danger: #d9786a;
+    --bk-danger-bg: rgb(217 120 106 / 0.16);
+    --bk-danger-strong: #e8978b;
+    --bk-on-primary: #ffffff;
+    --bk-focus: var(--bk-primary-400);
+    --bk-tooltip-bg: #f4f4f3;
+    --bk-tooltip-text: #161512;
+    --bk-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* ===== Entrance condivise =====
