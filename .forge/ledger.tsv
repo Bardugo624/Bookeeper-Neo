@@ -369,3 +369,29 @@
 2026-11-25T22:14:15Z	bookeeper-fase-4a	client-4a	qa	opus	PASS	-	-	-	89
 2026-11-25T22:25:56Z	bookeeper-fase-4a	apps-compat	dwarf	sonnet	-	-	-	-	161
 2026-11-25T22:26:58Z	bookeeper-fase-4a	apps-compat	qa	opus	PASS	-	-	-	58
+2026-11-25T22:49:28Z	bookeeper-fase-4b	reading-ui	dwarf	sonnet	-	trap	a rejected optimistic write can restore the cache in the same batch as the optimistic render so an effect keyed on the saved	a rejected optimistic write can restore the cache in the same batch as the optimistic render, so an effect keyed on the saved… [apps/desktop/src/modules/reading/PageField.tsx]	422	1
+2026-11-25T22:49:55Z	bookeeper-fase-4b	palette	dwarf	sonnet	-	trap	a zustand store shared across tests e g useoverlays must be reset in renderapp or an open palette from one test closes the next test s	a zustand store shared across tests (e.g. `useOverlays`) must be reset in `renderApp`, or an open palette from one test closes the next test's… [apps/desktop/src/app/testing.tsx]	449	1
+2026-11-25T22:52:23Z	bookeeper-fase-4b	reading-ui	qa	opus	PASS	-	-	-	170
+2026-11-25T22:53:19Z	bookeeper-fase-4b	palette	qa	opus	FAIL	finding	a css module and a test in one folder whose names differ only in case e g palette module css vs palette test tsx fail	a CSS module and a test in one folder whose names differ only in case (e.g. `Palette.module.css` vs `palette.test.tsx`) fail… [packages/ui/src/caseCollisions.test.ts]	198	1
+2026-11-25T22:54:09Z	bookeeper-fase-4b	palette	dwarf	sonnet	-	-	-	-	46
+2026-11-25T22:54:43Z	bookeeper-fase-4b	palette	qa	opus	FAIL	-	-	-	28
+2026-11-25T22:57:19Z	bookeeper-fase-4b	rooms-ui	dwarf	sonnet	-	-	-	-	291
+2026-11-25T22:57:50Z	bookeeper-fase-4b	loans-history	dwarf	sonnet	-	-	-	-	183
+2026-11-25T22:58:53Z	bookeeper-fase-4b	rooms-ui	qa	opus	FAIL	-	-	-	87
+2026-11-25T22:59:28Z	bookeeper-fase-4b	loans-history	qa	opus	FAIL	-	-	-	93
+2026-11-25T22:59:29Z	bookeeper-fase-4b	rooms-ui	dwarf	sonnet	-	-	-	-	33
+2026-11-25T23:00:45Z	bookeeper-fase-4b	loans-history	dwarf	sonnet	-	-	-	-	73
+2026-11-25T23:01:28Z	bookeeper-fase-4b	rooms-ui	qa	opus	FAIL	trap	shelfform test tsx validates with the limits of the core and sends the body can fail on aria selected when the whole	`ShelfForm.test.tsx` "validates with the limits of the core and sends the body" can fail on `aria-selected` when the whole… [apps/desktop/src/modules/shelves/ShelfForm.test.tsx]	113	1
+2026-11-25T23:01:50Z	bookeeper-fase-4b	loans-history	qa	opus	PASS	-	-	-	58
+2026-11-25T23:06:22Z	bookeeper-fase-4b	audit-ui	dwarf	sonnet	-	-	-	-	290
+2026-11-25T23:06:48Z	bookeeper-fase-4b	reading-stats-ui	dwarf	sonnet	-	-	-	-	294
+2026-11-25T23:08:04Z	bookeeper-fase-4b	audit-ui	qa	opus	PASS	-	-	-	96
+2026-11-25T23:08:28Z	bookeeper-fase-4b	reading-stats-ui	qa	opus	FAIL	-	-	-	94
+2026-11-25T23:09:10Z	bookeeper-fase-4b	reading-stats-ui	dwarf	sonnet	-	-	-	-	37
+2026-11-25T23:09:51Z	bookeeper-fase-4b	reading-stats-ui	qa	opus	PASS	-	-	-	36
+2026-11-25T23:12:11Z	bookeeper-fase-4b	p3-4a	dwarf	sonnet	-	trap	rusqlite scalar functions create scalar function need the functions feature in crates bookeeper core cargo toml	rusqlite scalar functions (`create_scalar_function`) need the `functions` feature in crates/bookeeper-core/Cargo.toml [crates/bookeeper-core/Cargo.toml]	136	1
+2026-11-25T23:14:31Z	bookeeper-fase-4b	p3-4a	qa	opus	PASS	-	-	-	134
+2026-11-25T23:17:44Z	bookeeper-fase-4b	tags-ui	dwarf	sonnet	-	trap	modules loans borrowerinput module css has a literal rgb color so kit styles test ts fails on it until the loans task fixes it	`modules/loans/BorrowerInput.module.css` has a literal `rgb(` color, so `kit/styles.test.ts` fails on it until the loans task fixes it [apps/desktop/src/kit/styles.test.ts]	576	1
+2026-11-25T23:17:44Z	bookeeper-fase-4b	tags-ui	dwarf	sonnet	-	trap	a test module registered with renderapp needs a nav entry and a route other than or the shell renders an empty main	a test module registered with `renderApp` needs a `nav` entry and a route other than `/`, or the shell renders an empty `<main>` [apps/desktop/src/app/testing.tsx]	576	1
+2026-11-25T23:20:04Z	bookeeper-fase-4b	tags-ui	qa	opus	FAIL	trap	radix dialog drawer close on escape from a document capture listener so a combobox inside one must intercept escape with a	Radix Dialog/Drawer close on Escape from a document capture listener, so a combobox inside one must intercept Escape with a… [apps/desktop/src/modules/loans/BorrowerInput.tsx]	135	1
+2026-11-25T23:20:52Z	bookeeper-fase-4b	tags-ui	dwarf	sonnet	-	-	-	-	44

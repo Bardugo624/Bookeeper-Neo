@@ -15,17 +15,17 @@
 
 ## Known traps
 - a fresh worktree has no node_modules; run `npm ci --offline` at the root, then `npx vitest run <path>` from apps/desktop [apps/desktop/package.json]
+- `modules/loans/BorrowerInput.module.css` has a literal `rgb(` color, so `kit/styles.test.ts` fails on it until the loans task fixes it [apps/desktop/src/kit/styles.test.ts]
+- a test module registered with `renderApp` needs a `nav` entry and a route other than `/`, or the shell renders an empty `<main>` [apps/desktop/src/app/testing.tsx]
+- rusqlite scalar functions (`create_scalar_function`) need the `functions` feature in crates/bookeeper-core/Cargo.toml [crates/bookeeper-core/Cargo.toml]
+- `ShelfForm.test.tsx` "validates with the limits of the core and sends the body" can fail on `aria-selected` when the whole… [apps/desktop/src/modules/shelves/ShelfForm.test.tsx]
+- a zustand store shared across tests (e.g. `useOverlays`) must be reset in `renderApp`, or an open palette from one test closes the next test's… [apps/desktop/src/app/testing.tsx]
 - the hand-maintained ROLE_GATED list in openapi_errors.rs can silently miss a new route; compare it against `grep -n… [crates/bookeeper-core/tests/openapi_errors.rs]
 - `ListBooksQuery` in the generated schema omits repeatable `tag_id`; the openapi-typed params in books.ts must add it by hand [packages/api/src/resources/books.ts]
+- SQLite `strftime(..., 'unixepoch')` returns NULL for timestamps outside years 0000–9999, and `finished_at` and similar epoch columns… [crates/bookeeper-core/src/api/reading.rs]
 - error bodies are `{"error_code","message"}` flat, not nested `error.code`; assert `b["error_code"]` in tests [crates/bookeeper-core/tests/common/mod.rs]
 - axum `Query` cannot deserialize repeated keys into a Vec; read them with a second `ApiQuery<Vec<(String, String)>>` extractor [crates/bookeeper-core/src/api/books_search.rs]
 - a fresh worktree needs `npm ci --offline` at the root before `npm test -w @bookeeper/mobile` works; without it vitest and vite plugins are not found [apps/mobile/package.json]
 - caseCollisions.test.ts can be run alone with `npx vitest run packages/ui/src/caseCollisions.test.ts` from the root after `npm ci --offline` [packages/ui/src/caseCollisions.test.ts]
 - the mobile `translationKeys.test.ts` only scans `mobile.*` and `common.*` keys, so a module's own namespace (e.g. `maccount.*`) needs its… [apps/mobile/src/translationKeys.test.ts]
-- `npm run typecheck -w @bookeeper/mobile` fails with "Cannot find type definition file" until `npm ci --offline` is run at the root of a fresh worktree [apps/mobile/package.json]
-- in mobile tests `findByRole('status', {name:'Caricamento…'})` can match the SessionGate's own loading status; await a view element (e.g.… [apps/mobile/src/app/SessionGate.tsx]
-- apps/mobile authTransport wraps the fetch transport but exposes only `request`, so any `@bookeeper/api` raw call (covers, files) fails… [apps/mobile/src/session/authTransport.ts]
-- apps/mobile/src/translationKeys.test.ts only checks `mobile.`/`common.` keys, so a missing key in a module namespace such as `maccount.`… [apps/mobile/src/translationKeys.test.ts]
-- `styles.test.ts` in apps/mobile fails on any `--bk-*` token not defined in the UI package (there is `--bk-radius`, `--bk-radius-sm`,… [apps/mobile/src/styles.test.ts]
-- `translationKeys.test.ts` scans only `mobile.*` and `common.*` keys, so keys in other mobile namespaces (e.g. `maccount.*`) need their… [apps/mobile/src/translationKeys.test.ts]
 
