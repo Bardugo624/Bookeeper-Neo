@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { BookOut, ShelfOut } from '@bookeeper/api';
 import type { SlotDrop, SpineBook } from '@bookeeper/ui/shelf';
 import { useT } from '../../app';
@@ -69,16 +69,28 @@ export function useShelvesView() {
     if (await placement.unplace(book.id)) setSpine(null);
   };
 
+  // A room made by an earlier save whose cabinet write failed: reused, not created twice.
+  const madeRoom = useRef<{ name: string; id: string } | null>(null);
+
   const save = async (current: ShelfOut | undefined, v: ShelfValues) => {
-    const created = v.room === NEW_ROOM ? await roomWrites.create.mutateAsync({ name: v.newRoom.trim() }) : undefined;
-    const room = roomIdOf(v, created?.id);
+    let createdId: string | undefined;
+    if (v.room === NEW_ROOM) {
+      const name = v.newRoom.trim();
+      if (madeRoom.current?.name !== name) {
+        const created = await roomWrites.create.mutateAsync({ name });
+        madeRoom.current = { name, id: created.id };
+      }
+      createdId = madeRoom.current.id;
+    }
+    const room = roomIdOf(v, createdId);
     if (current) {
       const patch = patchBody(current, v, room);
       if (Object.keys(patch).length > 0) await writes.update.mutateAsync({ id: current.id, patch });
       return;
     }
     const made = await writes.create.mutateAsync(createBody(v, room));
-    params.set({ unit: made.id, book: '' });
+    // A filter that would hide the new cabinet is lifted.
+    params.set({ unit: made.id, book: '', ...(roomId && made.room_id !== roomId ? { room: '' } : {}) });
   };
 
   const confirmDelete = async (target: ShelfOut) => {

@@ -28,7 +28,8 @@ export function ShelvesPage() {
       </Button>
     </>
   ) : undefined;
-  const filterName = v.params.values.room ? (v.rooms.find((r) => r.id === v.params.values.room)?.name ?? '') : null;
+  const filtered = Boolean(v.params.values.room);
+  const filterName = v.rooms.find((r) => r.id === v.params.values.room)?.name ?? null;
   const clearFilter = () => v.params.set({ room: '', unit: '', book: '' });
 
   let body;
@@ -48,7 +49,7 @@ export function ShelvesPage() {
         action={<Button onClick={() => void v.list.refetch()}>{t('common.retry')}</Button>}
       />
     );
-  } else if (!shelf && filterName !== null) {
+  } else if (!shelf && filtered) {
     body = (
       <EmptyState
         icon="library"
@@ -138,7 +139,7 @@ export function ShelvesPage() {
           {v.error}
         </p>
       ) : null}
-      {filterName !== null ? (
+      {filtered && filterName !== null ? (
         <p className={styles.filterNote}>
           {t('shelves.rooms.filter', { name: filterName })}
           <Button variant="ghost" size="sm" onClick={clearFilter}>
