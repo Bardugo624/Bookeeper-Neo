@@ -1,0 +1,48 @@
+{
+  "hint": "Cerca o lancia un comando",
+  "title": "Palette dei comandi",
+  "input": "Cerca o lancia un comando",
+  "placeholder": "Cerca un libro, una pagina o un comando",
+  "results": "Risultati",
+  "settingsSection": "Impostazioni · {name}",
+  "settingsKeywords": "impostazioni preferenze",
+  "groups": {
+    "go": "Vai a",
+    "books": "Libri",
+    "where": "Dov'è?",
+    "actions": "Azioni"
+  },
+  "actions": {
+    "where": "Dov'è un libro?",
+    "newBook": "Nuovo libro",
+    "newLoan": "Nuovo prestito",
+    "theme": {
+      "light": "Tema chiaro",
+      "dark": "Tema scuro",
+      "system": "Tema di sistema"
+    },
+    "shortcuts": "Scorciatoie da tastiera",
+    "signOut": "Esci"
+  },
+  "where": {
+    "prefix": "dov'è ",
+    "at": "{shelf} · ripiano {row}",
+    "none": "Non collocato · apri la scheda",
+    "shelf": "Mobile"
+  },
+  "notice": {
+    "none": "Nessun risultato",
+    "searching": "Ricerca in corso",
+    "whereHint": "Scrivi il titolo del libro da cercare"
+  },
+  "shortcuts": {
+    "title": "Scorciatoie da tastiera",
+    "then": "poi",
+    "palette": "Apre la palette dei comandi",
+    "search": "Porta il fuoco alla ricerca della vista",
+    "goTo": "Va a Libri, Scaffali, Prestiti, Wishlist, sTatistiche, Dispositivi, Impostazioni",
+    "newBook": "Nuovo libro",
+    "help": "Mostra questo elenco",
+    "close": "Chiude palette, finestre e pannelli"
+  }
+}

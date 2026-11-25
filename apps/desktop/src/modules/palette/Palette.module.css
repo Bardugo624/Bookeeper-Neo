@@ -1,0 +1,140 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--bk-z-modal);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 12vh 16px 16px;
+  background: color-mix(in srgb, var(--bk-neutral-950) 55%, transparent);
+}
+
+.panel {
+  width: min(640px, 100%);
+  max-height: min(520px, 76vh);
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--bk-radius-lg);
+  background: var(--bk-surface-raised);
+  color: var(--bk-text);
+  box-shadow: var(--bk-shadow-3);
+  overflow: hidden;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  height: 52px;
+  flex: none;
+  border-bottom: 1px solid var(--bk-border);
+  color: var(--bk-text-faint);
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 15px;
+  color: var(--bk-text-strong);
+}
+
+.results {
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.group {
+  padding: 8px 10px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--bk-text-faint);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 40px;
+  padding: 4px 10px;
+  border-radius: var(--bk-radius-sm);
+  cursor: pointer;
+}
+
+.selected {
+  background: var(--bk-inset);
+}
+
+.icon {
+  display: flex;
+  width: 26px;
+  justify-content: center;
+  color: var(--bk-text-faint);
+}
+
+.cover {
+  flex: none;
+  aspect-ratio: 2 / 3;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.label {
+  font-size: 13px;
+  color: var(--bk-text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detail {
+  font-size: 12px;
+  color: var(--bk-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notice {
+  margin: 0;
+  padding: 20px 12px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--bk-text-muted);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table th,
+.table td {
+  padding: 8px 0;
+  text-align: left;
+  font-weight: 400;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--bk-border);
+}
+
+.keys {
+  width: 52%;
+  white-space: nowrap;
+}
+
+.then {
+  margin: 0 6px;
+  font-size: 12px;
+  color: var(--bk-text-faint);
+}

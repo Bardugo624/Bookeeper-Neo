@@ -1,3 +1,4 @@
+import type { ComponentType } from 'react';
 import type { RouteObject } from 'react-router';
 import type { IconName } from '@bookeeper/ui/base';
 
@@ -17,4 +18,6 @@ export interface AppModule {
   nav?: NavItem;
   /** Mounted outside the shell (first launch). */
   public?: RouteObject[];
+  /** Drawn once inside the shell, next to the routes (e.g. the command palette). */
+  overlay?: ComponentType<{ modules: AppModule[] }>;
 }

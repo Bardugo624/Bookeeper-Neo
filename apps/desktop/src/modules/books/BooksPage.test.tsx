@@ -62,7 +62,7 @@ describe('search', () => {
     expect(screen.getByText('1 libro · 0 in prestito')).toBeInTheDocument();
   });
 
-  it('clears the search and Ctrl K focuses the field', async () => {
+  it('clears the search and / focuses the field', async () => {
     const { router } = renderBooks({ books: makeDb(4) }, '/books?q=Libro%203');
     const field = await screen.findByRole('searchbox', { name: 'Cerca nei libri' });
     await screen.findByText('1 libro · 0 in prestito');
@@ -72,7 +72,7 @@ describe('search', () => {
     expect(router.state.location.search).toBe('');
     await screen.findByText('4 libri · 0 in prestito');
     await userEvent.click(document.body);
-    await userEvent.keyboard('{Control>}k{/Control}');
+    await userEvent.keyboard('/');
     expect(field).toHaveFocus();
   });
 });
