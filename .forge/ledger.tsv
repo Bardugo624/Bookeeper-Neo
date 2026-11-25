@@ -341,3 +341,5 @@
 2026-11-25T16:24:15Z	bookeeper-fase-3a	m-scan	qa	opus	FAIL	finding	a hook that takes a video from a callback ref gets null once the blocked or error view replaces the video so a retry that	a hook that takes a `<video>` from a callback ref gets `null` once the blocked or error view replaces the video, so a "retry" that… [apps/mobile/src/modules/scan/useCameraScan.ts]	78	1
 2026-11-25T16:24:59Z	bookeeper-fase-3a	m-scan	dwarf	sonnet	-	-	-	-	40
 2026-11-25T16:25:40Z	bookeeper-fase-3a	m-scan	qa	opus	PASS	-	-	-	35
+2026-11-25T16:32:50Z	bookeeper-fase-3a	m-account-b	dwarf	sonnet	-	-	-	-	84
+2026-11-25T16:33:45Z	bookeeper-fase-3a	m-account-b	qa	opus	PASS	-	-	-	50
