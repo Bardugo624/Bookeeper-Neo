@@ -13,6 +13,10 @@ describe('apiErrorMessage', () => {
     expect(msg).not.toBe(generic);
   });
 
+  it.each(['slot_taken', 'book_already_lent', 'progressive_taken', 'setup_closed'])('shows the conflict text for the domain code %s', (code) => {
+    expect(apiErrorMessage(tr, new ApiError(409, code, 'x'))).toBe(tr('common.errors.conflict'));
+  });
+
   it('puts the seconds in rate_limited', () => {
     expect(apiErrorMessage(tr, new ApiError(429, 'rate_limited', 'x', 12))).toContain('12');
   });

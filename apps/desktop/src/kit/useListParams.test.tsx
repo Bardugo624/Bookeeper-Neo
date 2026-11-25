@@ -38,6 +38,15 @@ describe('useListParams', () => {
     expect(s.loc().search).toBe('?q=dune');
   });
 
+  it('accumulates two set calls in the same handler', () => {
+    const s = mount('/books');
+    act(() => {
+      s.get().set({ q: 'dune' });
+      s.get().set({ page: 2 });
+    });
+    expect(s.loc().search).toBe('?q=dune&page=2');
+  });
+
   it('falls back to the default on invalid values', () => {
     const s = mount('/books?filter=zzz&page=-4');
     expect(s.get().values).toEqual({ q: '', filter: 'all', page: 1 });

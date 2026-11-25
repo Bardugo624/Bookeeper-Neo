@@ -16,6 +16,8 @@ export function apiErrorMessage(t: Translate, error: unknown, overrides?: Record
       ? t('common.errors.rate_limited_unknown')
       : t('common.errors.rate_limited', { seconds: error.retryAfter });
   }
+  // The core always sends a domain code with a 409 (slot_taken, book_already_lent, …).
+  if (error.status === 409) return t('common.errors.conflict');
   if ((KNOWN as readonly string[]).includes(error.code)) return t(`common.errors.${error.code}`);
   return t('common.errors.generic');
 }

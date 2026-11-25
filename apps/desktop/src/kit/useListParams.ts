@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router';
 
 export interface ParamSpec<T> {
@@ -37,6 +37,9 @@ export interface ListParams<V> {
 /** Search, filter and sort of a list, kept in the address. Values equal to their default are left out. */
 export function useListParams<V>(schema: ParamSchema<V>): ListParams<V> {
   const [params, setParams] = useSearchParams();
+  // Address as last written: react-router's functional form does not see a write made earlier in the same handler.
+  const latest = useRef('');
+  latest.current = params.toString();
   const keys = Object.keys(schema) as Array<keyof V & string>;
 
   const values = {} as V;
@@ -48,19 +51,15 @@ export function useListParams<V>(schema: ParamSchema<V>): ListParams<V> {
   const signature = keys.map((k) => schema[k].serialize(values[k])).join('\u0000');
 
   const write = useCallback(
-    (next: V) => {
-      setParams(
-        (prev) => {
-          const out = new URLSearchParams(prev);
-          for (const k of keys) {
-            const text = schema[k].serialize(next[k]);
-            if (text === schema[k].serialize(schema[k].default)) out.delete(k);
-            else out.set(k, text);
-          }
-          return out;
-        },
-        { replace: true },
-      );
+    (patch: Partial<V>) => {
+      const out = new URLSearchParams(latest.current);
+      for (const k of Object.keys(patch) as Array<keyof V & string>) {
+        const text = schema[k].serialize(patch[k] as V[typeof k]);
+        if (text === schema[k].serialize(schema[k].default)) out.delete(k);
+        else out.set(k, text);
+      }
+      latest.current = out.toString();
+      setParams(out, { replace: true });
     },
     // `schema` is usually a module constant; `keys` derives from it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -71,8 +70,8 @@ export function useListParams<V>(schema: ParamSchema<V>): ListParams<V> {
   return useMemo<ListParams<V>>(
     () => ({
       values,
-      set: (patch) => write({ ...values, ...patch }),
-      reset: () => write(Object.fromEntries(keys.map((k) => [k, schema[k].default])) as V),
+      set: (patch) => write(patch),
+      reset: () => write(Object.fromEntries(keys.map((k) => [k, schema[k].default])) as Partial<V>),
       search,
     }),
     // `values` is fully determined by `signature`.

@@ -70,13 +70,45 @@ describe('authenticated transport', () => {
   it('does not renew or sign out on a 401 that is not an expired token', async () => {
     const p = fakePlatform({
       connections: { active: 'c1', items: [fakeConnection()] },
-      handler: () => ({ status: 401, body: { error: { code: 'invalid_credentials', message: 'x' } } }),
+      handler: () => ({ status: 401, body: { error_code: 'invalid_credentials', message: 'x' } }),
     });
     useSession.setState({ status: 'ready', connection: p.state.items[0]!, platform: p });
     const res = await createAuthTransport(p).request('POST', '/api/v1/auth/confirm', {});
     expect(res.status).toBe(401);
     expect(p.calls.filter((c) => c.path === '/api/v1/auth/refresh')).toHaveLength(0);
     expect(useSession.getState().status).toBe('ready');
+  });
+
+  it('returns confirmation_required to the caller without renewing or expiring', async () => {
+    const p = fakePlatform({
+      connections: { active: 'c1', items: [fakeConnection()] },
+      handler: () => ({ status: 401, body: { error_code: 'confirmation_required', message: 'x' } }),
+    });
+    useSession.setState({ status: 'ready', connection: p.state.items[0]!, platform: p });
+    const res = await createAuthTransport(p).request('DELETE', '/api/v1/books/b1');
+    expect(res.status).toBe(401);
+    expect(p.calls.filter((c) => c.path === '/api/v1/auth/refresh')).toHaveLength(0);
+    expect(p.calls.filter((c) => c.path === '/api/v1/books/b1')).toHaveLength(1);
+    expect(useSession.getState().status).toBe('ready');
+  });
+
+  it('renews on token_expired', async () => {
+    let first = true;
+    const p = fakePlatform({
+      connections: { active: 'c1', items: [fakeConnection()] },
+      handler: (r) => {
+        if (r.path === '/api/v1/auth/refresh') return ok({ session: { access_token: 'access-2', refresh_token: 'refresh-2', device_id: 'd1', expires_in: 900 } });
+        if (first) {
+          first = false;
+          return { status: 401, body: { error_code: 'token_expired', message: 'x' } };
+        }
+        return ok({});
+      },
+    });
+    useSession.setState({ status: 'ready', connection: p.state.items[0]!, platform: p });
+    const res = await createAuthTransport(p).request('GET', '/api/v1/a');
+    expect(res.status).toBe(200);
+    expect(p.calls.filter((c) => c.path === '/api/v1/auth/refresh')).toHaveLength(1);
   });
 
   it('returns to welcome when the retried request is still 401', async () => {
@@ -158,7 +190,7 @@ describe('failed renewal memory', () => {
   });
 
   it('does not retry a token the server rejected', async () => {
-    const p = setup(() => ({ status: 401, body: { error: { code: 'unauthorized', message: 'x' } } }));
+    const p = setup(() => ({ status: 401, body: { error_code: 'unauthorized', message: 'x' } }));
     const t = createAuthTransport(p);
     await t.request('GET', '/api/v1/me');
     useSession.setState({ status: 'ready', connection: p.state.items[0]!, platform: p });
