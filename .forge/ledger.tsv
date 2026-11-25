@@ -286,3 +286,11 @@
 2026-11-25T10:30:39Z	bookeeper-fase-2d	sharing-ui	qa	opus	FAIL	trap	sharing status keeps returning the last set error inner error is cleared only by set so ui must not treat a re read error	`Sharing::status()` keeps returning the last `set()` error (`inner.error` is cleared only by `set`), so UI must not treat a re-read `error`… [apps/desktop/src-tauri/src/sharing.rs]	69	1
 2026-11-25T10:31:43Z	bookeeper-fase-2d	sharing-ui	dwarf	sonnet	-	trap	sharing status keeps returning the last set error inner error is cleared only by set so ui must not treat a re read error	`Sharing::status()` keeps returning the last `set()` error (`inner.error` is cleared only by `set`), so UI must not treat a re-read `error`… [apps/desktop/src-tauri/src/sharing.rs]	61	1
 2026-11-25T10:32:31Z	bookeeper-fase-2d	sharing-ui	qa	opus	PASS	-	-	-	44
+2026-11-25T10:36:34Z	bookeeper-fase-2d	fmt-fix	dwarf	sonnet	-	-	-	-	157
+2026-11-25T10:39:43Z	bookeeper-fase-2d	fmt-fix	qa	opus	PASS	-	-	-	185
+2026-11-25T10:49:34Z	bookeeper-fase-2d	updater	dwarf	sonnet	-	trap	tauri plugin updater 2 x deserializza plugins updater con pubkey obbligatoria senza quella voce l app non parte a meno di inserirla in	tauri-plugin-updater 2.x deserializza `plugins.updater` con `pubkey` obbligatoria: senza quella voce l'app non parte, a meno di inserirla in… [apps/desktop/src-tauri/src/lib.rs]	581	1
+2026-11-25T10:54:51Z	bookeeper-fase-2d	updater	qa	opus	PASS	trap	sharing test tsx names the port that was tried when the shell reports the old one fails intermittently when	sharing.test.tsx "names the port that was tried when the shell reports the old one" fails intermittently when… [apps/desktop/src/modules/settings/sections/sharing/sharing.test.tsx]	312	1
+2026-11-25T10:58:56Z	bookeeper-fase-2d	release-desktop	dwarf	sonnet	-	-	-	-	234
+2026-11-25T11:03:20Z	bookeeper-fase-2d	release-desktop	qa	opus	FAIL	-	-	-	259
+2026-11-25T11:04:13Z	bookeeper-fase-2d	release-desktop	dwarf	sonnet	-	-	-	-	50
+2026-11-25T11:05:46Z	bookeeper-fase-2d	release-desktop	qa	opus	PASS	-	-	-	89
