@@ -266,3 +266,5 @@
 2026-11-25T08:25:16Z	bookeeper-fase-2c	backup	qa	opus	FAIL	-	-	-	103
 2026-11-25T08:25:55Z	bookeeper-fase-2c	backup	dwarf	sonnet	-	-	-	-	36
 2026-11-25T08:26:27Z	bookeeper-fase-2c	backup	qa	opus	PASS	-	-	-	27
+2026-11-25T08:35:02Z	bookeeper-fase-2c	p3-2b1	dwarf	sonnet	-	-	-	-	81
+2026-11-25T08:36:07Z	bookeeper-fase-2c	p3-2b1	qa	opus	PASS	trap	t in bookeeper i18n returns the key itself when it is missing from both locales so neither tsc nor the tests catch a new key that was never added	`t()` in @bookeeper/i18n returns the key itself when it is missing from both locales, so neither tsc nor the tests catch a new key that was never added [packages/i18n/src/index.ts]	60	1
