@@ -15,6 +15,9 @@
   "filters": {
     "label": "Filtri",
     "all": "Tutti",
+    "to_read": "Da leggere",
+    "reading": "In lettura",
+    "read": "Letti",
     "loan": "In prestito",
     "unshelved": "Non collocati"
   },
@@ -36,6 +39,7 @@
       "author": "Autore",
       "year": "Anno",
       "placement": "Collocazione",
+      "reading": "Lettura",
       "status": "Prestito"
     },
     "sortBy": "Ordina per {column}"

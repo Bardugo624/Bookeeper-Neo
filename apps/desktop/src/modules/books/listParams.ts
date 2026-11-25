@@ -2,7 +2,9 @@ import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router';
 import { useSession } from '../../session';
 
-export type Filter = 'all' | 'loan' | 'unshelved';
+/** The quick filters: reading states live in `?reading=`, the others in `?filter=`. */
+export type Filter = 'all' | 'to_read' | 'reading' | 'read' | 'loan' | 'unshelved';
+export type ReadingFilter = 'to_read' | 'reading' | 'read';
 export type ViewMode = 'grid' | 'list';
 /** Values of `sort` the API can order by and that have a column in the list. */
 export type SortKey = 'title' | 'author' | 'year';
@@ -16,7 +18,10 @@ export interface ListState {
   order: SortOrder;
 }
 
-const FILTERS: Filter[] = ['all', 'loan', 'unshelved'];
+const FILTERS: Filter[] = ['loan', 'unshelved'];
+const READING_FILTERS: ReadingFilter[] = ['to_read', 'reading', 'read'];
+
+export const isReadingFilter = (f: Filter): f is ReadingFilter => (READING_FILTERS as string[]).includes(f);
 const SORTS: SortKey[] = ['title', 'author', 'year'];
 
 function storageKey(connectionId: string | undefined): string {
@@ -57,7 +62,9 @@ export function useListParams(): ListParams {
 
   const q = params.get('q') ?? '';
   const rawFilter = params.get('filter');
-  const filter = FILTERS.find((f) => f === rawFilter) ?? 'all';
+  const rawReading = params.get('reading');
+  const filter: Filter =
+    READING_FILTERS.find((f) => f === rawReading) ?? FILTERS.find((f) => f === rawFilter) ?? 'all';
   const rawView = params.get('view');
   const view: ViewMode = rawView === 'list' || rawView === 'grid' ? rawView : readStoredView(connectionId);
   const rawSort = params.get('sort');
@@ -91,7 +98,12 @@ export function useListParams(): ListParams {
       order,
       search,
       setQuery: (value) => update({ q: value }),
-      setFilter: (value) => update({ filter: value === 'all' ? null : value }),
+      setFilter: (value) =>
+        update(
+          isReadingFilter(value)
+            ? { filter: null, reading: value }
+            : { filter: value === 'all' ? null : value, reading: null },
+        ),
       setView(value) {
         storeView(connectionId, value);
         update({ view: value });
@@ -101,7 +113,7 @@ export function useListParams(): ListParams {
         else if (order === 'asc') update({ sort: key, order: 'desc' });
         else update({ sort: null, order: null });
       },
-      reset: () => update({ q: null, filter: null }),
+      reset: () => update({ q: null, filter: null, reading: null }),
     }),
     [q, filter, view, sort, order, search, update, connectionId],
   );

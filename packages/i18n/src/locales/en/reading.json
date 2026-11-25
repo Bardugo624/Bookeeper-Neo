@@ -1,0 +1,53 @@
+{
+  "status": {
+    "to_read": "To read",
+    "reading": "Reading",
+    "read": "Read",
+    "abandoned": "Abandoned"
+  },
+  "card": {
+    "title": "Reading",
+    "loading": "Loading reading status",
+    "error": "I can't read the reading status.",
+    "retry": "Try again",
+    "invite": "Are you reading it?",
+    "toRead": "To read",
+    "start": "Start reading",
+    "startedOn": "Started on {date}",
+    "pageOf": "Page {page} of {total}",
+    "page": "Page {page}"
+  },
+  "ring": {
+    "label": "{status}, {percent}%",
+    "none": "No reading status"
+  },
+  "menu": {
+    "change": "Change status",
+    "clear": "Remove status"
+  },
+  "page": {
+    "label": "Update the page",
+    "less": "One page less",
+    "more": "One page more",
+    "invalid": "Enter a whole page number, 0 or more."
+  },
+  "rating": {
+    "label": "Rating",
+    "star": "{count} out of 5",
+    "clear": "Clear the rating"
+  },
+  "note": {
+    "label": "Note",
+    "placeholder": "What do you think?",
+    "count": "{count} of {max} characters"
+  },
+  "markRead": {
+    "button": "Mark as read",
+    "doneOn": "Read on {date}",
+    "done": "Read"
+  },
+  "list": {
+    "none": "–",
+    "pageShort": "p. {page}"
+  }
+}

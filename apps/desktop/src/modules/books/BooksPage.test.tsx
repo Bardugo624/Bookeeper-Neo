@@ -98,12 +98,13 @@ describe('filters', () => {
     expect(listCalls(platform).some((p) => p.get('unshelved') === 'true')).toBe(true);
   });
 
-  it('offers no reading-state filters and no "mark as read"', async () => {
+  it('offers the reading-state filters to a guest, and no write actions', async () => {
     renderBooks({ books: makeDb(1), role: 'guest' });
     await screen.findByRole('tablist', { name: 'Filtri' });
-    for (const name of ['Da leggere', 'In lettura', 'Letti', 'Filtri']) {
-      expect(screen.queryByRole('tab', { name })).toBeNull();
+    for (const name of ['Da leggere', 'In lettura', 'Letti']) {
+      expect(screen.getByRole('tab', { name })).toBeTruthy();
     }
+    expect(screen.queryByRole('tab', { name: 'Filtri' })).toBeNull();
     for (const name of [/Aggiungi/, /Modifica/, /Presta/, /Elimina/, /Seleziona/, /Segna come letto/]) {
       expect(screen.queryByRole('button', { name })).toBeNull();
     }
@@ -226,5 +227,45 @@ describe('cover', () => {
     await screen.findByRole('link', { name: 'Libro 1, Autore 1' });
     expect(container.querySelector('img')).toBeNull();
     expect(container.querySelector<HTMLElement>('[style*="--cover-bg"]')!.style.getPropertyValue('--cover-bg')).toBe('#aabbcc');
+  });
+});
+
+describe('reading', () => {
+  it('draws the ring only on books being read, and a mark on the read ones', async () => {
+    renderBooks({
+      books: [
+        book(1, { reading: { status: 'reading', current_page: 50, rating: null }, page_count: 100 }),
+        book(2, { reading: { status: 'read', current_page: 10, rating: null } }),
+        book(3, { reading: { status: 'to_read', current_page: null, rating: null } }),
+        book(4),
+      ],
+    });
+    await screen.findByText('Libro 1');
+    const rings = screen.getAllByRole('progressbar');
+    expect(rings).toHaveLength(1);
+    expect(rings[0]!.getAttribute('aria-valuenow')).toBe('50');
+    expect(screen.getAllByRole('img', { name: 'Letto' })).toHaveLength(1);
+  });
+
+  it('"In lettura" asks for reading=reading and keeps it in the address', async () => {
+    const view = renderBooks({
+      books: [book(1, { reading: { status: 'reading', current_page: 1, rating: null } }), book(2)],
+    });
+    await screen.findByText('Libro 2');
+    await userEvent.click(screen.getByRole('tab', { name: 'In lettura' }));
+    await waitFor(() => expect(listCalls(view.platform).some((p) => p.get('reading') === 'reading')).toBe(true));
+    await waitFor(() => expect(screen.queryByText('Libro 2')).toBeNull());
+    expect(screen.getByRole('tab', { name: 'In lettura' }).getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('opens from the address', async () => {
+    renderBooks({ books: [book(1)] }, '/books?reading=read');
+    expect((await screen.findByRole('tab', { name: 'Letti' })).getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('lists the state in a "Lettura" column', async () => {
+    renderBooks({ books: [book(1, { reading: { status: 'reading', current_page: 50, rating: null } })] }, '/books?view=list');
+    expect(await screen.findByRole('columnheader', { name: 'Lettura' })).toBeTruthy();
+    expect(screen.getByText('In lettura · p. 50')).toBeTruthy();
   });
 });
