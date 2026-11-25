@@ -214,3 +214,53 @@ fn tauri_conf_has_no_decorations() {
         serde_json::Value::Bool(false)
     );
 }
+
+#[test]
+fn activate_accepts_any_spelling_of_the_id() {
+    let (_d, s) = store();
+    let c = remote("https://a.example");
+    s.upsert(c.clone()).unwrap();
+    let braced = format!("{{{}}}", c.id.to_uppercase());
+    assert_eq!(s.activate(&braced).unwrap().active, Some(c.id));
+}
+
+#[test]
+fn remove_accepts_any_spelling_of_the_id() {
+    let (_d, s) = store();
+    let c = remote("https://a.example");
+    s.upsert(c.clone()).unwrap();
+    s.activate(&c.id).unwrap();
+    let all = s.remove(&format!("{{{}}}", c.id.to_uppercase())).unwrap();
+    assert!(all.items.is_empty() && all.active.is_none());
+}
+
+#[test]
+fn activate_and_remove_refuse_a_non_uuid() {
+    let (_d, s) = store();
+    s.upsert(remote("https://a.example")).unwrap();
+    assert!(s.activate("not-a-uuid").is_err());
+    assert!(s.remove("not-a-uuid").is_err());
+    assert_eq!(s.load().unwrap().items.len(), 1);
+}
+
+#[test]
+fn two_corrupt_files_in_one_second_are_both_kept() {
+    let (d, s) = store();
+    let path = d.path().join("connections.json");
+    for body in ["{ first", "{ second", "{ third"] {
+        std::fs::write(&path, body).unwrap();
+        assert!(s.load().unwrap().items.is_empty());
+    }
+    let mut bodies: Vec<String> = std::fs::read_dir(d.path())
+        .unwrap()
+        .filter_map(Result::ok)
+        .filter(|e| {
+            e.file_name()
+                .to_string_lossy()
+                .starts_with("connections.json.corrotto-")
+        })
+        .map(|e| std::fs::read_to_string(e.path()).unwrap())
+        .collect();
+    bodies.sort();
+    assert_eq!(bodies, ["{ first", "{ second", "{ third"]);
+}
