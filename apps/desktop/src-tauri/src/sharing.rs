@@ -37,8 +37,12 @@ pub struct SharingStatus {
     pub fingerprint: Option<String>,
     /// Six-word verification phrase.
     pub phrase: Option<String>,
-    /// `port_in_use`, `password_required`, `tls` or `mdns`.
+    /// `port_in_use` (address taken), `port_not_allowed` (permission denied),
+    /// `bind_failed` (any other failure opening the port), `password_required`,
+    /// `tls` or `mdns`.
     pub error: Option<String>,
+    /// The port a failed change tried to open; `port` is then still the one in use.
+    pub attempted_port: Option<u16>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -60,7 +64,9 @@ struct Running {
     handle: axum_server::Handle<SocketAddr>,
     task: JoinHandle<()>,
     port: u16,
-    identity: Identity,
+    /// Computed once when sharing starts.
+    fingerprint: String,
+    phrase: String,
     announcer: Option<Announcer>,
     mdns_failed: bool,
 }
@@ -70,6 +76,40 @@ struct Inner {
     running: Option<Running>,
     /// Why the last attempt to start failed.
     error: Option<&'static str>,
+    /// Port of the last failed attempt to open.
+    attempted_port: Option<u16>,
+    /// Fingerprint and phrase of the last identity used, kept after stopping.
+    last_identity: Option<(String, String)>,
+}
+
+/// What `status_of` needs from the locked state; the slow parts are added outside the lock.
+struct Snapshot {
+    enabled: bool,
+    running: bool,
+    port: u16,
+    identity: Option<(String, String)>,
+    error: Option<String>,
+    attempted_port: Option<u16>,
+    /// Set when the identity is not in memory and must be read from disk.
+    tls_dir: Option<PathBuf>,
+}
+
+/// A port that is bound and ready, before the server is started on it.
+struct Bound {
+    listener: TcpListener,
+    port: u16,
+    config: Arc<rustls::ServerConfig>,
+    fingerprint: String,
+    phrase: String,
+}
+
+/// Maps the failure of opening a port to the code the settings screen shows.
+pub fn bind_error_code(kind: std::io::ErrorKind) -> &'static str {
+    match kind {
+        std::io::ErrorKind::AddrInUse => "port_in_use",
+        std::io::ErrorKind::PermissionDenied => "port_not_allowed",
+        _ => "bind_failed",
+    }
 }
 
 struct Shared {
@@ -102,58 +142,88 @@ impl Sharing {
                 prefs,
                 running: None,
                 error: None,
+                attempted_port: None,
+                last_identity: None,
             }),
         }))
     }
 
     /// Starts sharing again when the saved preference says so (app launch).
     pub async fn restore(&self) -> SharingStatus {
-        let mut inner = self.0.inner.lock().await;
-        if inner.prefs.enabled && inner.running.is_none() {
-            let port = inner.prefs.port;
-            if let Err(code) = self.start_locked(&mut inner, port).await {
-                inner.error = Some(code);
+        let snap = {
+            let mut inner = self.0.inner.lock().await;
+            if inner.prefs.enabled && inner.running.is_none() {
+                let port = inner.prefs.port;
+                if let Err(code) = self.start_locked(&mut inner, port).await {
+                    inner.error = Some(code);
+                    inner.attempted_port = Some(port);
+                }
             }
-        }
-        self.status_of(&inner)
+            self.snapshot(&inner)
+        };
+        self.finish(snap).await
     }
 
     pub async fn status(&self) -> SharingStatus {
-        let inner = self.0.inner.lock().await;
-        self.status_of(&inner)
+        let snap = self.snapshot(&*self.0.inner.lock().await);
+        self.finish(snap).await
     }
 
     /// Turns sharing on or off; `port` replaces the saved port when given.
     pub async fn set(&self, enabled: bool, port: Option<u16>) -> SharingStatus {
-        let mut inner = self.0.inner.lock().await;
+        let snap = {
+            let mut inner = self.0.inner.lock().await;
+            self.set_locked(&mut inner, enabled, port).await;
+            self.snapshot(&inner)
+        };
+        self.finish(snap).await
+    }
+
+    async fn set_locked(&self, inner: &mut Inner, enabled: bool, port: Option<u16>) {
         inner.error = None;
+        inner.attempted_port = None;
         let port = port.unwrap_or(inner.prefs.port);
         if !enabled {
-            self.stop_locked(&mut inner).await;
+            self.stop_locked(inner).await;
             inner.prefs = Prefs {
                 enabled: false,
                 port,
             };
             save_prefs(&self.0.dir, &inner.prefs);
-            return self.status_of(&inner);
+            return;
         }
         let same = inner.running.as_ref().is_some_and(|r| {
             // Port 0 asks for any port: keep what is bound.
             port == inner.prefs.port || port == r.port
         });
-        if !same {
-            self.stop_locked(&mut inner).await;
-        }
-        if inner.running.is_none() {
-            match self.start_locked(&mut inner, port).await {
-                Ok(()) => {}
-                Err(code) => {
-                    // Nothing opened: the saved preference stays off.
-                    inner.error = Some(code);
-                    inner.prefs.enabled = false;
-                    save_prefs(&self.0.dir, &inner.prefs);
-                    return self.status_of(&inner);
+        if inner.running.is_some() && !same {
+            // Open the new port first: only if that works does the old server stop.
+            match self.bind(port).await {
+                Ok(bound) => {
+                    self.stop_locked(inner).await;
+                    if let Err(code) = self.launch(inner, bound).await {
+                        inner.error = Some(code);
+                        inner.attempted_port = Some(port);
+                        inner.prefs.enabled = false;
+                        save_prefs(&self.0.dir, &inner.prefs);
+                        return;
+                    }
                 }
+                Err(code) => {
+                    // Sharing stays on the old port.
+                    inner.error = Some(code);
+                    inner.attempted_port = Some(port);
+                    return;
+                }
+            }
+        } else if inner.running.is_none() {
+            if let Err(code) = self.start_locked(inner, port).await {
+                // Nothing opened: the saved preference stays off.
+                inner.error = Some(code);
+                inner.attempted_port = Some(port);
+                inner.prefs.enabled = false;
+                save_prefs(&self.0.dir, &inner.prefs);
+                return;
             }
         }
         inner.prefs = Prefs {
@@ -161,7 +231,6 @@ impl Sharing {
             port,
         };
         save_prefs(&self.0.dir, &inner.prefs);
-        self.status_of(&inner)
     }
 
     /// Stops the server without touching the saved preference (app exit).
@@ -170,35 +239,71 @@ impl Sharing {
         self.stop_locked(&mut inner).await;
     }
 
-    fn status_of(&self, inner: &Inner) -> SharingStatus {
+    /// Copies what the status needs; cheap, so the lock is held only briefly.
+    fn snapshot(&self, inner: &Inner) -> Snapshot {
         let (port, identity) = match &inner.running {
-            Some(r) => (r.port, Some(r.identity.clone())),
-            None => (
-                inner.prefs.port,
-                Identity::load(&tls_dir(&self.0.dir)).ok().flatten(),
-            ),
+            Some(r) => (r.port, Some((r.fingerprint.clone(), r.phrase.clone()))),
+            None => (inner.prefs.port, inner.last_identity.clone()),
         };
         let mut error = inner.error.map(str::to_string);
         if error.is_none() && inner.running.as_ref().is_some_and(|r| r.mdns_failed) {
             error = Some("mdns".into());
         }
-        SharingStatus {
+        Snapshot {
             enabled: inner.prefs.enabled,
             running: inner.running.is_some(),
             port,
-            addresses: private_ipv4()
+            tls_dir: identity.is_none().then(|| tls_dir(&self.0.dir)),
+            identity,
+            error,
+            attempted_port: inner.attempted_port,
+        }
+    }
+
+    /// Adds the blocking parts (interface list, certificate on disk) off the runtime
+    /// and outside the lock.
+    async fn finish(&self, snap: Snapshot) -> SharingStatus {
+        let tls = snap.tls_dir.clone();
+        let (ips, loaded) = tokio::task::spawn_blocking(move || {
+            let loaded = tls
+                .and_then(|d| Identity::load(&d).ok().flatten())
+                .map(|i| {
+                    (
+                        i.fingerprint_hex(),
+                        bookeeper_net::phrase::verification_phrase(&i.fingerprint),
+                    )
+                });
+            (private_ipv4(), loaded)
+        })
+        .await
+        .unwrap_or_default();
+        let port = snap.port;
+        let (fingerprint, phrase) = match snap.identity.or(loaded) {
+            Some((f, p)) => (Some(f), Some(p)),
+            None => (None, None),
+        };
+        SharingStatus {
+            enabled: snap.enabled,
+            running: snap.running,
+            port,
+            addresses: ips
                 .into_iter()
                 .map(|ip| format!("https://{ip}:{port}"))
                 .collect(),
-            phrase: identity
-                .as_ref()
-                .map(|i| bookeeper_net::phrase::verification_phrase(&i.fingerprint)),
-            fingerprint: identity.map(|i| i.fingerprint_hex()),
-            error,
+            fingerprint,
+            phrase,
+            error: snap.error,
+            attempted_port: snap.attempted_port,
         }
     }
 
     async fn start_locked(&self, inner: &mut Inner, port: u16) -> Result<(), &'static str> {
+        let bound = self.bind(port).await?;
+        self.launch(inner, bound).await
+    }
+
+    /// Checks the preconditions and opens the port, without starting anything on it.
+    async fn bind(&self, port: u16) -> Result<Bound, &'static str> {
         if !has_owner_password(&self.0.state).await {
             return Err("password_required");
         }
@@ -217,15 +322,32 @@ impl Sharing {
         })?;
         bookeeper_net::install_crypto_provider();
 
-        let listener =
-            TcpListener::bind(SocketAddr::new(self.0.listen, port)).map_err(|_| "port_in_use")?;
-        listener.set_nonblocking(true).map_err(|_| "port_in_use")?;
-        let bound = listener.local_addr().map_err(|_| "port_in_use")?.port();
+        let open = |e: std::io::Error| bind_error_code(e.kind());
+        let listener = TcpListener::bind(SocketAddr::new(self.0.listen, port)).map_err(open)?;
+        listener.set_nonblocking(true).map_err(open)?;
+        let port = listener.local_addr().map_err(open)?.port();
+        Ok(Bound {
+            listener,
+            port,
+            config,
+            fingerprint: identity.fingerprint_hex(),
+            phrase: bookeeper_net::phrase::verification_phrase(&identity.fingerprint),
+        })
+    }
 
+    /// Serves on an already open port and announces it.
+    async fn launch(&self, inner: &mut Inner, bound: Bound) -> Result<(), &'static str> {
+        let Bound {
+            listener,
+            port: bound_port,
+            config,
+            fingerprint,
+            phrase,
+        } = bound;
         let app = network_router(&self.0.state);
         let handle = axum_server::Handle::<SocketAddr>::new();
         let server = axum_server::from_tcp(listener)
-            .map_err(|_| "port_in_use")?
+            .map_err(|e| bind_error_code(e.kind()))?
             .handle(handle.clone())
             .acceptor(axum_server::tls_rustls::RustlsAcceptor::new(
                 axum_server::tls_rustls::RustlsConfig::from_config(config),
@@ -239,16 +361,18 @@ impl Sharing {
         let mut announcer = None;
         let mut mdns_failed = false;
         if self.0.mdns && !self.0.listen.is_loopback() {
-            match tokio::task::spawn_blocking(move || announce(bound)).await {
+            match tokio::task::spawn_blocking(move || announce(bound_port)).await {
                 Ok(Ok(a)) => announcer = Some(a),
                 _ => mdns_failed = true,
             }
         }
+        inner.last_identity = Some((fingerprint.clone(), phrase.clone()));
         inner.running = Some(Running {
             handle,
             task,
-            port: bound,
-            identity,
+            port: bound_port,
+            fingerprint,
+            phrase,
             announcer,
             mdns_failed,
         });
