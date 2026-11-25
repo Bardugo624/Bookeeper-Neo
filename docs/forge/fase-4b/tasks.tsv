@@ -1,0 +1,9 @@
+# id	deps	difficulty	files	dwarf	qa	title
+palette	-	high	apps/desktop/src/modules/palette,apps/desktop/src/app,apps/desktop/src/shell,packages/i18n/src/locales/it/palette.json,packages/i18n/src/locales/en/palette.json	-	-	Palette dei comandi e scorciatoie
+reading-ui	-	high	apps/desktop/src/modules/reading,apps/desktop/src/modules/books,packages/i18n/src/locales/it/reading.json,packages/i18n/src/locales/en/reading.json,packages/i18n/src/locales/it/books.json,packages/i18n/src/locales/en/books.json	-	-	Stato di lettura nei Libri
+rooms-ui	-	medium	apps/desktop/src/modules/shelves,packages/i18n/src/locales/it/shelves.json,packages/i18n/src/locales/en/shelves.json	-	-	Stanze negli Scaffali
+loans-history	-	low	apps/desktop/src/modules/loans,packages/i18n/src/locales/it/loans.json,packages/i18n/src/locales/en/loans.json	-	-	Storico prestiti e nomi suggeriti
+audit-ui	-	medium	apps/desktop/src/modules/settings/sections/audit,packages/i18n/src/locales/it/audit.json,packages/i18n/src/locales/en/audit.json	-	-	Registro attività
+reading-stats-ui	-	high	apps/desktop/src/modules/stats,packages/i18n/src/locales/it/stats.json,packages/i18n/src/locales/en/stats.json	-	-	Statistiche di lettura e Il tuo anno in libri
+tags-ui	reading-ui	high	apps/desktop/src/modules/tags,apps/desktop/src/modules/books,packages/i18n/src/locales/it/tags.json,packages/i18n/src/locales/en/tags.json,packages/i18n/src/locales/it/books.json,packages/i18n/src/locales/en/books.json	-	-	Tag
+filters-ui	tags-ui,rooms-ui	high	apps/desktop/src/modules/books,packages/i18n/src/locales/it/books.json,packages/i18n/src/locales/en/books.json	-	-	Filtri avanzati e ordinamenti nei Libri
