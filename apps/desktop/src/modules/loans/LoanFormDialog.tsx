@@ -25,7 +25,8 @@ export function LoanFormDialog({ mode, onClose }: LoanFormDialogProps) {
   const editing = mode.kind === 'edit';
   const fixedBook = mode.kind === 'create' ? (mode.book ?? null) : null;
   const [picked, setPicked] = useState<PickedBook | null>(fixedBook);
-  const validate = useMemo(() => validateLoan(t), [t]);
+  const editedLoan = mode.kind === 'edit' ? mode.loan : undefined;
+  const validate = useMemo(() => validateLoan(t, editedLoan), [t, editedLoan]);
   const form = useFormState(editing ? valuesOf(mode.loan) : emptyValues(fixedBook?.id ?? ''), validate);
   const { values, errors } = form;
 

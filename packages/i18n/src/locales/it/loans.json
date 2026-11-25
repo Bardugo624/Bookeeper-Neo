@@ -88,6 +88,7 @@
       "lent": "Indica una data valida.",
       "dueInvalid": "Indica una data valida.",
       "dueBefore": "La scadenza non può essere prima della data del prestito.",
+      "lentAfterReturn": "La data del prestito non può essere dopo la restituzione.",
       "notesLong": "Al massimo {max} caratteri."
     }
   },

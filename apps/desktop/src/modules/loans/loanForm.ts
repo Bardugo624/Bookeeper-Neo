@@ -32,7 +32,12 @@ export function valuesOf(loan: LoanOut): LoanFormValues {
   };
 }
 
-export function validateLoan(t: Translate): (v: LoanFormValues) => FormErrors<LoanFormValues> {
+/** `loan` is the loan being edited: a returned one cannot be moved to a lending date after its return. */
+export function validateLoan(
+  t: Translate,
+  loan?: LoanOut,
+): (v: LoanFormValues) => FormErrors<LoanFormValues> {
+  const returned = loan?.returned_at == null ? null : toDateInputValue(loan.returned_at);
   return (v) => {
     const errors: FormErrors<LoanFormValues> = {};
     if (!v.book_id) errors.book_id = t('loans.form.errors.book');
@@ -40,6 +45,7 @@ export function validateLoan(t: Translate): (v: LoanFormValues) => FormErrors<Lo
     if (!name) errors.borrower_name = t('loans.form.errors.borrower');
     else if ([...name].length > NAME_MAX) errors.borrower_name = t('loans.form.errors.borrowerLong', { max: NAME_MAX });
     if (toUnixSeconds(v.lent_at) === null) errors.lent_at = t('loans.form.errors.lent');
+    else if (returned && v.lent_at > returned) errors.lent_at = t('loans.form.errors.lentAfterReturn');
     if (v.due_at && toUnixSeconds(v.due_at) === null) errors.due_at = t('loans.form.errors.dueInvalid');
     // ISO dates compare as text; the core refuses a due date before the lending date.
     else if (v.due_at && !errors.lent_at && v.due_at < v.lent_at) errors.due_at = t('loans.form.errors.dueBefore');
@@ -62,6 +68,10 @@ export function toCreateBody(v: LoanFormValues): CreateLoan {
 /**
  * Edit sends the editable fields; an emptied due date or note clears it (`null`).
  * Dates the user did not touch are left out, so their stored time of day survives.
+ * A changed date is sent as local noon, which on the same calendar day can fall on the
+ * wrong side of a stored time the core compares in seconds (`check_dates`, the
+ * `returned_at` check): the sent value is clamped to the stored bounds of that day, which
+ * validation guarantees are not on an earlier (or later) day.
  */
 export function toPatchBody(v: LoanFormValues, loan: LoanOut): PatchLoan {
   const initial = valuesOf(loan);
@@ -69,7 +79,18 @@ export function toPatchBody(v: LoanFormValues, loan: LoanOut): PatchLoan {
     borrower_name: v.borrower_name.trim(),
     notes: v.notes.trim() ? v.notes.trim() : null,
   };
-  if (v.lent_at !== initial.lent_at) body.lent_at = toUnixSeconds(v.lent_at);
-  if (v.due_at !== initial.due_at) body.due_at = v.due_at ? toUnixSeconds(v.due_at) : null;
+  const lentChanged = v.lent_at !== initial.lent_at;
+  const dueChanged = v.due_at !== initial.due_at;
+  let lent = loan.lent_at;
+  if (lentChanged) {
+    lent = toUnixSeconds(v.lent_at) ?? loan.lent_at;
+    if (!dueChanged && loan.due_at != null) lent = Math.min(lent, loan.due_at);
+    if (loan.returned_at != null) lent = Math.min(lent, loan.returned_at);
+    body.lent_at = lent;
+  }
+  if (dueChanged) {
+    const due = v.due_at ? toUnixSeconds(v.due_at) : null;
+    body.due_at = due == null ? null : Math.max(due, lent);
+  }
   return body;
 }

@@ -88,6 +88,7 @@
       "lent": "Enter a valid date.",
       "dueInvalid": "Enter a valid date.",
       "dueBefore": "The due date can't be before the lending date.",
+      "lentAfterReturn": "The lending date can't be after the return date.",
       "notesLong": "At most {max} characters."
     }
   },
