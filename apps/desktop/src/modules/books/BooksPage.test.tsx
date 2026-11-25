@@ -162,7 +162,7 @@ describe('grid and list', () => {
 
 describe('states', () => {
   it('shows "Nessun libro" for an empty library', async () => {
-    renderBooks({ books: [] });
+    renderBooks({ books: [], role: 'guest' });
     expect(await screen.findByRole('heading', { name: 'Nessun libro' })).toBeInTheDocument();
   });
 

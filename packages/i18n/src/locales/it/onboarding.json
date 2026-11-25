@@ -1,0 +1,18 @@
+{
+  "hint": {
+    "title": "Comincia la tua libreria",
+    "text": "Tre passi per mettere in ordine i tuoi libri.",
+    "steps": {
+      "add": "Aggiungi il primo libro per ISBN",
+      "shelf": "Crea un mobile",
+      "devices": "Collega il telefono o un altro computer"
+    },
+    "add": "Aggiungi il primo libro"
+  },
+  "celebration": {
+    "title": "Il primo libro",
+    "line": "«{title}» è il primo libro della tua libreria.",
+    "another": "Aggiungine un altro",
+    "library": "Vai alla libreria"
+  }
+}
