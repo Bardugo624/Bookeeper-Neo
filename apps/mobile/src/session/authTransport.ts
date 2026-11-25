@@ -7,6 +7,8 @@ import { readTokens } from './tokens';
 const NO_RENEW = /\/auth\/(refresh|login)$|\/pairing\/redeem$/;
 
 const RENEWABLE = new Set(['unauthorized', 'token_expired']);
+/** 401 codes that mean the session itself is gone. */
+const SESSION_ENDED = new Set(['unauthorized', 'token_expired', 'device_revoked']);
 
 /** Error code of a response: `body.error_code`, or the same JSON arriving as raw bytes; null when absent. */
 function errorCode(res: { body?: unknown; bytes?: unknown }): string | null {
@@ -135,7 +137,7 @@ function build(platform: Platform): Transport {
       if (!renewal.adopted || tries >= 3 || retry.status !== 401 || !renewable(retry)) break;
       renewal = await renew(renewal.token);
     }
-    if (retry.status === 401) useSession.getState().expire();
+    if (retry.status === 401 && SESSION_ENDED.has(errorCode(retry) ?? '')) useSession.getState().expire();
     return retry;
   }
 

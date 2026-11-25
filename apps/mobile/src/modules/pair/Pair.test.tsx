@@ -30,6 +30,13 @@ const redeems = (p: FakePlatform) => p.fake.calls.filter((c) => c.path === REDEE
 const open = (p: FakePlatform, route: string) => renderMobile({ platform: p, modules: [pairModule, search], route });
 
 describe('from a QR link', () => {
+  it('treats a code made only of dashes as absent', async () => {
+    const p = platformWith();
+    open(p, '/pair?code=-');
+    expect(await screen.findByText('Ho un codice')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Collega' })).toBeNull();
+  });
+
   it('makes no request until "Collega" is tapped, then pairs and drops the code from the address', async () => {
     const p = platformWith();
     const { router } = open(p, '/pair?code=ABCD2345');
