@@ -7,6 +7,8 @@ export interface TabItem {
   icon: IconName;
   to: string;
   order: number;
+  /** Other path prefixes that keep this tab active (e.g. a detail page it owns). */
+  also?: string[];
 }
 
 export interface MobileModule {

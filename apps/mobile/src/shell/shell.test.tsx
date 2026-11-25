@@ -42,6 +42,17 @@ describe('tab bar', () => {
     expect(within(nav).getByRole('link', { name: 'test.scan' })).toHaveAttribute('aria-current', 'page');
   });
 
+  it('keeps a tab active on the other paths it owns', async () => {
+    const search: MobileModule = {
+      id: 'search',
+      routes: [{ path: '/books/:id', element: <p>dettaglio</p> }],
+      tab: { labelKey: 'test.search', icon: 'search', to: '/search', order: 1, also: ['/books'] },
+    };
+    renderMobile({ platform: paired(), modules: [search], route: '/books/b1' });
+    await screen.findByText('dettaglio');
+    expect(screen.getByRole('link', { name: 'test.search' })).toHaveAttribute('aria-current', 'page');
+  });
+
   it('opens the first tab from the root', async () => {
     const { router } = renderMobile({ platform: paired(), modules });
     await screen.findByText('vista search');

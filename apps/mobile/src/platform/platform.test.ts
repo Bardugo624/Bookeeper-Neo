@@ -137,6 +137,6 @@ describe('device name', () => {
     expect(deviceNameFromUserAgent('Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/120.0 Mobile Safari/537.36')).toBe(
       'Pixel 8 · Chrome',
     );
-    expect(deviceNameFromUserAgent('')).toBe('Telefono');
+    expect(deviceNameFromUserAgent('', 'Telefono')).toBe('Telefono');
   });
 });

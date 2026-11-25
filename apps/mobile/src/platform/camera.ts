@@ -1,3 +1,4 @@
+import { resolveLocale, t } from '@bookeeper/i18n';
 import type { Camera, CameraSession } from './types';
 
 type TorchCapabilities = MediaTrackCapabilities & { torch?: boolean };
@@ -30,7 +31,7 @@ export function browserCamera(mediaDevices: MediaDevices | undefined = navigator
       const all = await mediaDevices.enumerateDevices();
       return all
         .filter((d) => d.kind === 'videoinput')
-        .map((d, i) => ({ id: d.deviceId, label: d.label || `${i + 1}` }));
+        .map((d, i) => ({ id: d.deviceId, label: d.label || t(resolveLocale('system', navigator.language), 'mobile.cameraLabel', { n: i + 1 }) }));
     },
   };
 }

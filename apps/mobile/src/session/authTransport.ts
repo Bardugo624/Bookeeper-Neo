@@ -1,6 +1,7 @@
 import { ApiError, createClient, type Transport } from '@bookeeper/api';
 import type { Platform } from '../platform';
 import { useSession } from './store';
+import { readTokens } from './tokens';
 
 /** A 401 on these paths is the answer to the request itself, never an expired token. */
 const NO_RENEW = /\/auth\/(refresh|login)$|\/pairing\/redeem$/;
@@ -36,6 +37,11 @@ function build(platform: Platform): Transport {
 
   function renew(failedToken: string | null): Promise<Renewal> {
     // Another request already renewed after this one was sent.
+    // Another tab may have renewed (and rotated the refresh token) since this one read its tokens.
+    const stored = readTokens(platform.storage);
+    if (stored && stored.refresh_token !== useSession.getState().tokens?.refresh_token) {
+      useSession.setState({ tokens: stored });
+    }
     const now = useSession.getState().tokens;
     if (now && now.access_token !== failedToken) return Promise.resolve({ token: now.access_token });
     if (renewing) return renewing;
@@ -77,7 +83,8 @@ function build(platform: Platform): Transport {
       // Other 401s (wrong credentials, confirmation needed) are ordinary errors for the caller.
       if (code !== null && !RENEWABLE.has(code)) return res;
       const renewal = await renew(sent);
-      if (renewal === 'unreachable') return res;
+      // The session may still be good: report it as a network failure, not as a 401.
+      if (renewal === 'unreachable') throw new ApiError(0, 'network_error', 'The server could not be reached');
       if (renewal === 'rejected') {
         useSession.getState().expire();
         return res;

@@ -29,7 +29,7 @@ const INITIAL = { status: 'loading', tokens: null, me: null, platform: null } as
 const authedClient = (platform: Platform) => createClient(createAuthTransport(platform));
 
 /** Errors that say nothing about the session: no network, or a server having a bad moment. */
-const transient = (e: unknown) => e instanceof ApiError && (e.status === 0 || e.status >= 500);
+const transient = (e: unknown) => !(e instanceof ApiError) || e.status === 0 || e.status >= 500;
 
 export const useSession = create<SessionState>((set, get) => ({
   ...INITIAL,
@@ -68,7 +68,9 @@ export const useSession = create<SessionState>((set, get) => ({
       const me = await authedClient(platform).me();
       set({ status: 'ready', me });
     } catch (e) {
-      get().expire();
+      // The device is already registered: a network hiccup must not throw its tokens away.
+      if (transient(e)) set({ status: 'ready' });
+      else get().expire();
       throw e;
     }
   },

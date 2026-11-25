@@ -1,12 +1,12 @@
 /** "iPhone · Safari" from a user-agent string; falls back to a generic name. */
-export function deviceNameFromUserAgent(ua: string): string {
+export function deviceNameFromUserAgent(ua: string, fallback = 'Phone'): string {
   const device = /iPhone/.test(ua)
     ? 'iPhone'
     : /iPad/.test(ua)
       ? 'iPad'
       : /Android/.test(ua)
         ? (/Pixel \w+/.exec(ua)?.[0] ?? 'Android')
-        : 'Telefono';
+        : fallback;
   const browser = /Edg\//.test(ua)
     ? 'Edge'
     : /(CriOS|Chrome)\//.test(ua)

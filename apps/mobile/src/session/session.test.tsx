@@ -68,6 +68,24 @@ describe('session start', () => {
     expect(useSession.getState().status).toBe('ready');
     expect(p.storage.get(SESSION_KEY)).not.toBeNull();
   });
+
+  it('stays paired when the launch renewal cannot reach the server', async () => {
+    const p = fakePlatform({ handler: (r) => (r.path.endsWith('/auth/refresh') ? { status: 503, body: null } : unauthorized('token_expired')) });
+    pair(p.storage);
+    await useSession.getState().init(p);
+    expect(useSession.getState().status).toBe('ready');
+    expect(p.storage.get(SESSION_KEY)).not.toBeNull();
+  });
+
+  it('keeps the tokens when /me fails with a network error right after pairing', async () => {
+    const p = fakePlatform({ handler: () => ({ status: 503, body: null }) });
+    await useSession.getState().init(p);
+    await expect(
+      useSession.getState().signIn({ session: { access_token: 'a', refresh_token: 'r', device_id: 'd1' } } as never),
+    ).rejects.toBeDefined();
+    expect(useSession.getState().status).toBe('ready');
+    expect(p.storage.get(SESSION_KEY)).not.toBeNull();
+  });
 });
 
 describe('authenticated transport', () => {
@@ -102,10 +120,23 @@ describe('authenticated transport', () => {
 
   it('keeps the session when the renewal cannot reach the server', async () => {
     const p = await started({ handler: (r) => (r.path.endsWith('/auth/refresh') ? { status: 503, body: null } : unauthorized('token_expired')) });
-    const res = await createAuthTransport(p).request('GET', '/api/v1/a');
-    expect(res.status).toBe(401);
+    await expect(createAuthTransport(p).request('GET', '/api/v1/a')).rejects.toMatchObject({ status: 0 });
     expect(useSession.getState().status).toBe('ready');
     expect(p.storage.get(SESSION_KEY)).not.toBeNull();
+  });
+
+  it('uses the tokens another tab stored instead of refreshing with a used one', async () => {
+    const p = await started({
+      handler: (r) => {
+        if (r.path.endsWith('/auth/refresh')) return unauthorized('refresh_reused');
+        return bearer(r.headers) === 'Bearer access-2' ? ok({}) : unauthorized('token_expired');
+      },
+    });
+    pair(p.storage, 2); // the other tab renewed
+    const res = await createAuthTransport(p).request('GET', '/api/v1/a');
+    expect(res.status).toBe(200);
+    expect(p.fake.calls.some((c) => c.path.endsWith('/auth/refresh'))).toBe(false);
+    expect(useSession.getState().status).toBe('ready');
   });
 });
 

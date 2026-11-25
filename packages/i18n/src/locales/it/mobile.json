@@ -3,6 +3,8 @@
   "needsHttpsTitle": "Serve un indirizzo sicuro",
   "needsHttpsWho": "Chi gestisce la libreria può attivare l'accesso con HTTPS sul computer che ospita Bookeeper.",
   "needsHttpsHow": "Quando l'indirizzo inizia con https://, riapri questa pagina dal telefono.",
+  "deviceFallback": "Telefono",
+  "cameraLabel": "Fotocamera {n}",
   "loading": "Caricamento…",
   "close": "Chiudi",
   "tabs": "Schede principali",

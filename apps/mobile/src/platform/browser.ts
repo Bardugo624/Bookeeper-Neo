@@ -1,4 +1,5 @@
 import { createFetchTransport } from '@bookeeper/api';
+import { resolveLocale, t } from '@bookeeper/i18n';
 import { browserCamera } from './camera';
 import { deviceNameFromUserAgent } from './deviceName';
 import { browserNetwork } from './network';
@@ -6,6 +7,8 @@ import { createBarcodeScanner } from './scanner';
 import { browserServiceWorker, type RegisterSW } from './serviceWorker';
 import { browserStorage } from './storage';
 import type { Platform } from './types';
+
+const deviceLocale = () => resolveLocale('system', navigator.language);
 
 /** Everything the app asks of the browser, wired to the real APIs. */
 export function browserPlatform(registerSW: RegisterSW): Platform {
@@ -18,6 +21,6 @@ export function browserPlatform(registerSW: RegisterSW): Platform {
     scanner: createBarcodeScanner(),
     // Same origin as the page; in development Vite proxies `/api`.
     transport: () => createFetchTransport(''),
-    deviceName: () => deviceNameFromUserAgent(navigator.userAgent),
+    deviceName: () => deviceNameFromUserAgent(navigator.userAgent, t(deviceLocale(), 'mobile.deviceFallback')),
   };
 }

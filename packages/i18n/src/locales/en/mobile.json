@@ -3,6 +3,8 @@
   "needsHttpsTitle": "A secure address is needed",
   "needsHttpsWho": "Whoever runs the library can turn on HTTPS access on the computer that hosts Bookeeper.",
   "needsHttpsHow": "Once the address starts with https://, open this page again on your phone.",
+  "deviceFallback": "Phone",
+  "cameraLabel": "Camera {n}",
   "loading": "Loading…",
   "close": "Close",
   "tabs": "Main tabs",
