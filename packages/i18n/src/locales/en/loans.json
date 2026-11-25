@@ -32,7 +32,8 @@
     "since": "since {date}",
     "due": "due {date}",
     "noDue": "no due date",
-    "returnedOn": "returned on {date}"
+    "returnedOn": "returned on {date}",
+    "byBorrower": "Show the loans of {name}"
   },
   "actions": {
     "return": "Mark as returned",
@@ -90,7 +91,8 @@
       "dueBefore": "The due date can't be before the lending date.",
       "lentAfterReturn": "The lending date can't be after the return date.",
       "notesLong": "At most {max} characters."
-    }
+    },
+    "borrowerSuggestions": "Names already used"
   },
   "return": {
     "title": "Mark as returned",
@@ -109,5 +111,22 @@
   "errors": {
     "alreadyLent": "This book is already on loan. Return it before lending it again.",
     "reopenLent": "The book is already on loan to someone else: this loan can't be reopened."
+  },
+  "borrowerFilter": {
+    "text": "Only the loans to {name}.",
+    "clear": "Show all"
+  },
+  "history": {
+    "summary": "Summary",
+    "closed": "Closed loans",
+    "average": "Average length",
+    "top": "Most often lent to",
+    "topValue": "{name} ({count})",
+    "days": "{count} d",
+    "duration": "lasted {count} d",
+    "late": "{count} d late",
+    "search": "Search by person or title",
+    "noMatch": "No loan matches the search.",
+    "monthList": "Returned loans, {month}"
   }
 }

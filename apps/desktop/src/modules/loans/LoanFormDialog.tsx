@@ -3,6 +3,7 @@ import type { LoanOut } from '@bookeeper/api';
 import { Field, Input, Textarea } from '@bookeeper/ui/base';
 import { useT } from '../../app';
 import { FormDialog, apiErrorMessage, useFormState } from '../../kit';
+import { BorrowerInput } from './BorrowerInput';
 import { BookPicker, type PickedBook } from './BookPicker';
 import { emptyValues, toCreateBody, toPatchBody, validateLoan, valuesOf } from './loanForm';
 import { useLoanMutations } from './useLoanMutations';
@@ -59,12 +60,7 @@ export function LoanFormDialog({ mode, onClose }: LoanFormDialogProps) {
     >
       {!editing && !fixedBook ? <BookPicker value={picked} error={errors.book_id} onChange={choose} /> : null}
       <Field label={t('loans.form.borrower')} error={errors.borrower_name}>
-        <Input
-          name="borrower_name"
-          autoComplete="off"
-          value={values.borrower_name}
-          onChange={(e) => form.setValue('borrower_name', e.target.value)}
-        />
+        <BorrowerInput value={values.borrower_name} onChange={(name) => form.setValue('borrower_name', name)} />
       </Field>
       <div className={styles.dates}>
         <Field label={t('loans.form.lentAt')} error={errors.lent_at}>

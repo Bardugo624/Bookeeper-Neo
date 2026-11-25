@@ -143,7 +143,9 @@ describe('permissions', () => {
     for (const name of ['Nuovo prestito', 'Segna come restituito', 'Riapri', 'Modifica', 'Elimina']) {
       expect(screen.queryByRole('button', { name })).toBeNull();
     }
-    expect(screen.queryAllByRole('button').filter((b) => b.closest('li'))).toHaveLength(0);
+    expect(screen
+        .queryAllByRole('button')
+        .filter((b) => b.closest('li') && !b.getAttribute('aria-label')?.startsWith('Mostra i prestiti di'))).toHaveLength(0);
   });
 
   it('shows them to a member', async () => {

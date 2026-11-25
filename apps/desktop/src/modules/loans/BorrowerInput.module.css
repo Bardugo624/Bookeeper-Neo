@@ -1,0 +1,35 @@
+.wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.list {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--bk-border-strong);
+  border-radius: 8px;
+  background: var(--bk-surface);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 12%);
+}
+
+.option {
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--bk-text-strong);
+  cursor: pointer;
+}
+
+.option:hover,
+.option[data-active] {
+  background: var(--bk-inset);
+}

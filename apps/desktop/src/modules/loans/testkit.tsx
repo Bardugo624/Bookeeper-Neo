@@ -52,6 +52,11 @@ export function loansHandler(store: Store) {
       if (text) rows = rows.filter((b) => b.title.toLowerCase().includes(text.toLowerCase()));
       return ok({ items: rows.slice(0, Number(q.get('limit') ?? 50)), total: rows.length });
     }
+    if (p === '/api/v1/loans/borrowers') {
+      const prefix = (q.get('q') ?? '').toLowerCase();
+      const names = [...new Set(store.loans.map((l) => l.borrower_name))].filter((n) => n.toLowerCase().startsWith(prefix));
+      return ok({ items: names.slice(0, 10) });
+    }
     if (p === '/api/v1/loans' && r.method === 'GET') {
       if (store.failList) return { status: 500, body: { error_code: 'internal', message: 'x' } };
       const status = q.get('status') ?? 'active';
