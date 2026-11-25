@@ -302,3 +302,42 @@ async fn acme_mode_drops_a_silent_connection() {
     let _ = stop.send(());
     let _ = tokio::time::timeout(Duration::from_secs(5), task).await;
 }
+
+#[test]
+fn a_broken_identity_never_says_listening() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path().join("data");
+    std::fs::create_dir_all(dir.join("tls/self")).unwrap();
+    std::fs::write(dir.join("tls/self/cert.pem"), "junk").unwrap();
+    let out = Command::new(env!("CARGO_BIN_EXE_bookeeper-server"))
+        .args([
+            "--tls",
+            "self",
+            "--port",
+            "0",
+            "--mdns",
+            "off",
+            "--data-dir",
+        ])
+        .arg(&dir)
+        .output()
+        .unwrap();
+    assert!(!out.status.success());
+    assert!(!String::from_utf8_lossy(&out.stdout).contains("in ascolto"));
+    assert!(!String::from_utf8_lossy(&out.stderr).contains("configurazione non valida"));
+}
+
+#[test]
+fn fingerprint_without_identity_is_not_a_config_error() {
+    let tmp = tempfile::tempdir().unwrap();
+    let out = Command::new(env!("CARGO_BIN_EXE_bookeeper-server"))
+        .args(["fingerprint", "--data-dir"])
+        .arg(tmp.path())
+        .output()
+        .unwrap();
+    assert!(!out.status.success());
+    assert_eq!(
+        String::from_utf8_lossy(&out.stderr),
+        "error: nessun certificato autogenerato in questa cartella: avvia il server una volta con --tls self\n"
+    );
+}

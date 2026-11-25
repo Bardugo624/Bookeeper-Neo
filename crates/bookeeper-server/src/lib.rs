@@ -14,7 +14,7 @@ pub mod health;
 mod layers;
 pub mod tls;
 mod web;
-pub use announce::{announcement, Announcer};
+pub use announce::{announcement, instance_for, Announcer};
 pub use config::{Cli, Command, Config, Switch, TlsChoice};
 pub use tls::{load_self_identity, self_dir, TlsServer};
 pub use web::web_routes;
@@ -27,6 +27,8 @@ pub enum StartError {
     Bind { addr: SocketAddr, source: io::Error },
     #[error("configurazione non valida: {0}")]
     Config(String),
+    #[error("{0}")]
+    Tls(String),
     #[error("{0}")]
     Db(#[from] DbError),
 }

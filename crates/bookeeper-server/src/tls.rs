@@ -58,7 +58,7 @@ pub fn self_dir(data_dir: &Path) -> PathBuf {
 }
 
 fn tls_error(e: impl std::fmt::Display) -> StartError {
-    StartError::Config(format!("TLS: {e}"))
+    StartError::Tls(format!("TLS: {e}"))
 }
 
 /// Names the self-signed certificate must be valid for.

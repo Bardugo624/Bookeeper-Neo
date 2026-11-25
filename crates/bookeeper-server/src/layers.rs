@@ -6,8 +6,9 @@ use axum::middleware::{self, Next};
 use axum::response::Response;
 use axum::Router;
 use bookeeper_core::{ServerInfo, TlsMode};
-use tower_http::trace::{DefaultOnResponse, TraceLayer};
-use tracing::{info_span, Level};
+use std::time::Duration;
+use tower_http::trace::TraceLayer;
+use tracing::{error, info, info_span, Span};
 
 /// Whether responses should carry `Strict-Transport-Security`.
 fn wants_hsts(info: &ServerInfo) -> bool {
@@ -58,10 +59,97 @@ pub fn apply(router: Router, info: &ServerInfo) -> Router {
         .make_span_with(
             |req: &Request| info_span!("request", method = %req.method(), path = %req.uri().path()),
         )
-        .on_response(DefaultOnResponse::new().level(Level::INFO));
+        .on_failure(())
+        .on_response(|res: &Response, latency: Duration, _span: &Span| {
+            let status = res.status().as_u16();
+            let latency_ms = latency.as_millis();
+            if res.status().is_server_error() {
+                error!(status, latency_ms, "response");
+            } else {
+                info!(status, latency_ms, "response");
+            }
+        });
     router
         .layer(middleware::from_fn(move |req, next| {
             headers(hsts, req, next)
         }))
         .layer(trace)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::http::StatusCode;
+    use axum::routing::get;
+    use std::sync::{Arc, Mutex};
+    use tower::ServiceExt;
+
+    #[derive(Clone, Default)]
+    struct Buf(Arc<Mutex<Vec<u8>>>);
+
+    impl std::io::Write for Buf {
+        fn write(&mut self, b: &[u8]) -> std::io::Result<usize> {
+            self.0.lock().unwrap().extend_from_slice(b);
+            Ok(b.len())
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+
+    impl<'a> tracing_subscriber::fmt::MakeWriter<'a> for Buf {
+        type Writer = Buf;
+        fn make_writer(&'a self) -> Buf {
+            self.clone()
+        }
+    }
+
+    fn logged(path: &str) -> String {
+        let buf = Buf::default();
+        let sub = tracing_subscriber::fmt()
+            .with_writer(buf.clone())
+            .with_ansi(false)
+            .with_max_level(tracing::Level::INFO)
+            .finish();
+        let _guard = tracing::subscriber::set_default(sub);
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+        let app = apply(
+            Router::new()
+                .route("/boom", get(|| async { StatusCode::INTERNAL_SERVER_ERROR }))
+                .route("/fine", get(|| async { "ok" })),
+            &ServerInfo::local(),
+        );
+        rt.block_on(async {
+            app.oneshot(Request::get(path).body(axum::body::Body::empty()).unwrap())
+                .await
+                .unwrap();
+        });
+        let bytes = buf.0.lock().unwrap().clone();
+        String::from_utf8(bytes).unwrap()
+    }
+
+    #[test]
+    fn a_500_is_logged_once_at_error() {
+        let out = logged("/boom");
+        let lines: Vec<_> = out.lines().filter(|l| l.contains("/boom")).collect();
+        assert_eq!(lines.len(), 1, "{out}");
+        assert!(
+            lines[0].contains("ERROR") && lines[0].contains("500"),
+            "{out}"
+        );
+    }
+
+    #[test]
+    fn a_200_is_logged_once_at_info() {
+        let out = logged("/fine");
+        let lines: Vec<_> = out.lines().filter(|l| l.contains("/fine")).collect();
+        assert_eq!(lines.len(), 1, "{out}");
+        assert!(
+            lines[0].contains("INFO") && lines[0].contains("200"),
+            "{out}"
+        );
+    }
 }
