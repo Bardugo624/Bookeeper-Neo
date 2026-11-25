@@ -16,6 +16,8 @@
   },
   "errors": {
     "portInUse": "La porta {port} è già usata da un altro programma. Scegli un'altra porta e riprova.",
+    "portNotAllowed": "La porta {port} è riservata al sistema. Scegline una da 1024 in su e riprova.",
+    "bindFailed": "Non sono riuscito ad aprire la porta {port}. Scegli un'altra porta e riprova.",
     "tls": "Non sono riuscito a preparare il certificato di sicurezza. La condivisione è spenta.",
     "mdns": "La condivisione funziona, ma questo computer non è visibile agli altri: sugli altri computer scrivi l'indirizzo a mano."
   },

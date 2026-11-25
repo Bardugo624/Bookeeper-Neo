@@ -27,7 +27,23 @@ pub struct SaveOutcome {
 
 /// Makes a proposed name safe: no path separators, no control characters, no
 /// `..`, never empty, at most [`MAX_NAME_LEN`] characters (extension kept).
+/// Idempotent: the result of `sanitize_name` is returned unchanged by a second call.
 pub fn sanitize_name(raw: &str) -> String {
+    // A pass can expose something the next one would clean (truncation may leave
+    // only underscores), so repeat until the name stops changing. A pass never
+    // lengthens the name, so this ends quickly.
+    let mut current = sanitize_pass(raw);
+    for _ in 0..8 {
+        let next = sanitize_pass(&current);
+        if next == current {
+            break;
+        }
+        current = next;
+    }
+    current
+}
+
+fn sanitize_pass(raw: &str) -> String {
     let cleaned: String = raw
         .chars()
         .map(|c| {

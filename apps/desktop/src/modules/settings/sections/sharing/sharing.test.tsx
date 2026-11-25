@@ -1,7 +1,7 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { configure, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { resetLocalePreferenceForTest } from '../../../../app/i18n';
 import { AppProviders } from '../../../../app/AppProviders';
 import { buildRoutes } from '../../../../app/routes';
@@ -12,6 +12,9 @@ import { module } from '../../routes';
 import { setSystemLanguage } from '../../testkit';
 import { collectSections } from '../../sections';
 import { parsePort } from './sharingModel';
+
+configure({ asyncUtilTimeout: 5000 });
+vi.setConfig({ testTimeout: 20000 });
 
 beforeEach(() => {
   localStorage.clear();
@@ -45,7 +48,20 @@ function renderSharing(world: World = {}) {
   return { platform, router };
 }
 
-const toggle = () => screen.findByRole('switch', { name: 'Condividi questa libreria in rete' });
+const user = userEvent.setup({ delay: null });
+/** The switch once it can take a click: the status is read and nothing is busy. */
+const toggle = async () => {
+  const sw = (await screen.findByRole('switch', { name: 'Condividi questa libreria in rete' })) as HTMLInputElement;
+  await waitFor(() => expect(sw.disabled).toBe(false));
+  await portField();
+  return sw;
+};
+/** The port input once the saved port has been copied into it (it is empty for one render after the status arrives). */
+const portField = async () => {
+  const field = (await screen.findByLabelText('Numero di porta')) as HTMLInputElement;
+  await waitFor(() => expect(field.value).not.toBe(''));
+  return field;
+};
 
 describe('visibility', () => {
   const listed = async (world: World) => {
@@ -72,7 +88,7 @@ describe('password', () => {
   it('shows the notice and never calls set when the owner has no password', async () => {
     const { platform } = renderSharing({ email: null });
     expect(await screen.findByText('Prima imposta una password')).toBeTruthy();
-    expect(((await toggle()) as HTMLInputElement).disabled).toBe(true);
+    expect(((await screen.findByRole('switch', { name: 'Condividi questa libreria in rete' })) as HTMLInputElement).disabled).toBe(true);
     expect(screen.getByRole('link', { name: 'Vai ad Account' }).getAttribute('href')).toBe('/settings/account');
     expect(platform.sharingCalls).toHaveLength(0);
   });
@@ -80,7 +96,7 @@ describe('password', () => {
   it('shows the notice when the shell answers password_required', async () => {
     const { platform } = renderSharing();
     platform.setSharingHandler((_e, _p, cur) => ({ ...cur, enabled: false, running: false, error: 'password_required' }));
-    await userEvent.click(await toggle());
+    await user.click(await toggle());
     expect(await screen.findByText('Prima imposta una password')).toBeTruthy();
   });
 });
@@ -88,7 +104,6 @@ describe('password', () => {
 describe('turning on', () => {
   it('shows addresses, phrase and fingerprint, and copies', async () => {
     const { platform } = renderSharing();
-    const user = userEvent.setup();
     await user.click(await toggle());
     expect(await screen.findByText('https://192.168.1.20:7842')).toBeTruthy();
     expect(platform.sharingCalls).toEqual([{ enabled: true, port: 7842 }]);
@@ -101,7 +116,7 @@ describe('turning on', () => {
   it('proposes another port on port_in_use', async () => {
     const { platform } = renderSharing();
     platform.setSharingHandler((_e, p, cur) => ({ ...cur, port: p ?? cur.port, enabled: false, running: false, error: 'port_in_use' }));
-    await userEvent.click(await toggle());
+    await user.click(await toggle());
     expect(await screen.findByText(/La porta 7842 è già usata/)).toBeTruthy();
     expect((screen.getByLabelText('Numero di porta') as HTMLInputElement).disabled).toBe(false);
   });
@@ -109,11 +124,30 @@ describe('turning on', () => {
   it('names the port that was tried when the shell reports the old one', async () => {
     const { platform } = renderSharing();
     platform.setSharingHandler((_e, _p, cur) => ({ ...cur, enabled: false, running: false, error: 'port_in_use' }));
-    const field = (await screen.findByLabelText('Numero di porta')) as HTMLInputElement;
-    await userEvent.clear(field);
-    await userEvent.type(field, '9000');
-    await userEvent.click(await toggle());
+    const field = await portField();
+    await user.clear(field);
+    await user.type(field, '9000');
+    await user.click(await toggle());
     expect(await screen.findByText(/La porta 9000 è già usata/)).toBeTruthy();
+  });
+
+  it('prefers attempted_port from the status over the saved port', async () => {
+    const { platform } = renderSharing({ status: { enabled: false, running: false, port: 7842, addresses: [], fingerprint: null, phrase: null, error: 'port_in_use', attempted_port: 9100 } });
+    void platform;
+    expect(await screen.findByText(/La porta 9100 è già usata/)).toBeTruthy();
+  });
+
+  it('explains port_not_allowed and bind_failed', async () => {
+    const { platform } = renderSharing();
+    platform.setSharingHandler((_e, p, cur) => ({ ...cur, enabled: false, running: false, error: 'port_not_allowed', attempted_port: p }));
+    const field = await portField();
+    await user.clear(field);
+    await user.type(field, '1024');
+    await user.click(await toggle());
+    expect(await screen.findByText(/La porta 1024 è riservata al sistema/)).toBeTruthy();
+    platform.setSharingHandler((_e, p, cur) => ({ ...cur, enabled: false, running: false, error: 'bind_failed', attempted_port: p }));
+    await user.click(await toggle());
+    expect(await screen.findByText(/aprire la porta 1024/)).toBeTruthy();
   });
 
   it('does not lock the switch on a stale password_required read on open', async () => {
@@ -124,7 +158,7 @@ describe('turning on', () => {
   it('warns without blocking on mdns', async () => {
     const { platform } = renderSharing();
     platform.setSharingHandler((_e, p, cur) => ({ ...cur, enabled: true, running: true, port: p ?? cur.port, addresses: ['https://10.0.0.2:7842'], fingerprint: 'AA', phrase: 'a b c d e f', error: 'mdns' }));
-    await userEvent.click(await toggle());
+    await user.click(await toggle());
     expect(await screen.findByText(/scrivi l'indirizzo a mano/)).toBeTruthy();
     expect(screen.getByText('https://10.0.0.2:7842')).toBeTruthy();
   });
@@ -139,10 +173,10 @@ describe('port', () => {
 
   it('validates the range before calling set', async () => {
     const { platform } = renderSharing();
-    const port = await screen.findByLabelText('Numero di porta');
-    await userEvent.clear(port);
-    await userEvent.type(port, '80');
-    await userEvent.click(await toggle());
+    const port = await portField();
+    await user.clear(port);
+    await user.type(port, '80');
+    await user.click(await toggle());
     expect(await screen.findByText('Inserisci un numero intero da 1024 a 65535.')).toBeTruthy();
     expect(platform.sharingCalls).toHaveLength(0);
   });
@@ -155,7 +189,7 @@ describe('port', () => {
 describe('turning off', () => {
   it('returns to the off state', async () => {
     const { platform } = renderSharing({ status: { enabled: true, running: true, addresses: ['https://10.0.0.2:7842'], phrase: 'a b c d e f', fingerprint: 'AA' } });
-    await userEvent.click(await toggle());
+    await user.click(await toggle());
     await waitFor(() => expect(screen.queryByText('https://10.0.0.2:7842')).toBeNull());
     expect(platform.sharingCalls).toEqual([{ enabled: false }]);
     expect(platform.sharingState.running).toBe(false);

@@ -145,3 +145,45 @@ fn save_lock_allows_one_at_a_time_and_releases_on_error() {
     assert_eq!(run(&lock), Err("boom".to_string()));
     assert!(lock.try_acquire().is_some());
 }
+
+/// Small deterministic generator (xorshift), no extra dependency.
+fn next(state: &mut u64) -> u64 {
+    *state ^= *state << 13;
+    *state ^= *state >> 7;
+    *state ^= *state << 17;
+    *state
+}
+
+#[test]
+fn sanitizing_is_idempotent_over_generated_inputs() {
+    // The case that used to break: only underscores survive until truncation cuts the one other char.
+    let tricky = format!("{}x", "_".repeat(MAX_NAME_LEN));
+    let once = sanitize_name(&tricky);
+    assert_eq!(sanitize_name(&once), once);
+    assert_eq!(once, "file");
+
+    let alphabet: Vec<char> = "_._ .\t/\\:aZ9é\u{7}-".chars().collect();
+    let mut state = 0x9E37_79B9_7F4A_7C15u64;
+    for i in 0..4000 {
+        let len = match i % 4 {
+            0 => (next(&mut state) % 12) as usize,
+            1 => MAX_NAME_LEN - 2 + (next(&mut state) % 6) as usize,
+            _ => (next(&mut state) % 300) as usize,
+        };
+        // Every other input is mostly underscores, dots and spaces.
+        let heavy = i % 2 == 0;
+        let input: String = (0..len)
+            .map(|_| {
+                let r = next(&mut state);
+                if heavy && !r.is_multiple_of(10) {
+                    ['_', '.', ' '][(r / 10 % 3) as usize]
+                } else {
+                    alphabet[(r / 7) as usize % alphabet.len()]
+                }
+            })
+            .collect();
+        let once = sanitize_name(&input);
+        assert_eq!(sanitize_name(&once), once, "input {input:?}");
+        assert!(once.chars().count() <= MAX_NAME_LEN && !once.is_empty());
+    }
+}

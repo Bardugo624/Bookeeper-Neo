@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, configure, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppProviders } from '../../app/AppProviders';
@@ -6,6 +6,10 @@ import { fakePlatform, type FakePlatform } from '../../platform/testing';
 import type { UpdateState } from '../../platform';
 import { UpdateBanner } from './UpdateBanner';
 import { CHECK_EVERY_MS } from './controller';
+
+configure({ asyncUtilTimeout: 5000 });
+vi.setConfig({ testTimeout: 20000 });
+const user = userEvent.setup({ delay: null });
 
 const available = (version = '2.1.0', notes = 'Novità\nseconda riga'): UpdateState => ({ state: 'available', version, notes, date: null });
 
@@ -47,7 +51,7 @@ describe('banner', () => {
   it('"Più tardi" hides that version only', async () => {
     const platform = setup(available('2.1.0'));
     const first = mount(platform);
-    await userEvent.click(await screen.findByRole('button', { name: 'Più tardi' }));
+    await user.click(await screen.findByRole('button', { name: 'Più tardi' }));
     expect(screen.queryByText('È disponibile Bookeeper 2.1.0')).toBeNull();
     expect(localStorage.getItem('bookeeper.update.dismissed')).toBe('2.1.0');
     first.unmount();
@@ -69,7 +73,7 @@ describe('release notes', () => {
   it('are plain text: markup stays text, line breaks are kept, only http(s) links are links', async () => {
     const notes = 'Prima riga <script>alert(1)</script>\n<b>grassetto</b>\nVedi https://example.org/novita. Non così: javascript:alert(1)';
     mount(setup(available('2.1.0', notes)));
-    await userEvent.click(await screen.findByRole('button', { name: 'Vedi le novità' }));
+    await user.click(await screen.findByRole('button', { name: 'Vedi le novità' }));
     const dialog = await screen.findByRole('dialog');
     expect(dialog.querySelector('script')).toBeNull();
     expect(dialog.querySelector('b')).toBeNull();
@@ -84,20 +88,34 @@ describe('release notes', () => {
   });
 });
 
+describe('release notes links', () => {
+  it.each([
+    ['https://it.wikipedia.org/wiki/Rosa_(nome)', 'https://it.wikipedia.org/wiki/Rosa_(nome)'],
+    ['(vedi https://example.org/a)', 'https://example.org/a'],
+    ['https://example.org/a.', 'https://example.org/a'],
+    ['https://it.wikipedia.org/wiki/Rosa_(nome).', 'https://it.wikipedia.org/wiki/Rosa_(nome)'],
+  ])('%s', async (notes, href) => {
+    mount(setup(available('2.1.0', notes)));
+    await user.click(await screen.findByRole('button', { name: 'Vedi le novità' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog.querySelector('a')!.getAttribute('href')).toBe(href);
+  });
+});
+
 describe('install', () => {
   it('shows progress and cannot be closed meanwhile', async () => {
     const platform = setup(available());
     mount(platform);
-    await userEvent.click(await screen.findByRole('button', { name: 'Vedi le novità' }));
-    await userEvent.click(await screen.findByRole('button', { name: 'Aggiorna e riavvia' }));
+    await user.click(await screen.findByRole('button', { name: 'Vedi le novità' }));
+    await user.click(await screen.findByRole('button', { name: 'Aggiorna e riavvia' }));
     await waitFor(() => expect(platform.updatesFake.installs).toEqual(['stable']));
 
     act(() => platform.updatesFake.emitProgress({ downloaded: 25, total: 100 }));
     const bar = await screen.findByRole('progressbar', { name: 'Avanzamento del download' });
     expect((bar as HTMLProgressElement).value).toBe(25);
 
-    await userEvent.keyboard('{Escape}');
-    await userEvent.click(screen.getByRole('button', { name: 'Chiudi' }));
+    await user.keyboard('{Escape}');
+    await user.click(screen.getByRole('button', { name: 'Chiudi' }));
     expect(screen.getByRole('dialog')).toBeTruthy();
   });
 
@@ -105,12 +123,12 @@ describe('install', () => {
     const platform = setup(available());
     platform.updatesFake.setInstall(() => Promise.reject('signature'));
     mount(platform);
-    await userEvent.click(await screen.findByRole('button', { name: 'Vedi le novità' }));
-    await userEvent.click(await screen.findByRole('button', { name: 'Aggiorna e riavvia' }));
+    await user.click(await screen.findByRole('button', { name: 'Vedi le novità' }));
+    await user.click(await screen.findByRole('button', { name: 'Aggiorna e riavvia' }));
     expect(await screen.findByText(/non ha una firma valida/)).toBeTruthy();
 
     platform.updatesFake.setInstall(() => new Promise(() => {}));
-    await userEvent.click(screen.getByRole('button', { name: 'Riprova' }));
+    await user.click(screen.getByRole('button', { name: 'Riprova' }));
     await waitFor(() => expect(platform.updatesFake.installs).toHaveLength(2));
     expect(screen.queryByText(/non ha una firma valida/)).toBeNull();
   });

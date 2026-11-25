@@ -4,6 +4,22 @@ import styles from './updates.module.css';
 const URL_RE = /https?:\/\/[^\s<>"]+/g;
 const TRAILING = /[.,;:!?)\]}'"]+$/;
 
+/** Strips trailing punctuation; a `)` stays when the address has an unclosed `(`. */
+function trimUrl(raw: string): string {
+  let url = raw;
+  for (;;) {
+    const m = TRAILING.exec(url);
+    if (!m) return url;
+    const last = url[url.length - 1]!;
+    if (last === ')') {
+      const open = url.split('(').length - 1;
+      const close = url.split(')').length - 1;
+      if (open > close - 1) return url;
+    }
+    url = url.slice(0, -1);
+  }
+}
+
 /** Plain text with line breaks kept; only `http` and `https` addresses become links. Nothing is parsed as HTML. */
 export function ReleaseNotes({ text }: { text: string }) {
   const parts: ReactNode[] = [];
@@ -11,7 +27,7 @@ export function ReleaseNotes({ text }: { text: string }) {
   for (const m of text.matchAll(URL_RE)) {
     const start = m.index ?? 0;
     const raw = m[0];
-    const url = raw.replace(TRAILING, '');
+    const url = trimUrl(raw);
     if (!URL.canParse(url)) continue;
     if (start > last) parts.push(text.slice(last, start));
     parts.push(
