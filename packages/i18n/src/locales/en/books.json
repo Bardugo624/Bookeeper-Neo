@@ -1,11 +1,16 @@
 {
   "title": "Books",
-  "count": { "one": "{count} book", "other": "{count} books" },
+  "count": {
+    "one": "{count} book",
+    "other": "{count} books"
+  },
   "onLoan": "{count} on loan",
   "search": {
     "label": "Search books",
     "placeholder": "Search title, author, ISBN",
-    "clear": "Clear search"
+    "clear": "Clear search",
+    "hint": "Ctrl K",
+    "hintMac": "⌘K"
   },
   "filters": {
     "label": "Filters",
@@ -47,7 +52,8 @@
   "error": {
     "title": "Can't read the books",
     "text": "Check the connection to the library and try again.",
-    "retry": "Try again"
+    "retry": "Try again",
+    "moreText": "Couldn't load more books."
   },
   "detail": {
     "back": "Books",

@@ -1,11 +1,16 @@
 {
   "title": "Libri",
-  "count": { "one": "{count} libro", "other": "{count} libri" },
+  "count": {
+    "one": "{count} libro",
+    "other": "{count} libri"
+  },
   "onLoan": "{count} in prestito",
   "search": {
     "label": "Cerca nei libri",
     "placeholder": "Cerca titolo, autore, ISBN",
-    "clear": "Svuota la ricerca"
+    "clear": "Svuota la ricerca",
+    "hint": "Ctrl K",
+    "hintMac": "⌘K"
   },
   "filters": {
     "label": "Filtri",
@@ -47,7 +52,8 @@
   "error": {
     "title": "Non riesco a leggere i libri",
     "text": "Controlla la connessione alla libreria e riprova.",
-    "retry": "Riprova"
+    "retry": "Riprova",
+    "moreText": "Impossibile caricare altri libri."
   },
   "detail": {
     "back": "Libri",

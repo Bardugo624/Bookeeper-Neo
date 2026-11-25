@@ -9,6 +9,10 @@ export interface SearchFieldProps {
   onCommit: (q: string) => void;
 }
 
+function isMac(): boolean {
+  return typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
+}
+
 export function SearchField({ value, onCommit }: SearchFieldProps) {
   const t = useT();
   const ref = useRef<HTMLInputElement>(null);
@@ -32,7 +36,7 @@ export function SearchField({ value, onCommit }: SearchFieldProps) {
       {text ? (
         <IconButton icon="close" size="sm" label={t('books.search.clear')} className={styles.clear} onClick={clear} />
       ) : (
-        <Kbd className={styles.hint}>Ctrl K</Kbd>
+        <Kbd className={styles.hint}>{t(isMac() ? 'books.search.hintMac' : 'books.search.hint')}</Kbd>
       )}
     </div>
   );

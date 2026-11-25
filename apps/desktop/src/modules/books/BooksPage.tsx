@@ -60,6 +60,12 @@ export function BooksPage() {
         ) : (
           <BookGrid books={items} from={params.search} loadingMore={loadingMore} />
         )}
+        {query.isFetchNextPageError ? (
+          <div className={styles.moreError} role="alert">
+            <span>{t('books.error.moreText')}</span>
+            <Button onClick={() => void query.fetchNextPage()}>{t('books.error.retry')}</Button>
+          </div>
+        ) : null}
         {query.hasNextPage ? <div ref={sentinel} className={styles.sentinel} aria-hidden="true" /> : null}
       </>
     );
