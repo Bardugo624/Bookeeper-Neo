@@ -11,7 +11,10 @@ use serde::{Deserialize, Deserializer, Serialize};
 use utoipa::ToSchema;
 
 use crate::{
-    api::util::{new_id, now_secs},
+    api::{
+        rooms::{room_exists, RoomSummary},
+        util::{new_id, now_secs},
+    },
     audit,
     auth::{guard::AuthUser, Role},
     error::{ApiError, ApiErrorBody, ApiResult},
@@ -76,6 +79,8 @@ pub struct ShelfOut {
     pub icon: Option<String>,
     pub label_code: i64,
     pub room_id: Option<String>,
+    /// The room the shelf is in, if any.
+    pub room: Option<RoomSummary>,
     /// `rows * slots_per_row`.
     pub capacity: i64,
     /// Number of books placed on the shelf.
@@ -122,6 +127,8 @@ pub struct NewShelf {
     /// Defaults to `sage`.
     pub color: Option<String>,
     pub icon: Option<String>,
+    /// Room of the library; absent or `null` means no room.
+    pub room_id: Option<String>,
 }
 
 /// Distinguishes an absent field (`None`) from an explicit `null` (`Some(None)`).
@@ -151,6 +158,10 @@ pub struct ShelfPatch {
     #[serde(default, deserialize_with = "present")]
     #[schema(value_type = Option<String>)]
     pub icon: Option<Option<String>>,
+    /// Absent keeps the room; `null` removes it; an id moves the shelf there.
+    #[serde(default, deserialize_with = "present")]
+    #[schema(value_type = Option<String>)]
+    pub room_id: Option<Option<String>>,
 }
 
 #[derive(Debug, Deserialize, ToSchema)]
@@ -233,7 +244,8 @@ async fn run<T: Send + 'static>(
 
 const SHELF_SELECT: &str = "SELECT s.id, s.name, s.rows, s.slots_per_row, s.color, s.icon, \
      s.label_code, s.room_id, s.created_at, s.updated_at, \
-     (SELECT COUNT(*) FROM shelf_books sb WHERE sb.shelf_id = s.id) FROM shelves s";
+     (SELECT COUNT(*) FROM shelf_books sb WHERE sb.shelf_id = s.id), r.name \
+     FROM shelves s LEFT JOIN rooms r ON r.id = s.room_id AND r.library_id = s.library_id";
 
 fn shelf_row(r: &rusqlite::Row<'_>) -> rusqlite::Result<ShelfOut> {
     let rows: i64 = r.get(2)?;
@@ -246,6 +258,13 @@ fn shelf_row(r: &rusqlite::Row<'_>) -> rusqlite::Result<ShelfOut> {
         color: r.get(4)?,
         icon: r.get(5)?,
         label_code: r.get(6)?,
+        room: match (
+            r.get::<_, Option<String>>(7)?,
+            r.get::<_, Option<String>>(11)?,
+        ) {
+            (Some(id), Some(name)) => Some(RoomSummary { id, name }),
+            _ => None,
+        },
         room_id: r.get(7)?,
         capacity: rows * slots,
         book_count: r.get(10)?,
@@ -356,6 +375,7 @@ pub async fn list_shelves(
         (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
         (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
         (status = 403, description = "forbidden: role too low", body = ApiErrorBody),
+        (status = 404, description = "not_found: unknown room_id; nothing is created", body = ApiErrorBody),
         (status = 422, description = "validation: invalid field", body = ApiErrorBody),
     )
 )]
@@ -370,8 +390,14 @@ pub async fn create_shelf(
     let slots = check_slots(body.slots_per_row)?;
     let color = check_color(body.color.as_deref().unwrap_or("sage"))?;
     let icon = check_icon(body.icon)?;
+    let room_id = body.room_id;
     let shelf = run(&state, move |conn| {
         let tx = conn.transaction()?;
+        if let Some(r) = &room_id {
+            if !room_exists(&tx, &user.library_id, r)? {
+                return Err(ApiError::not_found().into());
+            }
+        }
         let codes = {
             let mut stmt = tx.prepare(
                 "SELECT label_code FROM shelves WHERE library_id = ?1 ORDER BY label_code",
@@ -390,7 +416,8 @@ pub async fn create_shelf(
         let (id, now) = (new_id(), now_secs());
         tx.execute(
             "INSERT INTO shelves (id, library_id, name, rows, slots_per_row, color, icon, \
-             label_code, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?9)",
+             label_code, created_at, updated_at, room_id) \
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?9, ?10)",
             params![
                 id,
                 user.library_id,
@@ -400,7 +427,8 @@ pub async fn create_shelf(
                 color,
                 icon,
                 label,
-                now
+                now,
+                room_id
             ],
         )?;
         audit::record(&tx, &user, "shelf.create", "shelf", &id, None, now)?;
@@ -447,7 +475,7 @@ fn required<T>(v: Option<Option<T>>, field: &str) -> ApiResult<Option<T>> {
         (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
         (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
         (status = 403, description = "forbidden: role too low", body = ApiErrorBody),
-        (status = 404, description = "not_found: unknown shelf", body = ApiErrorBody),
+        (status = 404, description = "not_found: unknown shelf or room_id; nothing changes", body = ApiErrorBody),
         (status = 409, description = "shelf_too_small: a placed book would not fit", body = ApiErrorBody),
         (status = 422, description = "validation: invalid field", body = ApiErrorBody),
     )
@@ -470,9 +498,20 @@ pub async fn update_shelf(
         .map(|c| check_color(&c))
         .transpose()?;
     let icon = body.icon.map(check_icon).transpose()?;
+    let room_id = body.room_id;
     let shelf = run(&state, move |conn| {
         let tx = conn.transaction()?;
         let cur = find_shelf(&tx, &user.library_id, &id)?;
+        let room_id = match room_id {
+            None => cur.room_id.clone(),
+            Some(None) => None,
+            Some(Some(r)) => {
+                if !room_exists(&tx, &user.library_id, &r)? {
+                    return Err(ApiError::not_found().into());
+                }
+                Some(r)
+            }
+        };
         let new_rows = rows.unwrap_or(cur.rows);
         let new_slots = slots.unwrap_or(cur.slots_per_row);
         if new_rows < cur.rows || new_slots < cur.slots_per_row {
@@ -497,7 +536,7 @@ pub async fn update_shelf(
         };
         tx.execute(
             "UPDATE shelves SET name = ?1, rows = ?2, slots_per_row = ?3, color = ?4, icon = ?5, \
-             updated_at = ?6 WHERE id = ?7 AND library_id = ?8",
+             updated_at = ?6, room_id = ?9 WHERE id = ?7 AND library_id = ?8",
             params![
                 name.unwrap_or(cur.name),
                 new_rows,
@@ -506,7 +545,8 @@ pub async fn update_shelf(
                 icon,
                 now,
                 id,
-                user.library_id
+                user.library_id,
+                room_id
             ],
         )?;
         audit::record(&tx, &user, "shelf.update", "shelf", &id, None, now)?;

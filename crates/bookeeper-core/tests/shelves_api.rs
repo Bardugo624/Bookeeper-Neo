@@ -891,3 +891,134 @@ async fn shift_writes_one_audit_entry() {
     assert_eq!(shift_to(&s, &fb[5], &full, 0, 0, None).await.0, 409);
     assert_eq!(audit_rows(&s.state, &s.library_id).await.len(), n);
 }
+
+async fn make_room(s: &Seeded, name: &str) -> String {
+    let (st, _, b) = call(
+        &s.state,
+        "POST",
+        "/api/v1/rooms",
+        Some(&tok(s)),
+        Some(json!({"name": name})),
+    )
+    .await;
+    assert_eq!(st, 201, "{b}");
+    b["id"].as_str().unwrap().to_string()
+}
+
+async fn patch_shelf(s: &Seeded, id: &str, body: Value) -> (u16, Value) {
+    let (st, _, b) = call(
+        &s.state,
+        "PATCH",
+        &format!("/api/v1/shelves/{id}"),
+        Some(&tok(s)),
+        Some(body),
+    )
+    .await;
+    (st, b)
+}
+
+#[tokio::test]
+async fn shelf_without_room_has_null_room() {
+    let s = seed(Role::Owner, None, None).await;
+    let sh = new_shelf(&s, "A").await;
+    assert_eq!(sh["room_id"], Value::Null);
+    assert_eq!(sh["room"], Value::Null);
+}
+
+#[tokio::test]
+async fn create_with_room_id_returns_the_room() {
+    let s = seed(Role::Owner, None, None).await;
+    let r = make_room(&s, "Salotto").await;
+    let (st, sh) = create(
+        &s,
+        json!({"name": "A", "rows": 2, "slots_per_row": 5, "room_id": r}),
+    )
+    .await;
+    assert_eq!(st, 201, "{sh}");
+    assert_eq!(sh["room_id"], json!(r));
+    assert_eq!(sh["room"], json!({"id": r, "name": "Salotto"}));
+    let (_, got) = get(
+        &s,
+        &format!("/api/v1/shelves/{}", sh["id"].as_str().unwrap()),
+    )
+    .await;
+    assert_eq!(got["room"]["name"], "Salotto");
+    let (_, l) = get(&s, "/api/v1/shelves").await;
+    assert_eq!(l["items"][0]["room"]["id"], json!(r));
+    // `null` on create means no room.
+    let (st, n) = create(
+        &s,
+        json!({"name": "B", "rows": 2, "slots_per_row": 5, "room_id": null}),
+    )
+    .await;
+    assert_eq!((st, &n["room"]), (201, &Value::Null));
+}
+
+#[tokio::test]
+async fn patch_sets_keeps_and_clears_the_room() {
+    let s = seed(Role::Owner, None, None).await;
+    let r1 = make_room(&s, "Salotto").await;
+    let r2 = make_room(&s, "Studio").await;
+    let sh = new_shelf(&s, "A").await;
+    let sid = sh["id"].as_str().unwrap();
+    let (st, b) = patch_shelf(&s, sid, json!({"room_id": r1})).await;
+    assert_eq!(st, 200, "{b}");
+    assert_eq!(b["room"]["name"], "Salotto");
+    // Absent: unchanged.
+    let (_, b) = patch_shelf(&s, sid, json!({"name": "A2"})).await;
+    assert_eq!(
+        (b["room_id"].as_str(), b["name"].as_str()),
+        (Some(r1.as_str()), Some("A2"))
+    );
+    // Move to another room.
+    let (_, b) = patch_shelf(&s, sid, json!({"room_id": r2})).await;
+    assert_eq!(b["room"], json!({"id": r2, "name": "Studio"}));
+    // null: removed.
+    let (st, b) = patch_shelf(&s, sid, json!({"room_id": null})).await;
+    assert_eq!(st, 200);
+    assert_eq!((&b["room_id"], &b["room"]), (&Value::Null, &Value::Null));
+}
+
+#[tokio::test]
+async fn foreign_or_unknown_room_is_404_and_changes_nothing() {
+    let s = seed(Role::Owner, None, None).await;
+    let mine = make_room(&s, "Salotto").await;
+    let (_, other) = other_library(&s.state).await;
+    let (st, _, theirs) = call(
+        &s.state,
+        "POST",
+        "/api/v1/rooms",
+        Some(&other.access_token),
+        Some(json!({"name": "Loro"})),
+    )
+    .await;
+    assert_eq!(st, 201);
+    let theirs = theirs["id"].as_str().unwrap().to_string();
+    let sh = create(
+        &s,
+        json!({"name": "A", "rows": 2, "slots_per_row": 5, "room_id": mine}),
+    )
+    .await
+    .1;
+    let sid = sh["id"].as_str().unwrap();
+    let before = audit_rows(&s.state, &s.library_id).await.len();
+    for bad in [theirs.as_str(), "nope"] {
+        let (st, _) = create(
+            &s,
+            json!({"name": "B", "rows": 2, "slots_per_row": 5, "room_id": bad}),
+        )
+        .await;
+        assert_eq!(st, 404);
+        let (st, _) = patch_shelf(&s, sid, json!({"name": "Z", "rows": 3, "room_id": bad})).await;
+        assert_eq!(st, 404);
+    }
+    let (_, l) = get(&s, "/api/v1/shelves").await;
+    assert_eq!(l["items"].as_array().unwrap().len(), 1);
+    let (_, got) = get(&s, &format!("/api/v1/shelves/{sid}")).await;
+    assert_eq!(
+        (got["name"].as_str(), got["rows"].as_i64()),
+        (Some("A"), Some(2))
+    );
+    assert_eq!(got["room_id"], json!(mine));
+    assert_eq!(audit_rows(&s.state, &s.library_id).await.len(), before);
+}
