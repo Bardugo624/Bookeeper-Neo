@@ -22,6 +22,10 @@ Testi nello spazio dei nomi `maccount`.
 - Scollega: conferma; logout chiamato; sessione cancellata; errore di rete → cancellata comunque, con messaggio.
 - "Cerca aggiornamenti" chiama la piattaforma.
 
+## Aggiunta dopo il primo giro di revisione
+
+La task `m-foundation-2` è unita: le preferenze di tema e lingua vivono nelle fondamenta. Usa `useThemePreference()` e `useLocalePreference()` da `apps/mobile/src/app`; togli dal modulo ogni gestione propria di tema e lingua.
+
 ## Acceptance criteria
 
 - `npm run typecheck -w @bookeeper/mobile`, `npm test -w @bookeeper/mobile`, `npm test -w @bookeeper/i18n`, `npm run build -w @bookeeper/mobile` passano.

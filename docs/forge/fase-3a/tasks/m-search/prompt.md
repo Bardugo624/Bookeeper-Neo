@@ -22,6 +22,10 @@ Testi nello spazio dei nomi `msearch`.
 - Scheda: collocato e non collocato; in prestito; descrizione lunga richiusa e apribile; 404; ritorno con ricerca conservata.
 - Bersagli tattili: le righe sono alte almeno 44px (controllo sul CSS).
 
+## Aggiunta dopo il primo giro di revisione
+
+La task `m-foundation-2` è unita: il trasporto autenticato ha `requestRaw`. Le copertine si leggono davvero: aggiungi un test con il trasporto vero dell'app e una risposta binaria finta. Correggi anche l'offline: una ricerca o un filtro nuovo senza rete NON sostituisce l'ultimo risultato con lo stato d'errore; resta l'ultimo risultato con la striscia offline (`placeholderData` con i dati precedenti).
+
 ## Acceptance criteria
 
 - `npm run typecheck -w @bookeeper/mobile`, `npm test -w @bookeeper/mobile`, `npm test -w @bookeeper/i18n`, `npm run build -w @bookeeper/mobile` passano.

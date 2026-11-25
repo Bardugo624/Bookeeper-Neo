@@ -23,6 +23,10 @@ Testi nello spazio dei nomi `mpair`.
 - Già collegato: i due esiti.
 - Doppio tocco → una richiesta.
 
+## Aggiunta dopo il primo giro di revisione
+
+La task `m-foundation-2` è unita: con una sessione valida le rotte `/pair` restano raggiungibili quando l'indirizzo porta un `code`. Il test "già collegato" DEVE montare l'app vera con `renderMobile` e il cancello di sessione, non il componente da solo.
+
 ## Acceptance criteria
 
 - `npm run typecheck -w @bookeeper/mobile`, `npm test -w @bookeeper/mobile`, `npm test -w @bookeeper/i18n`, `npm run build -w @bookeeper/mobile` passano.
