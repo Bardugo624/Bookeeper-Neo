@@ -681,3 +681,49 @@ async fn reading_is_per_caller_in_list_search_and_detail() {
     assert_eq!(st, 200);
     assert_eq!(p["reading"], expect_a_bob);
 }
+
+#[tokio::test]
+async fn tags_are_in_list_search_and_detail_ordered_by_name() {
+    let s = seed(Role::Owner, None, None).await;
+    let book = create(&s, json!({"title": "Dune"})).await;
+    let bare = create(&s, json!({"title": "Emma"})).await;
+    let bid = book["id"].as_str().unwrap().to_string();
+    let mut ids = Vec::new();
+    for name in ["zeta", "Alfa", "mid"] {
+        let (st, t) = post(&s, "/api/v1/tags", json!({"name": name})).await;
+        assert_eq!(st, 201);
+        ids.push(t["id"].clone());
+    }
+    let (st, _, _) = call(
+        &s.state,
+        "PUT",
+        &format!("/api/v1/books/{bid}/tags"),
+        Some(&s.session.access_token),
+        Some(json!({"tag_ids": ids})),
+    )
+    .await;
+    assert_eq!(st, 200);
+    let tag_names = |b: &Value| -> Vec<String> {
+        b["tags"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|t| t["name"].as_str().unwrap().to_string())
+            .collect()
+    };
+    let tok = &s.session.access_token;
+    let (_, d) = get(&s.state, tok, &format!("/api/v1/books/{bid}")).await;
+    assert_eq!(tag_names(&d), ["Alfa", "mid", "zeta"]);
+    assert!(d["tags"][0]["color"].is_string() && d["tags"][0]["id"].is_string());
+    for path in ["/api/v1/books", "/api/v1/books?q=Dune"] {
+        let (st, l) = get(&s.state, tok, path).await;
+        assert_eq!(st, 200, "{l}");
+        let items = l["items"].as_array().unwrap();
+        let dune = items.iter().find(|b| b["id"] == book["id"]).unwrap();
+        assert_eq!(tag_names(dune), ["Alfa", "mid", "zeta"], "{path}");
+        if let Some(e) = items.iter().find(|b| b["id"] == bare["id"]) {
+            assert!(e["tags"].as_array().unwrap().is_empty());
+        }
+    }
+    assert!(bare["tags"].as_array().unwrap().is_empty());
+}
