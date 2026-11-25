@@ -31,6 +31,11 @@ base64 = "0.22"
 uuid = { version = "1", features = ["v7"] }
 tracing = "0.1"
 tauri-plugin-dialog = "2"
+tauri-plugin-updater = { version = "2", default-features = false, features = ["rustls-tls", "zip"] }
+tauri-plugin-process = "2"
+semver = "1"
+url = "2"
+time = { version = "0.3", features = ["formatting"] }
 keyring = { version = "3", default-features = false, features = ["apple-native", "windows-native", "sync-secret-service", "crypto-rust", "vendored"] }
 
 [dev-dependencies]

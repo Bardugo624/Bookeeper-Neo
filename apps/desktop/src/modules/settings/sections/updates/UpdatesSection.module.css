@@ -1,0 +1,22 @@
+.row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.label {
+  font-size: 14px;
+  color: var(--bk-text-muted);
+}
+
+.warning {
+  width: 100%;
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--bk-warn);
+  border-radius: var(--bk-radius-sm);
+  background: var(--bk-warn-bg);
+  font-size: 13px;
+  color: var(--bk-text-strong);
+}

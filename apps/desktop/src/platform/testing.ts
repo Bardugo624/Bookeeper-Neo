@@ -1,5 +1,5 @@
 import { ApiError, type Transport, type TransportResponse } from '@bookeeper/api';
-import { NETWORK_PROBE, type Connection, type Connections, type Found, type Platform, type ProbeOut, type SaveFileRequest, type SaveFileResult, type SharingStatus, type WindowControls } from './types';
+import { NETWORK_PROBE, type Connection, type Connections, type Found, type Platform, type ProbeOut, type SaveFileRequest, type SaveFileResult, type SharingStatus, type UpdateChannel, type UpdateProgress, type UpdateState, type WindowControls } from './types';
 
 type Handler = (req: {
   method: string;
@@ -23,6 +23,8 @@ export interface FakePlatform extends Platform {
   /** Result of the next `saveFile` calls (default `{ saved: true }`). */
   setSaveResult(r: SaveFileResult): void;
   setMaximized(v: boolean): void;
+  /** Control panel of the fake updates (a stub that throws when `updates` was not asked for). */
+  updatesFake: FakeUpdates;
   /** Current state of the fake sharing; tests read it to see what the shell would hold. */
   sharingState: SharingStatus;
   /** Every `sharing.set` call, in order. */
@@ -31,7 +33,21 @@ export interface FakePlatform extends Platform {
   setSharingHandler(h: (enabled: boolean, port: number | undefined, current: SharingStatus) => SharingStatus | Promise<SharingStatus>): void;
 }
 
+export interface FakeUpdates {
+  /** Channel of every `check` call, in order. */
+  checks: UpdateChannel[];
+  /** Channel of every `install` call, in order. */
+  installs: UpdateChannel[];
+  /** Replaces the answer of the next checks. */
+  setState(s: UpdateState | ((channel: UpdateChannel) => UpdateState)): void;
+  /** Replaces what `install` does (default: never finishes, like a restart). */
+  setInstall(h: (channel: UpdateChannel) => Promise<void>): void;
+  emitProgress(p: UpdateProgress): void;
+}
+
 export interface FakePlatformOptions {
+  /** Gives the platform updates; `state` is what the checks answer (default `Disabled`). Absent: `updates` is null. */
+  updates?: { state?: UpdateState };
   connections?: Connections;
   handler?: Handler;
   /** `false` gives a browser-like platform with no window controls. */
@@ -78,6 +94,22 @@ export function fakePlatform(opts: FakePlatformOptions = {}): FakePlatform {
   });
   const resizeListeners = new Set<() => void>();
   const windowCalls: string[] = [];
+  const progressListeners = new Set<(p: UpdateProgress) => void>();
+  let updateAnswer: UpdateState | ((channel: UpdateChannel) => UpdateState) = opts.updates?.state ?? { state: 'disabled' };
+  let installHandler: (channel: UpdateChannel) => Promise<void> = () => new Promise<void>(() => {});
+  const updatesFake: FakeUpdates = {
+    checks: [],
+    installs: [],
+    setState(s) {
+      updateAnswer = s;
+    },
+    setInstall(h) {
+      installHandler = h;
+    },
+    emitProgress(p) {
+      progressListeners.forEach((cb) => cb(p));
+    },
+  };
   const calls: FakePlatform['calls'] = [];
 
   const win: WindowControls = {
@@ -105,6 +137,7 @@ export function fakePlatform(opts: FakePlatformOptions = {}): FakePlatform {
   const platform: FakePlatform = {
     kind: opts.kind ?? 'tauri',
     calls,
+    updatesFake,
     state: opts.connections ?? { active: null, items: [] },
     windowCalls,
     saved,
@@ -186,6 +219,22 @@ export function fakePlatform(opts: FakePlatformOptions = {}): FakePlatform {
               return structuredClone(platform.sharingState);
             },
           },
+    updates: opts.updates
+      ? {
+          async check(channel) {
+            updatesFake.checks.push(channel);
+            return typeof updateAnswer === 'function' ? updateAnswer(channel) : updateAnswer;
+          },
+          async install(channel) {
+            updatesFake.installs.push(channel);
+            return installHandler(channel);
+          },
+          onProgress(cb) {
+            progressListeners.add(cb);
+            return () => progressListeners.delete(cb);
+          },
+        }
+      : null,
     window: opts.window === false ? null : win,
     async deviceName() {
       return 'Test device';
