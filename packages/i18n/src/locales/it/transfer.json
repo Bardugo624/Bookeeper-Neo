@@ -1,0 +1,56 @@
+{
+  "section": "Import ed export",
+  "import": {
+    "title": "Importa libri",
+    "description": "Aggiungi alla libreria i libri di un file esportato da Goodreads, Calibre o LibraryThing. I libri già presenti vengono saltati.",
+    "format": {
+      "label": "Formato del file",
+      "auto": "Rileva automaticamente",
+      "goodreads": "Goodreads",
+      "calibre": "Calibre",
+      "librarything": "LibraryThing"
+    },
+    "drop": {
+      "label": "Scegli un file o trascinalo qui",
+      "hint": "File CSV o TSV, fino a {size} MB.",
+      "dragging": "Rilascia il file per sceglierlo"
+    },
+    "selected": "File scelto: {name} ({size} KB)",
+    "clear": "Togli il file",
+    "submit": "Importa",
+    "submitting": "Importazione in corso",
+    "progress": "Invio del file in corso",
+    "tooLarge": "Il file è troppo grande: il limite è {size} MB.",
+    "unreadable": "Non è stato possibile leggere il file.",
+    "errors": {
+      "unknownFormat": "Formato non riconosciuto o file non valido. Scegli il formato a mano, controlla che la prima riga contenga le intestazioni e che le righe non siano più di 20.000."
+    }
+  },
+  "report": {
+    "title": "Rapporto dell'importazione",
+    "imported": { "one": "{count} libro importato", "other": "{count} libri importati" },
+    "duplicates": { "one": "{count} saltato perché già presente", "other": "{count} saltati perché già presenti" },
+    "invalid": { "one": "{count} riga con errore", "other": "{count} righe con errore" },
+    "errorsTitle": "Righe con errore",
+    "errorsTable": "Righe con errore dell'importazione",
+    "row": "Riga",
+    "reason": "Motivo",
+    "truncated": "Sono elencate le prime {shown} righe con errore su {total}.",
+    "download": "Scarica l'elenco",
+    "goToBooks": "Vai ai libri",
+    "savedList": "Elenco salvato"
+  },
+  "export": {
+    "title": "Esporta la libreria",
+    "description": "Salva tutti i libri in un file, per tenerne una copia o aprirli in un foglio di calcolo.",
+    "format": {
+      "label": "Formato dell'esportazione",
+      "json": "JSON",
+      "csv": "CSV"
+    },
+    "submit": "Esporta",
+    "submitting": "Esportazione in corso",
+    "saved": "File salvato",
+    "unknownLibrary": "libreria"
+  }
+}

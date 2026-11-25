@@ -1,0 +1,56 @@
+{
+  "section": "Import and export",
+  "import": {
+    "title": "Import books",
+    "description": "Add the books of a file exported from Goodreads, Calibre or LibraryThing to the library. Books already there are skipped.",
+    "format": {
+      "label": "File format",
+      "auto": "Detect automatically",
+      "goodreads": "Goodreads",
+      "calibre": "Calibre",
+      "librarything": "LibraryThing"
+    },
+    "drop": {
+      "label": "Choose a file or drop it here",
+      "hint": "CSV or TSV file, up to {size} MB.",
+      "dragging": "Drop the file to choose it"
+    },
+    "selected": "Chosen file: {name} ({size} KB)",
+    "clear": "Remove the file",
+    "submit": "Import",
+    "submitting": "Importing",
+    "progress": "Sending the file",
+    "tooLarge": "The file is too large: the limit is {size} MB.",
+    "unreadable": "The file could not be read.",
+    "errors": {
+      "unknownFormat": "Unrecognized format or invalid file. Pick the format by hand, check that the first line holds the headers and that there are no more than 20,000 rows."
+    }
+  },
+  "report": {
+    "title": "Import report",
+    "imported": { "one": "{count} book imported", "other": "{count} books imported" },
+    "duplicates": { "one": "{count} skipped, already in the library", "other": "{count} skipped, already in the library" },
+    "invalid": { "one": "{count} row with an error", "other": "{count} rows with errors" },
+    "errorsTitle": "Rows with errors",
+    "errorsTable": "Import rows with errors",
+    "row": "Row",
+    "reason": "Reason",
+    "truncated": "Showing the first {shown} rows with errors out of {total}.",
+    "download": "Download the list",
+    "goToBooks": "Go to the books",
+    "savedList": "List saved"
+  },
+  "export": {
+    "title": "Export the library",
+    "description": "Save all the books to a file, to keep a copy or to open them in a spreadsheet.",
+    "format": {
+      "label": "Export format",
+      "json": "JSON",
+      "csv": "CSV"
+    },
+    "submit": "Export",
+    "submitting": "Exporting",
+    "saved": "File saved",
+    "unknownLibrary": "library"
+  }
+}
