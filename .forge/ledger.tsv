@@ -347,3 +347,23 @@
 2026-11-25T16:45:17Z	bookeeper-fase-3a	m-case-fix	qa	opus	PASS	-	-	-	27
 2026-11-25T16:58:07Z	bookeeper-fase-3a1	m-p3	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npm test w bookeeper mobile works without it vitest and vite plugins are not found	a fresh worktree needs `npm ci --offline` at the root before `npm test -w @bookeeper/mobile` works; without it vitest and vite plugins are not found [apps/mobile/package.json]	46	1
 2026-11-25T16:58:45Z	bookeeper-fase-3a1	m-p3	qa	opus	PASS	-	-	-	32
+2026-11-25T21:28:53Z	bookeeper-fase-4a	reading-api	dwarf	sonnet	-	verify	cargo test offline p bookeeper core test reading api test books api test db test backup api test openapi errors	cargo test --offline -p bookeeper-core --test reading_api --test books_api --test db --test backup_api --test openapi_errors [crates/bookeeper-core/Cargo.toml]	308	1
+2026-11-25T21:31:37Z	bookeeper-fase-4a	reading-api	qa	opus	PASS	-	-	-	157
+2026-11-25T21:35:24Z	bookeeper-fase-4a	tags-api	dwarf	sonnet	-	-	-	-	220
+2026-11-25T21:37:56Z	bookeeper-fase-4a	tags-api	qa	opus	FAIL	-	-	-	146
+2026-11-25T21:38:44Z	bookeeper-fase-4a	tags-api	dwarf	sonnet	-	-	-	-	42
+2026-11-25T21:40:38Z	bookeeper-fase-4a	tags-api	qa	opus	PASS	-	-	-	108
+2026-11-25T21:44:35Z	bookeeper-fase-4a	rooms-api	dwarf	sonnet	-	-	-	-	229
+2026-11-25T21:46:47Z	bookeeper-fase-4a	rooms-api	qa	opus	PASS	-	-	-	126
+2026-11-25T21:51:47Z	bookeeper-fase-4a	filters-api	dwarf	sonnet	-	trap	axum query cannot deserialize repeated keys into a vec read them with a second apiquery vec string string extractor	axum `Query` cannot deserialize repeated keys into a Vec; read them with a second `ApiQuery<Vec<(String, String)>>` extractor [crates/bookeeper-core/src/api/books_search.rs]	293	1
+2026-11-25T21:54:02Z	bookeeper-fase-4a	filters-api	qa	opus	PASS	-	-	-	129
+2026-11-25T21:57:01Z	bookeeper-fase-4a	audit-api	dwarf	sonnet	-	trap	error bodies are error code message flat not nested error code assert b error code in tests	error bodies are `{"error_code","message"}` flat, not nested `error.code`; assert `b["error_code"]` in tests [crates/bookeeper-core/tests/common/mod.rs]	172	1
+2026-11-25T21:59:24Z	bookeeper-fase-4a	audit-api	qa	opus	PASS	-	-	-	136
+2026-11-25T22:02:08Z	bookeeper-fase-4a	reading-stats	dwarf	sonnet	-	-	-	-	156
+2026-11-25T22:04:46Z	bookeeper-fase-4a	reading-stats	qa	opus	FAIL	finding	sqlite strftime unixepoch returns null for timestamps outside years 0000 9999 and finished at and similar epoch columns	SQLite `strftime(..., 'unixepoch')` returns NULL for timestamps outside years 0000–9999, and `finished_at` and similar epoch columns… [crates/bookeeper-core/src/api/reading.rs]	153	1
+2026-11-25T22:05:26Z	bookeeper-fase-4a	reading-stats	dwarf	sonnet	-	trap	sqlite strftime unixepoch returns null for timestamps outside years 0000 9999 and finished at and similar epoch columns	SQLite `strftime(..., 'unixepoch')` returns NULL for timestamps outside years 0000–9999, and `finished_at` and similar epoch columns… [crates/bookeeper-core/src/api/reading.rs]	33	1
+2026-11-25T22:06:57Z	bookeeper-fase-4a	reading-stats	qa	opus	PASS	-	-	-	85
+2026-11-25T22:09:35Z	bookeeper-fase-4a	client-4a	dwarf	sonnet	-	trap	listbooksquery in the generated schema omits repeatable tag id the openapi typed params in books ts must add it by hand	`ListBooksQuery` in the generated schema omits repeatable `tag_id`; the openapi-typed params in books.ts must add it by hand [packages/api/src/resources/books.ts]	152	1
+2026-11-25T22:12:16Z	bookeeper-fase-4a	client-4a	qa	opus	FAIL	finding	the hand maintained role gated list in openapi errors rs can silently miss a new route compare it against grep n	the hand-maintained ROLE_GATED list in openapi_errors.rs can silently miss a new route; compare it against `grep -n… [crates/bookeeper-core/tests/openapi_errors.rs]	155	1
+2026-11-25T22:12:40Z	bookeeper-fase-4a	client-4a	dwarf	sonnet	-	trap	the hand maintained role gated list in openapi errors rs can silently miss a new route compare it against grep n	the hand-maintained ROLE_GATED list in openapi_errors.rs can silently miss a new route; compare it against `grep -n… [crates/bookeeper-core/tests/openapi_errors.rs]	18	1
+2026-11-25T22:14:15Z	bookeeper-fase-4a	client-4a	qa	opus	PASS	-	-	-	89

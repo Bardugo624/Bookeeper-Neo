@@ -6,3 +6,4 @@ filters-api	rooms-api	high	crates/bookeeper-core/src/api/books.rs,crates/bookeep
 audit-api	filters-api	high	crates/bookeeper-core/src/api/audit.rs,crates/bookeeper-core/src/api/loans.rs,crates/bookeeper-core/src/api/mod.rs,crates/bookeeper-core/src/openapi.rs,crates/bookeeper-core/tests/audit_api.rs,crates/bookeeper-core/tests/loans_api.rs	-	-	Core: registro attività e nomi dei prestiti
 reading-stats	audit-api	medium	crates/bookeeper-core/src/api/stats.rs,crates/bookeeper-core/src/api/mod.rs,crates/bookeeper-core/src/openapi.rs,crates/bookeeper-core/tests/stats_api.rs,crates/bookeeper-core/tests/reading_stats_api.rs	-	-	Core: statistiche di lettura
 client-4a	reading-stats	medium	packages/api,crates/bookeeper-core/tests/openapi_errors.rs	-	-	Client TypeScript per le rotte della fase 4
+apps-compat	client-4a	low	apps/desktop/src,apps/mobile/src	-	-	App: dati di prova allineati ai tipi nuovi

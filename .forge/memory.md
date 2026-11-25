@@ -4,6 +4,7 @@
      overwritten. Facts only, one per line. -->
 
 ## Verify
+- cargo test --offline -p bookeeper-core --test reading_api --test books_api --test db --test backup_api --test openapi_errors [crates/bookeeper-core/Cargo.toml]
 - npm install && npm run typecheck -w @bookeeper/mobile && npm test -w @bookeeper/mobile && npm run build -w @bookeeper/mobile && cargo test --offline -p… [apps/mobile/package.json]
 - cargo test --offline -p bookeeper-desktop && cargo clippy --offline -p bookeeper-desktop --all-targets -- -D warnings [apps/desktop/src-tauri/Cargo.toml]
 - cargo zigbuild --release --locked -p bookeeper-server --target x86_64-unknown-linux-musl (needs `pip install ziglang`, `cargo install --locked… [.github/workflows/release.yml]
@@ -14,6 +15,10 @@
 
 ## Known traps
 - a fresh worktree has no node_modules; run `npm ci --offline` at the root, then `npx vitest run <path>` from apps/desktop [apps/desktop/package.json]
+- the hand-maintained ROLE_GATED list in openapi_errors.rs can silently miss a new route; compare it against `grep -n… [crates/bookeeper-core/tests/openapi_errors.rs]
+- `ListBooksQuery` in the generated schema omits repeatable `tag_id`; the openapi-typed params in books.ts must add it by hand [packages/api/src/resources/books.ts]
+- error bodies are `{"error_code","message"}` flat, not nested `error.code`; assert `b["error_code"]` in tests [crates/bookeeper-core/tests/common/mod.rs]
+- axum `Query` cannot deserialize repeated keys into a Vec; read them with a second `ApiQuery<Vec<(String, String)>>` extractor [crates/bookeeper-core/src/api/books_search.rs]
 - a fresh worktree needs `npm ci --offline` at the root before `npm test -w @bookeeper/mobile` works; without it vitest and vite plugins are not found [apps/mobile/package.json]
 - caseCollisions.test.ts can be run alone with `npx vitest run packages/ui/src/caseCollisions.test.ts` from the root after `npm ci --offline` [packages/ui/src/caseCollisions.test.ts]
 - the mobile `translationKeys.test.ts` only scans `mobile.*` and `common.*` keys, so a module's own namespace (e.g. `maccount.*`) needs its… [apps/mobile/src/translationKeys.test.ts]
@@ -23,9 +28,4 @@
 - apps/mobile/src/translationKeys.test.ts only checks `mobile.`/`common.` keys, so a missing key in a module namespace such as `maccount.`… [apps/mobile/src/translationKeys.test.ts]
 - `styles.test.ts` in apps/mobile fails on any `--bk-*` token not defined in the UI package (there is `--bk-radius`, `--bk-radius-sm`,… [apps/mobile/src/styles.test.ts]
 - `translationKeys.test.ts` scans only `mobile.*` and `common.*` keys, so keys in other mobile namespaces (e.g. `maccount.*`) need their… [apps/mobile/src/translationKeys.test.ts]
-- `apps/mobile/src/session/authTransport.ts` non espone `requestRaw`: `client.getCover` e ogni altra chiamata binaria falliscono con… [apps/mobile/src/session/authTransport.ts]
-- mobile public routes are children of SessionGate, which redirects them to home when the session is `ready`; tests that build their own router… [apps/mobile/src/app/SessionGate.tsx]
-- the core revokes a device when a refresh token is reused (`refresh_reused`), so the mobile transport refreshes inside a… [apps/mobile/src/session/authTransport.ts]
-- `NavLink` sets `aria-current` only when its own route matches, so a tab that must stay active on other paths needs a plain `Link` with a… [apps/mobile/src/shell/TabBar.tsx]
-- the core revokes a device when a refresh token is reused (`refresh_reused`), so any client holding refresh tokens in memory across tabs or… [crates/bookeeper-core/src/api/auth.rs]
 
