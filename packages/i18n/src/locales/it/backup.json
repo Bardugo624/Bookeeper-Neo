@@ -1,0 +1,61 @@
+{
+  "section": "Backup",
+  "now": {
+    "title": "Backup",
+    "description": "Salva in un file l'intera libreria, copertine comprese. Conservalo in un posto sicuro.",
+    "action": "Crea un backup",
+    "working": "Creazione del backup",
+    "saved": "Backup salvato."
+  },
+  "schedule": {
+    "title": "Backup programmato",
+    "description": "Il server crea da solo un backup ogni tot giorni e tiene solo gli ultimi.",
+    "interval": "Ogni quanti giorni",
+    "intervalHint": "Da 1 a {max}. Con 0 i backup automatici sono spenti.",
+    "off": "Spento: nessun backup automatico.",
+    "intervalError": "Inserisci un numero intero da 0 a {max}.",
+    "keep": "Quanti tenerne",
+    "keepHint": "Da {min} a {max}.",
+    "keepError": "Inserisci un numero intero da {min} a {max}.",
+    "save": "Salva",
+    "saved": "Programmazione salvata."
+  },
+  "auto": {
+    "title": "Backup automatici",
+    "description": "I backup creati dal server, dal più recente.",
+    "loading": "Caricamento…",
+    "empty": "Non c'è ancora nessun backup automatico."
+  },
+  "restore": {
+    "title": "Ripristino",
+    "description": "Riporta la libreria allo stato di un backup. Solo il proprietario può farlo.",
+    "warning": "Attenzione: il ripristino sostituisce tutti i dati attuali della libreria (libri, scaffali, prestiti, lista dei desideri e copertine) con quelli del backup. I dati che non sono nel backup andranno persi e l'operazione non si può annullare.",
+    "file": "File di backup (.zip)",
+    "action": "Ripristina da file…",
+    "working": "Ripristino in corso",
+    "dialog": {
+      "title": "Ripristinare la libreria?",
+      "description": "Stai per sostituire i dati attuali con quelli di {file}.",
+      "typeName": "Per confermare scrivi il nome della libreria: {name}",
+      "confirm": "Ripristina"
+    },
+    "report": {
+      "title": "Rapporto del ripristino",
+      "done": "Ripristino completato. Nella libreria ci sono ora:",
+      "books": "Libri",
+      "shelves": "Scaffali",
+      "loans": "Prestiti",
+      "wishlist": "Desideri",
+      "covers": "Copertine",
+      "remapped": {
+        "one": "{count} utente del backup non esiste in questa libreria.",
+        "other": "{count} utenti del backup non esistono in questa libreria."
+      }
+    },
+    "errors": {
+      "invalid_archive": "Il file non è un backup valido di Bookeeper.",
+      "unsupportedVersion": "Questo backup è di una versione che questa app non sa leggere.",
+      "payload_too_large": "Il file è troppo grande per essere ripristinato."
+    }
+  }
+}
