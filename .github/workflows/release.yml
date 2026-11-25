@@ -264,10 +264,12 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          if [ -n "$TAURI_SIGNING_PRIVATE_KEY" ]; then
-            npm run tauri build -w @bookeeper/desktop -- --target "$TARGET"
+          if [ -n "$TAURI_SIGNING_PRIVATE_KEY" ] && [ -n "$BOOKEEPER_UPDATER_PUBKEY" ]; then
+            # The CLI wants plugins.updater.pubkey in the configuration when it makes update artifacts.
+            cfg=$(node -e 'console.log(JSON.stringify({plugins:{updater:{pubkey:process.env.BOOKEEPER_UPDATER_PUBKEY}}}))')
+            npm run tauri build -w @bookeeper/desktop -- --target "$TARGET" --config "$cfg"
           else
-            echo "::warning::TAURI_SIGNING_PRIVATE_KEY is not set: building installers without update artifacts"
+            echo "::warning::TAURI_SIGNING_PRIVATE_KEY or BOOKEEPER_UPDATER_PUBKEY is not set: building installers without update artifacts"
             npm run tauri build -w @bookeeper/desktop -- --target "$TARGET" \
               --config '{"bundle":{"createUpdaterArtifacts":false}}'
           fi
@@ -340,8 +342,12 @@ jobs:
             dist/SHA256SUMS
 
   publish-updates:
-    needs: [check, desktop]
+    needs: [check, desktop, release]
     if: ${{ github.ref_type == 'tag' }}
+    # One publisher at a time across all tags, so manifests are never written concurrently.
+    concurrency:
+      group: publish-updates
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -419,17 +425,46 @@ jobs:
           dest=/opt/bookeeper/updates
           ssh vps "mkdir -p ${dest}/files/${VERSION} ${dest}/stable ${dest}/beta"
           scp updates/* "vps:${dest}/files/${VERSION}/"
-          scp latest.json "vps:${dest}/.latest.json.tmp"
+          scp latest.json "vps:${dest}/.latest-${VERSION}.json.tmp"
           # The manifest goes last and atomically; a stable release also moves the beta channel.
-          ssh vps "set -e; cd ${dest}
-            cp .latest.json.tmp ${CHANNEL}/.latest.json.new
-            mv ${CHANNEL}/.latest.json.new ${CHANNEL}/latest.json
-            if [ '${CHANNEL}' = stable ]; then
-              cp .latest.json.tmp beta/.latest.json.new
-              mv beta/.latest.json.new beta/latest.json
+          # A manifest is never replaced by an older version; the newest 3 folders and the
+          # ones the live manifests still point to are kept.
+          ssh vps "bash -s" -- "$dest" "$VERSION" "$CHANNEL" <<'REMOTE'
+          set -eu
+          dest=$1; version=$2; channel=$3
+          cd "$dest"
+          tmp=".latest-${version}.json.tmp"
+          key() { printf '%s' "$1" | tr '-' '~'; }
+          newer_or_absent() {
+            [ -f "$1/latest.json" ] || return 0
+            cur=$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$1/latest.json" | head -1)
+            [ -z "$cur" ] && return 0
+            [ "$cur" = "$version" ] && return 0
+            [ "$(printf '%s\n%s\n' "$(key "$cur")" "$(key "$version")" | sort -V | tail -1)" = "$(key "$version")" ]
+          }
+          publish() {
+            if newer_or_absent "$1"; then
+              cp "$tmp" "$1/.latest.json.new-${version}"
+              mv "$1/.latest.json.new-${version}" "$1/latest.json"
+            else
+              echo "Keeping the newer manifest in $1"
             fi
-            rm -f .latest.json.tmp
-            cd files && ls -1dt */ | tail -n +4 | xargs -r rm -rf --"
+          }
+          publish "$channel"
+          if [ "$channel" = stable ]; then publish beta; fi
+          rm -f "$tmp"
+          cd files
+          keep=$(ls -1dt */ | head -3 | tr -d /)
+          for m in ../stable/latest.json ../beta/latest.json; do
+            [ -f "$m" ] || continue
+            keep="$keep
+          $(grep -o '/files/[^/]*/' "$m" | cut -d/ -f3)"
+          done
+          for d in */; do
+            d=${d%/}
+            printf '%s\n' "$keep" | grep -qxF "$d" || rm -rf -- "$d"
+          done
+          REMOTE
       - name: Remove the key
         if: always()
         run: rm -f ~/.ssh/id_vps
