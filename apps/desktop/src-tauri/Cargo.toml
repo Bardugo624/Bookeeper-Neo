@@ -17,7 +17,10 @@ reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"
 rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
 sha2 = "0.10"
 hex = "0.4"
-tokio = { version = "1", features = ["time", "rt", "sync"] }
+tokio = { version = "1", features = ["time", "rt", "sync", "net"] }
+axum-server = { version = "0.8", default-features = false, features = ["tls-rustls-no-provider"] }
+if-addrs = "0.13"
+gethostname = "1"
 axum = "0.8"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -33,4 +36,3 @@ keyring = { version = "3", default-features = false, features = ["apple-native",
 [dev-dependencies]
 tempfile = "3"
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "net"] }
-axum-server = { version = "0.8", default-features = false, features = ["tls-rustls-no-provider"] }
