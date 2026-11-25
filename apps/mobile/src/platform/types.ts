@@ -12,6 +12,8 @@ export interface ServiceWorkerApi {
   register(): void;
   /** Calls `listener` when a new version is installed and waiting; at once if one already is. */
   onUpdateReady(listener: () => void): () => void;
+  /** Asks the browser for a newer version. Resolves `true` when one is installed and waiting. */
+  checkForUpdate(): Promise<boolean>;
   /** Activates the waiting version and reloads the page. */
   applyUpdate(): Promise<void>;
 }

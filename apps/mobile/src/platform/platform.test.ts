@@ -57,6 +57,30 @@ describe('service worker', () => {
   });
 });
 
+describe('service worker update check', () => {
+  it('asks the registration for a newer version and reports a waiting one', async () => {
+    const registration = { update: vi.fn(async () => undefined), waiting: null as unknown, installing: null };
+    let onRegisteredSW: ((url: string, r: unknown) => void) | undefined;
+    const register = vi.fn((o: { onRegisteredSW?: (url: string, r: unknown) => void }) => {
+      onRegisteredSW = o.onRegisteredSW;
+      return vi.fn(async () => undefined);
+    });
+    const sw = browserServiceWorker(register as never);
+    sw.register();
+    onRegisteredSW?.('/sw.js', registration);
+    expect(await sw.checkForUpdate()).toBe(false);
+    expect(registration.update).toHaveBeenCalledOnce();
+    registration.waiting = {};
+    expect(await sw.checkForUpdate()).toBe(true);
+  });
+
+  it('is false without a registration', async () => {
+    const sw = browserServiceWorker(vi.fn(() => vi.fn(async () => undefined)) as never);
+    sw.register();
+    expect(await sw.checkForUpdate()).toBe(false);
+  });
+});
+
 describe('barcode scanner', () => {
   it('uses BarcodeDetector when the browser has it', async () => {
     vi.useFakeTimers();
