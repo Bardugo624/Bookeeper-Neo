@@ -76,6 +76,20 @@ export function browserPlatform(baseUrl: string): Platform {
     async deviceName() {
       return 'Browser';
     },
+    async saveFile(req) {
+      const url = URL.createObjectURL(new Blob([req.bytes as BlobPart], { type: req.mime }));
+      try {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = req.suggestedName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+      return { saved: true };
+    },
   };
 }
 

@@ -1,0 +1,129 @@
+.drop {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 22px 16px;
+  border: 1.5px dashed var(--bk-border-strong, var(--bk-border));
+  border-radius: var(--bk-radius-lg);
+  background: var(--bk-surface);
+  color: var(--bk-text);
+  text-align: center;
+  cursor: pointer;
+}
+
+.drop:hover,
+.dragging {
+  border-color: var(--bk-primary-400);
+  background: var(--bk-primary-50, var(--bk-surface));
+}
+
+.drop:focus-within {
+  outline: 2px solid var(--bk-primary-400);
+  outline-offset: 2px;
+}
+
+.input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.dropTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bk-text-strong);
+}
+
+.hint {
+  font-size: 13px;
+  color: var(--bk-text-muted);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.failure {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: var(--bk-radius-sm);
+  background: var(--bk-danger-bg);
+  color: var(--bk-danger-strong);
+  font-size: 13px;
+}
+
+.progress {
+  width: 100%;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--bk-border);
+}
+
+.progress::after {
+  content: '';
+  display: block;
+  width: 35%;
+  height: 100%;
+  background: var(--bk-primary-400);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .progress::after {
+    animation: slide 1.2s var(--bk-ease, ease-in-out) infinite;
+  }
+}
+
+@keyframes slide {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+
+.report {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.errorsTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bk-text-strong);
+}
+
+.errorsScroll {
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid var(--bk-border);
+  border-radius: var(--bk-radius-sm);
+}
+
+.note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--bk-text-muted);
+}

@@ -1,7 +1,13 @@
 import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { createTauriTransport } from './transport';
-import { NETWORK_PROBE, type Connection, type Connections, type Found, type Platform, type ProbeOut } from './types';
+import { NETWORK_PROBE, type Connection, type Connections, type Found, type Platform, type ProbeOut, type SaveFileRequest, type SaveFileResult } from './types';
+
+function toBase64(bytes: Uint8Array): string {
+  let bin = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
 
 /** Commands that ship with a later task are called by name; a missing one is a handled error. */
 export function tauriPlatform(): Platform {
@@ -40,5 +46,11 @@ export function tauriPlatform(): Platform {
     async deviceName() {
       return navigator.platform || 'Bookeeper';
     },
+    saveFile: (req: SaveFileRequest) =>
+      invoke<SaveFileResult>('save_file', {
+        suggested_name: req.suggestedName,
+        bytes_base64: toBase64(req.bytes),
+        filters: req.filters ?? [],
+      }),
   };
 }

@@ -1,6 +1,7 @@
 pub mod connections;
 pub mod discover;
 mod dispatch;
+pub mod files;
 pub mod remote;
 
 use bookeeper_core::{AppState, Db, SetupPolicy};
@@ -101,8 +102,53 @@ fn connection_remove(
     store.remove(&id)
 }
 
+#[tauri::command(rename_all = "snake_case")]
+async fn save_file(
+    app: tauri::AppHandle,
+    suggested_name: String,
+    bytes_base64: String,
+    filters: Option<Vec<files::FileFilter>>,
+) -> Result<files::SaveOutcome, String> {
+    use tauri_plugin_dialog::DialogExt;
+    // Reject bad data before bothering the user with a window.
+    let bytes = files::decode_base64(&bytes_base64)?;
+    let mut dialog = app
+        .dialog()
+        .file()
+        .set_file_name(files::sanitize_name(&suggested_name));
+    for f in filters.unwrap_or_default() {
+        let (name, exts) = files::filter_parts(&f);
+        let refs: Vec<&str> = exts.iter().map(String::as_str).collect();
+        dialog = dialog.add_filter(name, &refs);
+    }
+    let (tx, rx) = tokio::sync::oneshot::channel();
+    dialog.save_file(move |p| {
+        let _ = tx.send(p);
+    });
+    let Some(path) = rx
+        .await
+        .map_err(|e| e.to_string())?
+        .and_then(files::path_of)
+    else {
+        return Ok(files::SaveOutcome {
+            saved: false,
+            path: None,
+        });
+    };
+    tauri::async_runtime::spawn_blocking(move || {
+        files::write_atomic(&path, &bytes)?;
+        Ok(files::SaveOutcome {
+            saved: true,
+            path: Some(path.display().to_string()),
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             let dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&dir)?;
@@ -125,7 +171,8 @@ pub fn run() {
             connection_activate,
             connection_remove,
             server_probe,
-            discover
+            discover,
+            save_file
         ])
         .run(tauri::generate_context!())
         .expect("error while running Bookeeper");

@@ -2,6 +2,7 @@ import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { installIntersectionObserver, makeDb } from './testkit';
+import { book } from './testkit';
 import { renderWithWrites, sent, stored } from './writeKit';
 
 beforeEach(() => {
@@ -178,5 +179,24 @@ describe('selection', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Annulla' }));
     expect(screen.queryByRole('checkbox')).toBeNull();
     expect(sent(platform, 'POST', '/api/v1/books/batch-delete')).toHaveLength(0);
+  });
+});
+
+describe('labels', () => {
+  it('the selection bar opens the labels dialog with the selected ids', async () => {
+    const { platform } = renderWithWrites({ books: [stored(), book(2)] });
+    await userEvent.click(await screen.findByRole('button', { name: 'Seleziona' }));
+    await userEvent.click(await screen.findByRole('checkbox', { name: 'Seleziona «Dune»' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Etichette' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Etichette' });
+    expect(within(dialog).getByText('1 libro')).toBeInTheDocument();
+    expect(platform.calls.filter((c) => c.path.endsWith('/labels/pdf'))).toHaveLength(0);
+  });
+
+  it('the book page "Altro" menu has "Etichetta"', async () => {
+    renderWithWrites({ books: [stored()] }, {}, '/books/b1');
+    await userEvent.click(await screen.findByRole('button', { name: 'Altro' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Etichetta' }));
+    expect(await screen.findByRole('dialog', { name: 'Etichette' })).toBeInTheDocument();
   });
 });

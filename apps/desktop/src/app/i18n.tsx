@@ -1,12 +1,63 @@
-import { createContext, useCallback, useContext, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, type ReactNode } from 'react';
+import { create } from 'zustand';
 import { resolveLocale, t, type Locale } from '@bookeeper/i18n';
 
 export type Translate = (key: string, vars?: Record<string, string | number>) => string;
 
+export type LocalePreference = 'system' | Locale;
+
+export const LOCALE_KEY = 'bookeeper.locale';
+
+function readPreference(): LocalePreference {
+  try {
+    const v = localStorage.getItem(LOCALE_KEY);
+    if (v === 'system' || v === 'it' || v === 'en') return v;
+  } catch {
+    // Storage unavailable: fall through to the default.
+  }
+  return 'system';
+}
+
+interface PreferenceState {
+  preference: LocalePreference;
+  setPreference(preference: LocalePreference): void;
+}
+
+const usePreferenceStore = create<PreferenceState>((set) => ({
+  preference: readPreference(),
+  setPreference(preference) {
+    try {
+      localStorage.setItem(LOCALE_KEY, preference);
+    } catch {
+      // The choice still applies for this run.
+    }
+    set({ preference });
+  },
+}));
+
+/** The stored language choice (`system` follows the browser language) and its setter. */
+export function useLocalePreference(): PreferenceState {
+  return usePreferenceStore();
+}
+
+/** Test hook: re-reads the stored choice. */
+export function resetLocalePreferenceForTest(): void {
+  usePreferenceStore.setState({ preference: readPreference() });
+}
+
 const LocaleContext = createContext<Locale>('it');
 
+function systemLanguage(): string {
+  return typeof navigator === 'undefined' ? 'it' : navigator.language;
+}
+
+/** An explicit `locale` (tests, previews) wins over the stored preference. */
 export function LocaleProvider({ locale, children }: { locale?: Locale; children: ReactNode }) {
-  const value = locale ?? resolveLocale('system', typeof navigator === 'undefined' ? 'it' : navigator.language);
+  const preference = usePreferenceStore((s) => s.preference);
+  const value = locale ?? resolveLocale(preference, systemLanguage());
+  useEffect(() => {
+    document.documentElement.lang = value;
+  }, [value]);
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;
 }
 

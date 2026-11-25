@@ -14,6 +14,8 @@ export interface SaveResult {
   book: BookOut;
   /** The book was saved but its cover was not. */
   coverFailed: boolean;
+  /** The cover was removed but the color chosen with the removal could not be written. */
+  colorFailed?: boolean;
 }
 
 /** Every write refreshes the books (list, detail, counts), shelves, loans, stats and covers. */
@@ -61,14 +63,23 @@ export function useBookWrites() {
         const changed = Object.keys(v.patch).length > 0;
         // Only a cover that was stored can be deleted.
         const cover = v.cover.kind === 'remove' && !v.hadCover ? { kind: 'keep' as const } : v.cover;
-        // The core clears `cover_color` when it deletes the cover: delete first, so a color chosen in
-        // the same save is written after it and survives.
-        const removedFailed = cover.kind === 'remove' ? await applyCover(v.id, cover) : false;
-        const book = await (changed ? client.updateBook(v.id, v.patch) : client.getBook(v.id));
-        const coverFailed = cover.kind === 'remove' ? removedFailed : await applyCover(v.id, cover);
-        return { book, coverFailed };
+        // Fields first: if the PATCH fails nothing has been touched, the cover included.
+        let book = await (changed ? client.updateBook(v.id, v.patch) : client.getBook(v.id));
+        const coverFailed = await applyCover(v.id, cover);
+        let colorFailed = false;
+        // The core clears `cover_color` when it deletes the cover: a color chosen in the same save is
+        // written again after the delete so it survives.
+        if (cover.kind === 'remove' && !coverFailed && v.patch.cover_color) {
+          try {
+            book = await client.updateBook(v.id, { cover_color: v.patch.cover_color });
+          } catch {
+            colorFailed = true;
+          }
+        }
+        return { book, coverFailed, colorFailed };
       },
-      onSuccess: refresh,
+      // Also after a partial failure: the fields may be saved even if the cover is not.
+      onSettled: refresh,
     }),
     remove: useMutation({ mutationFn: (id: string) => client.deleteBook(id), onSuccess: refresh }),
     removeMany: useMutation({

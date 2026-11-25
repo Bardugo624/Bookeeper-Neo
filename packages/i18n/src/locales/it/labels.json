@@ -1,0 +1,28 @@
+{
+  "title": "Etichette",
+  "summary": {
+    "one": "{count} libro",
+    "other": "{count} libri"
+  },
+  "sheet": "Foglio A4 · 4 × 11 etichette, con un codice Data Matrix per libro",
+  "note": "Le etichette partono dalla prima casella del foglio.",
+  "preview": {
+    "label": "Anteprima del foglio: {used} caselle su {total} usate",
+    "sheets": {
+      "one": "{count} foglio",
+      "other": "{count} fogli"
+    }
+  },
+  "create": "Crea il PDF",
+  "creating": "Creo il PDF…",
+  "tooMany": "Troppi libri per una sola richiesta: il massimo è {max}. Selezionane meno.",
+  "toast": {
+    "saved": "Etichette salvate",
+    "skipped": {
+      "one": "Etichette salvate: {count} libro saltato (senza numero progressivo o non trovato)",
+      "other": "Etichette salvate: {count} libri saltati (senza numero progressivo o non trovati)"
+    }
+  },
+  "action": "Etichette",
+  "menu": "Etichetta"
+}

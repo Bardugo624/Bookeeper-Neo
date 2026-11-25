@@ -1,0 +1,24 @@
+.body {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  padding: 8px 0;
+  text-align: center;
+}
+.rise {
+  animation: bk-rise 600ms var(--bk-ease, ease-out) both;
+}
+.line {
+  margin: 0;
+  color: var(--bk-text-strong);
+}
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rise {
+    animation: none;
+  }
+}

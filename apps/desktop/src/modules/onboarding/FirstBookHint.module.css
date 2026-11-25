@@ -1,0 +1,42 @@
+.hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 24px;
+  text-align: center;
+}
+.glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--bk-primary-50);
+  color: var(--bk-primary-500);
+}
+.title {
+  margin: 8px 0 0;
+  font-family: var(--bk-font-serif);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--bk-text-strong);
+}
+.text {
+  margin: 0;
+  max-width: 360px;
+  color: var(--bk-text);
+}
+.steps {
+  margin: 12px 0 16px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  text-align: left;
+  list-style-position: inside;
+  color: var(--bk-text-strong);
+}
+.steps a {
+  color: var(--bk-primary-500);
+}

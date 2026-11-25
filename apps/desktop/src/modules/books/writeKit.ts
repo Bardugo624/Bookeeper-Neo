@@ -39,7 +39,17 @@ export function writeRoutes(routes: Record<string, (r: Req) => { status: number;
   };
 }
 
-export function renderWithWrites(lib: Omit<Library, 'extra'>, routes: Parameters<typeof writeRoutes>[0] = {}, route = '/books') {
+/**
+ * The first book of a connection opens a celebration dialog; tests that create into an empty library
+ * mark it as seen unless they pass `celebrate`.
+ */
+export function renderWithWrites(
+  lib: Omit<Library, 'extra'>,
+  routes: Parameters<typeof writeRoutes>[0] = {},
+  route = '/books',
+  opts: { celebrate?: boolean } = {},
+) {
+  if (!opts.celebrate) localStorage.setItem('bookeeper.onboarding.firstBook.c1', '1');
   const handler = writeRoutes(routes);
   const view = renderBooks({ ...lib, extra: (r) => handler(r) }, route);
   return view;

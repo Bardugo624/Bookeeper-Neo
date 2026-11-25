@@ -27,3 +27,25 @@ it('calls the connection commands by name', async () => {
   expect(invoke.mock.calls.map((c) => c[0])).toEqual(['connections_get', 'connection_activate', 'connection_remove']);
   expect(invoke).toHaveBeenCalledWith('connection_activate', { id: 'a' });
 });
+
+it('saveFile calls the command with name, base64 and filters', async () => {
+  invoke.mockResolvedValue({ saved: true, path: '/tmp/a.csv' });
+  const out = await tauriPlatform().saveFile({
+    suggestedName: 'a.csv',
+    bytes: new Uint8Array([104, 105]),
+    mime: 'text/csv',
+    filters: [{ name: 'CSV', extensions: ['csv'] }],
+  });
+  expect(out).toEqual({ saved: true, path: '/tmp/a.csv' });
+  expect(invoke).toHaveBeenCalledWith('save_file', {
+    suggested_name: 'a.csv',
+    bytes_base64: 'aGk=',
+    filters: [{ name: 'CSV', extensions: ['csv'] }],
+  });
+});
+
+it('saveFile reports a cancelled window as not saved', async () => {
+  invoke.mockResolvedValue({ saved: false, path: null });
+  const out = await tauriPlatform().saveFile({ suggestedName: 'a', bytes: new Uint8Array(), mime: 'x' });
+  expect(out.saved).toBe(false);
+});

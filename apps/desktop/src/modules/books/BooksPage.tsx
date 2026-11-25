@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button, EmptyState } from '@bookeeper/ui/base';
 import { PillTabs, type PillTabItem } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
 import { usePermission } from '../../kit';
+import { FirstBookHint, useFirstBook } from '../onboarding';
 import { BookDrawer } from './BookDrawer';
 import { BookGrid, GridSkeleton } from './BookGrid';
 import { BookTable, TableSkeleton } from './BookTable';
@@ -23,6 +24,9 @@ export function BooksPage() {
   const sentinel = useEndReached(() => void query.fetchNextPage(), more, items.length);
   const canWrite = usePermission().can('write');
   const [adding, setAdding] = useState(false);
+  const firstBook = useFirstBook(() => setAdding(true));
+  // Whether the panel was opened on an empty library: the list is already refreshed when a save ends.
+  const openedEmpty = useRef(false);
   const selection = useSelection(items.map((b) => b.id));
   const selecting = canWrite && selection.active;
   const { selectAll } = selection;
@@ -48,6 +52,11 @@ export function BooksPage() {
     { id: 'unshelved', label: t('books.filters.unshelved') },
   ];
 
+  const openAdd = () => {
+    openedEmpty.current = !query.isPending && !query.isError && items.length === 0 && !filtered;
+    setAdding(true);
+  };
+
   let body;
   if (query.isPending) {
     body = params.view === 'list' ? (
@@ -72,6 +81,8 @@ export function BooksPage() {
         text={t('books.noResults.text')}
         action={<Button onClick={params.reset}>{t('books.noResults.reset')}</Button>}
       />
+    ) : canWrite ? (
+      <FirstBookHint onAdd={openAdd} />
     ) : (
       <EmptyState icon="book" title={t('books.empty.title')} text={t('books.empty.text')} />
     );
@@ -105,7 +116,7 @@ export function BooksPage() {
           canWrite
             ? {
                 selecting,
-                onAdd: () => setAdding(true),
+                onAdd: openAdd,
                 onToggleSelect: () => (selecting ? selection.stop() : selection.start()),
               }
             : undefined
@@ -119,7 +130,16 @@ export function BooksPage() {
       />
       {body}
       {selecting ? <SelectionBar selected={selection.selected} onDone={selection.stop} /> : null}
-      <BookDrawer open={adding} onClose={() => setAdding(false)} />
+      <BookDrawer
+        open={adding}
+        onClose={() => setAdding(false)}
+        onCreated={(created, another) => {
+          const first = openedEmpty.current;
+          openedEmpty.current = false;
+          if (first && !another) firstBook.celebrate(created);
+        }}
+      />
+      {firstBook.element}
     </div>
   );
 }
