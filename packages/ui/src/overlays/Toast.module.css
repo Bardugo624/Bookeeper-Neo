@@ -72,7 +72,7 @@
     font: inherit;
     font-size: 12px;
     font-weight: 500;
-    color: var(--bk-accent, var(--bk-text-strong));
+    color: var(--bk-text-strong);
     text-decoration: underline;
     cursor: pointer;
 }

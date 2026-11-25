@@ -25,11 +25,19 @@ export function mayHaveCover(coverColor: string | null | undefined): boolean {
  * The bytes travel through the transport (with `ETag` revalidation); the URL is revoked on unmount.
  */
 export function useCover(bookId: string, hasCover: boolean): string | undefined {
+  return useCoverState(bookId, hasCover).src;
+}
+
+/** How the request for a stored cover stands: `none` when no request is made. */
+export type CoverStatus = 'none' | 'loading' | 'ready' | 'absent' | 'failed';
+
+/** Like `useCover`, but also tells loading from "no cover" (404) and from a failed request. */
+export function useCoverState(bookId: string, hasCover: boolean): { src: string | undefined; status: CoverStatus } {
   const client = useClient();
   const queryClient = useQueryClient();
   const connectionId = useSession((s) => s.connection?.id);
   const key = ['covers', connectionId, bookId];
-  const { data } = useQuery<CoverData | null>({
+  const { data, isError, isPending } = useQuery<CoverData | null>({
     queryKey: key,
     enabled: hasCover,
     retry: false,
@@ -60,5 +68,12 @@ export function useCover(bookId: string, hasCover: boolean): string | undefined 
     setUrl(made);
     return () => URL.revokeObjectURL(made);
   }, [bytes]);
-  return url;
+  let status: CoverStatus = 'none';
+  if (hasCover) {
+    if (isError) status = 'failed';
+    else if (isPending) status = 'loading';
+    else if (data === null) status = 'absent';
+    else status = bytes && !url ? 'loading' : 'ready';
+  }
+  return { src: url, status };
 }

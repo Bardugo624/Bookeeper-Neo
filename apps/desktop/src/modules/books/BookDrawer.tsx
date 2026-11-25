@@ -11,7 +11,7 @@ import { ExistingNotice, LookupNotice } from './LookupNotice';
 import { authorsOf } from './format';
 import type { SaveResult } from './useBookWrites';
 import { useBookEditor } from './useBookEditor';
-import { mayHaveCover, useCover } from './useCover';
+import { mayHaveCover, useCoverState } from './useCover';
 import styles from './BookForm.module.css';
 
 export interface BookDrawerProps {
@@ -36,21 +36,25 @@ function BookEditor({ book, onClose, onSaved, onAnother }: BookDrawerProps & { o
   const toast = useToast();
   const formId = useId();
   const [step, setStep] = useState<'isbn' | 'form'>(book ? 'form' : 'isbn');
-  const stored = useCover(book?.id ?? '', mayHaveCover(book?.cover_color));
+  const { src: stored, status: storedStatus } = useCoverState(book?.id ?? '', mayHaveCover(book?.cover_color));
 
   const done = (result: SaveResult | null, another: boolean) => {
     if (result) {
       toast.show({
         title: t(book ? 'books.toast.updated' : 'books.toast.created', { title: result.book.title }),
-        description: result.coverFailed ? t('books.toast.coverFailed') : undefined,
-        tone: result.coverFailed ? 'warn' : 'ok',
+        description: result.colorFailed
+          ? t('books.toast.colorFailed')
+          : result.coverFailed
+            ? t('books.toast.coverFailed')
+            : undefined,
+        tone: result.coverFailed || result.colorFailed ? 'warn' : 'ok',
       });
       if (book) onSaved?.(result.book);
     }
     if (another) onAnother();
     else onClose();
   };
-  const editor = useBookEditor(book, done, Boolean(stored));
+  const editor = useBookEditor(book, done, Boolean(stored) || storedStatus === 'failed');
   const { form } = editor;
   const title = book ? t('books.edit.title') : t('books.new.title');
 
@@ -101,6 +105,7 @@ function BookEditor({ book, onClose, onSaved, onAnother }: BookDrawerProps & { o
             title={form.values.title}
             author={authorsOf(form.values) || undefined}
             storedSrc={stored}
+            storedStatus={storedStatus}
             candidates={editor.candidates}
             plan={editor.plan}
             onPlan={editor.setPlan}
