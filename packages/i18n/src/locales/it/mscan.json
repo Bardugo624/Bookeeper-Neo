@@ -1,0 +1,68 @@
+{
+  "tab": "Scansiona",
+  "title": "Scansiona",
+  "camera": {
+    "label": "Anteprima della fotocamera",
+    "hint": "Inquadra il codice a barre sul retro del libro",
+    "starting": "Avvio della fotocamera…",
+    "torchOn": "Accendi la torcia",
+    "torchOff": "Spegni la torcia",
+    "switch": "Cambia fotocamera",
+    "notIsbn": "Questo codice non è un ISBN"
+  },
+  "added": {
+    "one": "{count} libro aggiunto",
+    "other": "{count} libri aggiunti"
+  },
+  "blocked": {
+    "deniedTitle": "Fotocamera non consentita",
+    "deniedText": "Per leggere i codici serve la fotocamera. Riattivala dalle impostazioni del browser per questo sito, poi riprova.",
+    "missingTitle": "Fotocamera non disponibile",
+    "missingText": "Questo telefono non ha una fotocamera utilizzabile da qui. Puoi scrivere l'ISBN a mano.",
+    "retry": "Riprova",
+    "manual": "Scrivi l'ISBN a mano"
+  },
+  "manual": {
+    "label": "ISBN",
+    "description": "10 o 13 cifre, con o senza trattini",
+    "submit": "Cerca",
+    "invalid": "Questo ISBN non è valido: controlla le cifre."
+  },
+  "sheet": {
+    "looking": "Cerco il libro…",
+    "unknownAuthors": "Autore non indicato",
+    "isbn": "ISBN {isbn}",
+    "owned": {
+      "tag": "È nella tua libreria",
+      "where": "Si trova in: {place}",
+      "shelfRow": "{shelf}, ripiano {row}",
+      "row": "ripiano {row}",
+      "unplaced": "Non è ancora collocato",
+      "open": "Apri la scheda"
+    },
+    "found": {
+      "title": "Libro trovato",
+      "readOnly": "Non puoi aggiungere libri a questa libreria.",
+      "add": "Aggiungi alla libreria",
+      "adding": "Aggiungo…"
+    },
+    "added": {
+      "tag": "Aggiunto",
+      "another": "Scansiona un altro"
+    },
+    "none": {
+      "title": "Nessun dato trovato",
+      "text": "Non ho trovato informazioni per questo ISBN.",
+      "readOnly": "Non puoi aggiungere libri a questa libreria.",
+      "titleLabel": "Titolo",
+      "add": "Aggiungi con il solo ISBN e titolo",
+      "needTitle": "Scrivi il titolo del libro."
+    },
+    "error": {
+      "title": "Non è stato possibile cercare il libro",
+      "retry": "Riprova",
+      "addFailed": "Il libro non è stato aggiunto."
+    },
+    "close": "Chiudi"
+  }
+}
