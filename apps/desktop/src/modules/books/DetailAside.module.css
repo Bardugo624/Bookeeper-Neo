@@ -1,0 +1,43 @@
+.aside {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card {
+  padding: 16px;
+  border: 1px solid var(--bk-border);
+  border-radius: var(--bk-radius-lg);
+  background: var(--bk-surface);
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bk-text-muted);
+}
+
+.value {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--bk-text-strong);
+}
+
+.note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--bk-text-muted);
+}
+
+.link {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--bk-primary-600);
+}

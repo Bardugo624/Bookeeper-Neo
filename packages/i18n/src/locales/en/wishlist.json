@@ -1,0 +1,44 @@
+{
+  "title": "Wishlist",
+  "count": { "one": "{count} wished book", "other": "{count} wished books" },
+  "add": "Add",
+  "loading": "Loading the wishlist",
+  "priority": { "low": "Low", "medium": "Medium", "high": "High" },
+  "filters": { "label": "Filter by priority", "all": "All" },
+  "sort": { "label": "Sort order", "priority": "By priority", "date": "By date" },
+  "empty": { "title": "Your wishlist is empty", "text": "Add the books you would like to own." },
+  "noResults": { "title": "No results", "text": "No book with this priority.", "reset": "Show all" },
+  "error": { "title": "Could not load the wishlist", "text": "Check your connection and try again." },
+  "card": {
+    "added": "Added {date}",
+    "isbn": "ISBN {isbn}",
+    "link": "Open link",
+    "edit": "Edit {title}",
+    "delete": "Delete {title}"
+  },
+  "convert": {
+    "button": "I bought this book",
+    "label": "I bought {title}",
+    "working": "Converting"
+  },
+  "converted": { "title": "Added to books", "open": "Open", "dismiss": "Dismiss notification" },
+  "delete": {
+    "title": "Remove from the wishlist?",
+    "description": "“{title}” will be removed from the wishlist. This cannot be undone."
+  },
+  "form": {
+    "addTitle": "Add to wishlist",
+    "editTitle": "Edit item",
+    "title": "Title",
+    "authors": "Authors",
+    "authorsHint": "Separated by commas",
+    "isbn": "ISBN",
+    "priority": "Priority",
+    "sourceUrl": "Link",
+    "notes": "Notes",
+    "errors": {
+      "required": "Required field",
+      "tooLong": "At most {max} characters"
+    }
+  }
+}

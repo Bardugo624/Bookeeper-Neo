@@ -1,0 +1,103 @@
+import { act } from '@testing-library/react';
+import { vi } from 'vitest';
+import type { TransportResponse } from '@bookeeper/api';
+import type { BookOut } from '@bookeeper/api';
+import { renderMobile } from '../../app/testing';
+import { fakePlatform, type FakePlatform, type Handler, type RawHandler, type RecordedCall } from '../../platform/testing';
+import { ME, ok, pair } from '../../session/fixtures';
+import { module } from './routes';
+
+export const book = (n: number, over: Partial<BookOut> = {}): BookOut =>
+  ({
+    id: `b${n}`,
+    title: `Libro ${n}`,
+    authors: [`Autore ${n}`],
+    on_loan: false,
+    created_at: n,
+    updated_at: n,
+    ...over,
+  }) as BookOut;
+
+export interface Api {
+  books: BookOut[];
+  shelves?: { id: string; name: string }[];
+  /** Replaces the answer of the list or detail endpoints. */
+  override?: (call: RecordedCall) => TransportResponse | undefined | Promise<TransportResponse | undefined>;
+}
+
+/** An in-memory server: `/me`, the book list (q, on_loan, unshelved, paging), a book, the shelves. */
+export function apiHandler(api: Api): Handler {
+  return async (call) => {
+    const own = await api.override?.(call);
+    if (own) return own;
+    const url = new URL(call.path, 'http://x');
+    if (url.pathname === '/api/v1/me') return ok(ME);
+    if (url.pathname === '/api/v1/shelves') return ok({ items: api.shelves ?? [], total: 0 });
+    const one = /^\/api\/v1\/books\/([^/]+)$/.exec(url.pathname);
+    if (one) {
+      const found = api.books.find((b) => b.id === decodeURIComponent(one[1]!));
+      return found
+        ? ok(found)
+        : { status: 404, body: { error_code: 'not_found', message: 'no such book' } };
+    }
+    if (url.pathname === '/api/v1/books') {
+      const q = url.searchParams.get('q')?.toLowerCase();
+      let list = api.books;
+      if (q) list = list.filter((b) => b.title.toLowerCase().includes(q));
+      if (url.searchParams.get('on_loan') === 'true') list = list.filter((b) => b.on_loan);
+      if (url.searchParams.get('unshelved') === 'true') list = list.filter((b) => !b.placement);
+      const offset = Number(url.searchParams.get('offset') ?? 0);
+      const limit = Number(url.searchParams.get('limit') ?? 50);
+      return ok({ items: list.slice(offset, offset + limit), total: list.length, limit, offset });
+    }
+    return { status: 404, body: { error_code: 'not_found', message: 'x' } };
+  };
+}
+
+export interface RenderOptions {
+  api?: Api;
+  handler?: Handler;
+  rawHandler?: RawHandler;
+  route?: string;
+  online?: boolean;
+}
+
+/** The app with only the search module, paired, on `route`. */
+export function renderSearch({ api = { books: [] }, handler, rawHandler, route = '/search', online }: RenderOptions = {}) {
+  const platform: FakePlatform = fakePlatform({ handler: handler ?? apiHandler(api), rawHandler, online });
+  pair(platform.storage);
+  return renderMobile({ platform, modules: [module], route });
+}
+
+/** Paths of the book-list requests made so far, with their query strings. */
+export const listCalls = (platform: FakePlatform) =>
+  platform.fake.calls.filter((c) => c.path.startsWith('/api/v1/books?')).map((c) => c.path);
+
+/** Replaces `IntersectionObserver`; `reach()` tells every observer that its element is in view. */
+export function stubObserver({ reportOnObserve = false } = {}) {
+  const callbacks = new Set<IntersectionObserverCallback>();
+  class Stub {
+    constructor(cb: IntersectionObserverCallback) {
+      callbacks.add(cb);
+      this.cb = cb;
+    }
+    cb: IntersectionObserverCallback;
+    observe() {
+      if (reportOnObserve) this.cb([{ isIntersecting: true } as IntersectionObserverEntry], this as unknown as IntersectionObserver);
+    }
+    unobserve() {}
+    disconnect() {
+      callbacks.delete(this.cb);
+    }
+    takeRecords() {
+      return [];
+    }
+  }
+  vi.stubGlobal('IntersectionObserver', Stub);
+  return {
+    reach: () =>
+      act(() => {
+        for (const cb of [...callbacks]) cb([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver);
+      }),
+  };
+}

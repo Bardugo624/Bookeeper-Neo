@@ -1,0 +1,15 @@
+.qr {
+  display: block;
+  width: 200px;
+  height: 200px;
+  border-radius: var(--bk-radius-md, 8px);
+}
+
+/* A QR needs dark modules on a light ground in both themes. */
+.paper {
+  fill: #ffffff;
+}
+
+.ink {
+  fill: #1a1a1a;
+}

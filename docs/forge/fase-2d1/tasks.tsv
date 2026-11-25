@@ -1,0 +1,3 @@
+# id	deps	difficulty	files	dwarf	qa	title
+rust-fix	-	medium	apps/desktop/src-tauri/src/files.rs,apps/desktop/src-tauri/src/connections.rs,apps/desktop/src-tauri/src/sharing.rs,apps/desktop/src-tauri/tests	-	-	Guscio: cinque difetti P3 del run 2D
+app-fix	-	low	apps/desktop/src/modules/settings/sections/sharing,apps/desktop/src/modules/updates,apps/desktop/src/platform,packages/i18n/src/locales/it/sharing.json,packages/i18n/src/locales/en/sharing.json	-	-	App: due difetti P3 e un test instabile

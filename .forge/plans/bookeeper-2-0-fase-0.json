@@ -1,0 +1,671 @@
+{
+  "objective": "Bookeeper 2.0 — Fase 0: Fondamenta. Scheletro compilabile e testato di core Rust, server, desktop Tauri + React, PWA React, pacchetti condivisi, schema del database, OpenAPI, CI.",
+  "created": "2026-11-22T16:30:00Z",
+  "techStack": {
+    "language": "rust + typescript",
+    "testCommand": "cargo test --workspace && npm test",
+    "buildCommand": "cargo build --workspace && npm run build:2",
+    "lintCommand": "cargo clippy --workspace --all-targets -- -D warnings && npm run typecheck"
+  },
+  "sourcePlan": "docs/superpowers/plans/2026-11-20-bookeeper-2.0-fase-0-fondamenta.md",
+  "spec": "docs/superpowers/specs/2026-11-20-bookeeper-2.0-design.md",
+  "warnings": [
+    "Worktree isolati (scelta utente). m5 e m6 in parallelo dopo m4: nessun file in comune. Tutti gli altri moduli in serie perché condividono Cargo.lock o package-lock.json."
+  ],
+  "modules": [
+    {
+      "id": "m1",
+      "title": "Workspace Rust e endpoint di salute",
+      "objective": "Crea il workspace Cargo e il crate bookeeper-core. Espone `pub struct AppState { pub version: &'static str }`, `pub fn router(state: AppState) -> axum::Router`, `pub const VERSION`, e `GET /api/v1/health` → 200 `{status:\"ok\",version,time}` con time RFC 3339 UTC. Implementa il Task 1 di docs/superpowers/plans/2026-11-20-bookeeper-2.0-fase-0-fondamenta.md esattamente: segui i suoi passi TDD (test che fallisce, poi codice), i suoi blocchi Interfaces e i Global Constraints. Spec: docs/superpowers/specs/2026-11-20-bookeeper-2.0-design.md. Un commit a fine modulo col messaggio indicato nel Task.",
+      "dependsOn": [],
+      "agent": "worker",
+      "files": [
+        "Cargo.toml",
+        "rust-toolchain.toml",
+        ".gitignore",
+        "crates/bookeeper-core/Cargo.toml",
+        "crates/bookeeper-core/src/lib.rs",
+        "crates/bookeeper-core/src/state.rs",
+        "crates/bookeeper-core/src/api/mod.rs",
+        "crates/bookeeper-core/src/api/health.rs",
+        "crates/bookeeper-core/tests/health.rs"
+      ],
+      "verify": [
+        "cargo test -p bookeeper-core --test health",
+        "cargo fmt --check && cargo clippy --workspace --all-targets -- -D warnings"
+      ],
+      "doneWhen": "Il test health_reports_ok_and_version passa; fmt e clippy puliti.",
+      "complexity": "simple",
+      "acceptance_criteria": [
+        {
+          "check": "test health",
+          "expected": "1/1 verde",
+          "blocking": true
+        },
+        {
+          "check": "versione workspace",
+          "expected": "2.0.0-dev",
+          "blocking": true
+        },
+        {
+          "check": "clippy -D warnings",
+          "expected": "exit 0",
+          "blocking": true
+        }
+      ],
+      "disallowed_changes": [
+        "server/**",
+        "clients/**",
+        "deploy/**",
+        ".github/workflows/deploy-server.yml"
+      ],
+      "expected_trajectory": [
+        "leggi il Task 1 del piano",
+        "crea Cargo.toml di root (membri: crates/*) e rust-toolchain.toml",
+        "scrivi tests/health.rs e verifica che fallisca",
+        "implementa state.rs, api/health.rs, api/mod.rs, lib.rs",
+        "cargo test, clippy, fmt",
+        "commit"
+      ]
+    },
+    {
+      "id": "m2",
+      "title": "Database e schema 2.0",
+      "objective": "Aggiunge lo strato SQLite. Espone `Db` (Clone, `open(&Path)`, `open_in_memory()`, `with(f)`), `DbError { Open{path,source}, NewerSchema{found,supported}, Sqlite, Migration(String) }`, `AppState { version, db }` e `AppState::for_tests()` (sempre pubblico, nessuna feature). Lo schema in 0001_schema.sql è quello del piano, copiato tale e quale. Implementa il Task 2 di docs/superpowers/plans/2026-11-20-bookeeper-2.0-fase-0-fondamenta.md esattamente: segui i suoi passi TDD (test che fallisce, poi codice), i suoi blocchi Interfaces e i Global Constraints. Spec: docs/superpowers/specs/2026-11-20-bookeeper-2.0-design.md. Un commit a fine modulo col messaggio indicato nel Task.",
+      "dependsOn": [
+        "m1"
+      ],
+      "agent": "worker",
+      "files": [
+        "crates/bookeeper-core/Cargo.toml",
+        "crates/bookeeper-core/src/lib.rs",
+        "crates/bookeeper-core/src/state.rs",
+        "crates/bookeeper-core/src/db/mod.rs",
+        "crates/bookeeper-core/src/db/migrations/0001_schema.sql",
+        "crates/bookeeper-core/tests/db.rs",
+        "crates/bookeeper-core/tests/health.rs"
+      ],
+      "verify": [
+        "cargo test -p bookeeper-core",
+        "cargo fmt --check && cargo clippy --workspace --all-targets -- -D warnings"
+      ],
+      "doneWhen": "I sei test di tests/db.rs passano; health continua a passare.",
+      "complexity": "medium",
+      "acceptance_criteria": [
+        {
+          "check": "tests/db.rs",
+          "expected": "6/6 verdi",
+          "blocking": true
+        },
+        {
+          "check": "16 tabelle presenti, incluse books_fts e server_meta",
+          "expected": "verificato dal test",
+          "blocking": true
+        },
+        {
+          "check": "la parola tenant non compare nel codice nuovo",
+          "expected": "grep -ri tenant crates/ vuoto",
+          "blocking": true
+        },
+        {
+          "check": "Db::open non crea cartelle mancanti",
+          "expected": "test opening_in_missing_directory verde",
+          "blocking": true
+        }
+      ],
+      "disallowed_changes": [
+        "server/**",
+        "clients/**",
+        "deploy/**",
+        ".github/workflows/deploy-server.yml"
+      ],
+      "expected_trajectory": [
+        "leggi il Task 2 del piano",
+        "scrivi 0001_schema.sql dal piano",
+        "scrivi tests/db.rs e verifica che fallisca",
+        "implementa db/mod.rs con rusqlite (bundled) e rusqlite_migration",
+        "controllo user_version prima di qualsiasi scrittura",
+        "aggiorna AppState e tests/health.rs",
+        "cargo test, clippy",
+        "commit"
+      ]
+    },
+    {
+      "id": "m3",
+      "title": "Modello d'errore",
+      "objective": "Aggiunge `ApiError { status, code: &'static str, message }` con IntoResponse → `{error_code, message}`, i costruttori not_found/bad_request/unauthorized/forbidden/conflict/internal, `From<DbError>` → internal senza dettagli nel corpo, `ApiResult<T>`. Il router risponde JSON a rotte sconosciute (404 not_found) e a metodi errati (405 method_not_allowed). Implementa il Task 3 di docs/superpowers/plans/2026-11-20-bookeeper-2.0-fase-0-fondamenta.md esattamente: segui i suoi passi TDD (test che fallisce, poi codice), i suoi blocchi Interfaces e i Global Constraints. Spec: docs/superpowers/specs/2026-11-20-bookeeper-2.0-design.md. Un commit a fine modulo col messaggio indicato nel Task.",
+      "dependsOn": [
+        "m2"
+      ],
+      "agent": "worker",
+      "files": [
+        "crates/bookeeper-core/Cargo.toml",
+        "crates/bookeeper-core/src/lib.rs",
+        "crates/bookeeper-core/src/error.rs",
+        "crates/bookeeper-core/src/api/mod.rs",
+        "crates/bookeeper-core/tests/errors.rs"
+      ],
+      "verify": [
+        "cargo test -p bookeeper-core",
+        "cargo fmt --check && cargo clippy --workspace --all-targets -- -D warnings"
+      ],
+      "doneWhen": "I tre test di tests/errors.rs passano.",
+      "complexity": "simple",
+      "acceptance_criteria": [
+        {
+          "check": "rotta API sconosciuta",
+          "expected": "404, content-type application/json, error_code not_found",
+          "blocking": true
+        },
+        {
+          "check": "metodo errato",
+          "expected": "405, error_code method_not_allowed",
+          "blocking": true
+        },
+        {
+          "check": "DbError non trapela",
+          "expected": "message senza dettagli",
+          "blocking": true
+        }
+      ],
+      "disallowed_changes": [
+        "server/**",
+        "clients/**",
+        "deploy/**",
+        ".github/workflows/deploy-server.yml"
+      ],
+      "expected_trajectory": [
+        "leggi il Task 3 del piano",
+        "scrivi tests/errors.rs e verifica che fallisca",
+        "implementa error.rs",
+        "aggiungi fallback e method_not_allowed_fallback in api/mod.rs",
+        "cargo test",
+        "commit"
+      ]
+    },
+    {
+      "id": "m4",
+      "title": "Specifica OpenAPI",
+      "objective": "Genera la specifica dal core con utoipa: `pub fn openapi() -> utoipa::openapi::OpenApi` (titolo `Bookeeper API`), `GET /api/v1/openapi.json`, schemi `Health` e `ApiErrorBody`. Versiona l'istantanea in packages/api/openapi.json, rigenerabile con `UPDATE_OPENAPI=1`. Implementa il Task 4 di docs/superpowers/plans/2026-11-20-bookeeper-2.0-fase-0-fondamenta.md esattamente: segui i suoi passi TDD (test che fallisce, poi codice), i suoi blocchi Interfaces e i Global Constraints. Spec: docs/superpowers/specs/2026-11-20-bookeeper-2.0-design.md. Un commit a fine modulo col messaggio indicato nel Task.",
+      "dependsOn": [
+        "m3"
+      ],
+      "agent": "worker",
+      "files": [
+        "crates/bookeeper-core/Cargo.toml",
+        "crates/bookeeper-core/src/lib.rs",
+        "crates/bookeeper-core/src/openapi.rs",
+        "crates/bookeeper-core/src/api/mod.rs",
+        "crates/bookeeper-core/src/api/health.rs",
+        "crates/bookeeper-core/src/error.rs",
+        "crates/bookeeper-core/tests/openapi.rs",
+        "packages/api/openapi.json"
+      ],
+      "verify": [
+        "cargo test -p bookeeper-core",
+        "test -s packages/api/openapi.json",
+        "cargo fmt --check && cargo clippy --workspace --all-targets -- -D warnings"
+      ],
+      "doneWhen": "I due test di tests/openapi.rs passano e l'istantanea è aggiornata.",
+      "complexity": "simple",
+      "acceptance_criteria": [
+        {
+          "check": "spec documenta /api/v1/health",
+          "expected": "presente",
+          "blocking": true
+        },
+        {
+          "check": "istantanea allineata",
+          "expected": "committed_snapshot_is_current verde senza UPDATE_OPENAPI",
+          "blocking": true
+        }
+      ],
+      "disallowed_changes": [
+        "server/**",
+        "clients/**",
+        "deploy/**",
+        ".github/workflows/deploy-server.yml"
+      ],
+      "expected_trajectory": [
+        "leggi il Task 4 del piano",
+        "scrivi tests/openapi.rs e verifica che fallisca",
+        "annota health e i tipi con utoipa",
+        "implementa openapi.rs e la rotta",
+        "UPDATE_OPENAPI=1 cargo test per generare l'istantanea",
+        "cargo test senza la variabile",
+        "commit"
+      ]
+    },
+    {
+      "id": "m5",
+      "title": "Server autonomo",
+      "objective": "Crea il crate bookeeper-server (lib + bin). Espone `Config { data_dir, bind, port }` (clap, env BOOKEEPER_DATA/BOOKEEPER_BIND/BOOKEEPER_PORT, default ./data, 0.0.0.0, 7842), `StartError { DataDir{path}, Bind{addr}, Db }`, `build(&Config) -> Result<Router, StartError>`, `bind(&Config) -> Result<TcpListener, StartError>`, `serve(listener, app)`. main stampa `error: …` ed esce con 1 su StartError. Implementa il Task 5 di docs/superpowers/plans/2026-11-20-bookeeper-2.0-fase-0-fondamenta.md esattamente: segui i suoi passi TDD (test che fallisce, poi codice), i suoi blocchi Interfaces e i Global Constraints. Spec: docs/superpowers/specs/2026-11-20-bookeeper-2.0-design.md. Un commit a fine modulo col messaggio indicato nel Task.",
+      "dependsOn": [
+        "m4"
+      ],
+      "agent": "worker",
+      "files": [
+        "crates/bookeeper-server/Cargo.toml",
+        "crates/bookeeper-server/src/lib.rs",
+        "crates/bookeeper-server/src/main.rs",
+        "crates/bookeeper-server/tests/serve.rs"
+      ],
+      "verify": [
+        "cargo test -p bookeeper-server",
+        "cargo build -p bookeeper-server",
+        "cargo fmt --check && cargo clippy --workspace --all-targets -- -D warnings"
+      ],
+      "doneWhen": "I tre test di tests/serve.rs passano; il binario compila.",
+      "complexity": "medium",
+      "acceptance_criteria": [
+        {
+          "check": "health via HTTP reale",
+          "expected": "status ok",
+          "blocking": true
+        },
+        {
+          "check": "porta occupata",
+          "expected": "StartError::Bind, messaggio con la porta",
+          "blocking": true
+        },
+        {
+          "check": "cartella dati non creabile",
+          "expected": "StartError::DataDir, messaggio col percorso",
+          "blocking": true
+        },
+        {
+          "check": "build() crea la cartella dati annidata",
+          "expected": "bookeeper.sqlite esiste",
+          "blocking": true
+        }
+      ],
+      "disallowed_changes": [
+        "server/**",
+        "clients/**",
+        "deploy/**",
+        ".github/workflows/deploy-server.yml",
+        "crates/bookeeper-core/**"
+      ],
+      "expected_trajectory": [
+        "leggi il Task 5 del piano",
+        "scrivi tests/serve.rs e verifica che fallisca",
+        "implementa lib.rs (Config, StartError, build, bind, serve)",
+        "implementa main.rs",
+        "cargo test e prova manuale con curl",
+        "commit"
+      ]
+    },
+    {
+      "id": "m6",
+      "title": "Workspace JS e client API tipizzato",
+      "objective": "Estende i workspace npm di root con apps/* e packages/*, e crea @bookeeper/api: `Transport`, `TransportResponse`, `createFetchTransport(baseUrl, fetchImpl?)`, `class ApiError(status, code, message)`, `type Health`, `createClient(t) -> { health() }`. Tipi generati da openapi.json con openapi-typescript in src/schema.d.ts (versionato). Script di root: test, typecheck, build:2 limitati ad apps/* e packages/*. Implementa il Task 6 di docs/superpowers/plans/2026-11-20-bookeeper-2.0-fase-0-fondamenta.md esattamente: segui i suoi passi TDD (test che fallisce, poi codice), i suoi blocchi Interfaces e i Global Constraints. Spec: docs/superpowers/specs/2026-11-20-bookeeper-2.0-design.md. Un commit a fine modulo col messaggio indicato nel Task.",
+      "dependsOn": [
+        "m4"
+      ],
+      "agent": "worker",
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "packages/api/package.json",
+        "packages/api/tsconfig.json",
+        "packages/api/src/index.ts",
+        "packages/api/src/transport.ts",
+        "packages/api/src/client.ts",
+        "packages/api/src/schema.d.ts",
+        "packages/api/src/client.test.ts"
+      ],
+      "verify": [
+        "npm test -w @bookeeper/api",
+        "npm run typecheck -w @bookeeper/api",
+        "npm run gen -w @bookeeper/api && git diff --exit-code packages/api/src/schema.d.ts"
+      ],
+      "doneWhen": "I cinque test di client.test.ts passano; typecheck pulito; schema.d.ts allineato.",
+      "complexity": "medium",
+      "acceptance_criteria": [
+        {
+          "check": "client.test.ts",
+          "expected": "5/5 verdi",
+          "blocking": true
+        },
+        {
+          "check": "errore di rete",
+          "expected": "ApiError code network, status 0",
+          "blocking": true
+        },
+        {
+          "check": "corpo d'errore non JSON",
+          "expected": "code unknown",
+          "blocking": true
+        },
+        {
+          "check": "workspace 0.3 ancora elencati nel package.json di root",
+          "expected": "clients/desktop/frontend e clients/mobile-web presenti",
+          "blocking": true
+        }
+      ],
+      "disallowed_changes": [
+        "server/**",
+        "clients/**",
+        "deploy/**",
+        ".github/workflows/deploy-server.yml",
+        "crates/**",
+        "packages/api/openapi.json"
+      ],
+      "expected_trajectory": [
+        "leggi il Task 6 del piano",
+        "modifica package.json di root",
+        "crea packages/api e scrivi client.test.ts",
+        "npm install e verifica che i test falliscano",
+        "npm run gen",
+        "implementa transport.ts, client.ts, index.ts",
+        "npm test e typecheck",
+        "commit"
+      ]
+    },
+    {
+      "id": "m7",
+      "title": "Token di design e i18n",
+      "objective": "Crea @bookeeper/ui con tokens.css (tutti i token --bk-* della 0.3 con gli stessi valori, più le scale --bk-primary-* e --bk-neutral-* dal preset in clients/desktop/frontend/src/theme/index.ts, nessun riferimento a --p-*) e @bookeeper/i18n: `Locale`, `DEFAULT_LOCALE = 'it'`, `resolveLocale(pref, systemLang)`, `t(locale, key, vars?)`, chiavi app.name, status.connected, status.unreachable in it e en. Implementa il Task 7 di docs/superpowers/plans/2026-11-20-bookeeper-2.0-fase-0-fondamenta.md esattamente: segui i suoi passi TDD (test che fallisce, poi codice), i suoi blocchi Interfaces e i Global Constraints. Spec: docs/superpowers/specs/2026-11-20-bookeeper-2.0-design.md. Un commit a fine modulo col messaggio indicato nel Task.",
+      "dependsOn": [
+        "m6"
+      ],
+      "agent": "worker",
+      "files": [
+        "package-lock.json",
+        "packages/ui/package.json",
+        "packages/ui/src/tokens.css",
+        "packages/ui/src/index.ts",
+        "packages/ui/src/tokens.test.ts",
+        "packages/i18n/package.json",
+        "packages/i18n/src/index.ts",
+        "packages/i18n/src/it.json",
+        "packages/i18n/src/en.json",
+        "packages/i18n/src/i18n.test.ts"
+      ],
+      "verify": [
+        "npm test -w @bookeeper/ui -w @bookeeper/i18n",
+        "npm run typecheck"
+      ],
+      "doneWhen": "I test dei token e di i18n passano.",
+      "complexity": "medium",
+      "acceptance_criteria": [
+        {
+          "check": "--bk-primary-500",
+          "expected": "#4d8369",
+          "blocking": true
+        },
+        {
+          "check": "nessun --p- in tokens.css",
+          "expected": "grep vuoto",
+          "blocking": true
+        },
+        {
+          "check": "token semantici in chiaro e scuro",
+          "expected": "test verde",
+          "blocking": true
+        },
+        {
+          "check": "stesse chiavi in it ed en",
+          "expected": "test verde",
+          "blocking": true
+        },
+        {
+          "check": "valori dei token identici alla 0.3",
+          "expected": "confronto con clients/desktop/frontend/src/theme/tokens.css",
+          "blocking": true
+        }
+      ],
+      "disallowed_changes": [
+        "server/**",
+        "clients/**",
+        "deploy/**",
+        ".github/workflows/deploy-server.yml",
+        "crates/**",
+        "packages/api/**"
+      ],
+      "expected_trajectory": [
+        "leggi il Task 7 del piano",
+        "leggi tokens.css, theme/index.ts, style.css della 0.3 (sola lettura)",
+        "scrivi i due file di test e verifica che falliscano",
+        "scrivi tokens.css",
+        "implementa @bookeeper/i18n",
+        "npm test",
+        "commit"
+      ]
+    },
+    {
+      "id": "m8",
+      "title": "Scheletro desktop Tauri + React",
+      "objective": "Crea apps/desktop. Rust (crate bookeeper-desktop, aggiunto ai membri del workspace): `ApiResponse { status: u16, body: String }`, `dispatch(router, method, path, body) -> ApiResponse` che chiama il core in processo senza socket e risponde 400 bad_request a metodo non valido o percorso fuori da /api/, comando Tauri `api_request`. Dati in app_data_dir()/bookeeper.sqlite, identificativo org.bookeeper.desktop. TS (@bookeeper/desktop): `createTauriTransport()`, `App({ client, locale })` che mostra app.name e lo stato di connessione. Usa `AppState::for_tests()` nei test Rust (è sempre pubblico: NON aggiungere feature al core). Implementa il Task 8 di docs/superpowers/plans/2026-11-20-bookeeper-2.0-fase-0-fondamenta.md esattamente: segui i suoi passi TDD (test che fallisce, poi codice), i suoi blocchi Interfaces e i Global Constraints. Spec: docs/superpowers/specs/2026-11-20-bookeeper-2.0-design.md. Un commit a fine modulo col messaggio indicato nel Task.",
+      "dependsOn": [
+        "m7"
+      ],
+      "agent": "worker",
+      "files": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "package-lock.json",
+        "apps/desktop/package.json",
+        "apps/desktop/vite.config.ts",
+        "apps/desktop/index.html",
+        "apps/desktop/tsconfig.json",
+        "apps/desktop/src/main.tsx",
+        "apps/desktop/src/App.tsx",
+        "apps/desktop/src/transport.ts",
+        "apps/desktop/src/App.test.tsx",
+        "apps/desktop/src-tauri/Cargo.toml",
+        "apps/desktop/src-tauri/build.rs",
+        "apps/desktop/src-tauri/tauri.conf.json",
+        "apps/desktop/src-tauri/capabilities/default.json",
+        "apps/desktop/src-tauri/src/main.rs",
+        "apps/desktop/src-tauri/src/lib.rs",
+        "apps/desktop/src-tauri/src/dispatch.rs"
+      ],
+      "verify": [
+        "cargo test -p bookeeper-desktop",
+        "npm test -w @bookeeper/desktop",
+        "npm run build -w @bookeeper/desktop",
+        "cargo build -p bookeeper-desktop",
+        "cargo fmt --check && cargo clippy --workspace --all-targets -- -D warnings"
+      ],
+      "doneWhen": "I quattro test di dispatch e i due di App passano; frontend e app compilano su Linux.",
+      "complexity": "complex",
+      "acceptance_criteria": [
+        {
+          "check": "dispatch senza socket",
+          "expected": "200 su /api/v1/health",
+          "blocking": true
+        },
+        {
+          "check": "percorso fuori da /api/",
+          "expected": "400 bad_request",
+          "blocking": true
+        },
+        {
+          "check": "metodo non valido",
+          "expected": "400, nessun panic",
+          "blocking": true
+        },
+        {
+          "check": "App mostra versione o non raggiungibile",
+          "expected": "2/2 verdi",
+          "blocking": true
+        },
+        {
+          "check": "cargo build -p bookeeper-desktop",
+          "expected": "exit 0",
+          "blocking": true
+        },
+        {
+          "check": "crates/bookeeper-core invariato",
+          "expected": "git diff vuoto su crates/",
+          "blocking": true
+        }
+      ],
+      "disallowed_changes": [
+        "server/**",
+        "clients/**",
+        "deploy/**",
+        ".github/workflows/deploy-server.yml",
+        "crates/**",
+        "packages/**"
+      ],
+      "expected_trajectory": [
+        "leggi il Task 8 del piano",
+        "le librerie di sistema Tauri (webkit2gtk-4.1, gtk3, librsvg, ayatana) sono già installate",
+        "crea src-tauri e aggiungi il membro al workspace",
+        "scrivi i test di dispatch e verifica che falliscano",
+        "scrivi App.test.tsx e verifica che fallisca",
+        "implementa dispatch.rs, lib.rs, main.rs",
+        "genera le icone con tauri icon da clients/desktop/build/appicon.png",
+        "implementa transport.ts, App.tsx, main.tsx",
+        "cargo test, npm test, build",
+        "commit"
+      ]
+    },
+    {
+      "id": "m9",
+      "title": "Scheletro PWA incorporato nel server",
+      "objective": "Crea apps/mobile (@bookeeper/mobile): `App({ client, locale, secure })` che con secure=false mostra solo mobile.needsHttps. Aggiunge la chiave mobile.needsHttps a @bookeeper/i18n (it e en, testo nel piano). In bookeeper-server: `web_routes()` serve apps/mobile/dist con rust-embed, con ripiego su index.html per le rotte SPA ma MAI per /api/*; build.rs crea un segnaposto se dist manca; `build()` unisce router e web_routes. Implementa il Task 9 di docs/superpowers/plans/2026-11-20-bookeeper-2.0-fase-0-fondamenta.md esattamente: segui i suoi passi TDD (test che fallisce, poi codice), i suoi blocchi Interfaces e i Global Constraints. Spec: docs/superpowers/specs/2026-11-20-bookeeper-2.0-design.md. Un commit a fine modulo col messaggio indicato nel Task. VINCOLO (dalla revisione di m3): il router del core ha già un fallback JSON. In axum 0.8 `Router::merge` va in panic se entrambi i router hanno un fallback. Il router finale DEVE avere UN solo fallback che distingue per percorso: `ApiError::not_found()` se il percorso inizia con `/api/`, altrimenti index.html. Forma consigliata: `bookeeper_core::router(state).fallback(spa_handler)` (sostituisce il fallback del core) oppure `.reset_fallback().merge(web_routes())`.",
+      "dependsOn": [
+        "m8",
+        "m5"
+      ],
+      "agent": "worker",
+      "files": [
+        "Cargo.lock",
+        "package-lock.json",
+        ".gitignore",
+        "apps/mobile/package.json",
+        "apps/mobile/vite.config.ts",
+        "apps/mobile/index.html",
+        "apps/mobile/tsconfig.json",
+        "apps/mobile/src/main.tsx",
+        "apps/mobile/src/App.tsx",
+        "apps/mobile/src/App.test.tsx",
+        "crates/bookeeper-server/Cargo.toml",
+        "crates/bookeeper-server/build.rs",
+        "crates/bookeeper-server/src/lib.rs",
+        "crates/bookeeper-server/src/web.rs",
+        "crates/bookeeper-server/tests/serve.rs",
+        "packages/i18n/src/it.json",
+        "packages/i18n/src/en.json"
+      ],
+      "verify": [
+        "npm run build -w @bookeeper/mobile",
+        "cargo test -p bookeeper-server",
+        "npm test -w @bookeeper/mobile -w @bookeeper/i18n",
+        "npm run typecheck",
+        "cargo fmt --check && cargo clippy --workspace --all-targets -- -D warnings"
+      ],
+      "doneWhen": "I tre nuovi test del server e i due di App passano; i test precedenti restano verdi.",
+      "complexity": "medium",
+      "acceptance_criteria": [
+        {
+          "check": "GET /",
+          "expected": "200 text/html",
+          "blocking": true
+        },
+        {
+          "check": "pagina sconosciuta non API",
+          "expected": "200 text/html",
+          "blocking": true
+        },
+        {
+          "check": "rotta API sconosciuta",
+          "expected": "404 application/json, mai HTML",
+          "blocking": true
+        },
+        {
+          "check": "contesto non sicuro",
+          "expected": "solo il messaggio needsHttps",
+          "blocking": true
+        },
+        {
+          "check": "cargo build senza Node",
+          "expected": "build.rs crea il segnaposto",
+          "blocking": true
+        },
+        {
+          "check": "il server parte senza panic con le rotte web unite",
+          "expected": "tutti i test di tests/serve.rs verdi",
+          "blocking": true
+        }
+      ],
+      "disallowed_changes": [
+        "server/**",
+        "clients/**",
+        "deploy/**",
+        ".github/workflows/deploy-server.yml",
+        "crates/bookeeper-core/**",
+        "packages/api/**",
+        "packages/ui/**",
+        "apps/desktop/**"
+      ],
+      "expected_trajectory": [
+        "leggi il Task 9 del piano",
+        "aggiungi i test a tests/serve.rs e scrivi App.test.tsx; verifica che falliscano",
+        "crea apps/mobile",
+        "aggiungi la chiave i18n",
+        "implementa web.rs e build.rs",
+        "unisci le rotte in build()",
+        "npm build, cargo test, npm test",
+        "commit"
+      ]
+    },
+    {
+      "id": "m10",
+      "title": "CI",
+      "objective": "Crea .github/workflows/ci.yml con i job rust, js, openapi, desktop-build (windows-latest) descritti nel piano, filtrati sui percorsi 2.0, e aggiunge al README la sezione Sviluppo 2.0. NON fare push: lo fa l'orchestratore. Implementa il Task 10 di docs/superpowers/plans/2026-11-20-bookeeper-2.0-fase-0-fondamenta.md esattamente: segui i suoi passi TDD (test che fallisce, poi codice), i suoi blocchi Interfaces e i Global Constraints. Spec: docs/superpowers/specs/2026-11-20-bookeeper-2.0-design.md. Un commit a fine modulo col messaggio indicato nel Task.",
+      "dependsOn": [
+        "m9"
+      ],
+      "agent": "worker",
+      "files": [
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "verify": [
+        "cargo fmt --check && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace",
+        "npm run typecheck && npm test && npm run build:2",
+        "npm run gen -w @bookeeper/api && git diff --exit-code packages/api",
+        "python3 -c \"import yaml,sys; d=yaml.safe_load(open('.github/workflows/ci.yml')); assert set(d['jobs'])=={'rust','js','openapi','desktop-build'}, d['jobs'].keys()\""
+      ],
+      "doneWhen": "ci.yml è YAML valido con i quattro job; tutti i comandi della CI passano in locale.",
+      "complexity": "simple",
+      "acceptance_criteria": [
+        {
+          "check": "quattro job",
+          "expected": "rust, js, openapi, desktop-build",
+          "blocking": true
+        },
+        {
+          "check": "deploy-server.yml invariato",
+          "expected": "git diff vuoto",
+          "blocking": true
+        },
+        {
+          "check": "comandi CI in locale",
+          "expected": "tutti exit 0",
+          "blocking": true
+        }
+      ],
+      "disallowed_changes": [
+        "server/**",
+        "clients/**",
+        "deploy/**",
+        ".github/workflows/deploy-server.yml",
+        "crates/**",
+        "apps/**",
+        "packages/**"
+      ],
+      "expected_trajectory": [
+        "leggi il Task 10 del piano",
+        "scrivi ci.yml",
+        "esegui in locale gli stessi comandi",
+        "aggiorna README.md",
+        "commit (senza push)"
+      ]
+    }
+  ]
+}

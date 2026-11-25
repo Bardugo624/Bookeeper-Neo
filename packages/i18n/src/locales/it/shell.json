@@ -1,0 +1,48 @@
+{
+  "sidebar": { "label": "Navigazione principale" },
+  "toast": { "close": "Chiudi notifica" },
+  "window": {
+    "minimize": "Riduci a icona",
+    "maximize": "Ingrandisci",
+    "restore": "Ripristina",
+    "close": "Chiudi"
+  },
+  "theme": {
+    "label": "Tema",
+    "light": "Tema chiaro",
+    "dark": "Tema scuro",
+    "system": "Tema del sistema"
+  },
+  "library": {
+    "unknown": "Libreria"
+  },
+  "signOut": "Esci",
+  "role": {
+    "owner": "Proprietario",
+    "admin": "Amministratore",
+    "member": "Membro",
+    "guest": "Ospite"
+  },
+  "loading": "Caricamento",
+  "empty": {
+    "title": "Non c'è ancora nulla qui",
+    "text": "Questa versione non ha sezioni da mostrare."
+  },
+  "notFound": {
+    "title": "Pagina non trovata",
+    "text": "L'indirizzo richiesto non esiste."
+  },
+  "error": {
+    "title": "Qualcosa non ha funzionato",
+    "text": "Riprova. Se il problema continua, riavvia Bookeeper.",
+    "retry": "Riprova"
+  },
+  "errors": {
+    "generic": "Si è verificato un errore. Riprova.",
+    "network": "La libreria non è raggiungibile.",
+    "unauthorized": "La sessione è scaduta. Accedi di nuovo."
+  },
+  "welcome": {
+    "text": "Preparazione del primo avvio."
+  }
+}

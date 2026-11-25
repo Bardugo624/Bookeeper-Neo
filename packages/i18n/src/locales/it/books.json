@@ -1,0 +1,231 @@
+{
+  "title": "Libri",
+  "count": {
+    "one": "{count} libro",
+    "other": "{count} libri"
+  },
+  "onLoan": "{count} in prestito",
+  "search": {
+    "label": "Cerca nei libri",
+    "placeholder": "Cerca titolo, autore, ISBN",
+    "clear": "Svuota la ricerca",
+    "hint": "Ctrl K",
+    "hintMac": "⌘K"
+  },
+  "filters": {
+    "label": "Filtri",
+    "all": "Tutti",
+    "loan": "In prestito",
+    "unshelved": "Non collocati"
+  },
+  "view": {
+    "label": "Vista",
+    "grid": "Griglia",
+    "list": "Lista"
+  },
+  "list": {
+    "label": "Libri",
+    "loading": "Caricamento dei libri",
+    "loadingMore": "Caricamento di altri libri",
+    "onLoan": "In prestito",
+    "available": "In casa",
+    "unplaced": "Non collocato",
+    "cardName": "{title}, {author}",
+    "columns": {
+      "title": "Titolo",
+      "author": "Autore",
+      "year": "Anno",
+      "placement": "Collocazione",
+      "status": "Prestito"
+    },
+    "sortBy": "Ordina per {column}"
+  },
+  "empty": {
+    "title": "Nessun libro",
+    "text": "La libreria è ancora vuota."
+  },
+  "noResults": {
+    "title": "Nessun risultato",
+    "text": "Nessun libro corrisponde alla ricerca e ai filtri scelti.",
+    "reset": "Azzera ricerca e filtri"
+  },
+  "error": {
+    "title": "Non riesco a leggere i libri",
+    "text": "Controlla la connessione alla libreria e riprova.",
+    "retry": "Riprova",
+    "moreText": "Impossibile caricare altri libri."
+  },
+  "detail": {
+    "back": "Libri",
+    "loading": "Caricamento del libro",
+    "fields": {
+      "publisher": "Editore",
+      "pages": "Pagine",
+      "language": "Lingua",
+      "isbn13": "ISBN-13",
+      "isbn10": "ISBN-10",
+      "format": "Formato",
+      "progressive": "Numero progressivo"
+    },
+    "formats": {
+      "hardcover": "Rilegato",
+      "paperback": "Brossura",
+      "ebook": "E-book",
+      "audiobook": "Audiolibro"
+    },
+    "where": {
+      "title": "Dove si trova",
+      "none": "Non collocato",
+      "shelf": "Mobile",
+      "row": "Ripiano {row}",
+      "show": "Mostra sullo scaffale"
+    },
+    "loans": {
+      "title": "Prestiti",
+      "onLoan": "In prestito",
+      "none": "Non in prestito",
+      "to": "A {name} dal {date}",
+      "open": "Vedi i prestiti"
+    },
+    "notFound": {
+      "title": "Libro non trovato",
+      "text": "Questo libro non esiste più o l'indirizzo non è corretto.",
+      "back": "Torna ai libri"
+    },
+    "error": {
+      "title": "Non riesco a leggere il libro",
+      "text": "Controlla la connessione alla libreria e riprova.",
+      "retry": "Riprova"
+    },
+    "lend": "Presta",
+    "more": "Altro"
+  },
+  "new": {
+    "button": "Aggiungi",
+    "title": "Nuovo libro",
+    "saveAnother": "Salva e aggiungi un altro"
+  },
+  "edit": {
+    "title": "Modifica libro"
+  },
+  "lookup": {
+    "isbn": "ISBN",
+    "hint": "10 o 13 cifre, con o senza trattini.",
+    "invalid": "L'ISBN non è valido: controlla le cifre.",
+    "search": "Cerca",
+    "searching": "Ricerca in corso",
+    "manual": "Inserisci a mano",
+    "found": "Dati trovati da: {sources}. Controllali prima di salvare.",
+    "notFound": "Nessun fornitore conosce questo ISBN. Compila i dati a mano.",
+    "failed": "Non riesco a cercare l'ISBN. {reason} Puoi compilare i dati a mano.",
+    "exists": "Questo ISBN è già in libreria: «{title}».",
+    "openExisting": "Apri il libro esistente"
+  },
+  "form": {
+    "groups": {
+      "essentials": "Essenziali",
+      "edition": "Edizione",
+      "collection": "Raccolta",
+      "notes": "Note"
+    },
+    "title": "Titolo",
+    "subtitle": "Sottotitolo",
+    "authors": "Autori",
+    "authorN": "Autore {n}",
+    "addAuthor": "Aggiungi autore",
+    "removeAuthor": "Rimuovi l'autore {n}",
+    "publisher": "Editore",
+    "year": "Anno",
+    "language": "Lingua",
+    "pages": "Pagine",
+    "format": "Formato",
+    "formatNone": "Non indicato",
+    "isbn10": "ISBN-10",
+    "isbn13": "ISBN-13",
+    "genre": "Genere",
+    "progressive": "Numero progressivo",
+    "condition": "Condizione",
+    "acquired": "Data d'acquisto",
+    "price": "Prezzo (€)",
+    "description": "Descrizione",
+    "notes": "Note",
+    "errors": {
+      "tooLong": "Al massimo {max} caratteri.",
+      "tooManyAuthors": "Al massimo {max} autori.",
+      "isbn13": "ISBN-13 non valido.",
+      "isbn10": "ISBN-10 non valido.",
+      "range": "Un numero tra {min} e {max}.",
+      "price": "Un importo come 12,50.",
+      "date": "Data non valida.",
+      "progressiveTaken": "Questo numero è già usato da un altro libro."
+    }
+  },
+  "cover": {
+    "title": "Copertina",
+    "untitled": "Senza titolo",
+    "useThis": "Usa questa copertina",
+    "upload": "Carica un'immagine",
+    "remove": "Rimuovi",
+    "file": "File della copertina",
+    "badType": "Sono ammesse solo immagini JPEG, PNG o WebP.",
+    "tooBig": "L'immagine supera i {mb} MB.",
+    "color": {
+      "label": "Colore del segnaposto",
+      "auto": "Automatico",
+      "tones": {
+        "sage": "Salvia",
+        "terracotta": "Terracotta",
+        "night": "Notte",
+        "plum": "Prugna",
+        "amber": "Ambra",
+        "graphite": "Grafite",
+        "moss": "Muschio",
+        "wine": "Vino",
+        "teal": "Petrolio",
+        "umber": "Terra d'ombra"
+      }
+    }
+  },
+  "selection": {
+    "toggle": "Seleziona",
+    "label": "Selezione",
+    "column": "Selezione",
+    "select": "Seleziona «{title}»",
+    "count": {
+      "one": "{count} selezionato",
+      "other": "{count} selezionati"
+    },
+    "confirmTitle": {
+      "one": "Eliminare {count} libro?",
+      "other": "Eliminare {count} libri?"
+    },
+    "confirmText": {
+      "one": "Il libro selezionato sarà eliminato con la sua copertina. L'operazione non si può annullare.",
+      "other": "I {count} libri selezionati saranno eliminati con le loro copertine. L'operazione non si può annullare."
+    },
+    "confirmButton": {
+      "one": "Elimina {count} libro",
+      "other": "Elimina {count} libri"
+    },
+    "deleted": {
+      "one": "{count} libro eliminato",
+      "other": "{count} libri eliminati"
+    },
+    "partial": "Eliminati {deleted} libri su {total}",
+    "notDeleted": {
+      "one": "{count} libro non è stato eliminato.",
+      "other": "{count} libri non sono stati eliminati."
+    }
+  },
+  "delete": {
+    "title": "Eliminare «{title}»?",
+    "text": "Il libro sarà eliminato con la sua copertina. L'operazione non si può annullare."
+  },
+  "toast": {
+    "created": "«{title}» aggiunto",
+    "updated": "«{title}» salvato",
+    "deleted": "«{title}» eliminato",
+    "coverFailed": "Il libro è stato salvato, ma la copertina no.",
+    "colorFailed": "Il libro è stato salvato, ma il colore del dorso no."
+  }
+}

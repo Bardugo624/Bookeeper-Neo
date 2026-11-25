@@ -1,0 +1,4 @@
+mobile.neokeeper.dev, app.neokeeper.dev {
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:7842
+}

@@ -1,0 +1,171 @@
+/* Bookeeper — design tokens condivisi.
+ *
+ * Unica fonte per palette, motion, ombre, raggi, superfici e z-index semantici.
+ * Le superfici sono definite QUI per light e dark: i componenti usano
+ * `var(--bk-surface)` / `var(--bk-border)` e non hanno bisogno di regole
+ * per il tema scuro duplicate nei singoli componenti.
+ *
+ * Convenzione: prefisso --bk- (Bookeeper).
+ */
+
+:root {
+    /* ===== Font ===== */
+    --bk-font-ui: 'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --bk-font-serif: 'Lora Variable', 'Lora', Georgia, serif;
+
+    /* ===== Palette primaria (verde-salvia, uguale in light e dark) ===== */
+    --bk-primary-50: #f1f7f4;
+    --bk-primary-100: #dcebe2;
+    --bk-primary-200: #bcd6c8;
+    --bk-primary-300: #92baa6;
+    --bk-primary-400: #6a9c83;
+    --bk-primary-500: #4d8369;
+    --bk-primary-600: #3b6953;
+    --bk-primary-700: #305545;
+    --bk-primary-800: #284439;
+    --bk-primary-900: #223830;
+    --bk-primary-950: #10201a;
+
+    /* ===== Neutri caldi (light) ===== */
+    --bk-neutral-0: #ffffff;
+    --bk-neutral-50: #fbfaf8;
+    --bk-neutral-100: #f5f3ef;
+    --bk-neutral-200: #ebe7e0;
+    --bk-neutral-300: #d8d2c8;
+    --bk-neutral-400: #a9a195;
+    --bk-neutral-500: #7a7268;
+    --bk-neutral-600: #5b554d;
+    --bk-neutral-700: #3f3a34;
+    --bk-neutral-800: #27241f;
+    --bk-neutral-900: #181613;
+    --bk-neutral-950: #0c0b0a;
+
+    /* ===== Motion =====
+     * Durate: 150 feedback istantaneo · 200 cambi di stato · 280 layout.
+     * Easing: ease-out esponenziali, mai bounce/elastic. */
+    --bk-dur-fast: 150ms;
+    --bk-dur: 200ms;
+    --bk-dur-slow: 280ms;
+    --bk-ease: cubic-bezier(0.25, 1, 0.5, 1);        /* out-quart */
+    --bk-ease-snappy: cubic-bezier(0.22, 1, 0.36, 1); /* out-quint */
+
+    /* ===== Radius ===== */
+    --bk-radius-sm: 8px;
+    --bk-radius: 12px;
+    --bk-radius-lg: 16px;
+
+    /* ===== Z-index semantici ===== */
+    --bk-z-sticky: 100;
+    --bk-z-dropdown: 1000;
+    --bk-z-overlay: 1100;   /* modal backdrop */
+    --bk-z-modal: 1200;
+    --bk-z-toast: 1300;
+    --bk-z-tooltip: 1400;
+
+    /* ===== Superfici (light) =====
+     * Tinte calde coerenti col brand: le ombre usano l'inchiostro caldo
+     * della palette (neutral-800 #27241f), non nero puro. */
+    --bk-bg: var(--bk-neutral-50);            /* fondo app */
+    --bk-surface: var(--bk-neutral-0);        /* card, pannelli */
+    --bk-surface-raised: var(--bk-neutral-0); /* dialog, popover */
+    --bk-chrome: #f2efe9;                     /* sidebar/topbar: 2° neutro caldo */
+    --bk-inset: var(--bk-neutral-100);        /* incassi: track, nicchie, code */
+    --bk-border: var(--bk-neutral-200);
+    --bk-border-strong: var(--bk-neutral-300);
+    --bk-text: var(--bk-neutral-800);
+    --bk-text-strong: var(--bk-neutral-900);
+    --bk-text-muted: var(--bk-neutral-600);
+    --bk-text-faint: var(--bk-neutral-500);
+
+    /* ===== Ombre (light, tinte calde) ===== */
+    --bk-shadow-1: 0 1px 2px rgb(39 36 31 / 0.05), 0 1px 3px rgb(39 36 31 / 0.05);
+    --bk-shadow-2: 0 2px 4px rgb(39 36 31 / 0.04), 0 6px 16px rgb(39 36 31 / 0.07);
+    --bk-shadow-3: 0 4px 8px rgb(39 36 31 / 0.05), 0 14px 36px rgb(39 36 31 / 0.12);
+    /* Ombra "libro": corta e densa sotto, come un volume su una mensola. */
+    --bk-shadow-book: 0 1px 1px rgb(24 22 19 / 0.14), 0 3px 6px rgb(24 22 19 / 0.18);
+    --bk-shadow-book-lift: 0 2px 3px rgb(24 22 19 / 0.14), 0 8px 18px rgb(24 22 19 / 0.24);
+    /* ===== Stati, focus, tooltip (light) =====
+     * `-strong` è la variante leggibile come testo su --bk-surface (>= 4,5:1). */
+    --bk-ok: #4d8369;
+    --bk-ok-bg: rgb(77 131 105 / 0.12);
+    --bk-ok-strong: #2f6049;
+    --bk-warn: #b7791f;
+    --bk-warn-bg: rgb(183 121 31 / 0.14);
+    --bk-warn-strong: #7d5010;
+    --bk-danger: #b4493b;
+    --bk-danger-bg: rgb(180 73 59 / 0.12);
+    --bk-danger-strong: #98382b;
+    --bk-danger-fill: #b4493b;
+    --bk-danger-fill-hover: #98382b;
+    --bk-on-primary: #ffffff;
+    --bk-focus: var(--bk-primary-400);
+    --bk-tooltip-bg: #27241f;
+    --bk-tooltip-text: #fbfaf8;
+    --bk-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --bk-cover-light: #ffffff;
+    --bk-cover-shade: #000000;
+}
+
+html.dark {
+    /* Neutri caldi (dark): scala invertita, come nel preset della 0.3. */
+    --bk-neutral-0: #ffffff;
+    --bk-neutral-50: #f4f4f3;
+    --bk-neutral-100: #d8d6d2;
+    --bk-neutral-200: #a9a59e;
+    --bk-neutral-300: #807c74;
+    --bk-neutral-400: #5b574f;
+    --bk-neutral-500: #403d37;
+    --bk-neutral-600: #2c2a25;
+    --bk-neutral-700: #1f1d1a;
+    --bk-neutral-800: #161512;
+    --bk-neutral-900: #0e0d0b;
+    --bk-neutral-950: #070706;
+
+    --bk-bg: var(--bk-neutral-900);
+    --bk-surface: var(--bk-neutral-800);
+    --bk-surface-raised: #211f1b; /* fra neutral-700 e 800: stacca dai pannelli */
+    --bk-chrome: #131210;         /* sidebar/topbar più fonde del contenuto */
+    --bk-inset: var(--bk-neutral-700);
+    --bk-border: var(--bk-neutral-700);
+    --bk-border-strong: var(--bk-neutral-600);
+    --bk-text: var(--bk-neutral-100);
+    --bk-text-strong: var(--bk-neutral-50);
+    --bk-text-muted: var(--bk-neutral-300);
+    --bk-text-faint: var(--bk-neutral-400);
+
+    --bk-shadow-1: 0 1px 2px rgb(0 0 0 / 0.3), 0 1px 3px rgb(0 0 0 / 0.25);
+    --bk-shadow-2: 0 2px 4px rgb(0 0 0 / 0.25), 0 6px 16px rgb(0 0 0 / 0.35);
+    --bk-shadow-3: 0 4px 8px rgb(0 0 0 / 0.3), 0 14px 36px rgb(0 0 0 / 0.5);
+    --bk-shadow-book: 0 1px 1px rgb(0 0 0 / 0.4), 0 3px 6px rgb(0 0 0 / 0.45);
+    --bk-shadow-book-lift: 0 2px 3px rgb(0 0 0 / 0.4), 0 8px 18px rgb(0 0 0 / 0.55);
+    --bk-ok: #6fb392;
+    --bk-ok-bg: rgb(111 179 146 / 0.16);
+    --bk-ok-strong: #8cc9aa;
+    --bk-warn: #d9a043;
+    --bk-warn-bg: rgb(217 160 67 / 0.16);
+    --bk-warn-strong: #e8b963;
+    --bk-danger: #d9786a;
+    --bk-danger-bg: rgb(217 120 106 / 0.16);
+    --bk-danger-strong: #e8978b;
+    --bk-danger-fill: #b4493b;
+    --bk-danger-fill-hover: #98382b;
+    --bk-on-primary: #ffffff;
+    --bk-focus: var(--bk-primary-400);
+    --bk-tooltip-bg: #f4f4f3;
+    --bk-tooltip-text: #161512;
+    --bk-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --bk-cover-light: #ffffff;
+    --bk-cover-shade: #000000;
+}
+
+/* ===== Entrance condivise =====
+ * Un solo vocabolario di ingresso: rise (fade+alza). Lo stagger si fa
+ * con `--i` sull'item: animation-delay: calc(var(--i, 0) * 30ms).
+ * Il default è visibile: l'animazione parte da from{}, quindi in
+ * ambienti senza animazioni il contenuto è comunque renderizzato. */
+@keyframes bk-rise {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+}

@@ -1,0 +1,86 @@
+.card {
+  border: 1px solid var(--bk-border);
+  border-radius: var(--bk-radius);
+  background: var(--bk-surface);
+}
+
+.open {
+  border: 1.5px solid var(--bk-primary-500);
+  box-shadow: var(--bk-shadow-2);
+}
+
+.heading {
+  margin: 0;
+}
+
+.header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 0;
+  border-radius: var(--bk-radius);
+  background: transparent;
+  color: var(--bk-text-faint);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.glyph {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--bk-radius-sm);
+  background: var(--bk-primary-50);
+  color: var(--bk-primary-600);
+}
+
+.titles {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--bk-text-strong);
+}
+
+.text {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--bk-text-muted);
+}
+
+.badge {
+  flex: none;
+}
+
+.body {
+  padding: 4px 18px 18px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .body {
+    animation: rise var(--bk-dur) var(--bk-ease) both;
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

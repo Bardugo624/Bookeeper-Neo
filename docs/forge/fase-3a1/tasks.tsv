@@ -1,0 +1,2 @@
+# id	deps	difficulty	files	dwarf	qa	title
+m-p3	-	low	apps/mobile/src/session,apps/mobile/src/modules/pair,packages/i18n/src/locales/it/mpair.json,packages/i18n/src/locales/en/mpair.json	-	-	Mobile: due difetti P3 del run 3A

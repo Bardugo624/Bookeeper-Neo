@@ -1,0 +1,39 @@
+{
+  "save": "Save",
+  "saving": "Saving",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "edit": "Edit",
+  "close": "Close",
+  "file": {
+    "choose": "Choose a file",
+    "none": "No file chosen"
+  },
+  "retry": "Try again",
+  "confirm": "Confirm",
+  "required": "Required field",
+  "requiredFields": "Marked fields are required",
+  "password": {
+    "title": "Confirm with your password",
+    "description": "This operation needs your password.",
+    "label": "Password",
+    "wrong": "The password is not correct.",
+    "working": "Checking"
+  },
+  "table": {
+    "empty": "Nothing here",
+    "sortBy": "Sort by {column}"
+  },
+  "errors": {
+    "validation": "Some data is not valid. Check the fields and try again.",
+    "not_found": "This item no longer exists.",
+    "conflict": "The operation conflicts with the current state. Refresh and try again.",
+    "forbidden": "You do not have permission to do this.",
+    "unauthorized": "Your session is no longer valid. Sign in again.",
+    "rate_limited": "Too many attempts. Try again in {seconds} seconds.",
+    "rate_limited_unknown": "Too many attempts. Try again shortly.",
+    "payload_too_large": "The content you sent is too large.",
+    "network": "Cannot reach the server. Check your connection and try again.",
+    "generic": "Something went wrong. Try again."
+  }
+}

@@ -1,0 +1,116 @@
+/* The schedule form: labels on one row, fields on the next at one height, hints under them. */
+.row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 180px)) auto;
+  column-gap: 14px;
+  row-gap: 6px;
+  align-items: start;
+}
+
+/* Each Field's label, control and hint become cells of the form's grid, in their own rows. */
+.field,
+.field > div {
+  display: contents;
+}
+
+.field label {
+  grid-row: 1;
+}
+
+.field input {
+  grid-row: 2;
+}
+
+.field p {
+  grid-row: 3;
+}
+
+.field p[id$='-error'] {
+  grid-row: 4;
+}
+
+.interval label,
+.interval input,
+.interval p {
+  grid-column: 1;
+}
+
+.keep label,
+.keep input,
+.keep p {
+  grid-column: 2;
+}
+
+.submit {
+  grid-column: 3;
+  grid-row: 2;
+  align-self: stretch;
+}
+
+.error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--bk-danger-strong);
+}
+
+.note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--bk-text-muted);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--bk-text-strong);
+}
+
+.size {
+  color: var(--bk-text-muted);
+}
+
+.warning {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--bk-warn);
+  border-radius: var(--bk-radius-md, 8px);
+  font-size: 13px;
+  color: var(--bk-text-strong);
+}
+
+.warning p {
+  margin: 0;
+}
+
+.report {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 6px 16px;
+  width: 100%;
+  margin: 0;
+  font-size: 14px;
+}
+
+.report dt {
+  color: var(--bk-text-muted);
+}
+
+.report dd {
+  margin: 0;
+  color: var(--bk-text-strong);
+  font-weight: 600;
+}

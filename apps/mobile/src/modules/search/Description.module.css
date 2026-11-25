@@ -1,0 +1,46 @@
+.text {
+  margin: 0;
+  font-family: var(--bk-font-serif);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--bk-text-strong);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.clamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 6;
+  line-clamp: 6;
+  overflow: hidden;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--bk-primary-600);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+.toggle:focus-visible {
+  outline: 2px solid var(--bk-primary-400);
+  outline-offset: 2px;
+}
+
+.chevron {
+  display: flex;
+}
+
+.up {
+  transform: rotate(180deg);
+}

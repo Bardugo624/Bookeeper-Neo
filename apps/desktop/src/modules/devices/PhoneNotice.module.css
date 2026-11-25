@@ -1,0 +1,22 @@
+.notice {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border: 1px solid var(--bk-border);
+  border-radius: var(--bk-radius-lg);
+  background: var(--bk-surface);
+  color: var(--bk-text-muted);
+}
+
+.title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bk-text-strong);
+}
+
+.text {
+  margin: 2px 0 0;
+  font-size: 13px;
+}

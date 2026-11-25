@@ -5,7 +5,6 @@ name: Deploy server
 # dell'immagine Go, restart del container, healthcheck.
 #
 # Trigger:
-#   - push su main che tocca server/ o deploy/ (deploy automatico)
 #   - workflow_dispatch (deploy manuale dal tab Actions o via `gh workflow run`)
 #
 # Secrets richiesti (Settings → Secrets and variables → Actions):
@@ -14,16 +13,9 @@ name: Deploy server
 #   DEPLOY_USER           es. root
 #   DEPLOY_KNOWN_HOSTS    output di `ssh-keyscan -t ed25519 <host>` (1 riga)
 
+# Automatic deploys are off: this workflow deploys the 0.3 server, which 2.0 replaces.
+# It still runs by hand from the Actions tab.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'server/**'
-      - 'deploy/**'
-      - 'clients/mobile-web/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.github/workflows/deploy-server.yml'
   workflow_dispatch:
     inputs:
       skip_rebuild:

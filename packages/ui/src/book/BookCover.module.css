@@ -1,0 +1,69 @@
+.cover {
+    position: relative;
+    aspect-ratio: 2 / 3;
+    flex: none;
+    overflow: hidden;
+    border-radius: 2px 5px 5px 2px;
+    background: var(--cover-bg);
+    box-shadow: var(--bk-shadow-book);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.initial {
+    font-family: var(--bk-font-serif);
+    font-weight: 500;
+    line-height: 1;
+    color: var(--bk-on-primary);
+    opacity: 0.86;
+    user-select: none;
+}
+
+/* Spine fold: a dark band at 4% of the width. */
+.fold {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4%;
+    background: color-mix(in srgb, var(--bk-cover-shade) 28%, transparent);
+    pointer-events: none;
+}
+
+/* Ambient light, also over a real image. */
+.light {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--bk-cover-light) 18%, transparent),
+        transparent 45%,
+        color-mix(in srgb, var(--bk-cover-shade) 14%, transparent)
+    );
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .cover {
+        transition:
+            transform var(--bk-dur) var(--bk-ease),
+            box-shadow var(--bk-dur) var(--bk-ease);
+    }
+}
+
+.lift:hover {
+    box-shadow: var(--bk-shadow-book-lift);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .lift:hover {
+        transform: translateY(-3px) rotate(-0.5deg);
+    }
+}

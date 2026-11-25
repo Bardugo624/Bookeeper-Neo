@@ -1,0 +1,44 @@
+{
+  "title": "Wishlist",
+  "count": { "one": "{count} libro desiderato", "other": "{count} libri desiderati" },
+  "add": "Aggiungi",
+  "loading": "Caricamento della wishlist",
+  "priority": { "low": "Bassa", "medium": "Media", "high": "Alta" },
+  "filters": { "label": "Filtra per priorità", "all": "Tutte" },
+  "sort": { "label": "Ordinamento", "priority": "Per priorità", "date": "Per data" },
+  "empty": { "title": "La wishlist è vuota", "text": "Aggiungi i libri che vorresti avere." },
+  "noResults": { "title": "Nessun risultato", "text": "Nessun libro con questa priorità.", "reset": "Mostra tutti" },
+  "error": { "title": "Impossibile caricare la wishlist", "text": "Controlla la connessione e riprova." },
+  "card": {
+    "added": "Aggiunto il {date}",
+    "isbn": "ISBN {isbn}",
+    "link": "Apri il collegamento",
+    "edit": "Modifica {title}",
+    "delete": "Elimina {title}"
+  },
+  "convert": {
+    "button": "Ho comprato questo libro",
+    "label": "Ho comprato {title}",
+    "working": "Conversione in corso"
+  },
+  "converted": { "title": "Aggiunto ai libri", "open": "Apri", "dismiss": "Chiudi la notifica" },
+  "delete": {
+    "title": "Eliminare dalla wishlist?",
+    "description": "«{title}» sarà tolto dalla wishlist. L'operazione non si può annullare."
+  },
+  "form": {
+    "addTitle": "Aggiungi alla wishlist",
+    "editTitle": "Modifica voce",
+    "title": "Titolo",
+    "authors": "Autori",
+    "authorsHint": "Separati da virgole",
+    "isbn": "ISBN",
+    "priority": "Priorità",
+    "sourceUrl": "Collegamento",
+    "notes": "Note",
+    "errors": {
+      "required": "Campo obbligatorio",
+      "tooLong": "Al massimo {max} caratteri"
+    }
+  }
+}

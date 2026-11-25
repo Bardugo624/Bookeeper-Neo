@@ -1,0 +1,51 @@
+{
+  "section": "Sharing",
+  "copy": "Copy",
+  "copied": "Copied",
+  "devicesLink": "Go to Devices",
+  "loadFailed": "Could not read the sharing status.",
+  "failed": "Sharing could not be changed. Try again.",
+  "title": "Network sharing",
+  "description": "Other computers at home running Bookeeper can connect to this library while this computer is on.",
+  "toggle": "Share this library on the network",
+  "phones": "Phones do not connect from here: they need a secure address, see Devices.",
+  "password": {
+    "title": "Set a password first",
+    "text": "To open the library to the network its owner must have a password.",
+    "link": "Go to Account"
+  },
+  "errors": {
+    "portInUse": "Port {port} is already used by another program. Pick another port and try again.",
+    "portNotAllowed": "Port {port} is reserved by the system. Pick one from 1024 up and try again.",
+    "bindFailed": "Could not open port {port}. Pick another port and try again.",
+    "tls": "Could not prepare the security certificate. Sharing is off.",
+    "mdns": "Sharing works, but this computer is not visible to others: on the other computers type the address by hand."
+  },
+  "port": {
+    "title": "Port",
+    "description": "The port can only be changed while sharing is off.",
+    "label": "Port number",
+    "hint": "A number from {min} to {max}.",
+    "error": "Enter a whole number from {min} to {max}."
+  },
+  "reach": {
+    "title": "How to reach this computer",
+    "description": "These are the addresses of this library on your home network.",
+    "copyAddress": "Copy the address {address}"
+  },
+  "phrase": {
+    "title": "Verification phrase",
+    "label": "Verification phrase: {phrase}",
+    "explain": "Whoever connects will see the same six words. Check that they match: if they differ, do not continue."
+  },
+  "fingerprint": {
+    "summary": "Full certificate fingerprint",
+    "copy": "Copy the fingerprint"
+  },
+  "how": {
+    "title": "Connect another computer",
+    "step1": "On the other computer open Bookeeper and choose to connect to a library.",
+    "step2": "On this computer go to Devices and press “{add}” to get a code.",
+    "step3": "On the other computer pick this library, check the verification phrase and enter the code."
+  }
+}

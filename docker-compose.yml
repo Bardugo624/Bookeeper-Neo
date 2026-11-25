@@ -1,0 +1,26 @@
+# Avvio: `docker compose up -d` (poi apri http://<indirizzo>:7842).
+# Il codice di setup si legge con `docker compose logs bookeeper`.
+# Per un dominio con HTTPS automatico vedi l'esempio commentato in fondo al servizio.
+services:
+  bookeeper:
+    image: ghcr.io/bardugo624/bookeeper-server:latest
+    build: .
+    ports:
+      - "7842:7842"
+    volumes:
+      - bookeeper-data:/data
+    restart: unless-stopped
+    # --- Variante con dominio e HTTPS automatico (certificato ACME) ---
+    # Sostituisci `ports` qui sopra con la porta 443 e aggiungi `environment`:
+    # ports:
+    #   - "443:443"
+    # environment:
+    #   BOOKEEPER_TLS: acme
+    #   # Accetta più nomi separati da virgola; il primo è l'indirizzo dato ai telefoni.
+    #   BOOKEEPER_DOMAIN: libri.example.org
+    #   BOOKEEPER_ACME_EMAIL: tu@example.org
+    # ATTENZIONE: la porta 443 DEVE essere raggiungibile da Internet e ogni
+    # nome DEVE puntare a questa macchina, altrimenti il certificato non viene emesso.
+
+volumes:
+  bookeeper-data:

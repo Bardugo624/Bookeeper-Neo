@@ -1,0 +1,114 @@
+{
+  "brand": { "label": "Bookeeper" },
+  "hero": {
+    "title": "Your books,\nin order.",
+    "text": "A library that stays yours: on your computer, or on a server you choose.",
+    "cover1": "The Name of the Rose",
+    "cover2": "One Hundred Years of Solitude",
+    "cover3": "Invisible Cities",
+    "cover4": "If on a Winter's Night"
+  },
+  "heading": "How do you want to start?",
+  "subheading": "You can change your mind later in the settings.",
+  "paths": { "label": "Ways to start" },
+  "back": {
+    "title": "Welcome back to {library}",
+    "titleNoName": "Welcome back",
+    "text": "Sign in again to continue, {user}.",
+    "textNoName": "Sign in again to continue.",
+    "localText": "The library lives on this computer.",
+    "open": "Open",
+    "signIn": "Sign in",
+    "other": "Use another library",
+    "forget": "Forget this library",
+    "openFailed": "I can't open the library: the access saved on this computer is no longer valid."
+  },
+  "forget": {
+    "title": "Forget this library?",
+    "text": "{library} will disappear from this computer. The books stay where they are: you can reconnect it later.",
+    "confirm": "Forget",
+    "cancel": "Cancel",
+    "close": "Close"
+  },
+  "local": {
+    "title": "Create here",
+    "badge": "Recommended",
+    "text": "The library lives on this computer. Nothing else needed.",
+    "openTitle": "Open this computer's library",
+    "openText": "There is already a library on this computer.",
+    "libraryName": "Library name",
+    "displayName": "Your name",
+    "submit": "Create the library",
+    "open": "Open the library",
+    "openFailed": "I can't open the library: the access saved on this computer is no longer valid."
+  },
+  "join": {
+    "title": "Join",
+    "text": "Connect this computer to a library that already exists.",
+    "found": {
+      "one": "{count} found on the network",
+      "other": "{count} found on the network"
+    },
+    "foundList": "Libraries found on the network",
+    "mode": "How do you want to sign in",
+    "modeCode": "Pairing code",
+    "modeAccount": "Email and password",
+    "submit": "Join",
+    "chooseTitle": "Which library do you want to enter?",
+    "choose": "Enter {library}",
+    "chooseBack": "Back",
+    "needsSetup": "This server has no library yet. You can create it from the “Create on a server” card.",
+    "goServer": "Go to “Create on a server”"
+  },
+  "server": {
+    "title": "Create on a server",
+    "text": "To reach it from your phone too, away from home.",
+    "submit": "Create the library",
+    "alreadySet": "This server already has a library. To get in, use the “Join” card.",
+    "goJoin": "Go to “Join”"
+  },
+  "fields": {
+    "address": "Server address",
+    "addressHint": "For example https://library.example.org",
+    "code": "Pairing code",
+    "codeHint": "You find it in the devices settings, on a device that is already connected.",
+    "setupCode": "Setup code",
+    "setupCodeHint": "The server shows it the first time it starts.",
+    "libraryName": "Library name",
+    "displayName": "Your name",
+    "email": "Email",
+    "password": "Password",
+    "passwordHint": "At least {min} characters."
+  },
+  "probe": {
+    "checking": "Checking the server…",
+    "insecure": "This address is not secure. Use an address that starts with https://, or an address on your home network.",
+    "network": "I can't reach the server. Check the address and your connection, then try again.",
+    "notBookeeper": "Something answers at this address, but it is not a Bookeeper server."
+  },
+  "phrase": {
+    "title": "Check the phrase",
+    "text": "This computer does not know this server's certificate. These six words must match the ones the server shows.",
+    "words": "Verification phrase",
+    "match": "They match",
+    "cancel": "Cancel",
+    "close": "Close"
+  },
+  "errors": {
+    "required": "Fill in this field.",
+    "address": "Enter a valid address.",
+    "email": "Enter a valid email address, with the @.",
+    "passwordShort": "The password must have at least {min} characters.",
+    "tooLong": "At most {max} characters.",
+    "invalidCredentials": "Wrong email or password.",
+    "invalidCode": "The code is wrong or has expired. Ask for a new one.",
+    "invalidSetupCode": "The setup code is wrong.",
+    "rateLimited": "Too many attempts. Try again in {seconds} seconds.",
+    "rateLimitedNoTime": "Too many attempts. Wait a little and try again.",
+    "validation": "Some data is not valid. Check the fields and try again.",
+    "setupClosed": "This server already has a library.",
+    "network": "I can't reach the library. Check your connection and try again.",
+    "libraryChoice": "This account belongs to several libraries. Sign in from “Join” with email and password and pick one.",
+    "generic": "Something went wrong. Try again."
+  }
+}

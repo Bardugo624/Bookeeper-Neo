@@ -1,0 +1,30 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 18px;
+  border: 1.5px solid var(--bk-primary-500);
+  border-radius: var(--bk-radius);
+  background: var(--bk-surface);
+  box-shadow: var(--bk-shadow-2);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--bk-font-serif);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--bk-text-strong);
+}
+
+.text {
+  margin: -8px 0 0;
+  font-size: 14px;
+  color: var(--bk-text-muted);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

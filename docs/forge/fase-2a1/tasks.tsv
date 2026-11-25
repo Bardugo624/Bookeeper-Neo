@@ -1,0 +1,5 @@
+# id	deps	difficulty	files	dwarf	qa	title
+ui-fix	-	medium	packages/ui,package-lock.json	-	-	UI: sei difetti P3 e caratteri inclusi
+i18n-fix	-	low	packages/i18n/src/index.ts,packages/i18n/src/glob.d.ts,packages/i18n/src/i18n.test.ts,packages/i18n/src/testing.ts,packages/i18n/package.json	-	-	i18n: due difetti P3
+session-fix	-	low	apps/desktop/src-tauri/src/connections.rs,apps/desktop/src-tauri/tests/connections.rs	-	-	Guscio: due difetti P3 nelle connessioni
+app-fix	ui-fix,i18n-fix	medium	apps/desktop/src,packages/i18n/src/locales	-	-	App: due difetti P3, caratteri, avatar, peso del testo

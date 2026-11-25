@@ -1,0 +1,9 @@
+target/
+**/node_modules/
+.git/
+apps/*/dist/
+docs/
+site/
+.forge/
+.github/
+rust-toolchain.toml

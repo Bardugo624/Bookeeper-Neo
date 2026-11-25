@@ -1,0 +1,8 @@
+# id	deps	difficulty	files	dwarf	qa	title
+m-foundation	-	high	apps/mobile,package-lock.json,packages/i18n/src/locales/it/mobile.json,packages/i18n/src/locales/en/mobile.json,crates/bookeeper-server/build.rs	-	-	Mobile: fondamenta, sessione, guscio a schede, PWA
+m-foundation-2	m-foundation	medium	apps/mobile/index.html,apps/mobile/src/app,apps/mobile/src/session,apps/mobile/src/shell,apps/mobile/src/platform,apps/mobile/src/kit	-	-	Mobile: tre lacune delle fondamenta
+m-pair-b	m-foundation-2	high	apps/mobile/src/modules/pair,packages/i18n/src/locales/it/mpair.json,packages/i18n/src/locales/en/mpair.json	-	-	Mobile: abbinamento da QR o codice
+m-search-b	m-foundation-2	high	apps/mobile/src/modules/search,packages/i18n/src/locales/it/msearch.json,packages/i18n/src/locales/en/msearch.json	-	-	Mobile: cerca e scheda libro
+m-account-b	m-foundation-2	medium	apps/mobile/src/modules/account,apps/mobile/src/platform,apps/mobile/src/app/testing.tsx,packages/i18n/src/locales/it/maccount.json,packages/i18n/src/locales/en/maccount.json	-	-	Mobile: account
+m-scan	m-search-b	high	apps/mobile/src/modules/scan,packages/i18n/src/locales/it/mscan.json,packages/i18n/src/locales/en/mscan.json	-	-	Mobile: scansione ISBN
+m-case-fix	m-pair-b,m-account-b,m-scan	low	apps/mobile/src	-	-	Mobile: nomi di file che differiscono solo per maiuscole

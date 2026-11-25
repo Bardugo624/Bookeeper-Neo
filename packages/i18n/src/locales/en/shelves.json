@@ -1,0 +1,93 @@
+{
+  "title": "Shelves",
+  "new": "New cabinet",
+  "tabs": "Cabinets",
+  "row": "Shelf {n}",
+  "count": {
+    "units": { "one": "{count} cabinet", "other": "{count} cabinets" },
+    "placed": { "one": "{count} book placed", "other": "{count} books placed" }
+  },
+  "loading": "Loading shelves",
+  "loadingBooks": "Loading the cabinet's books",
+  "error": { "title": "Couldn't load the shelves", "text": "Check your connection and try again." },
+  "booksError": { "title": "Couldn't load the cabinet's books", "text": "Check your connection and try again." },
+  "empty": {
+    "title": "No cabinets",
+    "text": "Create a cabinet to say where your books live.",
+    "create": "Create the first cabinet"
+  },
+  "emptyUnit": {
+    "invite": "This cabinet is empty. Drag books here from “Unplaced”.",
+    "readOnly": "No books in this cabinet."
+  },
+  "panel": {
+    "label": "Details of {name}",
+    "edit": "Edit {name}",
+    "delete": "Delete {name}",
+    "layout": "{rows} shelves of {slots} places",
+    "fill": "Fill of {name}",
+    "books": { "one": "{count} book", "other": "{count} books" },
+    "free": { "one": "about {count} free place", "other": "about {count} free places" },
+    "booksFree": "{books} · {free}"
+  },
+  "unshelved": {
+    "title": "Unplaced",
+    "search": "Search the unplaced books",
+    "dragHint": "Drag a book onto a shelf, or use “Place in…”.",
+    "placeIn": "Place “{title}” in…",
+    "none": "Every book has a place.",
+    "noMatch": "No unplaced book matches the search.",
+    "loading": "Loading unplaced books",
+    "error": "Couldn't load the unplaced books."
+  },
+  "place": {
+    "title": "Place “{title}” in…",
+    "unit": "Cabinet",
+    "row": "Shelf",
+    "confirm": "Place"
+  },
+  "spine": {
+    "open": "Open book",
+    "remove": "Take off the shelf"
+  },
+  "announce": {
+    "pick": "{title} picked up from {row}. Use the arrows to choose the place, Space to drop it, Esc to cancel.",
+    "move": "{title}: {row}, position {position}.",
+    "drop": "{title} placed: {row}, position {position}.",
+    "cancel": "Moving {title} cancelled."
+  },
+  "toast": {
+    "failed": "Couldn't move the book",
+    "rowFull": "The shelf is full.",
+    "slotTaken": "That place was taken in the meantime. The order was restored."
+  },
+  "colors": {
+    "sage": "Sage",
+    "terracotta": "Terracotta",
+    "night": "Night",
+    "plum": "Plum",
+    "amber": "Amber",
+    "graphite": "Graphite"
+  },
+  "form": {
+    "newTitle": "New cabinet",
+    "editTitle": "Edit cabinet",
+    "name": "Name",
+    "color": "Color",
+    "rows": "Number of shelves",
+    "slots": "Places per shelf",
+    "slotsHint": "Capacity is shelves × places.",
+    "errors": {
+      "required": "Required field",
+      "tooLong": "At most {max} characters",
+      "rows": "From {minRows} to {maxRows} shelves",
+      "slots": "From {minSlots} to {maxSlots} places",
+      "tooSmall": "A placed book would be left outside the cabinet. Move the books off the shelves or places you want to remove first."
+    }
+  },
+  "delete": {
+    "title": "Delete the cabinet?",
+    "withBooks": { "one": "The cabinet “{name}” will be deleted. Its placed book stays in the library but becomes unplaced. This can't be undone.", "other": "The cabinet “{name}” will be deleted. Its {count} placed books stay in the library but become unplaced. This can't be undone." },
+    "empty": "The cabinet “{name}” will be deleted. This can't be undone."
+  }
+}

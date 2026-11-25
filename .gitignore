@@ -5,6 +5,7 @@ server/dist/
 
 # Node / npm workspaces
 node_modules/
+apps/*/dist/
 clients/*/dist/
 clients/*/frontend/dist/
 clients/mobile-web/dev-dist/
@@ -31,3 +32,14 @@ coverage.txt
 *.sqlite-journal
 *.sqlite-wal
 *.sqlite-shm
+
+# Forge: si versionano memoria, registro e comando di verifica; il resto è stato locale
+.forge/*
+!.forge/plans/
+!.forge/memory/
+!.forge/memory.md
+!.forge/ledger.tsv
+!.forge/verify
+
+# Rust
+target/

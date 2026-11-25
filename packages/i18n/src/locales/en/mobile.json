@@ -1,0 +1,33 @@
+{
+  "needsHttps": "To use Bookeeper on your phone you need a secure address. Ask whoever runs the library.",
+  "needsHttpsTitle": "A secure address is needed",
+  "needsHttpsWho": "Whoever runs the library can turn on HTTPS access on the computer that hosts Bookeeper.",
+  "needsHttpsHow": "Once the address starts with https://, open this page again on your phone.",
+  "deviceFallback": "Phone",
+  "cameraLabel": "Camera {n}",
+  "loading": "Loading…",
+  "close": "Close",
+  "tabs": "Main tabs",
+  "offline": "You are offline",
+  "update": {
+    "text": "A new version is available",
+    "action": "Update"
+  },
+  "empty": {
+    "title": "Nothing to show",
+    "text": "This version of the app has no sections yet."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "text": "The address does not match any page of the app."
+  },
+  "unpaired": {
+    "title": "Phone not linked",
+    "text": "Scan the QR code shown by Bookeeper on your computer to link this phone."
+  },
+  "error": {
+    "title": "Something went wrong",
+    "text": "This page could not be shown.",
+    "retry": "Try again"
+  }
+}

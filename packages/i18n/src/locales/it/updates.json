@@ -1,0 +1,43 @@
+{
+  "section": "Aggiornamenti",
+  "banner": {
+    "available": "È disponibile Bookeeper {version}",
+    "notes": "Vedi le novità",
+    "later": "Più tardi"
+  },
+  "dialog": {
+    "title": "Novità di Bookeeper {version}",
+    "close": "Chiudi",
+    "noNotes": "Questa versione non ha note.",
+    "install": "Aggiorna e riavvia",
+    "installing": "Aggiornamento in corso…",
+    "retry": "Riprova",
+    "progress": "Avanzamento del download",
+    "installingHint": "Non chiudere Bookeeper: si riavvia da solo alla fine."
+  },
+  "errors": {
+    "network": "Non riesco a raggiungere il server degli aggiornamenti. Controlla la connessione e riprova.",
+    "signature": "L'aggiornamento non ha una firma valida e non è stato installato. Riprova più tardi.",
+    "manifest": "Le informazioni sull'aggiornamento non sono leggibili. Riprova più tardi.",
+    "install": "Non è stato possibile installare l'aggiornamento. Riprova."
+  },
+  "settings": {
+    "title": "Aggiornamenti",
+    "description": "Bookeeper cerca da solo le nuove versioni e ti avvisa senza interrompere il lavoro.",
+    "installed": "Versione installata",
+    "channel": "Canale",
+    "channelLabel": "Canale degli aggiornamenti",
+    "stable": "Stabile",
+    "beta": "Beta",
+    "betaWarning": "Le versioni beta arrivano prima ma possono avere difetti. Passando alla stabile resti sulla beta finché non esce una versione stabile più recente.",
+    "check": "Cerca aggiornamenti",
+    "checking": "Controllo in corso…",
+    "lastCheck": "Ultimo controllo",
+    "never": "Mai",
+    "status": "Stato",
+    "upToDate": "Bookeeper è aggiornato.",
+    "available": "È disponibile la versione {version}.",
+    "notes": "Vedi le novità",
+    "unknown": "Non ancora controllato."
+  }
+}

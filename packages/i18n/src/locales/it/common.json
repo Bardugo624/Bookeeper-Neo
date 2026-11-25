@@ -1,0 +1,39 @@
+{
+  "save": "Salva",
+  "saving": "Salvataggio in corso",
+  "cancel": "Annulla",
+  "delete": "Elimina",
+  "edit": "Modifica",
+  "close": "Chiudi",
+  "file": {
+    "choose": "Scegli un file",
+    "none": "Nessun file scelto"
+  },
+  "retry": "Riprova",
+  "confirm": "Conferma",
+  "required": "Campo obbligatorio",
+  "requiredFields": "I campi contrassegnati sono obbligatori",
+  "password": {
+    "title": "Conferma con la password",
+    "description": "Questa operazione richiede la tua password.",
+    "label": "Password",
+    "wrong": "La password non è corretta.",
+    "working": "Verifica in corso"
+  },
+  "table": {
+    "empty": "Nessun elemento",
+    "sortBy": "Ordina per {column}"
+  },
+  "errors": {
+    "validation": "Alcuni dati non sono validi. Controlla i campi e riprova.",
+    "not_found": "L'elemento non esiste più.",
+    "conflict": "L'operazione è in conflitto con lo stato attuale. Aggiorna e riprova.",
+    "forbidden": "Non hai i permessi per eseguire questa operazione.",
+    "unauthorized": "La sessione non è più valida. Accedi di nuovo.",
+    "rate_limited": "Troppi tentativi. Riprova tra {seconds} secondi.",
+    "rate_limited_unknown": "Troppi tentativi. Riprova tra poco.",
+    "payload_too_large": "Il contenuto inviato è troppo grande.",
+    "network": "Impossibile raggiungere il server. Controlla la connessione e riprova.",
+    "generic": "Qualcosa è andato storto. Riprova."
+  }
+}
