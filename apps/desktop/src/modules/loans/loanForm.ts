@@ -38,12 +38,12 @@ export function validateLoan(t: Translate): (v: LoanFormValues) => FormErrors<Lo
     if (!v.book_id) errors.book_id = t('loans.form.errors.book');
     const name = v.borrower_name.trim();
     if (!name) errors.borrower_name = t('loans.form.errors.borrower');
-    else if (name.length > NAME_MAX) errors.borrower_name = t('loans.form.errors.borrowerLong', { max: NAME_MAX });
+    else if ([...name].length > NAME_MAX) errors.borrower_name = t('loans.form.errors.borrowerLong', { max: NAME_MAX });
     if (toUnixSeconds(v.lent_at) === null) errors.lent_at = t('loans.form.errors.lent');
     if (v.due_at && toUnixSeconds(v.due_at) === null) errors.due_at = t('loans.form.errors.dueInvalid');
     // ISO dates compare as text; the core refuses a due date before the lending date.
     else if (v.due_at && !errors.lent_at && v.due_at < v.lent_at) errors.due_at = t('loans.form.errors.dueBefore');
-    if (v.notes.length > NOTES_MAX) errors.notes = t('loans.form.errors.notesLong', { max: NOTES_MAX });
+    if ([...v.notes].length > NOTES_MAX) errors.notes = t('loans.form.errors.notesLong', { max: NOTES_MAX });
     return errors;
   };
 }
@@ -59,12 +59,17 @@ export function toCreateBody(v: LoanFormValues): CreateLoan {
   return body;
 }
 
-/** Edit sends every editable field: an emptied due date or note clears it (`null`). */
-export function toPatchBody(v: LoanFormValues): PatchLoan {
-  return {
+/**
+ * Edit sends the editable fields; an emptied due date or note clears it (`null`).
+ * Dates the user did not touch are left out, so their stored time of day survives.
+ */
+export function toPatchBody(v: LoanFormValues, loan: LoanOut): PatchLoan {
+  const initial = valuesOf(loan);
+  const body: PatchLoan = {
     borrower_name: v.borrower_name.trim(),
-    lent_at: toUnixSeconds(v.lent_at),
-    due_at: v.due_at ? toUnixSeconds(v.due_at) : null,
     notes: v.notes.trim() ? v.notes.trim() : null,
   };
+  if (v.lent_at !== initial.lent_at) body.lent_at = toUnixSeconds(v.lent_at);
+  if (v.due_at !== initial.due_at) body.due_at = v.due_at ? toUnixSeconds(v.due_at) : null;
+  return body;
 }

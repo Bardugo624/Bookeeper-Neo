@@ -26,7 +26,7 @@ export function ReturnDialog({ loan, onClose }: ReturnDialogProps) {
   );
   const form = useFormState({ returned_at: todayInput() }, validate);
   const onSubmit = form.submit(async (v) => {
-    await markReturned.mutateAsync({ id: loan.id, returnedAt: toUnixSeconds(v.returned_at) ?? 0 });
+    await markReturned.mutateAsync({ id: loan.id, returnedAt: Math.max(toUnixSeconds(v.returned_at) ?? 0, loan.lent_at) });
     onClose();
   });
   return (

@@ -79,7 +79,10 @@ export function LoansPage() {
         items={tabs}
         value={filter}
         label={t('loans.filters.label')}
-        onChange={(id) => params.set({ filter: id as LoanFilter })}
+        onChange={(id) => {
+          dialogs.dismissError();
+          params.set({ filter: id as LoanFilter });
+        }}
       />
       {book ? (
         <p className={styles.bookFilter}>

@@ -34,7 +34,7 @@ export function LoanFormDialog({ mode, onClose }: LoanFormDialogProps) {
     form.setValue('book_id', book?.id ?? '');
   };
   const onSubmit = form.submit(async (v) => {
-    if (mode.kind === 'edit') await update.mutateAsync({ id: mode.loan.id, patch: toPatchBody(v) });
+    if (mode.kind === 'edit') await update.mutateAsync({ id: mode.loan.id, patch: toPatchBody(v, mode.loan) });
     else await create.mutateAsync(toCreateBody(v));
     onClose();
   });
