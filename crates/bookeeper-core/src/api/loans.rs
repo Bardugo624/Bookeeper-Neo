@@ -24,6 +24,7 @@ pub fn routes() -> axum::Router<AppState> {
             "/api/v1/loans/{id}",
             axum::routing::patch(patch_loan).delete(delete_loan),
         )
+        .route("/api/v1/loans/borrowers", get(list_borrowers))
         .route("/api/v1/loans/{id}/return", post(return_loan))
         .route("/api/v1/loans/{id}/reopen", post(reopen_loan))
 }
@@ -32,13 +33,23 @@ pub fn routes() -> axum::Router<AppState> {
 #[openapi(
     paths(
         list_loans,
+        list_borrowers,
         create_loan,
         patch_loan,
         delete_loan,
         return_loan,
         reopen_loan
     ),
-    components(schemas(LoanOut, LoanList, CreateLoan, PatchLoan, ReturnLoan, ListLoansQuery))
+    components(schemas(
+        BorrowerList,
+        BorrowersQuery,
+        LoanOut,
+        LoanList,
+        CreateLoan,
+        PatchLoan,
+        ReturnLoan,
+        ListLoansQuery
+    ))
 )]
 pub struct Doc;
 
@@ -603,4 +614,62 @@ pub async fn reopen_loan(
         })
         .await??;
     Ok(Json(out))
+}
+
+#[derive(Debug, Serialize, ToSchema)]
+pub struct BorrowerList {
+    pub items: Vec<String>,
+}
+
+#[derive(Debug, Deserialize, utoipa::IntoParams, ToSchema)]
+pub struct BorrowersQuery {
+    /// Case-insensitive prefix; empty or absent gives the 10 most recent names.
+    pub q: Option<String>,
+}
+
+#[utoipa::path(
+    get,
+    path = "/api/v1/loans/borrowers",
+    tag = "loans",
+    security(("bearer" = [])),
+    params(BorrowersQuery),
+    responses(
+        (status = 200, description = "Up to 10 borrower names, most recent first", body = BorrowerList),
+        (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 403, description = "forbidden: role too low", body = ApiErrorBody),
+        (status = 422, description = "validation: invalid query", body = ApiErrorBody),
+    )
+)]
+pub async fn list_borrowers(
+    State(state): State<AppState>,
+    who: AuthUser,
+    ApiQuery(q): ApiQuery<BorrowersQuery>,
+) -> ApiResult<Json<BorrowerList>> {
+    who.require(Role::Member)?;
+    let prefix = q.q.unwrap_or_default().trim().to_lowercase();
+    let items = state
+        .db
+        .run(move |conn| {
+            let mut stmt = conn.prepare(
+                "SELECT borrower_name FROM loans WHERE library_id = ?1 \
+                 ORDER BY lent_at DESC, rowid DESC",
+            )?;
+            let rows = stmt.query_map([&who.library_id], |r| r.get::<_, String>(0))?;
+            let mut seen = std::collections::HashSet::new();
+            let mut out = Vec::new();
+            for row in rows {
+                let name = row?;
+                let key = name.trim().to_lowercase();
+                if !key.starts_with(&prefix) || !seen.insert(key) {
+                    continue;
+                }
+                out.push(name);
+                if out.len() == 10 {
+                    break;
+                }
+            }
+            Ok(out)
+        })
+        .await?;
+    Ok(Json(BorrowerList { items }))
 }
