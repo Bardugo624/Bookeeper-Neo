@@ -1,15 +1,16 @@
 import { useNavigate } from 'react-router';
 import { Button, EmptyState, Skeleton } from '@bookeeper/ui/base';
-import { PillTabs } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
 import { ConfirmDialog, PageHeader } from '../../kit';
 import { PlaceDialog } from './PlaceDialog';
+import { RoomsDialog } from './RoomsDialog';
 import { ShelfCabinet } from './ShelfCabinet';
 import { ShelfFormDialog } from './ShelfFormDialog';
 import { ShelfPanel } from './ShelfPanel';
+import { ShelfTabs } from './ShelfTabs';
 import { SpineMenu } from './SpineMenu';
 import { UnshelvedList } from './UnshelvedList';
-import { colorOf } from './model';
+import { roomOf } from './roomModel';
 import { useShelvesView } from './useShelvesView';
 import styles from './ShelvesPage.module.css';
 
@@ -20,10 +21,16 @@ export function ShelvesPage() {
   const navigate = useNavigate();
   const create = () => v.setDialog({ kind: 'form' });
   const newButton = canWrite ? (
-    <Button variant="primary" icon="plus" onClick={create}>
-      {t('shelves.new')}
-    </Button>
+    <>
+      <Button onClick={() => v.setDialog({ kind: 'rooms' })}>{t('shelves.rooms.manage')}</Button>
+      <Button variant="primary" icon="plus" onClick={create}>
+        {t('shelves.new')}
+      </Button>
+    </>
   ) : undefined;
+  const filtered = Boolean(v.params.values.room);
+  const filterName = v.rooms.find((r) => r.id === v.params.values.room)?.name ?? null;
+  const clearFilter = () => v.params.set({ room: '', unit: '', book: '' });
 
   let body;
   if (v.list.isPending) {
@@ -40,6 +47,15 @@ export function ShelvesPage() {
         title={t('shelves.error.title')}
         text={t('shelves.error.text')}
         action={<Button onClick={() => void v.list.refetch()}>{t('common.retry')}</Button>}
+      />
+    );
+  } else if (!shelf && filtered) {
+    body = (
+      <EmptyState
+        icon="library"
+        title={t('shelves.rooms.filterEmpty.title')}
+        text={t('shelves.rooms.filterEmpty.text')}
+        action={<Button onClick={clearFilter}>{t('shelves.rooms.showAll')}</Button>}
       />
     );
   } else if (!shelf) {
@@ -60,12 +76,7 @@ export function ShelvesPage() {
   } else {
     body = (
       <>
-        <PillTabs
-          label={t('shelves.tabs')}
-          value={shelf.id}
-          onChange={(unit) => v.params.set({ unit, book: '' })}
-          items={shelves.map((s) => ({ id: s.id, label: s.name, dot: colorOf(s.color) }))}
-        />
+        <ShelfTabs groups={v.groups} value={shelf.id} onChange={(unit) => v.params.set({ unit, book: '' })} />
         <div className={styles.layout}>
           <div className={styles.main}>
             {v.books.isPending ? (
@@ -92,6 +103,7 @@ export function ShelvesPage() {
           </div>
           <ShelfPanel
             shelf={shelf}
+            roomName={roomOf(shelf, v.rooms)?.name ?? null}
             onEdit={canWrite ? () => v.setDialog({ kind: 'form', shelf }) : null}
             onDelete={canWrite ? () => v.setDialog({ kind: 'delete', shelf }) : null}
           >
@@ -127,11 +139,20 @@ export function ShelvesPage() {
           {v.error}
         </p>
       ) : null}
+      {filtered && filterName !== null ? (
+        <p className={styles.filterNote}>
+          {t('shelves.rooms.filter', { name: filterName })}
+          <Button variant="ghost" size="sm" onClick={clearFilter}>
+            {t('shelves.rooms.showAll')}
+          </Button>
+        </p>
+      ) : null}
       {body}
       {dialog?.kind === 'form' ? (
         <ShelfFormDialog
           key={dialog.shelf?.id ?? 'new'}
           shelf={dialog.shelf}
+          rooms={v.rooms}
           save={(values) => v.save(dialog.shelf, values)}
           onClose={() => v.setDialog(null)}
         />
@@ -139,10 +160,17 @@ export function ShelvesPage() {
       {dialog?.kind === 'place' && shelf ? (
         <PlaceDialog
           book={dialog.book}
-          shelves={shelves}
+          shelves={v.all}
           initialShelfId={shelf.id}
           busy={v.placing}
           onPlace={(target, books, row) => void v.placeAtEnd(dialog.book, target, books, row)}
+          onClose={() => v.setDialog(null)}
+        />
+      ) : null}
+      {dialog?.kind === 'rooms' ? (
+        <RoomsDialog
+          rooms={v.rooms}
+          onDeleted={(id) => v.params.values.room === id && v.params.set({ room: '' })}
           onClose={() => v.setDialog(null)}
         />
       ) : null}

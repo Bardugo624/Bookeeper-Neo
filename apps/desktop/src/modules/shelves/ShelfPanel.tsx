@@ -8,6 +8,8 @@ import styles from './ShelfPanel.module.css';
 
 export interface ShelfPanelProps {
   shelf: ShelfOut;
+  /** Name of the room the unit sits in; null when it has none. */
+  roomName: string | null;
   /** Edit and delete handlers; null without write permission. */
   onEdit: (() => void) | null;
   onDelete: (() => void) | null;
@@ -16,7 +18,7 @@ export interface ShelfPanelProps {
 }
 
 /** Side panel: the unit's name, how full it is, and the unplaced books. */
-export function ShelfPanel({ shelf, onEdit, onDelete, children }: ShelfPanelProps) {
+export function ShelfPanel({ shelf, roomName, onEdit, onDelete, children }: ShelfPanelProps) {
   const t = useT();
   const free = freeSlots(shelf);
   const value = shelf.capacity > 0 ? shelf.book_count / shelf.capacity : 0;
@@ -27,6 +29,7 @@ export function ShelfPanel({ shelf, onEdit, onDelete, children }: ShelfPanelProp
         {onEdit ? <IconButton icon="pencil" size="sm" label={t('shelves.panel.edit', { name: shelf.name })} onClick={onEdit} /> : null}
         {onDelete ? <IconButton icon="trash" size="sm" label={t('shelves.panel.delete', { name: shelf.name })} onClick={onDelete} /> : null}
       </div>
+      <p className={styles.layout}>{t('shelves.panel.room', { name: roomName ?? t('shelves.rooms.none') })}</p>
       <p className={styles.layout}>{t('shelves.panel.layout', { rows: shelf.rows, slots: shelf.slots_per_row })}</p>
       {free !== null ? <FillBar tone="auto" value={value} label={t('shelves.panel.fill', { name: shelf.name })} /> : null}
       <p className={styles.fill}>
