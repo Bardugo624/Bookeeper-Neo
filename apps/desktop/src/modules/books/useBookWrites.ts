@@ -59,10 +59,14 @@ export function useBookWrites() {
     update: useMutation({
       mutationFn: async (v: { id: string; patch: PatchBook; cover: CoverPlan; hadCover: boolean }): Promise<SaveResult> => {
         const changed = Object.keys(v.patch).length > 0;
-        const book = await (changed ? client.updateBook(v.id, v.patch) : client.getBook(v.id));
         // Only a cover that was stored can be deleted.
         const cover = v.cover.kind === 'remove' && !v.hadCover ? { kind: 'keep' as const } : v.cover;
-        return { book, coverFailed: await applyCover(v.id, cover) };
+        // The core clears `cover_color` when it deletes the cover: delete first, so a color chosen in
+        // the same save is written after it and survives.
+        const removedFailed = cover.kind === 'remove' ? await applyCover(v.id, cover) : false;
+        const book = await (changed ? client.updateBook(v.id, v.patch) : client.getBook(v.id));
+        const coverFailed = cover.kind === 'remove' ? removedFailed : await applyCover(v.id, cover);
+        return { book, coverFailed };
       },
       onSuccess: refresh,
     }),

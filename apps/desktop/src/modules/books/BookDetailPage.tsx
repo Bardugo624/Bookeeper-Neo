@@ -10,7 +10,7 @@ import { LendButton } from './LendButton';
 import { authorsOf, type FromList } from './format';
 import { eyebrowOf, metaFields } from './detailFields';
 import { useBook } from './useBook';
-import { useCover } from './useCover';
+import { mayHaveCover, useCover } from './useCover';
 import styles from './BookDetailPage.module.css';
 
 export function BookDetailPage() {
@@ -20,7 +20,7 @@ export function BookDetailPage() {
   const listPath = { pathname: '/books', search: (location.state as FromList | null)?.list ?? '' };
   const { data: book, error, isPending, refetch } = useBook(id);
   const canWrite = usePermission().can('write');
-  const src = useCover(id, Boolean(book?.cover_color));
+  const src = useCover(id, mayHaveCover(book?.cover_color));
 
   const back = (
     <Link to={listPath} className={styles.back}>

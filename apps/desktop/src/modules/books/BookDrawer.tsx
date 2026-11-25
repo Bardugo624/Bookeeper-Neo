@@ -11,7 +11,7 @@ import { ExistingNotice, LookupNotice } from './LookupNotice';
 import { authorsOf } from './format';
 import type { SaveResult } from './useBookWrites';
 import { useBookEditor } from './useBookEditor';
-import { useCover } from './useCover';
+import { mayHaveCover, useCover } from './useCover';
 import styles from './BookForm.module.css';
 
 export interface BookDrawerProps {
@@ -36,7 +36,7 @@ function BookEditor({ book, onClose, onSaved, onAnother }: BookDrawerProps & { o
   const toast = useToast();
   const formId = useId();
   const [step, setStep] = useState<'isbn' | 'form'>(book ? 'form' : 'isbn');
-  const stored = useCover(book?.id ?? '', Boolean(book?.cover_color));
+  const stored = useCover(book?.id ?? '', mayHaveCover(book?.cover_color));
 
   const done = (result: SaveResult | null, another: boolean) => {
     if (result) {

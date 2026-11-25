@@ -42,6 +42,22 @@ describe('planPlacement', () => {
   });
 });
 
+describe('planPlacement, moving right inside a row whose run reaches the end', () => {
+  const order = (row: ReturnType<typeof b>[], id: string, index: number, slots: number) => {
+    const plan = planPlacement(row, id, index, slots)!;
+    const out = applyMoves(row, 0, plan.moves);
+    return out.sort((x, y) => x.slot_index - y.slot_index).map((x) => x.book_id).join('');
+  };
+  it('lands before the neighbour in a full row', () => {
+    const row = [b('a', 0), b('b', 1), b('c', 2), b('d', 3), b('e', 4)];
+    expect(order(row, 'a', 2, 5)).toBe('bcade');
+  });
+  it('lands before the neighbour with a gap on the left', () => {
+    const row = [b('a', 0), b('b', 2), b('c', 3), b('d', 4)];
+    expect(order(row, 'a', 1, 5)).toBe('bacd');
+  });
+});
+
 describe('shiftedBy', () => {
   it('is empty when the run reaches the end of the row and nothing can slide left', () => {
     expect(shiftedBy([b('a', 3), b('b', 4)], 'x', 3, 5)).toEqual([]);

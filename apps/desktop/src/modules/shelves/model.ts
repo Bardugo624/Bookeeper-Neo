@@ -68,7 +68,19 @@ export function planPlacement(row: ShelfBook[], movedId: string, index: number, 
   const prev = rest[(at ? index : rest.length) - 1];
   const lo = prev ? prev.slot_index + 1 : 0;
   const hi = at ? at.slot_index - 1 : slots - 1;
-  const slot = lo <= hi ? lo : at ? at.slot_index : prev!.slot_index;
+  let slot = lo <= hi ? lo : at ? at.slot_index : prev!.slot_index;
+  if (lo > hi && at && prev) {
+    // Moving right within the row, with the run from `at` reaching the row end, the core slides the
+    // books between left and `at` itself would end up before the moved book: ask for the previous
+    // neighbour's slot instead, so the book lands just before `at`.
+    const old = row.find((b) => b.book_id === movedId);
+    let next = slot;
+    for (const b of rest.filter((o) => o.slot_index >= slot)) {
+      if (b.slot_index !== next) break;
+      next += 1;
+    }
+    if (old && old.slot_index < slot && next >= slots) slot = prev.slot_index;
+  }
   return { slot, moves: shiftedBy(row, movedId, slot, slots) };
 }
 
