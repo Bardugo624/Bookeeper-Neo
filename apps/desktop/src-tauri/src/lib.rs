@@ -3,6 +3,7 @@ pub mod discover;
 mod dispatch;
 pub mod files;
 pub mod remote;
+pub mod secrets;
 
 use bookeeper_core::{AppState, Db, SetupPolicy};
 use tauri::Manager;
@@ -71,11 +72,27 @@ async fn discover() -> Result<Vec<discover::Found>, ()> {
     Ok(discover::discover().await)
 }
 
+/// `connections_get` answer: the saved connections plus where tokens live.
+#[derive(serde::Serialize)]
+pub struct ConnectionsView {
+    #[serde(flatten)]
+    pub connections: connections::Connections,
+    /// `"keychain"` or `"file"`.
+    pub secrets: &'static str,
+}
+
+pub fn connections_view(store: &connections::Store) -> Result<ConnectionsView, String> {
+    Ok(ConnectionsView {
+        connections: store.load()?,
+        secrets: store.mode().as_str(),
+    })
+}
+
 #[tauri::command]
 fn connections_get(
     store: tauri::State<'_, connections::Store>,
-) -> Result<connections::Connections, String> {
-    store.load()
+) -> Result<ConnectionsView, String> {
+    connections_view(&store)
 }
 
 #[tauri::command]
@@ -169,7 +186,10 @@ pub fn run() {
                 let _guard = tauri::async_runtime::handle().inner().enter();
                 bookeeper_core::backup::schedule::spawn(state.clone());
             }
-            app.manage(connections::Store::new(&dir));
+            let system: std::sync::Arc<dyn secrets::SecretStore> =
+                std::sync::Arc::new(secrets::SystemStore);
+            let mode = secrets::probe(system.as_ref());
+            app.manage(connections::Store::with_secrets(&dir, system, mode));
             app.manage(CoreRouter(bookeeper_core::router(state)));
             Ok(())
         })

@@ -4,7 +4,9 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
+
+use crate::secrets::{SecretStore, SecretsMode};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -63,14 +65,35 @@ pub struct Connections {
 pub struct Store {
     path: PathBuf,
     lock: Mutex<()>,
+    secrets: Arc<dyn SecretStore>,
+    mode: SecretsMode,
 }
 
 impl Store {
+    /// File mode: tokens stay in `connections.json`, as before.
     pub fn new(dir: &Path) -> Self {
+        Self::with_secrets(
+            dir,
+            Arc::new(crate::secrets::MemoryStore::new()),
+            SecretsMode::File,
+        )
+    }
+
+    pub fn with_secrets(dir: &Path, secrets: Arc<dyn SecretStore>, mode: SecretsMode) -> Self {
         Store {
             path: dir.join("connections.json"),
             lock: Mutex::new(()),
+            secrets,
+            mode,
         }
+    }
+
+    pub fn mode(&self) -> SecretsMode {
+        self.mode
+    }
+
+    fn keychain(&self) -> bool {
+        self.mode == SecretsMode::Keychain
     }
 
     fn guard(&self) -> std::sync::MutexGuard<'_, ()> {
@@ -79,13 +102,81 @@ impl Store {
 
     pub fn load(&self) -> Result<Connections, String> {
         let _g = self.guard();
-        self.read()
+        let (mut all, clean) = self.read_migrated()?;
+        if self.keychain() && clean {
+            self.fill(&mut all);
+        }
+        Ok(all)
+    }
+
+    /// Reads the file; in keychain mode also migrates any tokens found in it. The flag is
+    /// false when tokens are still in the file (keychain refused them), so a later write
+    /// must not strip them.
+    fn read_migrated(&self) -> Result<(Connections, bool), String> {
+        let mut all = self.read()?;
+        let clean = !self.keychain() || self.migrate(&mut all);
+        Ok((all, clean))
+    }
+
+    /// Moves tokens found in the file to the keychain and rewrites the file without them.
+    /// If the keychain refuses any write, the file is left as it is.
+    fn migrate(&self, all: &mut Connections) -> bool {
+        if !all
+            .items
+            .iter()
+            .any(|c| c.access_token.is_some() || c.refresh_token.is_some())
+        {
+            return true;
+        }
+        for c in &all.items {
+            for (suffix, tok) in [("access", &c.access_token), ("refresh", &c.refresh_token)] {
+                if let Some(t) = tok {
+                    if self.secrets.set(&format!("{}/{suffix}", c.id), t).is_err() {
+                        tracing::warn!("keychain refused a token; keeping them in the file");
+                        return false;
+                    }
+                }
+            }
+        }
+        let mut clean = all.clone();
+        for c in &mut clean.items {
+            c.access_token = None;
+            c.refresh_token = None;
+        }
+        if let Err(e) = self.write_raw(&clean) {
+            tracing::warn!("cannot rewrite connections after migration: {e}");
+            return false;
+        }
+        for c in &mut all.items {
+            c.access_token = None;
+            c.refresh_token = None;
+        }
+        true
+    }
+
+    /// Fills the tokens from the keychain; a failure leaves that connection without tokens.
+    fn fill(&self, all: &mut Connections) {
+        for c in &mut all.items {
+            let access = self.secrets.get(&format!("{}/access", c.id));
+            let refresh = self.secrets.get(&format!("{}/refresh", c.id));
+            match (access, refresh) {
+                (Ok(a), Ok(r)) => {
+                    c.access_token = a;
+                    c.refresh_token = r;
+                }
+                _ => {
+                    tracing::warn!(connection = %c.id, "cannot read tokens from the keychain");
+                    c.access_token = None;
+                    c.refresh_token = None;
+                }
+            }
+        }
     }
 
     pub fn upsert(&self, mut c: Connection) -> Result<Connections, String> {
         normalize(&mut c)?;
         let _g = self.guard();
-        let mut all = self.read()?;
+        let (mut all, clean) = self.read_migrated()?;
         if c.kind == ConnectionKind::Local
             && all
                 .items
@@ -94,11 +185,31 @@ impl Store {
         {
             return Err("only one local connection is allowed".into());
         }
+        let tokens = (c.access_token.clone(), c.refresh_token.clone());
         match all.items.iter_mut().find(|o| o.id == c.id) {
-            Some(slot) => *slot = c,
-            None => all.items.push(c),
+            Some(slot) => *slot = c.clone(),
+            None => all.items.push(c.clone()),
         }
-        self.write(&all)?;
+        if self.keychain() {
+            for (suffix, tok) in [("access", &tokens.0), ("refresh", &tokens.1)] {
+                let key = format!("{}/{suffix}", c.id);
+                match tok {
+                    Some(t) => self.secrets.set(&key, t),
+                    None => self.secrets.delete(&key),
+                }
+                .map_err(|_| "cannot save tokens in the keychain".to_string())?;
+            }
+        }
+        if self.keychain() {
+            if let Some(slot) = all.items.iter_mut().find(|o| o.id == c.id) {
+                slot.access_token = None;
+                slot.refresh_token = None;
+            }
+        }
+        self.save(&all, clean)?;
+        if self.keychain() && clean {
+            self.fill(&mut all);
+        }
         Ok(all)
     }
 
@@ -106,12 +217,15 @@ impl Store {
         let id = normalize_id(id)?;
         let id = id.as_str();
         let _g = self.guard();
-        let mut all = self.read()?;
+        let (mut all, clean) = self.read_migrated()?;
         if !all.items.iter().any(|c| c.id == id) {
             return Err("no such connection".into());
         }
         all.active = Some(id.to_string());
-        self.write(&all)?;
+        self.save(&all, clean)?;
+        if self.keychain() && clean {
+            self.fill(&mut all);
+        }
         Ok(all)
     }
 
@@ -119,12 +233,22 @@ impl Store {
         let id = normalize_id(id)?;
         let id = id.as_str();
         let _g = self.guard();
-        let mut all = self.read()?;
+        let (mut all, clean) = self.read_migrated()?;
         all.items.retain(|c| c.id != id);
         if all.active.as_deref() == Some(id) {
             all.active = None;
         }
-        self.write(&all)?;
+        self.save(&all, clean)?;
+        if self.keychain() {
+            for suffix in ["access", "refresh"] {
+                if self.secrets.delete(&format!("{id}/{suffix}")).is_err() {
+                    tracing::warn!(connection = %id, "cannot delete a keychain entry");
+                }
+            }
+            if clean {
+                self.fill(&mut all);
+            }
+        }
         Ok(all)
     }
 
@@ -200,7 +324,20 @@ impl Store {
         Ok(Connections::default())
     }
 
-    fn write(&self, all: &Connections) -> Result<(), String> {
+    /// Writes the file; `strip` (keychain mode, tokens already migrated) removes the tokens.
+    fn save(&self, all: &Connections, clean: bool) -> Result<(), String> {
+        if self.keychain() && clean {
+            let mut clean = all.clone();
+            for c in &mut clean.items {
+                c.access_token = None;
+                c.refresh_token = None;
+            }
+            return self.write_raw(&clean);
+        }
+        self.write_raw(all)
+    }
+
+    fn write_raw(&self, all: &Connections) -> Result<(), String> {
         let json =
             serde_json::to_vec_pretty(all).map_err(|_| "cannot encode connections".to_string())?;
         let tmp = self
