@@ -12,6 +12,7 @@
 - UPDATE_OPENAPI=1 cargo test -p bookeeper-core --test openapi -- --include-ignored && npm run gen -w @bookeeper/api && npm test -w @bookeeper/api [packages/api/openapi.json]
 
 ## Known traps
+- mDNS TXT `tls` values announced by bookeeper-server are "off" | "self" | "acme" (not "none"), and `url` is null unless public_url or ACME… [crates/bookeeper-server/src/announce.rs]
 - `GET /api/v1/health` includes a `time` field rounded to the second, so comparing two health bodies byte for byte gives a flaky test [crates/bookeeper-core/src/api/health.rs]
 - bookeeper-desktop has no `tests/dispatch.rs`; its dispatch tests are unit tests in src/dispatch.rs, run with `cargo test -p… [apps/desktop/src-tauri/src/dispatch.rs]
 - `npm ci --offline` is needed in a fresh worktree before any `npm test`/`tsc`, or vitest is "not found" [package.json]
@@ -28,5 +29,4 @@
 - `cargo check -p bookeeper-desktop` (Tauri) takes over 2 minutes cold, so run it in the background [apps/desktop/src-tauri/src/lib.rs]
 - `cargo fmt -p <crate>` reformats files owned by other tasks; restore them with `git show HEAD:<path> > <path>` or run `rustfmt` only on… [crates/bookeeper-core/src/lookup/mod.rs]
 - running `cargo fmt -p bookeeper-core` reformats other tasks' files (lookup/*, tests/lookup_*), so format only your own files with… [crates/bookeeper-core/src/lookup/mod.rs]
-- The books list/search route is `GET /api/v1/books?q=`; there is no `/books/search` route and it returns 404 [crates/bookeeper-core/src/api/books_search.rs]
 

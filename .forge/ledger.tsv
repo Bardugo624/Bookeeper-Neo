@@ -188,3 +188,11 @@
 2026-11-25T01:46:10Z	bookeeper-fase-2a	app-foundation	qa	opus	PASS	-	-	-	28
 2026-11-25T01:46:45Z	bookeeper-fase-2a	desktop-remote	dwarf	sonnet	-	trap	get api v1 health includes a time field rounded to the second so comparing two health bodies byte for byte gives a flaky test	`GET /api/v1/health` includes a `time` field rounded to the second, so comparing two health bodies byte for byte gives a flaky test [crates/bookeeper-core/src/api/health.rs]	23	1
 2026-11-25T01:49:38Z	bookeeper-fase-2a	desktop-remote	qa	opus	PASS	-	-	-	168
+2026-11-25T01:56:41Z	bookeeper-fase-2a	books-view	dwarf	sonnet	-	trap	fakeplatform transport has no requestraw so cover or file requests need the transport wrapped in the test	`fakePlatform().transport()` has no `requestRaw`, so cover or file requests need the transport wrapped in the test [apps/desktop/src/platform/testing.ts]	341	1
+2026-11-25T01:58:32Z	bookeeper-fase-2a	first-run	dwarf	sonnet	-	-	-	-	452
+2026-11-25T01:58:38Z	bookeeper-fase-2a	books-view	qa	opus	FAIL	-	-	-	112
+2026-11-25T01:59:08Z	bookeeper-fase-2a	books-view	dwarf	sonnet	-	-	-	-	27
+2026-11-25T01:59:45Z	bookeeper-fase-2a	books-view	qa	opus	PASS	-	-	-	32
+2026-11-25T02:00:57Z	bookeeper-fase-2a	first-run	qa	opus	FAIL	trap	mdns txt tls values announced by bookeeper server are off self acme not none and url is null unless public url or acme	mDNS TXT `tls` values announced by bookeeper-server are "off" | "self" | "acme" (not "none"), and `url` is null unless public_url or ACME… [crates/bookeeper-server/src/announce.rs]	141	1
+2026-11-25T02:02:11Z	bookeeper-fase-2a	first-run	dwarf	sonnet	-	-	-	-	71
+2026-11-25T02:03:08Z	bookeeper-fase-2a	first-run	qa	opus	PASS	-	-	-	52
