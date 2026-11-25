@@ -108,6 +108,7 @@
     "validation": "Some data is not valid. Check the fields and try again.",
     "setupClosed": "This server already has a library.",
     "network": "I can't reach the library. Check your connection and try again.",
+    "libraryChoice": "This account belongs to several libraries. Sign in from “Join” with email and password and pick one.",
     "generic": "Something went wrong. Try again."
   }
 }

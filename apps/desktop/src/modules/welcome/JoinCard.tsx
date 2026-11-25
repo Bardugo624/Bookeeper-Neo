@@ -41,7 +41,7 @@ export function JoinCard({ open, onOpen, found, goTo }: JoinCardProps) {
               </li>
             ))}
           </ul>
-          {s.errors.form ? <Notice text={s.errors.form} /> : null}
+          {s.errors.form || s.errors.password ? <Notice text={s.errors.form ?? s.errors.password ?? ''} /> : null}
           <div className={styles.actions}>
             <Button variant="ghost" disabled={s.busy} onClick={s.leaveChoice}>
               {t('welcome.join.chooseBack')}

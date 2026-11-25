@@ -151,6 +151,17 @@ describe('cards', () => {
     await u.click(within(list).getByRole('button', { name: /Casa Rossi/ }));
     expect(screen.getByRole('textbox', { name: 'Indirizzo del server' })).toHaveValue('https://casa.local:8443');
   });
+
+  it('uses http for a server announced without TLS and without a url', async () => {
+    const p = platformWith();
+    p.setFound([{ instance: 'Studio', host: 'studio.local', addrs: [], port: 8080, version: '2', tls: 'off', url: null }]);
+    show(p);
+    const u = user();
+    await screen.findByText('1 trovata in rete');
+    await openCard(u, /Unisciti/);
+    await u.click(screen.getByRole('button', { name: /Studio/ }));
+    expect(screen.getByRole('textbox', { name: 'Indirizzo del server' })).toHaveValue('http://studio.local:8080');
+  });
 });
 
 describe('Unisciti', () => {

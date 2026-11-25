@@ -8,7 +8,7 @@ export interface FoundServer {
 }
 
 function toServer(f: Found): FoundServer {
-  const address = f.url ?? `${f.tls === 'none' ? 'http' : 'https'}://${f.host}:${f.port}`;
+  const address = f.url ?? `${f.tls === 'off' || f.tls === 'none' ? 'http' : 'https'}://${f.host}:${f.port}`;
   return { key: `${f.instance}|${address}`, name: f.instance, address };
 }
 

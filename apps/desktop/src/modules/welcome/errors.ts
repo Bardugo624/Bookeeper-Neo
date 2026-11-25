@@ -17,6 +17,7 @@ const TEXT_OF: Record<string, string> = {
   setup_code_invalid: 'welcome.errors.invalidSetupCode',
   validation: 'welcome.errors.validation',
   setup_closed: 'welcome.errors.setupClosed',
+  library_choice_required: 'welcome.errors.libraryChoice',
 };
 
 /** Turns a failed request into the message to show, and where. */

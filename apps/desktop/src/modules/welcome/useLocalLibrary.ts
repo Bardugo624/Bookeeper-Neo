@@ -13,6 +13,7 @@ export function useLocalLibrary() {
   useEffect(() => {
     let live = true;
     (async () => {
+      let temporary: string | null = null;
       try {
         const all = await platform.connections.get();
         let local = all.items.find((c) => c.kind === 'local') ?? null;
@@ -20,6 +21,7 @@ export function useLocalLibrary() {
         if (!local && all.active) {
           local = newLocalConnection();
           await platform.connections.upsert(local);
+          temporary = local.id;
         }
         const status = await createClient(platform.transport(local?.id)).setupStatus();
         if (!live) return;
@@ -27,6 +29,9 @@ export function useLocalLibrary() {
       } catch {
         // Unknown: the card offers the creation, and the request reports what is wrong.
         if (live) setState('new');
+      } finally {
+        // Only needed to ask; leaving it would save an empty library nobody created.
+        if (temporary) await platform.connections.remove(temporary).catch(() => undefined);
       }
     })();
     return () => {

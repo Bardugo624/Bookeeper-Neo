@@ -1,5 +1,6 @@
 import { createClient, type AuthOut } from '@bookeeper/api';
 import type { Connection, Platform } from '../../platform';
+import { useSession } from '../../session';
 
 export type WelcomeClient = ReturnType<typeof createClient>;
 
@@ -36,8 +37,12 @@ export async function authenticate(
 ): Promise<boolean> {
   const known = (await platform.connections.get()).items.some((c) => c.id === connection.id);
   if (!known) await platform.connections.upsert(connection);
+  let signedIn = false;
   const undo = async () => {
-    if (!known) await platform.connections.remove(connection.id).catch(() => undefined);
+    if (known) return;
+    // After `signIn` the session store holds the connection too, so it must let go as well.
+    if (signedIn) await useSession.getState().forget(connection.id).catch(() => undefined);
+    else await platform.connections.remove(connection.id).catch(() => undefined);
   };
   try {
     const auth = await work(createClient(platform.transport(connection.id)));
@@ -46,6 +51,7 @@ export async function authenticate(
       return false;
     }
     rememberLogin(connection.id, auth);
+    signedIn = true;
     await signIn(connection, auth);
     return true;
   } catch (e) {
