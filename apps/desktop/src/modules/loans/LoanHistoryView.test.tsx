@@ -72,12 +72,12 @@ describe('per person', () => {
     const { router } = renderLoans(store());
     await screen.findByText('Libro 5');
     await user.click(screen.getByRole('button', { name: 'Mostra i prestiti di Carla' }));
-    expect(router.state.location.search).toBe('?borrower=Carla');
+    expect(router.state.location.search).toBe('?borrower=Carla&filter=all');
     await screen.findByText('Solo i prestiti a Carla.');
     expect(screen.queryByText('Libro 4')).toBeNull();
     await user.click(screen.getByRole('button', { name: 'Mostra tutti' }));
     await screen.findByText('Libro 4');
-    expect(router.state.location.search).toBe('');
+    expect(router.state.location.search).toBe('?filter=all');
   });
 });
 

@@ -19,5 +19,7 @@ export function useBorrowerSuggestions(text: string, enabled: boolean): string[]
     retry: false,
     queryFn: () => client.listBorrowers(q || undefined),
   });
+  // While the typed text is still waiting out the delay, the old results would not match it.
+  if (q !== text.trim()) return [];
   return query.data?.items ?? [];
 }

@@ -21,17 +21,19 @@ export function LoansPage() {
   const history = filter === 'returned';
   const { query, items: loaded } = useLoanList(filter, book, history || borrower !== '');
   const items = borrower ? loaded.filter((l) => sameName(l.borrower_name) === sameName(borrower)) : loaded;
-  const counts = useLoanCounts(book);
+  const allCounts = useLoanCounts(book);
+  // Totals ignore the person filter, so they are left out while it is on.
+  const counts = borrower ? { active: undefined, overdue: undefined } : allCounts;
   const dialogs = useLoanDialogs();
   const openNew = dialogs.open;
   const wantsNew = params.values.new === '1';
   const setParams = params.set;
   useEffect(() => {
-    if (!wantsNew || !writable) return;
-    openNew({ kind: 'new' });
+    if (!wantsNew) return;
+    if (writable) openNew({ kind: 'new' });
     setParams({ new: '' });
   }, [wantsNew, writable, openNew, setParams]);
-  const byBorrower = (name: string) => params.set({ borrower: name });
+  const byBorrower = (name: string) => params.set({ borrower: name, filter: 'all' });
 
   const tabs: PillTabItem[] = FILTERS.map((id) => ({ id, label: t(`loans.filters.${id}`) }));
   const parts = [

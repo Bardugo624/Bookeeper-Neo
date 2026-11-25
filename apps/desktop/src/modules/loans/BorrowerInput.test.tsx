@@ -42,6 +42,16 @@ describe('borrower suggestions', () => {
     expect(platform.calls.filter((c) => c.method === 'POST')).toHaveLength(0);
   });
 
+  it('closes only the list on Escape, keeping the form and the text', async () => {
+    const { user, input } = await openForm();
+    await user.type(input, 'Mar');
+    await waitFor(() => expect(screen.getAllByRole('option')).toHaveLength(2));
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('listbox')).toBeNull();
+    expect(screen.getByRole('dialog', { name: 'Nuovo prestito' })).toBeInTheDocument();
+    expect(input).toHaveValue('Mar');
+  });
+
   it('picks with the pointer', async () => {
     const { user, input } = await openForm();
     await user.type(input, 'Lu');

@@ -1,4 +1,4 @@
-import { useId, useState, type KeyboardEvent } from 'react';
+import { useEffect, useId, useState, type KeyboardEvent } from 'react';
 import { Input } from '@bookeeper/ui/base';
 import { useT } from '../../app';
 import { useBorrowerSuggestions } from './useBorrowerSuggestions';
@@ -35,12 +35,20 @@ export function BorrowerInput({ value, onChange }: BorrowerInputProps) {
     } else if (e.key === 'Enter' && open && active >= 0 && names[active] !== undefined) {
       e.preventDefault();
       pick(names[active]!);
-    } else if (e.key === 'Escape' && open) {
+    }
+  };
+  // The dialog closes on Escape from a capture listener on the document; a window capture one runs first.
+  useEffect(() => {
+    if (!open) return;
+    const onEscape = (e: globalThis.KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
       e.stopPropagation();
       setDismissed(true);
       setActive(-1);
-    }
-  };
+    };
+    window.addEventListener('keydown', onEscape, true);
+    return () => window.removeEventListener('keydown', onEscape, true);
+  }, [open]);
 
   return (
     <div className={styles.wrap}>
