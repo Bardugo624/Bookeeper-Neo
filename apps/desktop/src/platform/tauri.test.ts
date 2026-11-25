@@ -49,3 +49,18 @@ it('saveFile reports a cancelled window as not saved', async () => {
   const out = await tauriPlatform().saveFile({ suggestedName: 'a', bytes: new Uint8Array(), mime: 'x' });
   expect(out.saved).toBe(false);
 });
+
+it('updates call the commands with the channel and turn failures into codes', async () => {
+  const { updates } = tauriPlatform();
+  invoke.mockResolvedValueOnce({ state: 'up_to_date' });
+  expect(await updates!.check('beta')).toEqual({ state: 'up_to_date' });
+  expect(invoke).toHaveBeenCalledWith('update_check', { channel: 'beta' });
+
+  invoke.mockRejectedValueOnce('invalid update channel');
+  expect(await updates!.check('stable')).toEqual({ state: 'error', code: 'manifest' });
+
+  invoke.mockRejectedValueOnce('signature');
+  await expect(updates!.install('stable')).rejects.toBe('signature');
+  invoke.mockRejectedValueOnce('anything else');
+  await expect(updates!.install('stable')).rejects.toBe('install');
+});

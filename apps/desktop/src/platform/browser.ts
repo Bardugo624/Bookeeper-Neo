@@ -73,6 +73,7 @@ export function browserPlatform(baseUrl: string): Platform {
     },
     discover: async () => [],
     sharing: null,
+    updates: null,
     window: null,
     async deviceName() {
       return 'Browser';

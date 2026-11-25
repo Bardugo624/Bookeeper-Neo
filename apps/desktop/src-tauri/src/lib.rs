@@ -5,6 +5,7 @@ pub mod files;
 pub mod remote;
 pub mod secrets;
 pub mod sharing;
+pub mod updates;
 
 use bookeeper_core::{AppState, Db, SetupPolicy};
 use tauri::Manager;
@@ -188,9 +189,35 @@ async fn sharing_set(
     Ok(sharing.set(enabled, port).await)
 }
 
+#[tauri::command]
+async fn update_check(
+    app: tauri::AppHandle,
+    channel: String,
+) -> Result<updates::UpdateState, String> {
+    updates::check(&app, &channel).await
+}
+
+#[tauri::command]
+async fn update_install(app: tauri::AppHandle, channel: String) -> Result<(), String> {
+    updates::install(&app, &channel).await
+}
+
 pub fn run() {
-    tauri::Builder::default()
-        .plugin(tauri_plugin_dialog::init())
+    let mut context = tauri::generate_context!();
+    let mut builder = tauri::Builder::default().plugin(tauri_plugin_dialog::init());
+    // The updater plugin reads its key from the configuration: hand it the one baked in at
+    // build time, so `tauri.conf.json` needs no entry. Without a key it is not loaded at all.
+    if let Some(key) = updates::pubkey() {
+        context
+            .config_mut()
+            .plugins
+            .0
+            .insert("updater".into(), serde_json::json!({ "pubkey": key }));
+        builder = builder
+            .plugin(tauri_plugin_updater::Builder::new().build())
+            .plugin(tauri_plugin_process::init());
+    }
+    builder
         .setup(|app| {
             let dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&dir)?;
@@ -224,9 +251,11 @@ pub fn run() {
             discover,
             save_file,
             sharing_status,
-            sharing_set
+            sharing_set,
+            update_check,
+            update_install
         ])
-        .build(tauri::generate_context!())
+        .build(context)
         .expect("error while building Bookeeper")
         .run(|app, event| {
             // Closing the app stops sharing: the port never outlives it.
