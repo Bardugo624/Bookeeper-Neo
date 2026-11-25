@@ -6,7 +6,7 @@
     "license": {
       "name": ""
     },
-    "version": "2.0.0-dev"
+    "version": "2.0.0-beta.1"
   },
   "paths": {
     "/api/v1/auth/confirm": {

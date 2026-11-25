@@ -16,6 +16,6 @@ async fn health_reports_ok_and_version() {
     let body: serde_json::Value =
         serde_json::from_slice(&res.into_body().collect().await.unwrap().to_bytes()).unwrap();
     assert_eq!(body["status"], "ok");
-    assert_eq!(body["version"], "2.0.0-dev");
+    assert_eq!(body["version"], env!("CARGO_PKG_VERSION"));
     assert!(chrono::DateTime::parse_from_rfc3339(body["time"].as_str().unwrap()).is_ok());
 }

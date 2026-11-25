@@ -4,6 +4,7 @@
      overwritten. Facts only, one per line. -->
 
 ## Verify
+- npm install && npm run typecheck -w @bookeeper/mobile && npm test -w @bookeeper/mobile && npm run build -w @bookeeper/mobile && cargo test --offline -p… [apps/mobile/package.json]
 - cargo test --offline -p bookeeper-desktop && cargo clippy --offline -p bookeeper-desktop --all-targets -- -D warnings [apps/desktop/src-tauri/Cargo.toml]
 - cargo zigbuild --release --locked -p bookeeper-server --target x86_64-unknown-linux-musl (needs `pip install ziglang`, `cargo install --locked… [.github/workflows/release.yml]
 - npm ci --offline && npm run gen -w @bookeeper/api && npm test -w @bookeeper/api [packages/api/package.json]
@@ -13,6 +14,9 @@
 
 ## Known traps
 - a fresh worktree has no node_modules; run `npm ci --offline` at the root, then `npx vitest run <path>` from apps/desktop [apps/desktop/package.json]
+- the core revokes a device when a refresh token is reused (`refresh_reused`), so any client holding refresh tokens in memory across tabs or… [crates/bookeeper-core/src/api/auth.rs]
+- `apps/mobile` resolves vite 7 while the workspace root hoists vite 5, so `VitePWA(...)` in vite.config.ts needs an `as unknown as Plugin` cast to… [apps/mobile/vite.config.ts]
+- caseCollisions.test.ts scans all of packages/ and apps/, so any new file whose name differs from a neighbour only by case (e.g.… [packages/ui/src/caseCollisions.test.ts]
 - a fresh worktree needs `npm ci --offline` at the root before `npm test -w @bookeeper/ui` or typecheck work [package.json]
 - sharing.test.tsx "names the port that was tried when the shell reports the old one" fails intermittently when… [apps/desktop/src/modules/settings/sections/sharing/sharing.test.tsx]
 - tauri-plugin-updater 2.x deserializza `plugins.updater` con `pubkey` obbligatoria: senza quella voce l'app non parte, a meno di inserirla in… [apps/desktop/src-tauri/src/lib.rs]
@@ -24,9 +28,4 @@
 - `renderSettings` in `settings/testkit.tsx` has a fixed handler, so a section that needs extra routes (or `requestRaw` for… [apps/desktop/src/modules/settings/testkit.tsx]
 - a module's `routes.tsx` must not import the `app` barrel (use `app/i18n`, `app/types`): `app/index` globs all modules, so the cycle leaves… [apps/desktop/src/app/modules.ts]
 - jsdom's `navigator.language` is `en-US`, so tests that render `AppProviders` without a `locale` prop come out in English unless the test sets it [apps/desktop/src/app/i18n.tsx]
-- tauri-plugin-dialog needs its default features (gtk3 backend for rfd) or the `rfd` build script panics on Linux [apps/desktop/src-tauri/Cargo.toml]
-- fake timers that include `setTimeout` break testing-library `findBy*`/`waitFor` in desktop tests, so fake only… [apps/desktop/src/modules/devices/devices.test.tsx]
-- the toast provider renders empty `role="alert"` live regions, so `findByRole('alert')` matches even with no error shown [packages/ui/src/overlays/Toast.tsx]
-- `cargo test`/`clippy` on bookeeper-desktop takes over 2 minutes cold, so run it in the background and wait for the exit [apps/desktop/src-tauri/Cargo.toml]
-- in user-event tests a held `{Shift>}` only reaches clicks made through the same `userEvent.setup()` instance, not the bare… [apps/desktop/src/modules/books/BookActions.test.tsx]
 
