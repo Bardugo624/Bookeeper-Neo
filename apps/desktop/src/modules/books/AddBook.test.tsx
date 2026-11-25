@@ -2,7 +2,8 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { installIntersectionObserver, book } from './testkit';
-import { ISBN, lookUp, openNewBook, renderWithWrites, sent } from './writeKit';
+import { ok } from '../../session/fixtures';
+import { ISBN, METADATA, lookUp, openNewBook, renderWithWrites, sent } from './writeKit';
 
 beforeEach(() => {
   localStorage.clear();
@@ -76,6 +77,43 @@ describe('ISBN step', () => {
     await lookUp();
     const link = await screen.findByRole('link', { name: 'Apri il libro esistente' });
     expect(link).toHaveAttribute('href', expect.stringContaining('/books/b5'));
+  });
+});
+
+describe('duplicate by either form of the ISBN', () => {
+  it('finds the copy filed under the ISBN-10 when the ISBN-13 is looked up', async () => {
+    renderWithWrites({ books: [book(5, { title: 'Già qui', isbn_10: '8845292614' })] });
+    await openNewBook();
+    await lookUp();
+    const link = await screen.findByRole('link', { name: 'Apri il libro esistente' });
+    expect(link).toHaveAttribute('href', expect.stringContaining('/books/b5'));
+  });
+
+  it('finds the copy filed under the ISBN-13 when the ISBN-10 is looked up', async () => {
+    renderWithWrites(
+      { books: [book(5, { title: 'Già qui', isbn_13: ISBN })] },
+      { 'GET /api/v1/lookup/isbn/8845292614': () => ok(METADATA) },
+    );
+    await openNewBook();
+    await lookUp('8845292614');
+    expect(await screen.findByRole('link', { name: 'Apri il libro esistente' })).toHaveAttribute('href', expect.stringContaining('/books/b5'));
+  });
+
+  it('warns about an ISBN typed by hand once the typing paused', async () => {
+    renderWithWrites({ books: [book(5, { title: 'Già qui', isbn_13: ISBN })] });
+    await openNewBook();
+    await userEvent.click(screen.getByRole('button', { name: 'Inserisci a mano' }));
+    await userEvent.type(screen.getByRole('textbox', { name: 'ISBN-10' }), '8845292614');
+    expect(await screen.findByRole('link', { name: 'Apri il libro esistente' })).toHaveAttribute('href', expect.stringContaining('/books/b5'));
+  });
+
+  it('does not warn about an ISBN that is not in the library', async () => {
+    const { platform } = renderWithWrites({ books: [book(5, { isbn_13: '9791032305690' })] });
+    await openNewBook();
+    await userEvent.click(screen.getByRole('button', { name: 'Inserisci a mano' }));
+    await userEvent.type(screen.getByRole('textbox', { name: 'ISBN-13' }), ISBN);
+    await waitFor(() => expect(platform.calls.some((c) => c.path.includes('q=9788845292613'))).toBe(true));
+    expect(screen.queryByRole('link', { name: 'Apri il libro esistente' })).toBeNull();
   });
 });
 

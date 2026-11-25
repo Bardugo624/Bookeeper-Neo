@@ -93,6 +93,20 @@ describe('client routes', () => {
       ['POST', '/api/v1/devices/i/revoke', undefined],
     ]);
   });
+  it('sends the confirm token on revokeDevice only when given', async () => {
+    const seen: Array<Record<string, string> | undefined> = [];
+    const t: Transport = {
+      request: async (_m, _p, _b, h) => {
+        seen.push(h);
+        return { status: 204, body: null };
+      },
+    };
+    const c = createClient(t);
+    await c.revokeDevice('i', 'tok');
+    await c.revokeDevice('i');
+    expect(seen[0]).toEqual({ 'X-Confirm-Token': 'tok' });
+    expect(seen[1]).toBeUndefined();
+  });
   it('encodes device ids', async () => {
     const { calls, c } = rec();
     await c.renameDevice('a/b', 'x');

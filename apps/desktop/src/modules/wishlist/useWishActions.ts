@@ -1,4 +1,6 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router';
+import { useToast } from '@bookeeper/ui/overlays';
 import type { WishOut } from '@bookeeper/api';
 import { useT } from '../../app';
 import { apiErrorMessage } from '../../kit';
@@ -13,15 +15,17 @@ export function useWishActions() {
   const { create, update, remove, convert } = useWishlist();
   const [dialog, setDialog] = useState<Dialog>(null);
   const [error, setError] = useState<string | null>(null);
-  const [converted, setConverted] = useState<{ bookId: string; title: string } | null>(null);
-  const dismissConverted = useCallback(() => setConverted(null), []);
+  const toast = useToast();
+  const navigate = useNavigate();
 
   const save = async (wish: WishOut | undefined, v: WishValues) => {
+    setError(null);
     if (wish) await update.mutateAsync({ id: wish.id, patch: patchBody(v) });
     else await create.mutateAsync(createBody(v));
   };
 
   const confirmDelete = async (wish: WishOut) => {
+    setError(null);
     try {
       await remove.mutateAsync(wish.id);
     } catch (e) {
@@ -35,7 +39,12 @@ export function useWishActions() {
     setError(null);
     try {
       const book = await convert.mutateAsync(wish.id);
-      setConverted({ bookId: book.id, title: book.title });
+      toast.show({
+        title: t('wishlist.converted.title'),
+        description: book.title,
+        tone: 'ok',
+        action: { label: t('wishlist.converted.open'), onClick: () => void navigate(`/books/${encodeURIComponent(book.id)}`) },
+      });
     } catch (e) {
       setError(apiErrorMessage(t, e));
     }
@@ -45,8 +54,6 @@ export function useWishActions() {
     dialog,
     setDialog,
     error,
-    converted,
-    dismissConverted,
     save,
     confirmDelete,
     convertWish,

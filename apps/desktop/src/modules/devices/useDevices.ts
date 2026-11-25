@@ -21,7 +21,7 @@ export function useDevices(pollMs: number | false = false) {
     onSuccess: refresh,
   });
   const revoke = useMutation({
-    mutationFn: (id: string) => client.revokeDevice(id),
+    mutationFn: ({ id, confirmToken }: { id: string; confirmToken?: string }) => client.revokeDevice(id, confirmToken),
     onSuccess: refresh,
   });
 

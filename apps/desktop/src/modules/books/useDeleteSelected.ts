@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useToast } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
 import { apiErrorMessage } from '../../kit';
-import { useBookWrites } from './useBookWrites';
+import { DeleteStopped, useBookWrites } from './useBookWrites';
 
 /** Confirmation and batch delete for the selection; the toast says what was and was not deleted. */
 export function useDeleteSelected(selected: ReadonlySet<string>, onDone: () => void) {
@@ -31,7 +31,17 @@ export function useDeleteSelected(selected: ReadonlySet<string>, onDone: () => v
         },
         onError: (error) => {
           setConfirming(false);
-          toast.show({ title: apiErrorMessage(t, error), tone: 'danger' });
+          if (error instanceof DeleteStopped && error.deleted > 0) {
+            // Some blocks went through: those books are gone, so the selection ends too.
+            onDone();
+            toast.show({
+              title: t('books.selection.partial', { deleted: error.deleted, total: error.requested }),
+              description: apiErrorMessage(t, error.cause),
+              tone: 'warn',
+            });
+            return;
+          }
+          toast.show({ title: apiErrorMessage(t, error instanceof DeleteStopped ? error.cause : error), tone: 'danger' });
         },
       });
     },

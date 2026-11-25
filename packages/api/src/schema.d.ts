@@ -820,6 +820,8 @@ export interface components {
             acquired_at?: number | null;
             authors?: string[];
             condition?: string | null;
+            /** @description Placeholder colour `#rrggbb` (stored lowercase); `null` clears it. */
+            cover_color?: string | null;
             description?: string | null;
             format?: string | null;
             genre?: string | null;
@@ -1151,6 +1153,8 @@ export interface components {
             acquired_at?: number | null;
             authors?: string[] | null;
             condition?: string | null;
+            /** @description `#rrggbb`; `null` clears the placeholder colour. */
+            cover_color?: string | null;
             description?: string | null;
             format?: string | null;
             genre?: string | null;
@@ -1200,6 +1204,11 @@ export interface components {
             /** Format: int64 */
             row_index: number;
             shelf_id: string;
+            /**
+             * @description When true, books from `slot_index` onwards slide one slot right up to
+             *     the first free slot, atomically. Defaults to false.
+             */
+            shift?: boolean;
             /** Format: int64 */
             slot_index: number;
             /**
@@ -2698,7 +2707,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description slot_taken: slot occupied */
+            /** @description slot_taken: slot occupied (without shift); row_full: shift has no free slot to the right */
             409: {
                 headers: {
                     [name: string]: unknown;

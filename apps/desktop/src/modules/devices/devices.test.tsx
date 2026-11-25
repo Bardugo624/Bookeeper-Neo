@@ -1,4 +1,4 @@
-import { act, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import QRCode from 'qrcode';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -106,6 +106,10 @@ describe('revoke', () => {
     expect(await screen.findByText('Revocati (1)')).toBeInTheDocument();
     expect(platform.calls.filter((c) => c.path === '/api/v1/devices/d2/revoke')).toHaveLength(2);
     expect(platform.calls.some((c) => c.path === '/api/v1/auth/confirm')).toBe(true);
+    const revokes = platform.calls.filter((c) => c.path === '/api/v1/devices/d2/revoke');
+    const header = (i: number) => Object.entries(revokes[i]?.headers ?? {}).find(([k]) => k.toLowerCase() === 'x-confirm-token')?.[1];
+    expect(header(0)).toBeUndefined();
+    expect(header(1)).toBe('tok');
   });
 });
 
@@ -142,6 +146,43 @@ describe('pairing code', () => {
     await user.click(screen.getByRole('button', { name: 'Genera un nuovo codice' }));
     expect(await screen.findByText('WXYZ 6789')).toBeInTheDocument();
     expect(screen.queryByText('Il codice è scaduto.')).not.toBeInTheDocument();
+  });
+
+  it('goes back to "Copia" after 2 seconds', async () => {
+    renderDevices(base());
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: 'Aggiungi un computer' }));
+    await screen.findByText('ABCD 2345');
+    // Only the timeout is faked, and only now: queries above wait on real timers.
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    fireEvent.click(screen.getByRole('button', { name: 'Copia' }));
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(screen.getByRole('button', { name: 'Copiato' })).toBeInTheDocument();
+    await act(async () => {
+      vi.advanceTimersByTime(1900);
+    });
+    expect(screen.getByRole('button', { name: 'Copiato' })).toBeInTheDocument();
+    await act(async () => {
+      vi.advanceTimersByTime(200);
+    });
+    expect(screen.getByRole('button', { name: 'Copia' })).toBeInTheDocument();
+  });
+
+  it('forgets "Copiato" when the code changes', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] });
+    renderDevices(base());
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await user.click(await screen.findByRole('button', { name: 'Aggiungi un computer' }));
+    await screen.findByText('ABCD 2345');
+    await user.click(screen.getByRole('button', { name: 'Copia' }));
+    await act(async () => {
+      vi.advanceTimersByTime(601_000);
+    });
+    await user.click(screen.getByRole('button', { name: 'Genera un nuovo codice' }));
+    await screen.findByText('WXYZ 6789');
+    expect(screen.getByRole('button', { name: 'Copia' })).toBeInTheDocument();
   });
 
   it('closes with a toast when a new device shows up in the list', async () => {

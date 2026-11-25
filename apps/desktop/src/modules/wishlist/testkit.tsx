@@ -17,6 +17,8 @@ export interface Shop {
   role?: 'owner' | 'member' | 'guest';
   /** Status to answer a convert with instead of success. */
   convertFails?: number;
+  /** Status to answer a delete with instead of success. */
+  deleteFails?: number;
   /** The list request fails. */
   listFails?: boolean;
 }
@@ -56,6 +58,7 @@ export function wishPlatform(shop: Shop): FakePlatform {
         return ok(next);
       }
       if (r.method === 'DELETE') {
+        if (shop.deleteFails) return { status: shop.deleteFails, body: { error_code: 'internal', message: 'x' } };
         shop.items = shop.items.filter((w) => w !== found);
         return { status: 204, body: undefined };
       }

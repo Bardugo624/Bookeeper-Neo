@@ -7,11 +7,11 @@ import { apiErrorMessage } from '../../kit';
 import { BookFormFields } from './BookFormFields';
 import { CoverPicker } from './CoverPicker';
 import { IsbnStep } from './IsbnStep';
-import { LookupNotice } from './LookupNotice';
+import { ExistingNotice, LookupNotice } from './LookupNotice';
 import { authorsOf } from './format';
 import type { SaveResult } from './useBookWrites';
 import { useBookEditor } from './useBookEditor';
-import { useCover } from './useCover';
+import { mayHaveCover, useCover } from './useCover';
 import styles from './BookForm.module.css';
 
 export interface BookDrawerProps {
@@ -36,7 +36,7 @@ function BookEditor({ book, onClose, onSaved, onAnother }: BookDrawerProps & { o
   const toast = useToast();
   const formId = useId();
   const [step, setStep] = useState<'isbn' | 'form'>(book ? 'form' : 'isbn');
-  const stored = useCover(book?.id ?? '', Boolean(book?.cover_color));
+  const stored = useCover(book?.id ?? '', mayHaveCover(book?.cover_color));
 
   const done = (result: SaveResult | null, another: boolean) => {
     if (result) {
@@ -50,7 +50,7 @@ function BookEditor({ book, onClose, onSaved, onAnother }: BookDrawerProps & { o
     if (another) onAnother();
     else onClose();
   };
-  const editor = useBookEditor(book, done);
+  const editor = useBookEditor(book, done, Boolean(stored));
   const { form } = editor;
   const title = book ? t('books.edit.title') : t('books.new.title');
 
@@ -95,6 +95,7 @@ function BookEditor({ book, onClose, onSaved, onAnother }: BookDrawerProps & { o
             </p>
           ) : null}
           <LookupNotice outcome={editor.outcome} />
+          <ExistingNotice existing={editor.duplicate} />
           <BookFormFields form={form} />
           <CoverPicker
             title={form.values.title}
@@ -103,6 +104,8 @@ function BookEditor({ book, onClose, onSaved, onAnother }: BookDrawerProps & { o
             candidates={editor.candidates}
             plan={editor.plan}
             onPlan={editor.setPlan}
+            color={editor.color}
+            onColor={editor.setColor}
           />
         </form>
       )}

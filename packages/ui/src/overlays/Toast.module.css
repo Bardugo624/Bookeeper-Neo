@@ -64,6 +64,19 @@
     color: var(--bk-text-muted);
 }
 
+.action {
+    margin: 6px 0 0;
+    padding: 2px 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--bk-accent, var(--bk-text-strong));
+    text-decoration: underline;
+    cursor: pointer;
+}
+
 @media (prefers-reduced-motion: no-preference) {
     .toast {
         animation: toast-in var(--bk-dur) var(--bk-ease);

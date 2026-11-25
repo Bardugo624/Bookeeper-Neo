@@ -1674,7 +1674,7 @@
             }
           },
           "409": {
-            "description": "slot_taken: slot occupied",
+            "description": "slot_taken: slot occupied (without shift); row_full: shift has no free slot to the right",
             "content": {
               "application/json": {
                 "schema": {
@@ -4557,6 +4557,13 @@
               "null"
             ]
           },
+          "cover_color": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Placeholder colour `#rrggbb` (stored lowercase); `null` clears it."
+          },
           "description": {
             "type": [
               "string",
@@ -5763,6 +5770,13 @@
               "null"
             ]
           },
+          "cover_color": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`#rrggbb`; `null` clears the placeholder colour."
+          },
           "description": {
             "type": [
               "string",
@@ -5948,6 +5962,10 @@
           },
           "shelf_id": {
             "type": "string"
+          },
+          "shift": {
+            "type": "boolean",
+            "description": "When true, books from `slot_index` onwards slide one slot right up to\nthe first free slot, atomically. Defaults to false."
           },
           "slot_index": {
             "type": "integer",

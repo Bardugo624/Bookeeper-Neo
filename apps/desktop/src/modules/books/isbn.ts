@@ -36,3 +36,32 @@ export function parseIsbn(raw: string): ParsedIsbn | null {
 export function isIsbnOfKind(raw: string, kind: IsbnKind): boolean {
   return parseIsbn(raw)?.kind === kind;
 }
+
+/** The ISBN-13 of an ISBN-10 (prefix 978, new check digit); null when `raw` is not a valid ISBN-10. */
+export function isbn10To13(raw: string): string | null {
+  const parsed = parseIsbn(raw);
+  if (parsed?.kind !== 'isbn10') return null;
+  const body = `978${parsed.digits.slice(0, 9)}`;
+  let sum = 0;
+  for (let i = 0; i < 12; i++) sum += Number(body[i]) * (i % 2 === 0 ? 1 : 3);
+  return `${body}${(10 - (sum % 10)) % 10}`;
+}
+
+/** The ISBN-10 of an ISBN-13; null when `raw` is not a valid ISBN-13 or its prefix is not 978 (979 has no ISBN-10). */
+export function isbn13To10(raw: string): string | null {
+  const parsed = parseIsbn(raw);
+  if (parsed?.kind !== 'isbn13' || !parsed.digits.startsWith('978')) return null;
+  const body = parsed.digits.slice(3, 12);
+  let sum = 0;
+  for (let i = 0; i < 9; i++) sum += (10 - i) * Number(body[i]);
+  const check = (11 - (sum % 11)) % 11;
+  return `${body}${check === 10 ? 'X' : check}`;
+}
+
+/** Every form the same book can be filed under: the number itself and its other form, when it has one. */
+export function isbnForms(raw: string): string[] {
+  const parsed = parseIsbn(raw);
+  if (!parsed) return [];
+  const other = parsed.kind === 'isbn10' ? isbn10To13(parsed.digits) : isbn13To10(parsed.digits);
+  return other ? [parsed.digits, other] : [parsed.digits];
+}

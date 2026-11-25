@@ -168,7 +168,23 @@
     "remove": "Rimuovi",
     "file": "File della copertina",
     "badType": "Sono ammesse solo immagini JPEG, PNG o WebP.",
-    "tooBig": "L'immagine supera i {mb} MB."
+    "tooBig": "L'immagine supera i {mb} MB.",
+    "color": {
+      "label": "Colore del segnaposto",
+      "auto": "Automatico",
+      "tones": {
+        "sage": "Salvia",
+        "terracotta": "Terracotta",
+        "night": "Notte",
+        "plum": "Prugna",
+        "amber": "Ambra",
+        "graphite": "Grafite",
+        "moss": "Muschio",
+        "wine": "Vino",
+        "teal": "Petrolio",
+        "umber": "Terra d'ombra"
+      }
+    }
   },
   "selection": {
     "toggle": "Seleziona",

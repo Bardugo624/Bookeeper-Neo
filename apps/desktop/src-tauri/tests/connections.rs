@@ -322,3 +322,26 @@ fn two_stores_on_one_folder_keep_two_files() {
     assert_eq!(bodies.len(), 2);
     assert!(bodies.contains(&"{ one".to_string()) && bodies.contains(&"{ two".to_string()));
 }
+
+#[test]
+fn a_replaced_file_is_not_deleted() {
+    let (d, s) = store();
+    let path = d.path().join("connections.json");
+    let corrupt = b"{ not json".to_vec();
+    std::fs::write(&path, &corrupt).unwrap();
+    // Another process sets the corrupt file aside and writes a valid one in between.
+    Store::new(d.path())
+        .upsert(remote("https://a.example"))
+        .unwrap();
+    let valid = std::fs::read(&path).unwrap();
+    let loaded = s.set_aside(&corrupt).unwrap();
+    assert_eq!(std::fs::read(&path).unwrap(), valid);
+    assert_eq!(loaded.items.len(), 1);
+    assert_eq!(s.load().unwrap().items.len(), 1);
+}
+
+#[test]
+fn setting_aside_never_uses_hard_links() {
+    let src = include_str!("../src/connections.rs");
+    assert!(!src.contains(concat!("hard", "_link")));
+}

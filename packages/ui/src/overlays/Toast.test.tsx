@@ -74,3 +74,44 @@ it('shows at most three toasts', async () => {
   expect(screen.getAllByRole('button', { name: 'Dismiss' })).toHaveLength(3);
   expect(screen.queryByText('Toast 4')).not.toBeInTheDocument();
 });
+
+it('renders the action as a button; clicking runs it once and closes', async () => {
+  const onClick = vi.fn();
+  const user = setup([{ title: 'Deleted', action: { label: 'Undo', onClick } }]);
+  await user.click(screen.getByRole('button', { name: 'Go' }));
+  await user.click(screen.getByRole('button', { name: 'Undo' }));
+  expect(onClick).toHaveBeenCalledTimes(1);
+  expect(screen.queryByText('Deleted')).not.toBeInTheDocument();
+});
+
+it('can be activated from the keyboard', async () => {
+  const onClick = vi.fn();
+  const user = setup([{ title: 'Deleted', action: { label: 'Undo', onClick } }]);
+  await user.click(screen.getByRole('button', { name: 'Go' }));
+  screen.getByRole('button', { name: 'Undo' }).focus();
+  await user.keyboard('{Enter}');
+  expect(onClick).toHaveBeenCalledTimes(1);
+});
+
+it('lasts 8 seconds when it has an action', () => {
+  vi.useFakeTimers();
+  setup([{ title: 'Deleted', action: { label: 'Undo', onClick: () => {} } }]);
+  fireEvent.click(screen.getByRole('button', { name: 'Go' }));
+  act(() => void vi.advanceTimersByTime(7900));
+  expect(screen.getByText('Deleted')).toBeInTheDocument();
+  act(() => void vi.advanceTimersByTime(200));
+  expect(screen.queryByText('Deleted')).not.toBeInTheDocument();
+});
+
+it('does not close while the action button has focus', () => {
+  vi.useFakeTimers();
+  setup([{ title: 'Deleted', action: { label: 'Undo', onClick: () => {} } }]);
+  fireEvent.click(screen.getByRole('button', { name: 'Go' }));
+  const undo = screen.getByRole('button', { name: 'Undo' });
+  fireEvent.focus(undo);
+  act(() => void vi.advanceTimersByTime(30000));
+  expect(screen.getByText('Deleted')).toBeInTheDocument();
+  fireEvent.blur(undo);
+  act(() => void vi.advanceTimersByTime(8100));
+  expect(screen.queryByText('Deleted')).not.toBeInTheDocument();
+});

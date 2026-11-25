@@ -6,7 +6,7 @@ import { useFormState } from '../../kit';
 import {
   applyMetadata, emptyForm, fromBook, toCreateBody, toPatchBody, validateBook, type BookFormValues,
 } from './bookForm';
-import { useNextProgressive, type LookupOutcome } from './useIsbnLookup';
+import { useNextProgressive, useTypedIsbnDuplicate, type LookupOutcome } from './useIsbnLookup';
 import { useBookWrites, type CoverPlan, type SaveResult } from './useBookWrites';
 
 export interface UseBookEditor {
@@ -15,6 +15,11 @@ export interface UseBookEditor {
   candidates: string[];
   plan: CoverPlan;
   setPlan(plan: CoverPlan): void;
+  /** Placeholder color: the stored one until the user picks; null is "Automatic". */
+  color: string | null;
+  setColor(color: string | null): void;
+  /** A book already in the library under the ISBN typed by hand, after the typing paused. */
+  duplicate: BookOut | null;
   saving: boolean;
   /** Fills the form from a lookup (or leaves it empty with the ISBN typed in). */
   start(result: { isbn: string; outcome: LookupOutcome | null }): void;
@@ -26,6 +31,8 @@ export interface UseBookEditor {
 export function useBookEditor(
   book: BookOut | undefined,
   onSaved: (result: SaveResult | null, another: boolean) => void,
+  /** A cover is stored for `book`: only then can "Remove" delete anything. */
+  hadCover = false,
 ): UseBookEditor {
   const t = useT();
   const writes = useBookWrites();
@@ -34,6 +41,11 @@ export function useBookEditor(
   const form = useFormState(initial, validate);
   const [outcome, setOutcome] = useState<LookupOutcome | null>(null);
   const [plan, setPlan] = useState<CoverPlan>({ kind: 'keep' });
+  // `undefined` until the user picks a color: what is stored then stays as it is.
+  const [picked, setColor] = useState<string | null | undefined>(undefined);
+  const color = picked === undefined ? (book?.cover_color ?? null) : picked;
+  // An ISBN typed by hand is checked against the library; one from the lookup already was.
+  const duplicate = useTypedIsbnDuplicate(form.values.isbn13, form.values.isbn10, !book && outcome === null);
   const proposal = useNextProgressive(!book);
   const proposed = useRef(false);
 
@@ -61,11 +73,13 @@ export function useBookEditor(
       try {
         if (book) {
           const patch = toPatchBody(book, values);
+          if (picked !== undefined && picked !== (book.cover_color ?? null)) patch.cover_color = picked;
+          const removesNothing = plan.kind === 'remove' && !hadCover;
           // Nothing changed: nothing is sent.
-          if (Object.keys(patch).length === 0 && plan.kind === 'keep') return onSaved(null, false);
-          onSaved(await writes.update.mutateAsync({ id: book.id, patch, cover: plan }), false);
+          if (Object.keys(patch).length === 0 && (plan.kind === 'keep' || removesNothing)) return onSaved(null, false);
+          onSaved(await writes.update.mutateAsync({ id: book.id, patch, cover: plan, hadCover }), false);
         } else {
-          onSaved(await writes.create.mutateAsync({ body: toCreateBody(values), cover: plan }), another);
+          onSaved(await writes.create.mutateAsync({ body: { ...toCreateBody(values), ...(color ? { cover_color: color } : {}) }, cover: plan }), another);
         }
       } catch (e) {
         if (!(e instanceof ApiError && e.code === 'progressive_taken')) throw e;
@@ -80,6 +94,9 @@ export function useBookEditor(
     candidates: outcome?.kind === 'found' ? outcome.metadata.cover_candidates : [],
     plan,
     setPlan,
+    color,
+    setColor,
+    duplicate,
     saving: form.submitting,
     start,
     save,

@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Button } from '@bookeeper/ui/base';
-import { BookCover } from '@bookeeper/ui/book';
+import { BookCover, CLOTH_TONES } from '@bookeeper/ui/book';
 import { useT } from '../../app';
 import { COVER_MAX_BYTES, COVER_TYPES, coverFileProblem, type CoverFileProblem } from './coverFile';
 import type { CoverPlan } from './useBookWrites';
@@ -16,10 +16,64 @@ export interface CoverPickerProps {
   candidates: string[];
   plan: CoverPlan;
   onPlan(plan: CoverPlan): void;
+  /** Placeholder color chosen (or stored) for the book; null is "Automatic". */
+  color: string | null;
+  onColor(color: string | null): void;
+}
+
+/** Names of the `CLOTH_TONES`, in the same order. */
+const TONE_NAMES = ['sage', 'terracotta', 'night', 'plum', 'amber', 'graphite', 'moss', 'wine', 'teal', 'umber'] as const;
+
+/** "Automatic" and the cloth tones as one single-choice group; the arrows move the choice. */
+function ColorSwatches({ value, onChange }: { value: string | null; onChange(color: string | null): void }) {
+  const t = useT();
+  const choices: Array<{ color: string | null; name: string }> = [
+    { color: null, name: t('books.cover.color.auto') },
+    ...CLOTH_TONES.map((color, i) => ({ color, name: t(`books.cover.color.tones.${TONE_NAMES[i]}`) })),
+  ];
+  const checked = choices.findIndex((c) => c.color === value);
+  const refs = useRef<Array<HTMLButtonElement | null>>([]);
+  const move = (from: number, step: number) => {
+    const to = (from + step + choices.length) % choices.length;
+    onChange(choices[to]!.color);
+    refs.current[to]?.focus();
+  };
+  return (
+    <div role="radiogroup" aria-label={t('books.cover.color.label')} className={styles.swatches}>
+      {choices.map((c, i) => (
+        <button
+          key={c.color ?? 'auto'}
+          ref={(el) => {
+            refs.current[i] = el;
+          }}
+          type="button"
+          role="radio"
+          aria-checked={i === checked}
+          aria-label={c.name}
+          title={c.name}
+          tabIndex={i === Math.max(checked, 0) ? 0 : -1}
+          className={c.color === null ? `${styles.swatch} ${styles.swatchAuto}` : styles.swatch}
+          style={c.color === null ? undefined : { background: c.color }}
+          onClick={() => onChange(c.color)}
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+              e.preventDefault();
+              move(i, 1);
+            } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+              e.preventDefault();
+              move(i, -1);
+            }
+          }}
+        >
+          {c.color === null ? 'A' : null}
+        </button>
+      ))}
+    </div>
+  );
 }
 
 /** Preview and choice of the cover: the lookup's, a file, none. */
-export function CoverPicker({ title, author, storedSrc, candidates, plan, onPlan }: CoverPickerProps) {
+export function CoverPicker({ title, author, storedSrc, candidates, plan, onPlan, color, onColor }: CoverPickerProps) {
   const t = useT();
   const input = useRef<HTMLInputElement>(null);
   const [problem, setProblem] = useState<CoverFileProblem | null>(null);
@@ -42,7 +96,7 @@ export function CoverPicker({ title, author, storedSrc, candidates, plan, onPlan
     <fieldset className={styles.group}>
       <legend className={styles.legend}>{t('books.cover.title')}</legend>
       <div className={styles.cover}>
-        <BookCover title={title || t('books.cover.untitled')} author={author} src={shown} width={96} />
+        <BookCover title={title || t('books.cover.untitled')} author={author} src={shown} color={color ?? undefined} width={96} />
         <div className={styles.coverActions}>
           {canUseOffered ? (
             <div className={styles.offer}>
@@ -60,6 +114,7 @@ export function CoverPicker({ title, author, storedSrc, candidates, plan, onPlan
               {t('books.cover.remove')}
             </Button>
           ) : null}
+          {shown ? null : <ColorSwatches value={color} onChange={onColor} />}
           <input
             ref={input}
             type="file"

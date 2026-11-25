@@ -77,7 +77,7 @@ describe('book page', () => {
 describe('selection', () => {
   const checkbox = (n: number) => screen.getByRole('checkbox', { name: `Seleziona «Libro ${n}»` });
 
-  async function select(books = makeDb(6), routes = {}) {
+  async function select(books = makeDb(6), routes: Parameters<typeof renderWithWrites>[1] = {}) {
     const view = renderWithWrites({ books }, routes);
     await screen.findByRole('link', { name: 'Libro 1, Autore 1' });
     await userEvent.click(screen.getByRole('button', { name: 'Seleziona' }));
@@ -129,6 +129,47 @@ describe('selection', () => {
     expect(screen.getByText('1 libro non è stato eliminato.')).toBeInTheDocument();
     await act(async () => {});
     expect(screen.queryByText(/selezionat/)).toBeNull();
+  });
+
+  // The fake core answers the whole library at once, so Ctrl A selects all 1200.
+  const all = makeDb(1200);
+  const everyBook = { 'GET /api/v1/books': () => ({ status: 200, body: { items: all, total: all.length } }) };
+
+  it('deletes 1,200 books in blocks of 500, one after the other', async () => {
+    const sizes: number[] = [];
+    const { platform } = await select(all, {
+      ...everyBook,
+      'POST /api/v1/books/batch-delete': (r) => {
+        const n = (r.body as { ids: string[] }).ids.length;
+        sizes.push(n);
+        return { status: 200, body: { deleted: n } };
+      },
+    });
+    await userEvent.keyboard('{Control>}a{/Control}');
+    await userEvent.click(screen.getByRole('button', { name: 'Elimina' }));
+    const dialog = await screen.findByRole('dialog', { name: /Eliminare 1.?200 libri\?/ });
+    await userEvent.click(within(dialog).getByRole('button', { name: /Elimina 1.?200 libri/ }));
+    expect(await screen.findByText(/1.?200 libri eliminati/)).toBeInTheDocument();
+    expect(sizes).toEqual([500, 500, 200]);
+    expect(sent(platform, 'POST', '/api/v1/books/batch-delete')).toHaveLength(3);
+  });
+
+  it('stops at the failed block and says how many went through', async () => {
+    let calls = 0;
+    const { platform } = await select(all, {
+      ...everyBook,
+      'POST /api/v1/books/batch-delete': (r) => {
+        calls += 1;
+        const n = (r.body as { ids: string[] }).ids.length;
+        return calls === 2 ? { status: 500, body: { error_code: 'internal', message: 'x' } } : { status: 200, body: { deleted: n } };
+      },
+    });
+    await userEvent.keyboard('{Control>}a{/Control}');
+    await userEvent.click(screen.getByRole('button', { name: 'Elimina' }));
+    const dialog = await screen.findByRole('dialog', { name: /Eliminare 1.?200 libri\?/ });
+    await userEvent.click(within(dialog).getByRole('button', { name: /Elimina 1.?200 libri/ }));
+    expect(await screen.findByText(/Eliminati 500 libri su 1.?200/)).toBeInTheDocument();
+    expect(sent(platform, 'POST', '/api/v1/books/batch-delete')).toHaveLength(2);
   });
 
   it('"Annulla" leaves the mode without deleting', async () => {

@@ -564,3 +564,46 @@ async fn patch_does_not_revalidate_untouched_fields() {
     let (st, _) = patch(&s, &id, json!({"title": long})).await;
     assert_eq!(st, 422);
 }
+
+#[tokio::test]
+async fn cover_color_on_create_is_lowercased() {
+    let s = seed(Role::Owner, None, None).await;
+    let b = create(&s, json!({"title": "A", "cover_color": "#A1B2C3"})).await;
+    assert_eq!(b["cover_color"], "#a1b2c3");
+    let b = create(&s, json!({"title": "B"})).await;
+    assert!(b["cover_color"].is_null());
+}
+
+#[tokio::test]
+async fn cover_color_rejects_bad_formats() {
+    let s = seed(Role::Owner, None, None).await;
+    for bad in ["red", "#fff", "#gggggg", "a1b2c3", "#a1b2c3d", "#ａ1b2c3"] {
+        let (st, b) = post(
+            &s,
+            "/api/v1/books",
+            json!({"title": "X", "cover_color": bad}),
+        )
+        .await;
+        assert_eq!(st, 422, "{bad}");
+        assert_eq!(b["error_code"], "validation");
+    }
+    let ok = create(&s, json!({"title": "Y"})).await;
+    let id = ok["id"].as_str().unwrap();
+    let (st, b) = patch(&s, id, json!({"cover_color": "#fff"})).await;
+    assert_eq!((st, b["error_code"].as_str()), (422, Some("validation")));
+}
+
+#[tokio::test]
+async fn cover_color_patch_sets_clears_and_leaves() {
+    let s = seed(Role::Owner, None, None).await;
+    let b = create(&s, json!({"title": "A"})).await;
+    let id = b["id"].as_str().unwrap();
+    let (st, b) = patch(&s, id, json!({"cover_color": "#00FF7f"})).await;
+    assert_eq!(st, 200);
+    assert_eq!(b["cover_color"], "#00ff7f");
+    let (_, b) = patch(&s, id, json!({"title": "B"})).await;
+    assert_eq!(b["cover_color"], "#00ff7f");
+    let (st, b) = patch(&s, id, json!({"cover_color": null})).await;
+    assert_eq!(st, 200);
+    assert!(b["cover_color"].is_null());
+}

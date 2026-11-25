@@ -168,7 +168,23 @@
     "remove": "Remove",
     "file": "Cover file",
     "badType": "Only JPEG, PNG or WebP images are allowed.",
-    "tooBig": "The image is larger than {mb} MB."
+    "tooBig": "The image is larger than {mb} MB.",
+    "color": {
+      "label": "Placeholder color",
+      "auto": "Automatic",
+      "tones": {
+        "sage": "Sage",
+        "terracotta": "Terracotta",
+        "night": "Night",
+        "plum": "Plum",
+        "amber": "Amber",
+        "graphite": "Graphite",
+        "moss": "Moss",
+        "wine": "Wine",
+        "teal": "Teal",
+        "umber": "Umber"
+      }
+    }
   },
   "selection": {
     "toggle": "Select",
