@@ -123,7 +123,12 @@ async fn validation() {
     }
     tag(&s, &"x".repeat(40)).await;
     let t = tag(&s, "ok").await;
-    for c in [json!({"name": ""}), json!({"color": "pink"})] {
+    for c in [
+        json!({"name": ""}),
+        json!({"color": "pink"}),
+        json!({"name": null}),
+        json!({"color": null}),
+    ] {
         let (st, _) = req(&s, "PATCH", &format!("/api/v1/tags/{}", id(&t)), Some(c)).await;
         assert_eq!(st, 422);
     }

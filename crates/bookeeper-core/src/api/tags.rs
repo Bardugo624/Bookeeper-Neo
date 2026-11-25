@@ -75,8 +75,21 @@ pub struct CreateTag {
 /// Body of `PATCH /tags/{id}`: absent = unchanged.
 #[derive(Debug, Default, Deserialize, ToSchema)]
 pub struct PatchTag {
-    pub name: Option<String>,
-    pub color: Option<String>,
+    #[serde(default, deserialize_with = "present")]
+    #[schema(value_type = Option<String>)]
+    pub name: Option<Option<String>>,
+    #[serde(default, deserialize_with = "present")]
+    #[schema(value_type = Option<String>)]
+    pub color: Option<Option<String>>,
+}
+
+/// Distinguishes an absent field (`None`) from an explicit `null` (`Some(None)`).
+fn present<'de, D, T>(d: D) -> Result<Option<Option<T>>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: Deserialize<'de>,
+{
+    Option::<T>::deserialize(d).map(Some)
 }
 
 /// Body of `PUT /books/{id}/tags`.
@@ -256,11 +269,19 @@ pub async fn patch_tag(
     ApiJson(body): ApiJson<PatchTag>,
 ) -> ApiResult<Json<TagOut>> {
     who.require(Role::Member)?;
-    let name = body.name.as_deref().map(check_name).transpose()?;
-    if let Some(c) = body.color.as_deref() {
-        check_color(c)?;
-    }
-    let color = body.color;
+    let name = match body.name {
+        None => None,
+        Some(None) => return Err(ApiError::validation("name cannot be null")),
+        Some(Some(n)) => Some(check_name(&n)?),
+    };
+    let color = match body.color {
+        None => None,
+        Some(None) => return Err(ApiError::validation("color cannot be null")),
+        Some(Some(c)) => {
+            check_color(&c)?;
+            Some(c)
+        }
+    };
     let out = state
         .db
         .run(move |conn| {
