@@ -1,0 +1,56 @@
+{
+  "title": "Dispositivi",
+  "count": { "one": "{count} dispositivo collegato", "other": "{count} dispositivi collegati" },
+  "loading": "Caricamento dei dispositivi",
+  "error": { "title": "Impossibile caricare i dispositivi", "text": "Controlla la connessione e riprova." },
+  "revokedSection": "Revocati ({count})",
+  "kind": { "desktop": "Computer", "mobile": "Telefono" },
+  "card": {
+    "current": "Questo dispositivo",
+    "revoked": "Revocato",
+    "revokedOn": "Revocato il {date}",
+    "lastSeen": "Ultimo accesso: {when}",
+    "neverSeen": "Mai usato",
+    "rename": "Rinomina {name}",
+    "revoke": "Revoca {name}"
+  },
+  "rename": {
+    "title": "Rinomina il dispositivo",
+    "field": "Nome del dispositivo",
+    "errors": { "required": "Scrivi un nome.", "tooLong": "Il nome può avere al massimo {max} caratteri." }
+  },
+  "revoke": {
+    "title": "Revocare il dispositivo?",
+    "description": "«{name}» non potrà più accedere alla libreria. Per usarlo di nuovo dovrai abbinarlo da capo.",
+    "currentDescription": "«{name}» è questo dispositivo: se lo revochi verrai disconnesso e dovrai abbinarlo da capo per rientrare.",
+    "confirm": "Revoca"
+  },
+  "add": { "computer": "Aggiungi un computer", "phone": "Aggiungi un telefono" },
+  "phoneNotice": {
+    "title": "Il telefono ha bisogno di un indirizzo sicuro",
+    "text": "Per collegare un telefono la libreria deve essere raggiungibile con un indirizzo sicuro. Quando lo avrai impostato sul server, qui comparirà il bottone per aggiungere un telefono."
+  },
+  "pair": {
+    "computerTitle": "Aggiungi un computer",
+    "phoneTitle": "Aggiungi un telefono",
+    "generating": "Creazione del codice in corso",
+    "codeLabel": "Codice di abbinamento: {code}",
+    "copy": "Copia",
+    "copied": "Copiato",
+    "expiresIn": "Scade tra {time}",
+    "expired": "Il codice è scaduto.",
+    "regenerate": "Genera un nuovo codice",
+    "qrLabel": "Codice QR per abbinare il telefono: inquadralo con la fotocamera",
+    "added": "Dispositivo aggiunto",
+    "steps": {
+      "1": "Apri Bookeeper sull'altro computer e scegli «Unisciti».",
+      "2": "Seleziona questa libreria oppure scrivi il suo indirizzo.",
+      "3": "Scrivi il codice qui sopra. Vale per un solo dispositivo."
+    },
+    "phoneSteps": {
+      "1": "Apri la fotocamera del telefono.",
+      "2": "Inquadra il codice QR e apri il collegamento.",
+      "3": "Se non puoi inquadrarlo, apri l'indirizzo sul telefono e scrivi il codice."
+    }
+  }
+}

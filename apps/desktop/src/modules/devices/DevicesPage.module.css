@@ -1,0 +1,49 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 20px;
+  padding-top: 16px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+}
+
+.revokedBox summary {
+  cursor: pointer;
+  width: fit-content;
+  padding: 4px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bk-text-muted);
+  border-radius: var(--bk-radius-sm);
+}
+
+.revokedBox summary:focus-visible {
+  outline: 2px solid var(--bk-primary-400);
+  outline-offset: 2px;
+}
+
+.revokedBox .list {
+  margin-top: 10px;
+}
+
+.error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--bk-radius);
+  background: var(--bk-danger-bg);
+  color: var(--bk-danger);
+  font-size: 13px;
+}

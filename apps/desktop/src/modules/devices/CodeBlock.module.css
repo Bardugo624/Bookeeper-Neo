@@ -1,0 +1,36 @@
+.block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--bk-border);
+  border-radius: var(--bk-radius-lg);
+  background: var(--bk-surface);
+}
+
+.code {
+  margin: 0;
+  font-family: var(--bk-font-mono, ui-monospace, monospace);
+  font-size: 34px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  white-space: pre;
+  color: var(--bk-text-strong);
+}
+
+/* An expired code is dimmed, not hidden, so the layout does not jump. */
+.expired {
+  opacity: 0.25;
+  text-decoration: line-through;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--bk-text-muted);
+}
