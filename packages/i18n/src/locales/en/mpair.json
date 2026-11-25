@@ -1,0 +1,44 @@
+{
+  "link": {
+    "title": "Connect this phone",
+    "text": "This phone will be connected to your Bookeeper library. The QR code is valid for a few minutes and works once.",
+    "action": "Connect",
+    "busy": "Connecting…"
+  },
+  "name": {
+    "label": "Device name",
+    "hint": "You will see it in the list of devices on the computer."
+  },
+  "intro": {
+    "title": "Connect this phone",
+    "text": "To use Bookeeper on your phone, it has to be connected to your library. It takes a minute.",
+    "stepsLabel": "How to get the QR code",
+    "step1": "On the computer, open Bookeeper and go to Devices.",
+    "step2": "Tap Add a phone: a QR code appears.",
+    "step3": "Point the phone camera at the QR code and tap the link.",
+    "haveCode": "I have a code"
+  },
+  "code": {
+    "title": "Enter the code",
+    "text": "On the computer, under Devices → Add a phone, the code is also written below the QR code.",
+    "label": "Pairing code",
+    "hint": "Capitals, spaces and dashes do not matter.",
+    "placeholder": "ABCD EFGH",
+    "action": "Connect",
+    "busy": "Connecting…",
+    "back": "How do I get a code?"
+  },
+  "already": {
+    "title": "Phone already connected",
+    "text": "This phone is already connected to {library}. Do you want to connect it again?",
+    "textUnknown": "This phone is already connected to a library. Do you want to connect it again?",
+    "keep": "Keep the current library",
+    "again": "Connect again"
+  },
+  "errors": {
+    "codeEmpty": "Type the code shown on the computer.",
+    "nameEmpty": "Give this phone a name.",
+    "invalid": "The code is wrong or has expired. Generate a new one on the computer (Devices → Add a phone) and try again.",
+    "network": "Can't reach Bookeeper. Check the phone's connection and try again."
+  }
+}
