@@ -184,13 +184,37 @@ fn domains_come_from_the_environment() {
         .stderr(Stdio::null())
         .spawn()
         .unwrap();
-    let lines: Vec<String> = BufReader::new(child.stdout.take().unwrap())
-        .lines()
-        .map_while(Result::ok)
-        .take(5)
-        .collect();
+    let stdout = child.stdout.take().unwrap();
+    let (tx, rx) = std::sync::mpsc::channel::<String>();
+    std::thread::spawn(move || {
+        for line in BufReader::new(stdout).lines().map_while(Result::ok) {
+            if tx.send(line).is_err() {
+                break;
+            }
+        }
+    });
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(30);
+    let mut lines: Vec<String> = Vec::new();
+    let mut found = false;
+    while let Some(left) = deadline.checked_duration_since(std::time::Instant::now()) {
+        match rx.recv_timeout(left) {
+            Ok(l) => {
+                let hit = l.contains("Certificato richiesto per");
+                lines.push(l);
+                if hit {
+                    found = true;
+                    break;
+                }
+            }
+            Err(_) => break,
+        }
+    }
     let _ = child.kill();
     let _ = child.wait();
+    assert!(
+        found,
+        "nessuna riga 'Certificato richiesto per' entro 30 s: {lines:?}"
+    );
     assert!(
         lines
             .iter()
@@ -257,6 +281,33 @@ fn public_url_accepts_valid_addresses() {
         "http://192.168.1.10:7842",
         "https://[::1]:7842",
         "https://libri.example.org/base/",
+    ] {
+        c.public_url = Some(good.into());
+        c.validate().expect(good);
+    }
+}
+
+#[test]
+fn public_url_rejects_numeric_hosts_that_are_not_ipv4() {
+    let mut c = cfg();
+    for bad in [
+        "http://999.999.999.999:7842",
+        "http://1.2.3",
+        "https://256.1.1.1",
+        "https://1.2.3.4.5",
+    ] {
+        c.public_url = Some(bad.into());
+        assert!(c.validate().is_err(), "{bad}");
+    }
+}
+
+#[test]
+fn public_url_accepts_dns_names_with_numeric_labels() {
+    let mut c = cfg();
+    for good in [
+        "https://1.example.org",
+        "https://123.libri.example.org",
+        "http://192.168.1.10:7842",
     ] {
         c.public_url = Some(good.into());
         c.validate().expect(good);
