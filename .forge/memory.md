@@ -12,6 +12,10 @@
 - UPDATE_OPENAPI=1 cargo test -p bookeeper-core --test openapi -- --include-ignored && npm run gen -w @bookeeper/api && npm test -w @bookeeper/api [packages/api/openapi.json]
 
 ## Known traps
+- desktop authTransport `errorCode` reads `body.error.code` and the session fixtures use `{error:{code}}`, but the core and Tauri… [apps/desktop/src/session/authTransport.ts]
+- `cargo fmt -p bookeeper-desktop` is safe to run from src-tauri and only touched my files [apps/desktop/src-tauri/Cargo.toml]
+- tests of anything that sends requests through `createAuthTransport` need `useSession.setState({ connection: fakeConnection() })`, or… [apps/desktop/src/session/authTransport.ts]
+- @fontsource-variable packages declare family names like 'Inter Variable' and 'Lora Variable', and their wght.css bundles every subset, so a latin-only… [packages/ui/src/fonts.css]
 - `import.meta.glob` is typed by `vite/client`, so declaring `glob` in a local `.d.ts` triggers TS2300/TS2717 when `skipLibCheck` is false; cast… [packages/i18n/src/index.ts]
 - mDNS TXT `tls` values announced by bookeeper-server are "off" | "self" | "acme" (not "none"), and `url` is null unless public_url or ACME… [crates/bookeeper-server/src/announce.rs]
 - `fakePlatform().transport()` has no `requestRaw`, so cover or file requests need the transport wrapped in the test [apps/desktop/src/platform/testing.ts]
@@ -21,11 +25,8 @@
 - vitest for @bookeeper/ui must run from packages/ui (or `npm test -w @bookeeper/ui`); running `npx vitest run packages/ui/...` from the repo root… [packages/ui/vitest.config.ts]
 - Radix Dialog without a Trigger does not return focus to the opener on close (its onCloseAutoFocus calls preventDefault), so restore it… [packages/ui/src/overlays/Dialog.tsx]
 - `npm test -w @bookeeper/ui` jsdom tests of Radix Select/Tooltip need pointer-capture, scrollIntoView and ResizeObserver stubs, which… [packages/ui/src/overlays/polyfills.ts]
-- a hand-written `interface ImportMeta { glob(...) }` clashes with vite/client's `readonly glob` (TS2300); only `skipLibCheck: true` hides it [packages/i18n/src/glob.d.ts]
 - `npm ci --offline` is needed in a fresh worktree before any `npm test`/`tsc`, or vitest is "not found" [package.json]
 - apps/mobile typechecks `packages/i18n/src` sources directly, so ambient `.d.ts` files there must be pulled in with `/// <reference path>` [packages/i18n/src/index.ts]
 - bookeeper-server writes its tracing logs to stdout, so a test that waits for a fixed number of stdout lines depends on RUST_LOG and can hang [crates/bookeeper-server/src/main.rs]
 - utoipa 5 leaves `Option<T>` fields out of `required`; use `#[schema(required = true)]` to list a nullable field as required [crates/bookeeper-core/src/api/server.rs]
-- clap `global = true` on flattened Config args lets server flags work before or after a subcommand; setup-code/fingerprint keep their own… [crates/bookeeper-server/src/config.rs]
-- `cargo test -p bookeeper-core` needs a free network-less run only if `tests/plumbing_c.rs` stub_lookup is unaffected; utoipa response edits… [crates/bookeeper-core/src/api/mod.rs]
 

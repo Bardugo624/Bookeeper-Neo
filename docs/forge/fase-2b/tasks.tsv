@@ -1,6 +1,6 @@
 # id	deps	difficulty	files	dwarf	qa	title
 p3-2a1	-	medium	packages/ui/src/styleCheck.ts,packages/ui/src/styleCheck.test.ts,packages/ui/src/overlays/Dialog.tsx,packages/ui/src/overlays/Dialog.test.tsx,apps/desktop/src-tauri/src/connections.rs,apps/desktop/src-tauri/tests/connections.rs,apps/desktop/src/modules/welcome	-	-	Cinque difetti P3 del run 2A1
-app-kit	-	medium	apps/desktop/src/kit,packages/i18n/src/locales/it/common.json,packages/i18n/src/locales/en/common.json	-	-	App: componenti e hook condivisi dai moduli
+app-kit	-	medium	apps/desktop/src/kit,apps/desktop/src/session/authTransport.ts,apps/desktop/src/session/fixtures.ts,apps/desktop/src/session/session.test.ts,packages/i18n/src/locales/it/common.json,packages/i18n/src/locales/en/common.json	-	-	App: componenti e hook condivisi dai moduli
 ui-shelf	-	high	packages/ui/package.json,packages/ui/src/shelf	-	-	UI: mobile con ripiani e dorsi
 loans	app-kit	high	apps/desktop/src/modules/loans,packages/i18n/src/locales/it/loans.json,packages/i18n/src/locales/en/loans.json	-	-	Prestiti
 wishlist	app-kit	medium	apps/desktop/src/modules/wishlist,packages/i18n/src/locales/it/wishlist.json,packages/i18n/src/locales/en/wishlist.json	-	-	Wishlist con conversione in libro

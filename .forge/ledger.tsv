@@ -204,3 +204,11 @@
 2026-11-25T02:32:04Z	bookeeper-fase-2a1	app-fix	dwarf	sonnet	-	-	-	-	361
 2026-11-25T02:32:16Z	bookeeper-fase-2a1	session-fix	qa	opus	PASS	-	-	-	304
 2026-11-25T02:33:41Z	bookeeper-fase-2a1	app-fix	qa	opus	PASS	-	-	-	92
+2026-11-25T02:54:16Z	bookeeper-fase-2b	app-kit	dwarf	sonnet	-	trap	tests of anything that sends requests through createauthtransport need usesession setstate connection fakeconnection or	tests of anything that sends requests through `createAuthTransport` need `useSession.setState({ connection: fakeConnection() })`, or… [apps/desktop/src/session/authTransport.ts]	220	1
+2026-11-25T02:56:03Z	bookeeper-fase-2b	p3-2a1	dwarf	sonnet	-	trap	cargo fmt p bookeeper desktop is safe to run from src tauri and only touched my files	`cargo fmt -p bookeeper-desktop` is safe to run from src-tauri and only touched my files [apps/desktop/src-tauri/Cargo.toml]	328	1
+2026-11-25T02:56:31Z	bookeeper-fase-2b	app-kit	qa	opus	FAIL	trap	desktop authtransport errorcode reads body error code and the session fixtures use error code but the core and tauri	desktop authTransport `errorCode` reads `body.error.code` and the session fixtures use `{error:{code}}`, but the core and Tauri… [apps/desktop/src/session/authTransport.ts]	128	1
+2026-11-25T02:59:31Z	bookeeper-fase-2b	ui-shelf	dwarf	sonnet	-	-	-	-	177
+2026-11-25T03:01:20Z	bookeeper-fase-2b	p3-2a1	qa	opus	PASS	-	-	-	312
+2026-11-25T03:01:54Z	bookeeper-fase-2b	ui-shelf	qa	opus	FAIL	-	-	-	137
+2026-11-25T03:02:25Z	bookeeper-fase-2b	ui-shelf	dwarf	sonnet	-	-	-	-	28
+2026-11-25T03:03:06Z	bookeeper-fase-2b	ui-shelf	qa	opus	PASS	-	-	-	37

@@ -33,9 +33,13 @@ Un file di test per elemento. Almeno:
 - `DataTable`: `aria-sort`, clic sull'intestazione, Invio sulla riga, stato vuoto.
 - `useListParams`: predefiniti assenti dall'indirizzo, analisi di valori non validi che ricade sul predefinito.
 
+## Aggiunta dopo il primo giro di revisione
+
+`apps/desktop/src/session/authTransport.ts`, `fixtures.ts` e `session.test.ts` sono ora file di questa task. Il trasporto legge il codice d'errore da `body.error.code`, ma il core e il guscio mandano `{ "error_code": "...", "message": "..." }`. Correggi la lettura, allinea le risposte finte di `fixtures.ts` alla forma vera, e aggiungi i test: `confirmation_required` e `invalid_credentials` su un 401 tornano al chiamante senza rinnovo e senza chiudere la sessione; `token_expired` rinnova. Correggi anche gli altri tre difetti del revisore: codici 409 di dominio in `apiErrorMessage` (leggi nel core quali esistono), `set` di `useListParams` chiamato due volte nello stesso gestore, test mancanti per `FormDialog`, `PageHeader`, `StatusTag`.
+
 ## Acceptance criteria
 
 - `npm run typecheck -w @bookeeper/desktop` e `npm test -w @bookeeper/desktop` passano.
 - `npm test -w @bookeeper/i18n` passa.
 - Nessun componente supera 250 righe. Nessun testo dell'interfaccia scritto nei componenti.
-- Cambiano solo: file sotto `apps/desktop/src/kit/`, `packages/i18n/src/locales/it/common.json`, `packages/i18n/src/locales/en/common.json`.
+- Cambiano solo: file sotto `apps/desktop/src/kit/`, `apps/desktop/src/session/authTransport.ts`, `apps/desktop/src/session/fixtures.ts`, `apps/desktop/src/session/session.test.ts`, `packages/i18n/src/locales/it/common.json`, `packages/i18n/src/locales/en/common.json`.
