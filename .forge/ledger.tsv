@@ -247,3 +247,9 @@
 2026-11-25T04:45:37Z	bookeeper-fase-2b1	modules-b1a	dwarf	sonnet	-	trap	fake timers that include settimeout break testing library findby waitfor in desktop tests so fake only	fake timers that include `setTimeout` break testing-library `findBy*`/`waitFor` in desktop tests, so fake only… [apps/desktop/src/modules/devices/devices.test.tsx]	144	1
 2026-11-25T04:45:37Z	bookeeper-fase-2b1	modules-b1a	dwarf	sonnet	-	trap	the toast provider renders empty role alert live regions so findbyrole alert matches even with no error shown	the toast provider renders empty `role="alert"` live regions, so `findByRole('alert')` matches even with no error shown [packages/ui/src/overlays/Toast.tsx]	144	1
 2026-11-25T04:46:35Z	bookeeper-fase-2b1	modules-b1a	qa	opus	PASS	-	-	-	53
+2026-11-25T04:54:21Z	bookeeper-fase-2b1	core-b1	dwarf	sonnet	-	-	-	-	22
+2026-11-25T04:57:32Z	bookeeper-fase-2b1	core-b1	qa	opus	PASS	-	-	-	186
+2026-11-25T05:03:12Z	bookeeper-fase-2b1	modules-b1b	dwarf	sonnet	-	trap	a fresh worktree has no node modules run npm ci offline at the root then npx vitest run path from apps desktop	a fresh worktree has no node_modules; run `npm ci --offline` at the root, then `npx vitest run <path>` from apps/desktop [apps/desktop/package.json]	330	1
+2026-11-25T05:05:51Z	bookeeper-fase-2b1	modules-b1b	qa	opus	FAIL	finding	core put placement with shift true slides left not right when the book moves right in its own row and the run reaches the row	core `PUT placement` with `shift:true` slides left (not right) when the book moves right in its own row and the run reaches the row… [apps/desktop/src/modules/shelves/model.ts]	154	1
+2026-11-25T05:07:15Z	bookeeper-fase-2b1	modules-b1b	dwarf	sonnet	-	-	-	-	81
+2026-11-25T05:09:09Z	bookeeper-fase-2b1	modules-b1b	qa	opus	PASS	-	-	-	109

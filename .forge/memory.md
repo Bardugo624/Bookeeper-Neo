@@ -12,6 +12,7 @@
 - UPDATE_OPENAPI=1 cargo test -p bookeeper-core --test openapi -- --include-ignored && npm run gen -w @bookeeper/api && npm test -w @bookeeper/api [packages/api/openapi.json]
 
 ## Known traps
+- a fresh worktree has no node_modules; run `npm ci --offline` at the root, then `npx vitest run <path>` from apps/desktop [apps/desktop/package.json]
 - fake timers that include `setTimeout` break testing-library `findBy*`/`waitFor` in desktop tests, so fake only… [apps/desktop/src/modules/devices/devices.test.tsx]
 - the toast provider renders empty `role="alert"` live regions, so `findByRole('alert')` matches even with no error shown [packages/ui/src/overlays/Toast.tsx]
 - `cargo test`/`clippy` on bookeeper-desktop takes over 2 minutes cold, so run it in the background and wait for the exit [apps/desktop/src-tauri/Cargo.toml]
@@ -27,5 +28,4 @@
 - tests of anything that sends requests through `createAuthTransport` need `useSession.setState({ connection: fakeConnection() })`, or… [apps/desktop/src/session/authTransport.ts]
 - @fontsource-variable packages declare family names like 'Inter Variable' and 'Lora Variable', and their wght.css bundles every subset, so a latin-only… [packages/ui/src/fonts.css]
 - `import.meta.glob` is typed by `vite/client`, so declaring `glob` in a local `.d.ts` triggers TS2300/TS2717 when `skipLibCheck` is false; cast… [packages/i18n/src/index.ts]
-- mDNS TXT `tls` values announced by bookeeper-server are "off" | "self" | "acme" (not "none"), and `url` is null unless public_url or ACME… [crates/bookeeper-server/src/announce.rs]
 
