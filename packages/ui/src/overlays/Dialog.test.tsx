@@ -69,3 +69,37 @@ it('returns focus to the menu button after a Dialog opened from a Menu item clos
   expect(screen.getByRole('button', { name: 'Actions' })).toHaveFocus();
   expect(document.body).not.toHaveFocus();
 });
+
+it('falls back to the previous focusable element when the opener is not focusable by selector and disappears', async () => {
+  const user = userEvent.setup();
+  function Harness2() {
+    const [open, setOpen] = useState(false);
+    const [gone, setGone] = useState(false);
+    return (
+      <>
+        <button>First</button>
+        <button>Second</button>
+        {gone ? null : (
+          <div
+            tabIndex={-1}
+            data-testid="opener"
+            onFocus={() => {
+              setOpen(true);
+              setGone(true);
+            }}
+          >
+            Row
+          </div>
+        )}
+        <button>Last</button>
+        <Dialog open={open} onOpenChange={setOpen} title="Sure?" closeLabel="Close" />
+      </>
+    );
+  }
+  render(<Harness2 />);
+  screen.getByTestId('opener').focus();
+  expect(await screen.findByRole('dialog')).toBeInTheDocument();
+  await user.keyboard('{Escape}');
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  expect(screen.getByRole('button', { name: 'Second' })).toHaveFocus();
+});

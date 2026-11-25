@@ -34,7 +34,7 @@ export function useCreateLocal() {
       setErrors(found);
       if (hasErrors(found)) return focusFirstError(formRef.current, ORDER, found);
       // The check may still be creating (and then removing) its temporary connection.
-      
+      await local.settled();
       const device = await deviceInfo(platform);
       const connection = (await findLocal(platform)) ?? newLocalConnection();
       await authenticate(platform, signIn, connection, (client) =>

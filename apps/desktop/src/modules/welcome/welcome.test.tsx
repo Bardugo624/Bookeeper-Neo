@@ -111,11 +111,33 @@ describe('Crea qui', () => {
     // The button is disabled while checking, so submit the form directly.
     fireEvent.submit(screen.getByRole('textbox', { name: 'Il tuo nome' }).closest('form')!);
     await new Promise((r) => setTimeout(r, 100));
+    // The creation waits for the check to settle before sending anything.
+    expect(posts(p, '/setup')).toHaveLength(0);
     release();
     await ready();
     await waitFor(() => expect(p.state.items.find((c) => c.kind === 'local')).toMatchObject({ access_token: 'new-access' }));
     expect(p.state.active).toBe(p.state.items.find((c) => c.kind === 'local')?.id);
     expect(useSession.getState().connection?.kind).toBe('local');
+  });
+
+  it('does not remove a connection that was saved with a token while the check was answering', async () => {
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>((r) => (release = r));
+    const remote = fakeConnection({ id: 'rem', kind: 'remote', url: 'http://x', library_name: null, user_name: null, access_token: null, refresh_token: null });
+    const p = platformWith(
+      { 'GET /api/v1/setup': async () => (await gate, { status: 200, body: SETUP_OPEN }) },
+      { connections: { active: 'rem', items: [remote] } },
+    );
+    show(p);
+    await user().click(await screen.findByRole('button', { name: "Usa un'altra libreria" }));
+    await waitFor(() => expect(p.state.items.some((c) => c.kind === 'local')).toBe(true));
+    // What signIn does: save a token on the connection and make it the active one.
+    const local = p.state.items.find((c) => c.kind === 'local')!;
+    await p.connections.upsert({ ...local, access_token: 'tok', refresh_token: 'ref' });
+    await p.connections.activate(local.id);
+    release();
+    await new Promise((r) => setTimeout(r, 100));
+    expect(p.state.items.find((c) => c.id === local.id)).toMatchObject({ access_token: 'tok' });
   });
 
   it('sends only one request on a double click', async () => {

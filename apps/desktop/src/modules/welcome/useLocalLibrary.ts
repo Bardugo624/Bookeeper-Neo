@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createClient } from '@bookeeper/api';
 import { usePlatform } from '../../platform';
-import { useSession } from '../../session';
 import { newLocalConnection } from './connections';
 
 export type LocalState = 'checking' | 'new' | 'exists';
@@ -33,9 +32,16 @@ export function useLocalLibrary() {
         if (live) setState('new');
       } finally {
         // Only needed to ask; leaving it would save an empty library nobody created.
-        // Remove only what this check created, and never a connection a session has taken over.
-        if (temporary && useSession.getState().connection?.id !== temporary) {
-          await platform.connections.remove(temporary).catch(() => undefined);
+        // Remove only the connection this check created, read afresh, and never one that holds a token.
+        if (temporary) {
+          try {
+            const current = (await platform.connections.get()).items.find((c) => c.id === temporary);
+            if (current && !current.access_token && !current.refresh_token) {
+              await platform.connections.remove(temporary);
+            }
+          } catch {
+            // Nothing more to do: a leftover empty connection is harmless.
+          }
         }
       }
     })();
