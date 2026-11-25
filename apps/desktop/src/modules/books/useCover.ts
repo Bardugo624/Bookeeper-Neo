@@ -10,15 +10,18 @@ interface CoverData {
 
 /**
  * Object URL of a book's stored cover, or undefined while loading or when there is none.
+ * `hasCover` comes from the list answer (`cover_color` is set exactly when a cover is stored), so a
+ * book without one costs no request.
  * The bytes travel through the transport (with `ETag` revalidation); the URL is revoked on unmount.
  */
-export function useCover(bookId: string): string | undefined {
+export function useCover(bookId: string, hasCover: boolean): string | undefined {
   const client = useClient();
   const queryClient = useQueryClient();
   const connectionId = useSession((s) => s.connection?.id);
   const key = ['covers', connectionId, bookId];
   const { data } = useQuery<CoverData | null>({
     queryKey: key,
+    enabled: hasCover,
     retry: false,
     staleTime: 5 * 60_000,
     gcTime: 60_000,

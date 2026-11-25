@@ -134,3 +134,35 @@ describe('actions', () => {
     expect(useSession.getState().status).toBe('welcome');
   });
 });
+
+describe('failed renewal memory', () => {
+  const refreshes = (p: { calls: Array<{ path: string }> }) => p.calls.filter((c) => c.path === '/api/v1/auth/refresh').length;
+  const setup = (refresh: () => { status: number; body: unknown }) => {
+    const p = fakePlatform({
+      connections: { active: 'c1', items: [fakeConnection()] },
+      handler: (r) => (r.path === '/api/v1/auth/refresh' ? refresh() : unauthorized),
+    });
+    useSession.setState({ status: 'ready', connection: p.state.items[0]!, platform: p });
+    return p;
+  };
+
+  it('retries the same token after a network error on renewal', async () => {
+    const p = setup(() => {
+      throw new Error('network down');
+    });
+    const t = createAuthTransport(p);
+    await t.request('GET', '/api/v1/me');
+    useSession.setState({ status: 'ready', connection: p.state.items[0]!, platform: p });
+    await t.request('GET', '/api/v1/me');
+    expect(refreshes(p)).toBe(2);
+  });
+
+  it('does not retry a token the server rejected', async () => {
+    const p = setup(() => ({ status: 401, body: { error: { code: 'unauthorized', message: 'x' } } }));
+    const t = createAuthTransport(p);
+    await t.request('GET', '/api/v1/me');
+    useSession.setState({ status: 'ready', connection: p.state.items[0]!, platform: p });
+    await t.request('GET', '/api/v1/me');
+    expect(refreshes(p)).toBe(1);
+  });
+});

@@ -19,6 +19,8 @@ export function LibraryBadge() {
   const { theme, setTheme } = useTheme();
 
   const library = me?.library.name ?? t('shell.library.unknown');
+  // The avatar shows the person, as in the mockup; the library only stands in when unnamed.
+  const initial = (me?.user.display_name?.trim() || library).charAt(0).toUpperCase();
   const subtitle = me ? `${me.user.display_name} · ${t(`shell.role.${me.user.role}`)}` : '';
 
   const entries: MenuEntry[] = [
@@ -40,7 +42,7 @@ export function LibraryBadge() {
       trigger={
         <button type="button" className={styles.badge}>
           <span className={styles.avatar} aria-hidden="true">
-            {library.charAt(0).toUpperCase()}
+            {initial}
           </span>
           <span className={styles.text}>
             <span className={styles.name}>{library}</span>

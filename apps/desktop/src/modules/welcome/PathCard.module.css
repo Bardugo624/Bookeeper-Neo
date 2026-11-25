@@ -55,6 +55,7 @@
 
 .text {
   font-size: 13px;
+  font-weight: 400;
   color: var(--bk-text-muted);
 }
 

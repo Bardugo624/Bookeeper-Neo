@@ -1,6 +1,7 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { Tooltip } from '@bookeeper/ui/overlays';
 import { fakeConnection, fakePlatform, type FakePlatform } from '../platform/testing';
 import { ME, ok } from '../session/fixtures';
 import { THEME_KEY } from '../theme';
@@ -31,6 +32,22 @@ beforeEach(() => {
   localStorage.clear();
   document.documentElement.classList.remove('dark');
   resetThemeForTest();
+});
+
+describe('providers', () => {
+  it('mounts a single TooltipProvider', async () => {
+    const tip: AppModule = {
+      id: 'tip',
+      routes: [{ path: '/tip', element: <Tooltip content="Aiuto"><button type="button">Con suggerimento</button></Tooltip> }],
+    };
+    renderApp({ platform: signedIn(), modules: [tip], route: '/tip' });
+    // A Tooltip throws without a provider above it.
+    await screen.findByRole('button', { name: 'Con suggerimento' });
+    // ...and the app mounts exactly one.
+    const src = import.meta.glob('../**/*.tsx', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
+    const mounts = Object.entries(src).filter(([f, s]) => !f.endsWith('.test.tsx') && s.includes('<TooltipProvider>'));
+    expect(mounts.map(([f]) => f)).toEqual(['./AppProviders.tsx']);
+  });
 });
 
 describe('router', () => {

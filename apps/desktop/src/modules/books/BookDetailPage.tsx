@@ -16,7 +16,7 @@ export function BookDetailPage() {
   const location = useLocation();
   const listPath = { pathname: '/books', search: (location.state as FromList | null)?.list ?? '' };
   const { data: book, error, isPending, refetch } = useBook(id);
-  const src = useCover(id);
+  const src = useCover(id, Boolean(book?.cover_color));
 
   const back = (
     <Link to={listPath} className={styles.back}>
