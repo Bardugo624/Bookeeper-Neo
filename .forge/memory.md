@@ -13,8 +13,11 @@
 
 ## Known traps
 - a fresh worktree has no node_modules; run `npm ci --offline` at the root, then `npx vitest run <path>` from apps/desktop [apps/desktop/package.json]
+- sharing.test.tsx "names the port that was tried when the shell reports the old one" fails intermittently when… [apps/desktop/src/modules/settings/sections/sharing/sharing.test.tsx]
 - tauri-plugin-updater 2.x deserializza `plugins.updater` con `pubkey` obbligatoria: senza quella voce l'app non parte, a meno di inserirla in… [apps/desktop/src-tauri/src/lib.rs]
+- `Sharing::status()` keeps returning the last `set()` error (`inner.error` is cleared only by `set`), so UI must not treat a re-read `error`… [apps/desktop/src-tauri/src/sharing.rs]
 - `axum_server::Handle` è generico (`Handle<SocketAddr>`) in axum-server 0.8, a differenza di 0.7 [apps/desktop/src-tauri/Cargo.toml]
+- `@bookeeper/ui` does not export `styleCheck`, so app CSS checks must live locally in `apps/desktop/src/kit/styles.test.ts` [apps/desktop/src/kit/styles.test.ts]
 - `t()` in @bookeeper/i18n returns the key itself when it is missing from both locales, so neither tsc nor the tests catch a new key that was never added [packages/i18n/src/index.ts]
 - in jsdom a `Uint8Array` built by a test's `TextEncoder` can fail `instanceof Uint8Array` in app code, so authTransport's `errorCode`… [apps/desktop/src/session/authTransport.ts]
 - `renderSettings` in `settings/testkit.tsx` has a fixed handler, so a section that needs extra routes (or `requestRaw` for… [apps/desktop/src/modules/settings/testkit.tsx]
@@ -25,8 +28,4 @@
 - the toast provider renders empty `role="alert"` live regions, so `findByRole('alert')` matches even with no error shown [packages/ui/src/overlays/Toast.tsx]
 - `cargo test`/`clippy` on bookeeper-desktop takes over 2 minutes cold, so run it in the background and wait for the exit [apps/desktop/src-tauri/Cargo.toml]
 - in user-event tests a held `{Shift>}` only reaches clicks made through the same `userEvent.setup()` instance, not the bare… [apps/desktop/src/modules/books/BookActions.test.tsx]
-- jsdom's `File`/`Blob` has no `arrayBuffer()`, so read picked files with `FileReader` or an upload test silently sends nothing [apps/desktop/src/modules/books/coverFile.ts]
-- API error bodies are `{error_code, message}`, not `{error:{code}}`; a fake handler using the latter makes `ApiError.code` empty so… [apps/desktop/src/session/authTransport.ts]
-- desktop module tests that open a spine tooltip need `globalThis.ResizeObserver` stubbed locally, since… [apps/desktop/src/modules/shelves/testkit.tsx]
-- `userEvent.setup()` installa un suo `navigator.clipboard`: nei test di "Copia" si legge con `navigator.clipboard.readText()`… [apps/desktop/src/modules/devices/devices.test.tsx]
 

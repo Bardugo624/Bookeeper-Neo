@@ -294,3 +294,9 @@
 2026-11-25T11:03:20Z	bookeeper-fase-2d	release-desktop	qa	opus	FAIL	-	-	-	259
 2026-11-25T11:04:13Z	bookeeper-fase-2d	release-desktop	dwarf	sonnet	-	-	-	-	50
 2026-11-25T11:05:46Z	bookeeper-fase-2d	release-desktop	qa	opus	PASS	-	-	-	89
+2026-11-25T11:39:20Z	bookeeper-fase-2d1	rust-fix	dwarf	sonnet	-	-	-	-	363
+2026-11-25T11:41:19Z	bookeeper-fase-2d1	app-fix	dwarf	sonnet	-	-	-	-	484
+2026-11-25T11:42:34Z	bookeeper-fase-2d1	app-fix	qa	opus	PASS	-	-	-	67
+2026-11-25T11:44:04Z	bookeeper-fase-2d1	rust-fix	qa	opus	FAIL	-	-	-	273
+2026-11-25T11:44:50Z	bookeeper-fase-2d1	rust-fix	dwarf	sonnet	-	-	-	-	42
+2026-11-25T11:48:30Z	bookeeper-fase-2d1	rust-fix	qa	opus	PASS	-	-	-	211
