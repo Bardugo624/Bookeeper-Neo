@@ -1,17 +1,17 @@
-/// <reference path="./glob.d.ts" />
+import { catalogs, type Messages } from './testing';
+
 export type Locale = 'it' | 'en';
 export const DEFAULT_LOCALE: Locale = 'it';
 export const LOCALES: readonly Locale[] = ['it', 'en'];
 
-type Messages = { [key: string]: string | Messages };
-
-const modules = import.meta.glob('./locales/*/*.json', { eager: true }) as Record<
-  string,
-  { default: Messages }
->;
+// Vite provides `import.meta.glob`; typed locally so no global declaration clashes with `vite/client`.
+const modules = (
+  import.meta as unknown as {
+    glob(pattern: string, options: { eager: true }): Record<string, { default: Messages }>;
+  }
+).glob('./locales/*/*.json', { eager: true });
 
 // Files are locales/<locale>/<namespace>.json; the namespace is the first key segment.
-const catalogs: Record<Locale, Messages> = { it: {}, en: {} };
 for (const [path, mod] of Object.entries(modules)) {
   const match = /\/locales\/([^/]+)\/([^/]+)\.json$/.exec(path);
   if (!match) continue;
@@ -56,9 +56,4 @@ export function t(locale: Locale, key: string, vars?: Vars): string {
   return template.replace(/\{(\w+)\}/g, (match, name: string) =>
     name in vars ? String(vars[name]) : match,
   );
-}
-
-/** Test hook: injects a namespace into one catalog. Not part of the public API. */
-export function __setForTest(locale: Locale, namespace: string, messages: Messages): void {
-  catalogs[locale][namespace] = messages;
 }
