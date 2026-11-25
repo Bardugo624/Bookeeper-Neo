@@ -1,0 +1,69 @@
+{
+  "tab": "Cerca",
+  "title": "Cerca",
+  "field": {
+    "label": "Cerca titolo, autore o ISBN",
+    "placeholder": "Cerca titolo, autore, ISBN",
+    "clear": "Svuota la ricerca"
+  },
+  "filters": {
+    "label": "Filtra i libri",
+    "all": "Tutti",
+    "loan": "In prestito",
+    "unshelved": "Non collocati"
+  },
+  "list": {
+    "label": "Libri",
+    "recent": "Ultimi libri aggiunti",
+    "count": {
+      "one": "{count} libro",
+      "other": "{count} libri"
+    },
+    "onLoan": "In prestito",
+    "rowName": "{title}, {author}",
+    "loadingMore": "Carico altri libri…"
+  },
+  "empty": {
+    "title": "La libreria è vuota",
+    "text": "I libri aggiunti dal computer compariranno qui."
+  },
+  "none": {
+    "title": "Nessun risultato",
+    "text": "Nessun libro corrisponde a questa ricerca.",
+    "textFor": "Nessun libro corrisponde a «{q}»."
+  },
+  "detail": {
+    "back": "Torna all'elenco",
+    "where": {
+      "title": "Dove si trova",
+      "shelf": "Mobile",
+      "row": "Ripiano {row}",
+      "none": "Non collocato"
+    },
+    "loan": {
+      "title": "Prestito",
+      "on": "In prestito",
+      "none": "Non in prestito"
+    },
+    "description": {
+      "title": "Descrizione",
+      "more": "Leggi tutto",
+      "less": "Mostra meno"
+    },
+    "meta": {
+      "title": "Dettagli",
+      "publisher": "Editore",
+      "year": "Anno",
+      "pages": "Pagine",
+      "language": "Lingua",
+      "genre": "Genere",
+      "format": "Formato",
+      "isbn13": "ISBN-13",
+      "isbn10": "ISBN-10"
+    },
+    "notFound": {
+      "title": "Libro non trovato",
+      "text": "Questo libro non esiste più o è stato rimosso dalla libreria."
+    }
+  }
+}

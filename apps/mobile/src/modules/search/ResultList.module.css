@@ -1,0 +1,31 @@
+.list {
+  margin: 0;
+  padding: 0;
+}
+
+.list[aria-busy='true'] {
+  opacity: 0.6;
+}
+
+.end {
+  display: flex;
+  justify-content: center;
+  min-height: 24px;
+  padding: 12px 0;
+}
+
+.skeletonRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 88px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--bk-border);
+}
+
+.skeletonText {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

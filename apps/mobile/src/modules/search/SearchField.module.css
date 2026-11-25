@@ -1,0 +1,59 @@
+.field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.lens {
+  position: absolute;
+  left: 14px;
+  display: flex;
+  color: var(--bk-text-faint);
+  pointer-events: none;
+}
+
+.field .input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 48px 0 42px;
+  border: 1px solid var(--bk-border-strong);
+  border-radius: var(--bk-radius-sm);
+  background: var(--bk-surface);
+  color: var(--bk-text-strong);
+  font: inherit;
+  font-size: 16px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.input::placeholder {
+  color: var(--bk-text-faint);
+}
+
+/* The browser's own clear cross would double ours. */
+.input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.input:focus-visible,
+.clear:focus-visible {
+  outline: 2px solid var(--bk-primary-400);
+  outline-offset: 2px;
+}
+
+.clear {
+  position: absolute;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--bk-text-faint);
+  touch-action: manipulation;
+  cursor: pointer;
+}

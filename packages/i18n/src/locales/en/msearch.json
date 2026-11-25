@@ -1,0 +1,69 @@
+{
+  "tab": "Search",
+  "title": "Search",
+  "field": {
+    "label": "Search title, author or ISBN",
+    "placeholder": "Search title, author, ISBN",
+    "clear": "Clear the search"
+  },
+  "filters": {
+    "label": "Filter books",
+    "all": "All",
+    "loan": "On loan",
+    "unshelved": "Unshelved"
+  },
+  "list": {
+    "label": "Books",
+    "recent": "Recently added books",
+    "count": {
+      "one": "{count} book",
+      "other": "{count} books"
+    },
+    "onLoan": "On loan",
+    "rowName": "{title}, {author}",
+    "loadingMore": "Loading more books…"
+  },
+  "empty": {
+    "title": "The library is empty",
+    "text": "Books added from the computer will show up here."
+  },
+  "none": {
+    "title": "No results",
+    "text": "No book matches this search.",
+    "textFor": "No book matches “{q}”."
+  },
+  "detail": {
+    "back": "Back to the list",
+    "where": {
+      "title": "Where it is",
+      "shelf": "Furniture",
+      "row": "Shelf {row}",
+      "none": "Not shelved"
+    },
+    "loan": {
+      "title": "Loan",
+      "on": "On loan",
+      "none": "Not on loan"
+    },
+    "description": {
+      "title": "Description",
+      "more": "Read more",
+      "less": "Show less"
+    },
+    "meta": {
+      "title": "Details",
+      "publisher": "Publisher",
+      "year": "Year",
+      "pages": "Pages",
+      "language": "Language",
+      "genre": "Genre",
+      "format": "Format",
+      "isbn13": "ISBN-13",
+      "isbn10": "ISBN-10"
+    },
+    "notFound": {
+      "title": "Book not found",
+      "text": "This book no longer exists or was removed from the library."
+    }
+  }
+}
