@@ -57,8 +57,9 @@ function build(platform: Platform): Transport {
           device_id: session.device_id,
         });
         return session.access_token;
-      } catch {
-        failedRefresh = c.refresh_token;
+      } catch (e) {
+        // Only a server rejection makes the token stale; a network error may be transient.
+        if (e instanceof ApiError && e.status >= 400 && e.status < 500) failedRefresh = c.refresh_token;
         return null;
       }
     })().finally(() => {
