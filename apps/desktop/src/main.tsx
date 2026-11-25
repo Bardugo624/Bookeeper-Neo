@@ -1,16 +1,18 @@
 import '@bookeeper/ui/tokens.css';
+import '@bookeeper/ui/base.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { createClient } from '@bookeeper/api';
-import { resolveLocale } from '@bookeeper/i18n';
-import { App } from './App';
-import { createTauriTransport } from './transport';
+import { createHashRouter, RouterProvider } from 'react-router';
+import { AppProviders, buildRoutes, collectModules } from './app';
+import { browserPlatform, isTauri, tauriPlatform } from './platform';
 
-const client = createClient(createTauriTransport());
-const locale = resolveLocale('system', navigator.language);
+const platform = isTauri() ? tauriPlatform() : browserPlatform(import.meta.env.VITE_API_URL ?? '');
+const router = createHashRouter(buildRoutes(collectModules()));
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App client={client} locale={locale} />
+    <AppProviders platform={platform}>
+      <RouterProvider router={router} />
+    </AppProviders>
   </StrictMode>,
 );

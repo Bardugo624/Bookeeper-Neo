@@ -88,3 +88,18 @@ it('requestRaw maps a failed invoke to ApiError "network"', async () => {
     code: 'network',
   });
 });
+
+it('sends connectionId as connection_id on both commands', async () => {
+  invoke.mockResolvedValueOnce({ status: 200, body: '' });
+  await createTauriTransport('c1').request('GET', '/x');
+  expect(invoke).toHaveBeenLastCalledWith('api_request', { method: 'GET', path: '/x', body: null, connection_id: 'c1' });
+  invoke.mockResolvedValueOnce({ status: 200, body_base64: '', content_type: null, headers: {} });
+  await createTauriTransport('c1').requestRaw!({ method: 'GET', path: '/y' });
+  expect(invoke.mock.lastCall?.[1]).toMatchObject({ connection_id: 'c1' });
+});
+
+it('omits connection_id when none is given', async () => {
+  invoke.mockResolvedValueOnce({ status: 200, body: '' });
+  await createTauriTransport().request('GET', '/x');
+  expect(invoke.mock.lastCall?.[1]).not.toHaveProperty('connection_id');
+});
