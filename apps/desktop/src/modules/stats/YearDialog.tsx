@@ -13,7 +13,10 @@ import styles from './YearDialog.module.css';
 export function YearDialog({ year, open, onClose }: { year: ReadingYear; open: boolean; onClose: () => void }) {
   const t = useT();
   const locale = useLocale();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  // State, not a plain ref: the canvas is mounted with the dialog, so the drawing must react to it.
+  const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  canvasRef.current = canvas;
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   // Real covers would come from the Books module hooks; its `index.ts` exports none, so these are placeholders.
@@ -34,8 +37,11 @@ export function YearDialog({ year, open, onClose }: { year: ReadingYear; open: b
   const labelKey = JSON.stringify(labels);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!open || !canvas || finished.isPending) return;
+    if (!open || !canvas) {
+      setReady(false);
+      return;
+    }
+    if (finished.isPending) return;
     const data: PosterData = {
       year: year.year,
       books: year.books,
@@ -46,6 +52,7 @@ export function YearDialog({ year, open, onClose }: { year: ReadingYear; open: b
     };
     let live = true;
     setReady(false);
+    setFailed(false);
     void paintPoster(canvas, data, labels, readPosterTheme()).then((ok) => {
       if (!live) return;
       setReady(ok);
@@ -56,7 +63,7 @@ export function YearDialog({ year, open, onClose }: { year: ReadingYear; open: b
     };
     // `labelKey` stands for `labels`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, finished.isPending, covers, year, month, genre, locale, labelKey]);
+  }, [open, canvas, finished.isPending, covers, year, month, genre, locale, labelKey]);
 
   return (
     <Dialog
@@ -83,7 +90,7 @@ export function YearDialog({ year, open, onClose }: { year: ReadingYear; open: b
           {error ?? t('stats.poster.error')}
         </p>
       ) : null}
-      <canvas ref={canvasRef} className={styles.canvas} role="img" aria-label={t('stats.poster.preview', { year: year.year })} />
+      <canvas ref={setCanvas} className={styles.canvas} role="img" aria-label={t('stats.poster.preview', { year: year.year })} />
     </Dialog>
   );
 }

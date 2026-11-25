@@ -55,4 +55,16 @@ describe('Il tuo anno in libri', () => {
     expect(req.mime).toBe('image/png');
     expect(Array.from(req.bytes.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47]);
   });
+
+  it('draws again when the dialog is closed and reopened', async () => {
+    const { dialog } = await openPoster();
+    await waitFor(() => expect(calls.filter((c) => c.fn === 'roundRect')).toHaveLength(12));
+    await userEvent.click(within(dialog).getAllByRole('button', { name: 'Chiudi' })[0]!);
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    calls.length = 0;
+    await userEvent.click(screen.getByRole('button', { name: 'Il tuo anno in libri' }));
+    const again = await screen.findByRole('dialog', { name: 'Il tuo anno in libri' });
+    await waitFor(() => expect(calls.filter((c) => c.fn === 'roundRect')).toHaveLength(12));
+    await waitFor(() => expect(within(again).getByRole('button', { name: 'Salva immagine' })).toBeEnabled());
+  });
 });
