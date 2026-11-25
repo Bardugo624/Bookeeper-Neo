@@ -1,0 +1,2 @@
+# id	deps	difficulty	files	dwarf	qa	title
+config-f	-	low	crates/bookeeper-server/src/config.rs,crates/bookeeper-server/tests/config.rs	-	-	Configurazione: host numerici e test appeso
