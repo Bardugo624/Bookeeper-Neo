@@ -27,7 +27,8 @@
     "layout": "{rows} ripiani da {slots} posti",
     "fill": "Riempimento di {name}",
     "books": { "one": "{count} libro", "other": "{count} libri" },
-    "booksFree": "{books} libri · circa {free} posti liberi"
+    "free": { "one": "circa {count} posto libero", "other": "circa {count} posti liberi" },
+    "booksFree": "{books} · {free}"
   },
   "unshelved": {
     "title": "Non collocati",

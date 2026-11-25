@@ -27,7 +27,8 @@
     "layout": "{rows} shelves of {slots} places",
     "fill": "Fill of {name}",
     "books": { "one": "{count} book", "other": "{count} books" },
-    "booksFree": "{books} books · about {free} free places"
+    "free": { "one": "about {count} free place", "other": "about {count} free places" },
+    "booksFree": "{books} · {free}"
   },
   "unshelved": {
     "title": "Unplaced",

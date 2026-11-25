@@ -4,7 +4,7 @@ import { useToast } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
 import { apiErrorMessage } from '../../kit';
 import { useClient } from '../../session';
-import { applyMoves, asShelfBook, inRow, isSamePlace, planPlacement, type Move } from './model';
+import { applyMoves, asShelfBook, freeSlotElsewhere, inRow, isSamePlace, planPlacement, type Move } from './model';
 import { useKeys } from './useShelves';
 
 interface PlaceInput {
@@ -20,6 +20,8 @@ interface PlaceInput {
 interface Prepared extends PlaceInput {
   shifts: Move[];
   slot: number;
+  /** Where the moved book waits while its row is rearranged. */
+  park?: { row: number; slot: number };
   /** The book as an unplaced one, when it is not on this shelf yet. */
   fresh?: BookOut;
 }
@@ -52,6 +54,7 @@ export function usePlacement() {
 
   const place = useMutation<unknown, unknown, Prepared, Snapshot>({
     mutationFn: async (p) => {
+      if (p.park) await client.placeBook(p.bookId, { shelf_id: p.shelf.id, row_index: p.park.row, slot_index: p.park.slot });
       for (const m of p.shifts) await client.placeBook(m.bookId, { shelf_id: p.shelf.id, row_index: p.rowIndex, slot_index: m.slot });
       return client.placeBook(p.bookId, { shelf_id: p.shelf.id, row_index: p.rowIndex, slot_index: p.slot });
     },
@@ -104,8 +107,14 @@ export function usePlacement() {
       fail(new RowFull());
       return false;
     }
+    const spot = plan.park ? freeSlotElsewhere(input.books, input.shelf.rows, input.shelf.slots_per_row, input.rowIndex) : null;
+    if (plan.park && !spot) {
+      fail(new RowFull());
+      return false;
+    }
+    const park = spot ? { row: spot.row, slot: spot.slot } : undefined;
     try {
-      await place.mutateAsync({ ...input, ...plan, fresh });
+      await place.mutateAsync({ shifts: plan.shifts, slot: plan.slot, park, ...input, fresh });
       return true;
     } catch {
       // Already reported and rolled back in `onError`.

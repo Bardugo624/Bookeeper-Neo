@@ -22,7 +22,7 @@ export function validateShelf(v: ShelfValues): Partial<Record<keyof ShelfValues,
   const errors: Partial<Record<keyof ShelfValues, string>> = {};
   const name = v.name.trim();
   if (!name) errors.name = 'required';
-  else if (name.length > LIMITS.name) errors.name = 'tooLong';
+  else if ([...name].length > LIMITS.name) errors.name = 'tooLong';
   const rows = whole(v.rows);
   if (!(rows >= LIMITS.minRows && rows <= LIMITS.maxRows)) errors.rows = 'rows';
   const slots = whole(v.slots_per_row);

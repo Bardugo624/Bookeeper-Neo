@@ -52,6 +52,8 @@ export interface Plan {
   /** Neighbours that make room, in the order the requests must run. */
   shifts: Move[];
   slot: number;
+  /** The moved book has to step aside first: its row is full and its own slot is the only gap. */
+  park?: boolean;
 }
 
 /**
@@ -83,6 +85,21 @@ export function planPlacement(row: ShelfBook[], movedId: string, index: number, 
     if (!room) continue;
     const shifts = row.slice(j, pos).map((b) => ({ bookId: b.book_id, slot: b.slot_index - 1 }));
     return { shifts, slot: row[pos - 1]!.slot_index };
+  }
+  // A full row being reordered: the moved book's own slot is the gap, once it has stepped aside.
+  if (rest.length !== row.length) {
+    const plan = planPlacement(rest, movedId, index, slots);
+    return plan && { ...plan, park: true };
+  }
+  return null;
+}
+
+/** A slot of the shelf, outside `rowIndex`, where nobody sits; null when there is none. */
+export function freeSlotElsewhere(books: ShelfBook[], rows: number, slots: number, rowIndex: number): Move & { row: number } | null {
+  const taken = new Set(books.map((b) => `${b.row_index}:${b.slot_index}`));
+  for (let r = 0; r < rows; r++) {
+    if (r === rowIndex) continue;
+    for (let s = 0; s < slots; s++) if (!taken.has(`${r}:${s}`)) return { bookId: '', slot: s, row: r };
   }
   return null;
 }

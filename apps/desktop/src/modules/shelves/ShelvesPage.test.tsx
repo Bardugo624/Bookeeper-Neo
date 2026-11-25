@@ -49,7 +49,7 @@ describe('units and panel', () => {
     expect(await screen.findByText('4 libri · circa 16 posti liberi')).toBeInTheDocument();
     expect(screen.getByRole('progressbar', { name: 'Riempimento di Mobile 1' })).toHaveAttribute('data-tone', 'ok');
     await userEvent.click(screen.getByRole('tab', { name: 'Mobile 2' }));
-    expect(await screen.findByText('4 libri · circa 1 posti liberi')).toBeInTheDocument();
+    expect(await screen.findByText('4 libri · circa 1 posto libero')).toBeInTheDocument();
     expect(screen.getByRole('progressbar', { name: 'Riempimento di Mobile 2' })).toHaveAttribute('data-tone', 'warn');
   });
 

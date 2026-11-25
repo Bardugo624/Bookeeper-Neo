@@ -34,6 +34,16 @@ describe('planPlacement', () => {
   });
 });
 
+describe('full row reorder', () => {
+  it('parks the moved book and shifts the others into its slot', () => {
+    const row = [b('a', 0), b('b', 1), b('c', 2), b('d', 3), b('e', 4)];
+    const plan = planPlacement(row, 'e', 0, 5)!;
+    expect(plan.park).toBe(true);
+    expect(plan.slot).toBe(0);
+    expect(plan.shifts.map((m) => [m.bookId, m.slot])).toEqual([['d', 4], ['c', 3], ['b', 2], ['a', 1]]);
+  });
+});
+
 describe('helpers', () => {
   it('recognises a drop onto the same place', () => {
     expect(isSamePlace([b('a', 0), b('b', 1)], 'b', 1)).toBe(true);

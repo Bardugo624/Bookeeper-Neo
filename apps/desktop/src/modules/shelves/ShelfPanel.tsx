@@ -31,7 +31,10 @@ export function ShelfPanel({ shelf, onEdit, onDelete, children }: ShelfPanelProp
       {free !== null ? <FillBar tone="auto" value={value} label={t('shelves.panel.fill', { name: shelf.name })} /> : null}
       <p className={styles.fill}>
         {free !== null
-          ? t('shelves.panel.booksFree', { books: shelf.book_count, free })
+          ? t('shelves.panel.booksFree', {
+              books: t('shelves.panel.books', { count: shelf.book_count }),
+              free: t('shelves.panel.free', { count: free }),
+            })
           : t('shelves.panel.books', { count: shelf.book_count })}
       </p>
       {children}
