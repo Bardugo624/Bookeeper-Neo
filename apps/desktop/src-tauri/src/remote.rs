@@ -541,7 +541,7 @@ pub async fn probe(url: &str) -> ProbeOut {
         return out;
     }
     // https: WebPKI roots first.
-    if let Ok(client) = base_builder().build() {
+    if let Ok(client) = base_builder().timeout(CONNECT_TIMEOUT).build() {
         let out = read_info(
             &client,
             &base,
@@ -567,7 +567,7 @@ pub async fn probe(url: &str) -> ProbeOut {
         .dangerous()
         .with_custom_certificate_verifier(recorder.clone())
         .with_no_client_auth();
-    let Ok(client) = base_builder().use_preconfigured_tls(cfg).build() else {
+    let Ok(client) = base_builder().timeout(CONNECT_TIMEOUT).use_preconfigured_tls(cfg).build() else {
         return ProbeOut::failed("network");
     };
     let out = read_info(&client, &base, ProbeOut::default()).await;
@@ -577,12 +577,7 @@ pub async fn probe(url: &str) -> ProbeOut {
     };
     ProbeOut {
         trusted: false,
-        fingerprint: Some(
-            fp.iter()
-                .map(|b| format!("{b:02X}"))
-                .collect::<Vec<_>>()
-                .join(":"),
-        ),
+        fingerprint: Some(hex::encode(fp)),
         phrase: Some(bookeeper_net::phrase::verification_phrase(&fp)),
         ..out
     }

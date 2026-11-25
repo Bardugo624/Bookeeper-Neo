@@ -217,7 +217,7 @@ async fn probe_reports_an_untrusted_certificate() {
     assert!(!p.trusted);
     assert_eq!(
         p.fingerprint.as_deref(),
-        Some(id.fingerprint_hex().as_str())
+        Some(hex::encode(id.fingerprint).as_str())
     );
     assert_eq!(
         p.phrase.as_deref(),
