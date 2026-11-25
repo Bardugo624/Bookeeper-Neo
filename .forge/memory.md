@@ -14,6 +14,7 @@
 
 ## Known traps
 - a fresh worktree has no node_modules; run `npm ci --offline` at the root, then `npx vitest run <path>` from apps/desktop [apps/desktop/package.json]
+- caseCollisions.test.ts can be run alone with `npx vitest run packages/ui/src/caseCollisions.test.ts` from the root after `npm ci --offline` [packages/ui/src/caseCollisions.test.ts]
 - `npm run typecheck -w @bookeeper/mobile` fails with "Cannot find type definition file" until `npm ci --offline` is run at the root of a fresh worktree [apps/mobile/package.json]
 - the core revokes a device when a refresh token is reused (`refresh_reused`), so any client holding refresh tokens in memory across tabs or… [crates/bookeeper-core/src/api/auth.rs]
 - `apps/mobile` resolves vite 7 while the workspace root hoists vite 5, so `VitePWA(...)` in vite.config.ts needs an `as unknown as Plugin` cast to… [apps/mobile/vite.config.ts]
@@ -27,5 +28,4 @@
 - `t()` in @bookeeper/i18n returns the key itself when it is missing from both locales, so neither tsc nor the tests catch a new key that was never added [packages/i18n/src/index.ts]
 - in jsdom a `Uint8Array` built by a test's `TextEncoder` can fail `instanceof Uint8Array` in app code, so authTransport's `errorCode`… [apps/desktop/src/session/authTransport.ts]
 - `renderSettings` in `settings/testkit.tsx` has a fixed handler, so a section that needs extra routes (or `requestRaw` for… [apps/desktop/src/modules/settings/testkit.tsx]
-- a module's `routes.tsx` must not import the `app` barrel (use `app/i18n`, `app/types`): `app/index` globs all modules, so the cycle leaves… [apps/desktop/src/app/modules.ts]
 
