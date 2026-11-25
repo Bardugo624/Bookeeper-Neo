@@ -1,9 +1,10 @@
 import { useRef, useState } from 'react';
-import { Button } from '@bookeeper/ui/base';
+import { Button, Skeleton } from '@bookeeper/ui/base';
 import { BookCover, CLOTH_TONES } from '@bookeeper/ui/book';
 import { useT } from '../../app';
 import { COVER_MAX_BYTES, COVER_TYPES, coverFileProblem, type CoverFileProblem } from './coverFile';
 import type { CoverPlan } from './useBookWrites';
+import { mayHaveCover } from './useCover';
 import { useFilePreview } from './useFilePreview';
 import styles from './BookForm.module.css';
 
@@ -83,6 +84,9 @@ export function CoverPicker({ title, author, storedSrc, candidates, plan, onPlan
   if (plan.kind === 'file') shown = filePreview;
   else if (plan.kind === 'lookup') shown = offered;
   else if (plan.kind === 'keep') shown = storedSrc;
+  // A stored cover tints the book with a color taken from its image: while that color is there and the
+  // image has not arrived, the book may still have a cover, so no swatch is offered yet.
+  const storedPending = plan.kind === 'keep' && !storedSrc && mayHaveCover(color);
   const canUseOffered = offered !== undefined && plan.kind !== 'lookup';
 
   const choose = (file: File | undefined) => {
@@ -114,7 +118,11 @@ export function CoverPicker({ title, author, storedSrc, candidates, plan, onPlan
               {t('books.cover.remove')}
             </Button>
           ) : null}
-          {shown ? null : <ColorSwatches value={color} onChange={onColor} />}
+          {shown ? null : storedPending ? (
+            <Skeleton width={160} height={26} />
+          ) : (
+            <ColorSwatches value={color} onChange={onColor} />
+          )}
           <input
             ref={input}
             type="file"
