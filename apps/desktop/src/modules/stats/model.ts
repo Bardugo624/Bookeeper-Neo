@@ -40,13 +40,23 @@ export interface Row {
 /** The core marks the rest of the genres with this key. */
 const OTHERS_KEY = '…';
 
+/** Codes compare without padding and case: ` IT ` is `it`. */
+export const normalizeKey = (key: string) => key.trim().toLowerCase();
+
 /** Rows with readable labels, most frequent first; the empty and "others" buckets stay last. */
 export function toRows(
   items: { key: string; count: number }[],
-  opts: { chronological?: boolean; decade?: boolean; missing: string; others: string; decadeLabel: (d: string) => string; keyLabel?: (key: string) => string | undefined },
+  opts: { chronological?: boolean; decade?: boolean; missing: string; others: string; decadeLabel: (d: string) => string; keyLabel?: (key: string) => string | undefined; normalizeKey?: boolean },
 ): Row[] {
   const rank = (k: string) => (k === '' ? 2 : k === OTHERS_KEY ? 1 : 0);
-  const rows = items.map((i, n) => ({ n, key: i.key, count: i.count }));
+  const rows: { n: number; key: string; raw: string; count: number }[] = [];
+  items.forEach((i, n) => {
+    const key = opts.normalizeKey ? normalizeKey(i.key) : i.key;
+    // Codes that differ only in case or padding are one value: their counts add up.
+    const same = opts.normalizeKey ? rows.find((r) => r.key === key) : undefined;
+    if (same) same.count += i.count;
+    else rows.push({ n, key, raw: i.key.trim(), count: i.count });
+  });
   rows.sort((a, b) => {
     const r = rank(a.key) - rank(b.key);
     if (r !== 0) return r;
@@ -54,7 +64,7 @@ export function toRows(
   });
   return rows.map((r) => ({
     id: r.key || '∅',
-    label: r.key === '' ? opts.missing : r.key === OTHERS_KEY ? opts.others : opts.decade ? opts.decadeLabel(r.key) : (opts.keyLabel?.(r.key) ?? r.key),
+    label: r.key === '' ? opts.missing : r.key === OTHERS_KEY ? opts.others : opts.decade ? opts.decadeLabel(r.key) : (opts.keyLabel?.(r.key) ?? (opts.normalizeKey ? r.raw : r.key)),
     count: r.count,
   }));
 }

@@ -24,6 +24,15 @@ describe('toRows', () => {
     ]);
   });
 
+  it('merges keys that differ only in case or padding, and translates the result', () => {
+    const rows = toRows([{ key: 'IT', count: 3 }, { key: 'en', count: 1 }, { key: ' it ', count: 2 }], {
+      ...opts,
+      normalizeKey: true,
+      keyLabel: (k) => (k === 'it' ? 'Italiano' : undefined),
+    });
+    expect(rows.map((r) => [r.label, r.count])).toEqual([['Italiano', 5], ['en', 1]]);
+  });
+
   it('keeps the core order for chronological lists and labels decades', () => {
     const rows = toRows([{ key: '1990', count: 1 }, { key: '2000', count: 5 }], { ...opts, chronological: true, decade: true });
     expect(rows.map((r) => r.label)).toEqual(['Anni 1990', 'Anni 2000']);

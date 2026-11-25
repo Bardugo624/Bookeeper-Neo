@@ -2,7 +2,6 @@ import { Button, EmptyState, Skeleton } from '@bookeeper/ui/base';
 import { PillTabs, type PillTabItem } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
 import { ConfirmDialog, PageHeader, useListParams, usePermission } from '../../kit';
-import { ConvertedNotice } from './ConvertedNotice';
 import { WishCard } from './WishCard';
 import { WishFormDialog } from './WishFormDialog';
 import { PARAM_SCHEMA, applyView, type WishParams } from './listParams';
@@ -124,7 +123,6 @@ export function WishlistPage() {
         onConfirm={() => dialog?.kind === 'delete' && void a.confirmDelete(dialog.wish)}
         onCancel={() => a.setDialog(null)}
       />
-      {a.converted ? <ConvertedNotice bookId={a.converted.bookId} title={a.converted.title} onDismiss={a.dismissConverted} /> : null}
     </div>
   );
 }
