@@ -59,6 +59,10 @@ pub struct Connections {
     pub active: Option<String>,
     #[serde(default)]
     pub items: Vec<Connection>,
+    /// Keychain keys (never values) whose deletion failed. Retried at every start in
+    /// keychain mode, before any token is read; a key listed here is never read.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub stale_secrets: Vec<String>,
 }
 
 /// Owns the file path; the mutex serialises read-modify-write cycles.
@@ -80,11 +84,43 @@ impl Store {
     }
 
     pub fn with_secrets(dir: &Path, secrets: Arc<dyn SecretStore>, mode: SecretsMode) -> Self {
-        Store {
+        let store = Store {
             path: dir.join("connections.json"),
             lock: Mutex::new(()),
             secrets,
             mode,
+        };
+        if store.keychain() {
+            store.purge_stale();
+        }
+        store
+    }
+
+    /// Retries the deletions that failed in an earlier session. Runs before any read of
+    /// the tokens; keys that still cannot be deleted stay listed (and stay unread).
+    fn purge_stale(&self) {
+        let _g = self.guard();
+        let Ok(mut all) = self.read() else { return };
+        if all.stale_secrets.is_empty() {
+            return;
+        }
+        let before = all.stale_secrets.len();
+        all.stale_secrets
+            .retain(|k| self.secrets.delete(k).is_err());
+        if all.stale_secrets.len() != before {
+            if let Err(e) = self.write_raw(&all) {
+                tracing::warn!("cannot update the stale keychain entries: {e}");
+            }
+        }
+    }
+
+    /// Deletes a keychain entry; if that fails the key is remembered in `all`.
+    fn delete_or_mark(&self, all: &mut Connections, key: String) {
+        if self.secrets.delete(&key).is_err() {
+            tracing::warn!("cannot delete a keychain entry; it will be retried at start");
+            if !all.stale_secrets.contains(&key) {
+                all.stale_secrets.push(key);
+            }
         }
     }
 
@@ -128,16 +164,21 @@ impl Store {
         {
             return true;
         }
+        let mut written: Vec<String> = Vec::new();
         for c in &all.items {
             for (suffix, tok) in [("access", &c.access_token), ("refresh", &c.refresh_token)] {
                 if let Some(t) = tok {
-                    if self.secrets.set(&format!("{}/{suffix}", c.id), t).is_err() {
+                    let key = format!("{}/{suffix}", c.id);
+                    if self.secrets.set(&key, t).is_err() {
                         tracing::warn!("keychain refused a token; keeping them in the file");
                         return false;
                     }
+                    written.push(key);
                 }
             }
         }
+        // Only keys actually overwritten stop being pending deletion.
+        all.stale_secrets.retain(|k| !written.contains(k));
         let mut clean = all.clone();
         for c in &mut clean.items {
             c.access_token = None;
@@ -157,8 +198,16 @@ impl Store {
     /// Fills the tokens from the keychain; a failure leaves that connection without tokens.
     /// A connection whose tokens are still in the file (failed migration) keeps them.
     fn fill(&self, all: &mut Connections) {
+        let stale = all.stale_secrets.clone();
         for c in &mut all.items {
             if c.access_token.is_some() || c.refresh_token.is_some() {
+                continue;
+            }
+            // A key whose deletion is pending is never read: its value is revoked.
+            let (ka, kr) = (format!("{}/access", c.id), format!("{}/refresh", c.id));
+            if stale.contains(&ka) || stale.contains(&kr) {
+                c.access_token = None;
+                c.refresh_token = None;
                 continue;
             }
             let access = self.secrets.get(&format!("{}/access", c.id));
@@ -202,11 +251,13 @@ impl Store {
                     None => self.secrets.delete(&key),
                 }
                 .map_err(|_| "cannot save tokens in the keychain".to_string())?;
+                // Written or deleted just now: nothing is pending for this key.
+                all.stale_secrets.retain(|k| *k != key);
             }
         } else {
             for (suffix, tok) in [("access", &tokens.0), ("refresh", &tokens.1)] {
                 if tok.is_none() {
-                    let _ = self.secrets.delete(&format!("{}/{suffix}", c.id));
+                    self.delete_or_mark(&mut all, format!("{}/{suffix}", c.id));
                 }
             }
         }
@@ -248,15 +299,11 @@ impl Store {
         if all.active.as_deref() == Some(id) {
             all.active = None;
         }
-        self.save(&all, clean)?;
-        {
-            // Best effort in every mode: entries left by an earlier keychain session.
-            for suffix in ["access", "refresh"] {
-                if self.secrets.delete(&format!("{id}/{suffix}")).is_err() {
-                    tracing::warn!(connection = %id, "cannot delete a keychain entry");
-                }
-            }
+        // Every mode: entries left by an earlier keychain session. Failures are remembered.
+        for suffix in ["access", "refresh"] {
+            self.delete_or_mark(&mut all, format!("{id}/{suffix}"));
         }
+        self.save(&all, clean)?;
         if self.keychain() {
             self.fill(&mut all);
         }

@@ -356,3 +356,55 @@ async fn the_real_announcement_is_visible() {
     s.shutdown().await;
     assert!(!port_is_open(st.port).await);
 }
+
+#[test]
+fn open_errors_map_to_three_codes() {
+    use bookeeper_desktop_lib::sharing::bind_error_code;
+    use std::io::ErrorKind::*;
+    assert_eq!(bind_error_code(AddrInUse), "port_in_use");
+    assert_eq!(bind_error_code(PermissionDenied), "port_not_allowed");
+    assert_eq!(bind_error_code(AddrNotAvailable), "bind_failed");
+    assert_eq!(bind_error_code(Other), "bind_failed");
+}
+
+#[tokio::test]
+async fn a_failed_port_change_keeps_the_old_port_serving() {
+    let (state, _) = state(true).await;
+    let dir = tempfile::tempdir().unwrap();
+    let s = sharing(dir.path(), &state);
+    let first = s.set(true, Some(0)).await;
+    assert!(first.running && port_is_open(first.port).await);
+    let busy = std::net::TcpListener::bind((LOCAL, 0)).unwrap();
+    let wanted = busy.local_addr().unwrap().port();
+
+    let st = s.set(true, Some(wanted)).await;
+    assert_eq!(st.error.as_deref(), Some("port_in_use"));
+    assert_eq!(st.attempted_port, Some(wanted));
+    assert!(st.running && st.enabled);
+    assert_eq!(st.port, first.port);
+    assert!(port_is_open(first.port).await);
+    assert!(client(&st)
+        .get(url(&st, "/api/v1/server-info"))
+        .send()
+        .await
+        .is_ok());
+}
+
+#[tokio::test]
+async fn a_successful_port_change_closes_the_old_port() {
+    let (state, _) = state(true).await;
+    let dir = tempfile::tempdir().unwrap();
+    let s = sharing(dir.path(), &state);
+    let first = s.set(true, Some(0)).await;
+    // Find a free port for the second one.
+    let free = {
+        let l = std::net::TcpListener::bind((LOCAL, 0)).unwrap();
+        l.local_addr().unwrap().port()
+    };
+    let st = s.set(true, Some(free)).await;
+    assert!(st.running && st.error.is_none() && st.attempted_port.is_none());
+    assert_eq!(st.port, free);
+    assert!(port_is_open(free).await);
+    assert!(!port_is_open(first.port).await);
+    s.shutdown().await;
+}

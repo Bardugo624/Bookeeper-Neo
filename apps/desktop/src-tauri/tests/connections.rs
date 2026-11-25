@@ -587,3 +587,135 @@ mod keychain {
         assert_eq!(s.get(&key).unwrap(), None);
     }
 }
+
+// ---- stale_secrets ----
+
+mod stale {
+    use super::*;
+    use bookeeper_desktop_lib::secrets::{MemoryStore, SecretStore, SecretsMode};
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::Arc;
+
+    /// A memory keychain whose deletions can be made to fail, and whose reads are counted.
+    #[derive(Default)]
+    struct Flaky {
+        inner: MemoryStore,
+        fail_delete: AtomicBool,
+        reads: std::sync::Mutex<Vec<String>>,
+    }
+
+    impl SecretStore for Flaky {
+        fn get(&self, key: &str) -> Result<Option<String>, String> {
+            self.reads.lock().unwrap().push(key.to_string());
+            self.inner.get(key)
+        }
+        fn set(&self, key: &str, value: &str) -> Result<(), String> {
+            self.inner.set(key, value)
+        }
+        fn delete(&self, key: &str) -> Result<(), String> {
+            if self.fail_delete.load(Ordering::SeqCst) {
+                return Err("down".into());
+            }
+            self.inner.delete(key)
+        }
+    }
+
+    fn file_json(d: &std::path::Path) -> serde_json::Value {
+        serde_json::from_slice(&std::fs::read(d.join("connections.json")).unwrap()).unwrap()
+    }
+
+    #[test]
+    fn failed_deletions_are_listed_retried_cleared_and_never_read() {
+        let d = tempfile::tempdir().unwrap();
+        let kc = Arc::new(Flaky::default());
+        // An earlier keychain session saved tokens.
+        let keychain = Store::with_secrets(d.path(), kc.clone(), SecretsMode::Keychain);
+        let mut c = remote("https://a.example");
+        c.access_token = Some("old-access".into());
+        c.refresh_token = Some("old-refresh".into());
+        keychain.upsert(c.clone()).unwrap();
+
+        // Fallen back to file mode while the keychain is down.
+        kc.fail_delete.store(true, Ordering::SeqCst);
+        let file = Store::with_secrets(d.path(), kc.clone(), SecretsMode::File);
+        let mut cleared = c.clone();
+        cleared.access_token = None;
+        cleared.refresh_token = None;
+        file.upsert(cleared).unwrap();
+        let other = remote("https://b.example");
+        file.upsert(other.clone()).unwrap();
+        file.remove(&other.id).unwrap();
+
+        let json = file_json(d.path());
+        let stale: Vec<String> = serde_json::from_value(json["stale_secrets"].clone()).unwrap();
+        for k in [
+            format!("{}/access", c.id),
+            format!("{}/refresh", c.id),
+            format!("{}/access", other.id),
+            format!("{}/refresh", other.id),
+        ] {
+            assert!(stale.contains(&k), "{k} missing from {stale:?}");
+        }
+        // Keys only, never values.
+        assert!(!json.to_string().contains("old-access"));
+
+        // Next start in keychain mode, deletion still failing: nothing is read, tokens stay empty.
+        kc.reads.lock().unwrap().clear();
+        let still = Store::with_secrets(d.path(), kc.clone(), SecretsMode::Keychain);
+        let loaded = still.load().unwrap();
+        assert!(loaded.items[0].access_token.is_none());
+        assert!(loaded.items[0].refresh_token.is_none());
+        assert!(kc.reads.lock().unwrap().is_empty(), "stale key was read");
+        assert!(!file_json(d.path())["stale_secrets"]
+            .as_array()
+            .unwrap()
+            .is_empty());
+
+        // Keychain back: the start retries, empties the list, and the old token is gone.
+        kc.fail_delete.store(false, Ordering::SeqCst);
+        let fresh = Store::with_secrets(d.path(), kc.clone(), SecretsMode::Keychain);
+        assert!(file_json(d.path()).get("stale_secrets").is_none());
+        assert_eq!(kc.inner.get(&format!("{}/access", c.id)).unwrap(), None);
+        assert!(fresh.load().unwrap().items[0].access_token.is_none());
+    }
+
+    #[test]
+    fn migration_keeps_unwritten_keys_stale_and_unread() {
+        let d = tempfile::tempdir().unwrap();
+        let kc = Arc::new(Flaky::default());
+        let keychain = Store::with_secrets(d.path(), kc.clone(), SecretsMode::Keychain);
+        let mut a = remote("https://a.example");
+        a.access_token = Some("A-old".into());
+        a.refresh_token = Some("A-old-r".into());
+        keychain.upsert(a.clone()).unwrap();
+        let b = remote("https://b.example");
+        keychain.upsert(b.clone()).unwrap();
+
+        // File mode, deletions failing: log out of A, refresh B.
+        kc.fail_delete.store(true, Ordering::SeqCst);
+        let file = Store::with_secrets(d.path(), kc.clone(), SecretsMode::File);
+        let mut out = a.clone();
+        out.access_token = None;
+        out.refresh_token = None;
+        file.upsert(out).unwrap();
+        let mut b2 = b.clone();
+        b2.access_token = Some("B-new".into());
+        file.upsert(b2).unwrap();
+
+        // Keychain mode, deletions still failing: migration runs because B has tokens.
+        kc.reads.lock().unwrap().clear();
+        let s = Store::with_secrets(d.path(), kc.clone(), SecretsMode::Keychain);
+        let loaded = s.load().unwrap();
+        let la = loaded.items.iter().find(|c| c.id == a.id).unwrap();
+        assert!(la.access_token.is_none() && la.refresh_token.is_none());
+        let stale = file_json(d.path())["stale_secrets"].to_string();
+        assert!(stale.contains(&format!("{}/access", a.id)));
+        assert!(stale.contains(&format!("{}/refresh", a.id)));
+        assert!(!kc
+            .reads
+            .lock()
+            .unwrap()
+            .iter()
+            .any(|k| k.starts_with(&a.id)));
+    }
+}
