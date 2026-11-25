@@ -36,3 +36,14 @@ it('keeps the contract values for the new tokens', () => {
   expect(css).toContain('--bk-focus: var(--bk-primary-400)');
   expect(css).toContain('--bk-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1)');
 });
+it('defines the cover tokens in light and dark', () => {
+  const [light, dark] = css.split('html.dark');
+  for (const name of ['--bk-cover-light', '--bk-cover-shade']) {
+    expect(light, name).toContain(`${name}:`);
+    expect(dark, `${name} dark`).toContain(`${name}:`);
+  }
+});
+it('puts the bundled font family first in both stacks, keeping the fallbacks', () => {
+  expect(css).toMatch(/--bk-font-ui:\s*'Inter Variable',[^;]*sans-serif;/);
+  expect(css).toMatch(/--bk-font-serif:\s*'Lora Variable',[^;]*Georgia, serif;/);
+});
