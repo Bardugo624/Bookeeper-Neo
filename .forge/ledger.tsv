@@ -404,3 +404,6 @@
 2026-11-25T23:35:36Z	bookeeper-fase-4b	palette-b	qa	opus	PASS	-	-	-	47
 2026-11-25T23:45:40Z	bookeeper-fase-4b	filters-ui	dwarf	sonnet	-	trap	in the books tests a list that ends up empty swaps the top active filter chips for the noresults ones so a button found before the	in the books tests, a list that ends up empty swaps the top active-filter chips for the NoResults ones, so a button found before the… [apps/desktop/src/modules/books/testkit.tsx]	599	1
 2026-11-25T23:45:40Z	bookeeper-fase-4b	filters-ui	dwarf	sonnet	-	trap	the books page has two pilltabs tablists filters and view so getallbyrole tab selected true counts the view tab too	the books page has two PillTabs tablists (filters and view), so `getAllByRole('tab', {selected:true})` counts the view tab too;… [apps/desktop/src/modules/books/FilterBar.tsx]	599	1
+2026-11-25T23:47:09Z	bookeeper-fase-4b	filters-ui	qa	opus	FAIL	finding	the books list ui must mirror build filter s 422 rules format enum year acquired from to 10 tag id shelf id vs unshelved	the books list UI must mirror build_filter's 422 rules (format enum, year/acquired from≤to, ≤10 tag_id, shelf_id vs unshelved)… [crates/bookeeper-core/src/api/books_search.rs]	84	1
+2026-11-25T23:48:22Z	bookeeper-fase-4b	filters-ui	dwarf	sonnet	-	-	-	-	70
+2026-11-25T23:49:38Z	bookeeper-fase-4b	filters-ui	qa	opus	PASS	-	-	-	70
