@@ -52,8 +52,13 @@ async fn local(
         .await
         .unwrap();
     let status = res.status().as_u16();
-    let bytes = axum::body::to_bytes(res.into_body(), 1 << 20).await.unwrap();
-    (status, serde_json::from_slice(&bytes).unwrap_or(Value::Null))
+    let bytes = axum::body::to_bytes(res.into_body(), 1 << 20)
+        .await
+        .unwrap();
+    (
+        status,
+        serde_json::from_slice(&bytes).unwrap_or(Value::Null),
+    )
 }
 
 fn sharing(dir: &std::path::Path, state: &AppState) -> Sharing {
@@ -91,7 +96,10 @@ fn url(status: &SharingStatus, path: &str) -> String {
 async fn json_of(res: reqwest::Response) -> (u16, Value) {
     let status = res.status().as_u16();
     let bytes = res.bytes().await.unwrap();
-    (status, serde_json::from_slice(&bytes).unwrap_or(Value::Null))
+    (
+        status,
+        serde_json::from_slice(&bytes).unwrap_or(Value::Null),
+    )
 }
 
 async fn port_is_open(port: u16) -> bool {
@@ -125,7 +133,10 @@ async fn status_reports_fingerprint_and_phrase() {
     let id = Identity::load(&dir.path().join("tls").join("self"))
         .unwrap()
         .unwrap();
-    assert_eq!(st.fingerprint.as_deref(), Some(id.fingerprint_hex().as_str()));
+    assert_eq!(
+        st.fingerprint.as_deref(),
+        Some(id.fingerprint_hex().as_str())
+    );
     let phrase = st.phrase.clone().unwrap();
     assert_eq!(
         phrase,
@@ -142,7 +153,9 @@ async fn plain_http_is_refused() {
     let dir = tempfile::tempdir().unwrap();
     let s = sharing(dir.path(), &state);
     let st = s.set(true, Some(0)).await;
-    let mut tcp = tokio::net::TcpStream::connect((LOCAL, st.port)).await.unwrap();
+    let mut tcp = tokio::net::TcpStream::connect((LOCAL, st.port))
+        .await
+        .unwrap();
     let _ = tcp
         .write_all(b"GET /api/v1/health HTTP/1.1\r\nHost: x\r\n\r\n")
         .await;
@@ -216,7 +229,11 @@ async fn sharing_restarts_when_enabled() {
     let again = sharing(dir.path(), &state);
     let st = again.restore().await;
     assert!(st.running && st.error.is_none(), "{st:?}");
-    let res = client(&st).get(url(&st, "/api/v1/health")).send().await.unwrap();
+    let res = client(&st)
+        .get(url(&st, "/api/v1/health"))
+        .send()
+        .await
+        .unwrap();
     assert_eq!(res.status(), 200);
     again.shutdown().await;
 
@@ -261,7 +278,11 @@ async fn server_info_over_the_network_says_self() {
     let dir = tempfile::tempdir().unwrap();
     let s = sharing(dir.path(), &state);
     let st = s.set(true, Some(0)).await;
-    let res = client(&st).get(url(&st, "/api/v1/server")).send().await.unwrap();
+    let res = client(&st)
+        .get(url(&st, "/api/v1/server"))
+        .send()
+        .await
+        .unwrap();
     let (code, info) = json_of(res).await;
     assert_eq!(code, 200);
     assert_eq!(info["tls"], "self");
@@ -286,7 +307,10 @@ async fn pairing_works_over_the_network() {
     let res = c
         .post(url(&st, "/api/v1/pairing/redeem"))
         .header("content-type", "application/json")
-        .body(json!({"code": made["code"], "device_name": "Telefono", "device_kind": "mobile"}).to_string())
+        .body(
+            json!({"code": made["code"], "device_name": "Telefono", "device_kind": "mobile"})
+                .to_string(),
+        )
         .send()
         .await
         .unwrap();
@@ -325,7 +349,9 @@ async fn the_real_announcement_is_visible() {
     let s = Sharing::with_options(dir.path(), state, IpAddr::V4(Ipv4Addr::UNSPECIFIED), true);
     let st = s.set(true, Some(0)).await;
     assert!(st.running, "{st:?}");
-    let found = bookeeper_net::mdns::browse(Duration::from_secs(5)).await.unwrap();
+    let found = bookeeper_net::mdns::browse(Duration::from_secs(5))
+        .await
+        .unwrap();
     assert!(found.iter().any(|f| f.port == st.port && f.tls == "self"));
     s.shutdown().await;
     assert!(!port_is_open(st.port).await);

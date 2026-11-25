@@ -203,23 +203,22 @@ impl Sharing {
             return Err("password_required");
         }
         let dir = tls_dir(&self.0.dir);
-        let identity = tokio::task::spawn_blocking(move || {
-            Identity::load_or_create(&dir, &identity_names())
-        })
-        .await
-        .map_err(|_| "tls")?
-        .map_err(|e| {
-            tracing::warn!("sharing identity: {e}");
-            "tls"
-        })?;
+        let identity =
+            tokio::task::spawn_blocking(move || Identity::load_or_create(&dir, &identity_names()))
+                .await
+                .map_err(|_| "tls")?
+                .map_err(|e| {
+                    tracing::warn!("sharing identity: {e}");
+                    "tls"
+                })?;
         let config = identity.server_config().map_err(|e| {
             tracing::warn!("sharing tls config: {e}");
             "tls"
         })?;
         bookeeper_net::install_crypto_provider();
 
-        let listener = TcpListener::bind(SocketAddr::new(self.0.listen, port))
-            .map_err(|_| "port_in_use")?;
+        let listener =
+            TcpListener::bind(SocketAddr::new(self.0.listen, port)).map_err(|_| "port_in_use")?;
         listener.set_nonblocking(true).map_err(|_| "port_in_use")?;
         let bound = listener.local_addr().map_err(|_| "port_in_use")?.port();
 
