@@ -9,6 +9,203 @@
     "version": "2.0.0-beta.1"
   },
   "paths": {
+    "/api/v1/audit": {
+      "get": {
+        "tags": [
+          "audit"
+        ],
+        "operationId": "list_audit",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "action",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "entity_type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "from",
+            "in": "path",
+            "description": "Inclusive, unix seconds.",
+            "required": true,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64"
+            }
+          },
+          {
+            "name": "to",
+            "in": "path",
+            "description": "Inclusive, unix seconds.",
+            "required": true,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "path",
+            "description": "1..=200, default 50.",
+            "required": true,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Activity log, newest first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: owner and admin only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation: invalid query",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/audit/actions": {
+      "get": {
+        "tags": [
+          "audit"
+        ],
+        "operationId": "list_actions",
+        "responses": {
+          "200": {
+            "description": "Distinct actions present in the log",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditActions"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: owner and admin only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/auth/confirm": {
       "post": {
         "tags": [
@@ -686,7 +883,7 @@
           {
             "name": "genre",
             "in": "query",
-            "description": "Exact match",
+            "description": "Case-insensitive match",
             "required": false,
             "schema": {
               "type": "string"
@@ -695,7 +892,7 @@
           {
             "name": "language",
             "in": "query",
-            "description": "Exact match",
+            "description": "Case-insensitive match",
             "required": false,
             "schema": {
               "type": "string"
@@ -738,9 +935,79 @@
             }
           },
           {
+            "name": "reading",
+            "in": "query",
+            "description": "Caller's state: to_read, reading, read, abandoned, or none for books without a state",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tag_id",
+            "in": "query",
+            "description": "Repeatable, at most 10: the book has all the given tags",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "room_id",
+            "in": "query",
+            "description": "Books placed on a shelf of this room",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "year_from",
+            "in": "query",
+            "description": "published_year >= value; must not exceed year_to",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "year_to",
+            "in": "query",
+            "description": "published_year <= value",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "acquired_from",
+            "in": "query",
+            "description": "acquired_at >= value (unix seconds); must not exceed acquired_to",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "acquired_to",
+            "in": "query",
+            "description": "acquired_at <= value (unix seconds)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
             "name": "sort",
             "in": "query",
-            "description": "created_at (default), title, author, year or progressive",
+            "description": "created_at (default), title, author, year or published_year, acquired_at, page_count, progressive or progressive_number, rating (caller's); missing values come last",
             "required": false,
             "schema": {
               "type": "string"
@@ -977,6 +1244,41 @@
           },
           "422": {
             "description": "validation: more than 500 ids",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/books/facets": {
+      "get": {
+        "tags": [
+          "books"
+        ],
+        "operationId": "facets",
+        "responses": {
+          "200": {
+            "description": "Counts over the whole library",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Facets"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
             "content": {
               "application/json": {
                 "schema": {
@@ -1768,6 +2070,316 @@
         ]
       }
     },
+    "/api/v1/books/{id}/reading": {
+      "get": {
+        "tags": [
+          "reading"
+        ],
+        "operationId": "get_reading",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The caller's reading state, or null when there is none",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "null"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ReadingOut"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: unknown book",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "reading"
+        ],
+        "operationId": "put_reading",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PutReading"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "The stored state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadingOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad_request: malformed JSON or wrong content type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: unknown book",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation: invalid body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "reading"
+        ],
+        "operationId": "delete_reading",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted, or there was nothing to delete"
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: unknown book",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/books/{id}/tags": {
+      "put": {
+        "tags": [
+          "tags"
+        ],
+        "operationId": "put_book_tags",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PutBookTags"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "The book with its new tags",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad_request: malformed JSON or wrong content type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: role too low",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: unknown book or tag; nothing changes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation: more than 20 tags",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/devices": {
       "get": {
         "tags": [
@@ -2417,6 +3029,75 @@
         ]
       }
     },
+    "/api/v1/loans/borrowers": {
+      "get": {
+        "tags": [
+          "loans"
+        ],
+        "operationId": "list_borrowers",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "path",
+            "description": "Case-insensitive prefix; empty or absent gives the 10 most recent names.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Up to 10 borrower names, most recent first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BorrowerList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: role too low",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation: invalid query",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/loans/{id}": {
       "delete": {
         "tags": [
@@ -3004,6 +3685,82 @@
         }
       }
     },
+    "/api/v1/reading": {
+      "get": {
+        "tags": [
+          "reading"
+        ],
+        "operationId": "list_reading",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "to_read, reading, read or abandoned",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "1 to 200, default 50",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Default 0",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The caller's reading states, most recently updated first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadingList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation: invalid query",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/restore": {
       "post": {
         "tags": [
@@ -3075,6 +3832,307 @@
           },
           "413": {
             "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/rooms": {
+      "get": {
+        "tags": [
+          "rooms"
+        ],
+        "operationId": "list_rooms",
+        "responses": {
+          "200": {
+            "description": "The library's rooms, by name",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "rooms"
+        ],
+        "operationId": "create_room",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRoom"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created room",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad_request: malformed JSON or wrong content type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: role too low",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "room_exists: the name is taken",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation: invalid body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/rooms/{id}": {
+      "delete": {
+        "tags": [
+          "rooms"
+        ],
+        "operationId": "delete_room",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Room id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted; its shelves stay, without a room"
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: role too low",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: unknown room",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "rooms"
+        ],
+        "operationId": "patch_room",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Room id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchRoom"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Updated room",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad_request: malformed JSON or wrong content type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: role too low",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: unknown room",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "room_exists: the name is taken",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation: invalid body",
             "content": {
               "application/json": {
                 "schema": {
@@ -3309,6 +4367,16 @@
               }
             }
           },
+          "404": {
+            "description": "not_found: unknown room_id; nothing is created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
           "413": {
             "description": "payload_too_large",
             "content": {
@@ -3517,7 +4585,7 @@
             }
           },
           "404": {
-            "description": "not_found: unknown shelf",
+            "description": "not_found: unknown shelf or room_id; nothing changes",
             "content": {
               "application/json": {
                 "schema": {
@@ -3745,6 +4813,367 @@
           },
           "401": {
             "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/stats/reading": {
+      "get": {
+        "tags": [
+          "stats"
+        ],
+        "summary": "Reading statistics of the caller: books with status `read` and a\n`finished_at` in the year. Year, month and day boundaries are UTC.",
+        "operationId": "get_reading_stats",
+        "parameters": [
+          {
+            "name": "year",
+            "in": "path",
+            "description": "Calendar year, 1900..=2200. Defaults to the current year (UTC).",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reading statistics (year, month and day boundaries in UTC)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadingStats"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation: year not a number or outside 1900..2200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/tags": {
+      "get": {
+        "tags": [
+          "tags"
+        ],
+        "operationId": "list_tags",
+        "responses": {
+          "200": {
+            "description": "The library's tags, by name",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "tags"
+        ],
+        "operationId": "create_tag",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTag"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created tag",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad_request: malformed JSON or wrong content type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: role too low",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "tag_exists: the name is taken",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation: invalid body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/tags/{id}": {
+      "delete": {
+        "tags": [
+          "tags"
+        ],
+        "operationId": "delete_tag",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Tag id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted, along with its assignments; the books stay"
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: role too low",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: unknown tag",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "tags"
+        ],
+        "operationId": "patch_tag",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Tag id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchTag"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Updated tag",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad_request: malformed JSON or wrong content type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: role too low",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: unknown tag",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "tag_exists: the name is taken",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation: invalid body",
             "content": {
               "application/json": {
                 "schema": {
@@ -4154,6 +5583,193 @@
         "format": "binary",
         "description": "Documentation-only schema of the restore request body."
       },
+      "AuditActions": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "AuditDevice": {
+        "type": "object",
+        "description": "Device of an entry; `null` in the entry when the device was deleted.",
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "AuditList": {
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditOut"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "AuditOut": {
+        "type": "object",
+        "required": [
+          "id",
+          "at",
+          "action",
+          "detail"
+        ],
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "at": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unix seconds."
+          },
+          "detail": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Stored detail as a JSON object; `null` when absent or not valid JSON.\nThe client address is never included."
+          },
+          "device": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AuditDevice"
+              }
+            ]
+          },
+          "entity_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "entity_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "user": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AuditUser"
+              }
+            ]
+          }
+        }
+      },
+      "AuditQuery": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "device_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "entity_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "from": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Inclusive, unix seconds."
+          },
+          "limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "1..=200, default 50."
+          },
+          "offset": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "to": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Inclusive, unix seconds."
+          },
+          "user_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "AuditUser": {
+        "type": "object",
+        "description": "Author of an entry; `null` in the entry when the user was deleted.",
+        "required": [
+          "id",
+          "display_name"
+        ],
+        "properties": {
+          "display_name": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          }
+        }
+      },
       "AuthOut": {
         "type": "object",
         "required": [
@@ -4320,6 +5936,7 @@
           "title",
           "authors",
           "on_loan",
+          "tags",
           "created_at",
           "updated_at"
         ],
@@ -4446,11 +6063,29 @@
               "null"
             ]
           },
+          "reading": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ReadingSummary",
+                "description": "The caller's own reading state; `null` when there is none."
+              }
+            ]
+          },
           "subtitle": {
             "type": [
               "string",
               "null"
             ]
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagSummary"
+            },
+            "description": "Tags of the book, ordered by name."
           },
           "title": {
             "type": "string"
@@ -4458,6 +6093,32 @@
           "updated_at": {
             "type": "integer",
             "format": "int64"
+          }
+        }
+      },
+      "BorrowerList": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "BorrowersQuery": {
+        "type": "object",
+        "properties": {
+          "q": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Case-insensitive prefix; empty or absent gives the 10 most recent names."
           }
         }
       },
@@ -4688,6 +6349,39 @@
           }
         }
       },
+      "CreateRoom": {
+        "type": "object",
+        "description": "Body of `POST /rooms`.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "1 to 60 characters, unique in the library ignoring case and outer spaces."
+          }
+        }
+      },
+      "CreateTag": {
+        "type": "object",
+        "description": "Body of `POST /tags`.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "One of the shelf colours; default `sage`."
+          },
+          "name": {
+            "type": "string",
+            "description": "1 to 40 characters, unique in the library ignoring case and outer spaces."
+          }
+        }
+      },
       "CreateWish": {
         "type": "object",
         "description": "Body of `POST /wishlist`.",
@@ -4729,6 +6423,23 @@
           },
           "title": {
             "type": "string"
+          }
+        }
+      },
+      "DayCount": {
+        "type": "object",
+        "required": [
+          "date",
+          "books"
+        ],
+        "properties": {
+          "books": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "date": {
+            "type": "string",
+            "description": "`YYYY-MM-DD`, UTC."
           }
         }
       },
@@ -4995,6 +6706,66 @@
           }
         }
       },
+      "Facets": {
+        "type": "object",
+        "description": "Counts over the whole library, whatever filter a list is using.",
+        "required": [
+          "genres",
+          "languages",
+          "formats",
+          "years",
+          "tags",
+          "rooms",
+          "shelves",
+          "reading"
+        ],
+        "properties": {
+          "formats": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValueCount"
+            }
+          },
+          "genres": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValueCount"
+            },
+            "description": "Grouped ignoring ASCII case, showing the most frequent spelling; at most 200."
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValueCount"
+            },
+            "description": "Same rules as `genres`."
+          },
+          "reading": {
+            "$ref": "#/components/schemas/ReadingFacet"
+          },
+          "rooms": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NamedFacet"
+            }
+          },
+          "shelves": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NamedFacet"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagFacet"
+            }
+          },
+          "years": {
+            "$ref": "#/components/schemas/YearRange"
+          }
+        }
+      },
       "FetchCover": {
         "type": "object",
         "required": [
@@ -5007,6 +6778,25 @@
               "type": "string"
             },
             "description": "1 to 8 image URLs, tried in order."
+          }
+        }
+      },
+      "GenreCount": {
+        "type": "object",
+        "required": [
+          "count"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "value": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Genre as spelled most often; `null` for books without a genre."
           }
         }
       },
@@ -5245,6 +7035,22 @@
       "ListBooksQuery": {
         "type": "object",
         "properties": {
+          "acquired_from": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Lowest `acquired_at` (unix seconds), inclusive."
+          },
+          "acquired_to": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Highest `acquired_at` (unix seconds), inclusive."
+          },
           "format": {
             "type": [
               "string",
@@ -5256,13 +7062,15 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Case-insensitive match."
           },
           "language": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Case-insensitive match."
           },
           "limit": {
             "type": [
@@ -5299,6 +7107,20 @@
             ],
             "description": "Full-text search over title, subtitle, authors, description, notes and ISBN."
           },
+          "reading": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The caller's reading state: `to_read`, `reading`, `read`, `abandoned` or\n`none` (no state)."
+          },
+          "room_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Books placed on a shelf of this room."
+          },
           "shelf_id": {
             "type": [
               "string",
@@ -5310,7 +7132,7 @@
               "string",
               "null"
             ],
-            "description": "`created_at` (default), `title`, `author`, `year` or `progressive`."
+            "description": "`created_at` (default), `title`, `author`, `year`, `published_year`,\n`acquired_at`, `page_count`, `progressive`, `progressive_number` or `rating`."
           },
           "unshelved": {
             "type": [
@@ -5318,6 +7140,22 @@
               "null"
             ],
             "description": "`true`: only books without a placement."
+          },
+          "year_from": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Lowest `published_year`, inclusive."
+          },
+          "year_to": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Highest `published_year`, inclusive."
           }
         }
       },
@@ -5489,6 +7327,26 @@
           }
         }
       },
+      "LongestBook": {
+        "type": "object",
+        "required": [
+          "book_id",
+          "title",
+          "page_count"
+        ],
+        "properties": {
+          "book_id": {
+            "type": "string"
+          },
+          "page_count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
       "MeOut": {
         "type": "object",
         "required": [
@@ -5617,6 +7475,26 @@
           }
         }
       },
+      "NamedFacet": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "count"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
       "NewShelf": {
         "type": "object",
         "required": [
@@ -5640,6 +7518,13 @@
           },
           "name": {
             "type": "string"
+          },
+          "room_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Room of the library; absent or `null` means no room."
           },
           "rows": {
             "type": "integer",
@@ -5905,6 +7790,36 @@
           }
         }
       },
+      "PatchRoom": {
+        "type": "object",
+        "description": "Body of `PATCH /rooms/{id}`: absent = unchanged.",
+        "properties": {
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "PatchTag": {
+        "type": "object",
+        "description": "Body of `PATCH /tags/{id}`: absent = unchanged.",
+        "properties": {
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
       "PatchWish": {
         "type": "object",
         "description": "Body of `PATCH /wishlist/{id}`: absent = unchanged, `null` clears an\noptional field (`title` and `priority` cannot be null).",
@@ -6018,6 +7933,406 @@
             "type": "string"
           },
           "slot_index": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "PutBookTags": {
+        "type": "object",
+        "description": "Body of `PUT /books/{id}/tags`.",
+        "required": [
+          "tag_ids"
+        ],
+        "properties": {
+          "tag_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The full set of tags of the book; at most 20 distinct ids."
+          }
+        }
+      },
+      "PutReading": {
+        "type": "object",
+        "description": "Body of `PUT /books/{id}/reading`.",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "current_page": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "finished_at": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "At most 2000 characters."
+          },
+          "rating": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "1 to 5."
+          },
+          "started_at": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "status": {
+            "type": "string",
+            "description": "`to_read`, `reading`, `read` or `abandoned`."
+          }
+        }
+      },
+      "RatedStats": {
+        "type": "object",
+        "required": [
+          "count"
+        ],
+        "properties": {
+          "average": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double",
+            "description": "One decimal; `null` when no book is rated."
+          },
+          "count": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "ReadingBook": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "authors"
+        ],
+        "properties": {
+          "authors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "cover_color": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "type": "string"
+          },
+          "page_count": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "ReadingFacet": {
+        "type": "object",
+        "description": "Books of the library by the caller's reading state.",
+        "required": [
+          "to_read",
+          "reading",
+          "read",
+          "abandoned",
+          "none"
+        ],
+        "properties": {
+          "abandoned": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "none": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Books without a state for the caller."
+          },
+          "read": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "reading": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "to_read": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "ReadingItem": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ReadingOut"
+          },
+          {
+            "type": "object",
+            "required": [
+              "book"
+            ],
+            "properties": {
+              "book": {
+                "$ref": "#/components/schemas/ReadingBook"
+              }
+            }
+          }
+        ]
+      },
+      "ReadingList": {
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReadingItem"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Count with the same filter, ignoring `limit` and `offset`."
+          }
+        }
+      },
+      "ReadingOut": {
+        "type": "object",
+        "required": [
+          "book_id",
+          "status",
+          "updated_at"
+        ],
+        "properties": {
+          "book_id": {
+            "type": "string"
+          },
+          "current_page": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "finished_at": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rating": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "started_at": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "status": {
+            "type": "string",
+            "description": "`to_read`, `reading`, `read` or `abandoned`."
+          },
+          "updated_at": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "ReadingQuery": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "offset": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`to_read`, `reading`, `read` or `abandoned`."
+          }
+        }
+      },
+      "ReadingStats": {
+        "type": "object",
+        "required": [
+          "years",
+          "year"
+        ],
+        "properties": {
+          "year": {
+            "$ref": "#/components/schemas/ReadingYear"
+          },
+          "years": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReadingYearTotal"
+            },
+            "description": "Every year with at least one finished book, most recent first."
+          }
+        }
+      },
+      "ReadingSummary": {
+        "type": "object",
+        "description": "The caller's reading state as shown inside a book.",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "current_page": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "rating": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "ReadingYear": {
+        "type": "object",
+        "required": [
+          "year",
+          "books",
+          "pages",
+          "by_month",
+          "by_genre",
+          "days",
+          "rated"
+        ],
+        "properties": {
+          "books": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "by_genre": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GenreCount"
+            }
+          },
+          "by_month": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "Always 12 numbers, January first."
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DayCount"
+            },
+            "description": "Only days with at least one finished book, oldest first."
+          },
+          "longest": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/LongestBook"
+              }
+            ]
+          },
+          "pages": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "rated": {
+            "$ref": "#/components/schemas/RatedStats"
+          },
+          "year": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "ReadingYearTotal": {
+        "type": "object",
+        "required": [
+          "year",
+          "books",
+          "pages"
+        ],
+        "properties": {
+          "books": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "pages": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "year": {
             "type": "integer",
             "format": "int64"
           }
@@ -6143,6 +8458,62 @@
           "member",
           "guest"
         ]
+      },
+      "RoomList": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoomOut"
+            }
+          }
+        }
+      },
+      "RoomOut": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "shelf_count",
+          "created_at"
+        ],
+        "properties": {
+          "created_at": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "shelf_count": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Shelves of the library placed in the room."
+          }
+        }
+      },
+      "RoomSummary": {
+        "type": "object",
+        "description": "A room as shown inside a shelf.",
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
       },
       "ServerOut": {
         "type": "object",
@@ -6415,6 +8786,17 @@
           "name": {
             "type": "string"
           },
+          "room": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RoomSummary",
+                "description": "The room the shelf is in, if any."
+              }
+            ]
+          },
           "room_id": {
             "type": [
               "string",
@@ -6456,6 +8838,13 @@
               "string",
               "null"
             ]
+          },
+          "room_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Absent keeps the room; `null` removes it; an id moves the shelf there."
           },
           "rows": {
             "type": [
@@ -6540,6 +8929,90 @@
           }
         }
       },
+      "TagFacet": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "color",
+          "count"
+        ],
+        "properties": {
+          "color": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "TagList": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagOut"
+            }
+          }
+        }
+      },
+      "TagOut": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "color",
+          "book_count"
+        ],
+        "properties": {
+          "book_count": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Books of the library carrying the tag."
+          },
+          "color": {
+            "type": "string",
+            "description": "`sage`, `terracotta`, `night`, `plum`, `amber` or `graphite`."
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "TagSummary": {
+        "type": "object",
+        "description": "A tag as shown inside a book.",
+        "required": [
+          "id",
+          "name",
+          "color"
+        ],
+        "properties": {
+          "color": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
       "TlsMode": {
         "type": "string",
         "description": "How the server is reached; serialized with the contract names.",
@@ -6572,6 +9045,22 @@
           },
           "role": {
             "$ref": "#/components/schemas/Role"
+          }
+        }
+      },
+      "ValueCount": {
+        "type": "object",
+        "required": [
+          "value",
+          "count"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "value": {
+            "type": "string"
           }
         }
       },
@@ -6639,6 +9128,25 @@
           },
           "user_id": {
             "type": "string"
+          }
+        }
+      },
+      "YearRange": {
+        "type": "object",
+        "properties": {
+          "max": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "min": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
           }
         }
       }

@@ -47,7 +47,15 @@ const ROLE_GATED: &[(&str, &str)] = &[
     ("post", "/api/v1/wishlist"),
     ("patch", "/api/v1/wishlist/{id}"),
     ("delete", "/api/v1/wishlist/{id}"),
-    ("post", "/api/v1/wishlist/{id}/convert"),
+    ("post", "/api/v1/wishlist/{id}/convert"),    ("post", "/api/v1/tags"),
+    ("patch", "/api/v1/tags/{id}"),
+    ("delete", "/api/v1/tags/{id}"),
+    ("put", "/api/v1/books/{id}/tags"),
+    ("post", "/api/v1/rooms"),
+    ("patch", "/api/v1/rooms/{id}"),
+    ("delete", "/api/v1/rooms/{id}"),
+    ("get", "/api/v1/audit"),
+    ("get", "/api/v1/audit/actions"),
 ];
 
 fn operations() -> Vec<(String, String, Value)> {

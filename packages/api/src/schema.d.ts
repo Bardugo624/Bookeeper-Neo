@@ -4,6 +4,38 @@
  */
 
 export interface paths {
+    "/api/v1/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_audit"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/audit/actions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_actions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/confirm": {
         parameters: {
             query?: never;
@@ -184,6 +216,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/books/facets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["facets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/books/next-progressive": {
         parameters: {
             query?: never;
@@ -263,6 +311,38 @@ export interface paths {
         put: operations["place_book"];
         post?: never;
         delete: operations["unplace_book"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/books/{id}/reading": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_reading"];
+        put: operations["put_reading"];
+        post?: never;
+        delete: operations["delete_reading"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/books/{id}/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["put_book_tags"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -407,6 +487,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/loans/borrowers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_borrowers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/loans/{id}": {
         parameters: {
             query?: never;
@@ -520,6 +616,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reading": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_reading"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/restore": {
         parameters: {
             query?: never;
@@ -535,6 +647,38 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/rooms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_rooms"];
+        put?: never;
+        post: operations["create_room"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/rooms/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["delete_room"];
+        options?: never;
+        head?: never;
+        patch: operations["patch_room"];
         trace?: never;
     };
     "/api/v1/server": {
@@ -649,6 +793,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stats/reading": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Reading statistics of the caller: books with status `read` and a
+         *     `finished_at` in the year. Year, month and day boundaries are UTC.
+         */
+        get: operations["get_reading_stats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_tags"];
+        put?: never;
+        post: operations["create_tag"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tags/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["delete_tag"];
+        options?: never;
+        head?: never;
+        patch: operations["patch_tag"];
+        trace?: never;
+    };
     "/api/v1/wishlist": {
         parameters: {
             query?: never;
@@ -713,6 +909,66 @@ export interface components {
          * @description Documentation-only schema of the restore request body.
          */
         ArchiveBody: string;
+        AuditActions: {
+            items: string[];
+        };
+        /** @description Device of an entry; `null` in the entry when the device was deleted. */
+        AuditDevice: {
+            id: string;
+            name: string;
+        };
+        AuditList: {
+            items: components["schemas"]["AuditOut"][];
+            /** Format: int64 */
+            total: number;
+        };
+        AuditOut: {
+            action: string;
+            /**
+             * Format: int64
+             * @description Unix seconds.
+             */
+            at: number;
+            /**
+             * @description Stored detail as a JSON object; `null` when absent or not valid JSON.
+             *     The client address is never included.
+             */
+            detail: Record<string, never> | null;
+            device?: null | components["schemas"]["AuditDevice"];
+            entity_id?: string | null;
+            entity_type?: string | null;
+            /** Format: int64 */
+            id: number;
+            user?: null | components["schemas"]["AuditUser"];
+        };
+        AuditQuery: {
+            action?: string | null;
+            device_id?: string | null;
+            entity_type?: string | null;
+            /**
+             * Format: int64
+             * @description Inclusive, unix seconds.
+             */
+            from?: number | null;
+            /**
+             * Format: int64
+             * @description 1..=200, default 50.
+             */
+            limit?: number | null;
+            /** Format: int64 */
+            offset?: number | null;
+            /**
+             * Format: int64
+             * @description Inclusive, unix seconds.
+             */
+            to?: number | null;
+            user_id?: string | null;
+        };
+        /** @description Author of an entry; `null` in the entry when the user was deleted. */
+        AuditUser: {
+            display_name: string;
+            id: string;
+        };
         AuthOut: {
             library: components["schemas"]["LibraryOut"];
             session: components["schemas"]["Session"];
@@ -788,10 +1044,20 @@ export interface components {
             /** Format: int64 */
             published_year?: number | null;
             publisher?: string | null;
+            reading?: null | components["schemas"]["ReadingSummary"];
             subtitle?: string | null;
+            /** @description Tags of the book, ordered by name. */
+            tags: components["schemas"]["TagSummary"][];
             title: string;
             /** Format: int64 */
             updated_at: number;
+        };
+        BorrowerList: {
+            items: string[];
+        };
+        BorrowersQuery: {
+            /** @description Case-insensitive prefix; empty or absent gives the 10 most recent names. */
+            q?: string | null;
         };
         ConfirmOut: {
             confirm_token: string;
@@ -854,6 +1120,18 @@ export interface components {
             lent_at?: number | null;
             notes?: string | null;
         };
+        /** @description Body of `POST /rooms`. */
+        CreateRoom: {
+            /** @description 1 to 60 characters, unique in the library ignoring case and outer spaces. */
+            name: string;
+        };
+        /** @description Body of `POST /tags`. */
+        CreateTag: {
+            /** @description One of the shelf colours; default `sage`. */
+            color?: string | null;
+            /** @description 1 to 40 characters, unique in the library ignoring case and outer spaces. */
+            name: string;
+        };
         /** @description Body of `POST /wishlist`. */
         CreateWish: {
             authors?: string | null;
@@ -866,6 +1144,12 @@ export interface components {
             priority?: number | null;
             source_url?: string | null;
             title: string;
+        };
+        DayCount: {
+            /** Format: int64 */
+            books: number;
+            /** @description `YYYY-MM-DD`, UTC. */
+            date: string;
         };
         /** @enum {string} */
         DeviceKind: "desktop" | "mobile";
@@ -935,9 +1219,28 @@ export interface components {
             id: string;
             name: string;
         };
+        /** @description Counts over the whole library, whatever filter a list is using. */
+        Facets: {
+            formats: components["schemas"]["ValueCount"][];
+            /** @description Grouped ignoring ASCII case, showing the most frequent spelling; at most 200. */
+            genres: components["schemas"]["ValueCount"][];
+            /** @description Same rules as `genres`. */
+            languages: components["schemas"]["ValueCount"][];
+            reading: components["schemas"]["ReadingFacet"];
+            rooms: components["schemas"]["NamedFacet"][];
+            shelves: components["schemas"]["NamedFacet"][];
+            tags: components["schemas"]["TagFacet"][];
+            years: components["schemas"]["YearRange"];
+        };
         FetchCover: {
             /** @description 1 to 8 image URLs, tried in order. */
             candidates: string[];
+        };
+        GenreCount: {
+            /** Format: int64 */
+            count: number;
+            /** @description Genre as spelled most often; `null` for books without a genre. */
+            value?: string | null;
         };
         Health: {
             status: string;
@@ -1006,9 +1309,21 @@ export interface components {
             name: string;
         };
         ListBooksQuery: {
+            /**
+             * Format: int64
+             * @description Lowest `acquired_at` (unix seconds), inclusive.
+             */
+            acquired_from?: number | null;
+            /**
+             * Format: int64
+             * @description Highest `acquired_at` (unix seconds), inclusive.
+             */
+            acquired_to?: number | null;
             /** @description `hardcover`, `paperback`, `ebook` or `audiobook`. */
             format?: string | null;
+            /** @description Case-insensitive match. */
             genre?: string | null;
+            /** @description Case-insensitive match. */
             language?: string | null;
             /** Format: int64 */
             limit?: number | null;
@@ -1020,11 +1335,31 @@ export interface components {
             order?: string | null;
             /** @description Full-text search over title, subtitle, authors, description, notes and ISBN. */
             q?: string | null;
+            /**
+             * @description The caller's reading state: `to_read`, `reading`, `read`, `abandoned` or
+             *     `none` (no state).
+             */
+            reading?: string | null;
+            /** @description Books placed on a shelf of this room. */
+            room_id?: string | null;
             shelf_id?: string | null;
-            /** @description `created_at` (default), `title`, `author`, `year` or `progressive`. */
+            /**
+             * @description `created_at` (default), `title`, `author`, `year`, `published_year`,
+             *     `acquired_at`, `page_count`, `progressive`, `progressive_number` or `rating`.
+             */
             sort?: string | null;
             /** @description `true`: only books without a placement. */
             unshelved?: string | null;
+            /**
+             * Format: int64
+             * @description Lowest `published_year`, inclusive.
+             */
+            year_from?: number | null;
+            /**
+             * Format: int64
+             * @description Highest `published_year`, inclusive.
+             */
+            year_to?: number | null;
         };
         ListLoansQuery: {
             book_id?: string | null;
@@ -1072,6 +1407,12 @@ export interface components {
             library_id?: string | null;
             password: string;
         };
+        LongestBook: {
+            book_id: string;
+            /** Format: int64 */
+            page_count: number;
+            title: string;
+        };
         MeOut: {
             device: components["schemas"]["DeviceOut"];
             library: components["schemas"]["LibraryOut"];
@@ -1102,11 +1443,19 @@ export interface components {
             /** @description `YYYY-MM`, UTC. */
             ym: string;
         };
+        NamedFacet: {
+            /** Format: int64 */
+            count: number;
+            id: string;
+            name: string;
+        };
         NewShelf: {
             /** @description Defaults to `sage`. */
             color?: string | null;
             icon?: string | null;
             name: string;
+            /** @description Room of the library; absent or `null` means no room. */
+            room_id?: string | null;
             /** Format: int64 */
             rows: number;
             /** Format: int64 */
@@ -1187,6 +1536,15 @@ export interface components {
             lent_at?: number | null;
             notes?: string | null;
         };
+        /** @description Body of `PATCH /rooms/{id}`: absent = unchanged. */
+        PatchRoom: {
+            name?: string | null;
+        };
+        /** @description Body of `PATCH /tags/{id}`: absent = unchanged. */
+        PatchTag: {
+            color?: string | null;
+            name?: string | null;
+        };
         /**
          * @description Body of `PATCH /wishlist/{id}`: absent = unchanged, `null` clears an
          *     optional field (`title` and `priority` cannot be null).
@@ -1231,6 +1589,133 @@ export interface components {
             /** Format: int64 */
             slot_index: number;
         };
+        /** @description Body of `PUT /books/{id}/tags`. */
+        PutBookTags: {
+            /** @description The full set of tags of the book; at most 20 distinct ids. */
+            tag_ids: string[];
+        };
+        /** @description Body of `PUT /books/{id}/reading`. */
+        PutReading: {
+            /** Format: int64 */
+            current_page?: number | null;
+            /** Format: int64 */
+            finished_at?: number | null;
+            /** @description At most 2000 characters. */
+            note?: string | null;
+            /**
+             * Format: int64
+             * @description 1 to 5.
+             */
+            rating?: number | null;
+            /** Format: int64 */
+            started_at?: number | null;
+            /** @description `to_read`, `reading`, `read` or `abandoned`. */
+            status: string;
+        };
+        RatedStats: {
+            /**
+             * Format: double
+             * @description One decimal; `null` when no book is rated.
+             */
+            average?: number | null;
+            /** Format: int64 */
+            count: number;
+        };
+        ReadingBook: {
+            authors: string[];
+            cover_color?: string | null;
+            id: string;
+            /** Format: int64 */
+            page_count?: number | null;
+            title: string;
+        };
+        /** @description Books of the library by the caller's reading state. */
+        ReadingFacet: {
+            /** Format: int64 */
+            abandoned: number;
+            /**
+             * Format: int64
+             * @description Books without a state for the caller.
+             */
+            none: number;
+            /** Format: int64 */
+            read: number;
+            /** Format: int64 */
+            reading: number;
+            /** Format: int64 */
+            to_read: number;
+        };
+        ReadingItem: components["schemas"]["ReadingOut"] & {
+            book: components["schemas"]["ReadingBook"];
+        };
+        ReadingList: {
+            items: components["schemas"]["ReadingItem"][];
+            /**
+             * Format: int64
+             * @description Count with the same filter, ignoring `limit` and `offset`.
+             */
+            total: number;
+        };
+        ReadingOut: {
+            book_id: string;
+            /** Format: int64 */
+            current_page?: number | null;
+            /** Format: int64 */
+            finished_at?: number | null;
+            note?: string | null;
+            /** Format: int64 */
+            rating?: number | null;
+            /** Format: int64 */
+            started_at?: number | null;
+            /** @description `to_read`, `reading`, `read` or `abandoned`. */
+            status: string;
+            /** Format: int64 */
+            updated_at: number;
+        };
+        ReadingQuery: {
+            /** Format: int64 */
+            limit?: number | null;
+            /** Format: int64 */
+            offset?: number | null;
+            /** @description `to_read`, `reading`, `read` or `abandoned`. */
+            status?: string | null;
+        };
+        ReadingStats: {
+            year: components["schemas"]["ReadingYear"];
+            /** @description Every year with at least one finished book, most recent first. */
+            years: components["schemas"]["ReadingYearTotal"][];
+        };
+        /** @description The caller's reading state as shown inside a book. */
+        ReadingSummary: {
+            /** Format: int64 */
+            current_page?: number | null;
+            /** Format: int64 */
+            rating?: number | null;
+            status: string;
+        };
+        ReadingYear: {
+            /** Format: int64 */
+            books: number;
+            by_genre: components["schemas"]["GenreCount"][];
+            /** @description Always 12 numbers, January first. */
+            by_month: number[];
+            /** @description Only days with at least one finished book, oldest first. */
+            days: components["schemas"]["DayCount"][];
+            longest?: null | components["schemas"]["LongestBook"];
+            /** Format: int64 */
+            pages: number;
+            rated: components["schemas"]["RatedStats"];
+            /** Format: int64 */
+            year: number;
+        };
+        ReadingYearTotal: {
+            /** Format: int64 */
+            books: number;
+            /** Format: int64 */
+            pages: number;
+            /** Format: int64 */
+            year: number;
+        };
         RedeemRequest: {
             code: string;
             device_kind: components["schemas"]["DeviceKind"];
@@ -1273,6 +1758,25 @@ export interface components {
         };
         /** @enum {string} */
         Role: "owner" | "admin" | "member" | "guest";
+        RoomList: {
+            items: components["schemas"]["RoomOut"][];
+        };
+        RoomOut: {
+            /** Format: int64 */
+            created_at: number;
+            id: string;
+            name: string;
+            /**
+             * Format: int64
+             * @description Shelves of the library placed in the room.
+             */
+            shelf_count: number;
+        };
+        /** @description A room as shown inside a shelf. */
+        RoomSummary: {
+            id: string;
+            name: string;
+        };
         /** @description How clients can reach this server. */
         ServerOut: {
             phone_ready: boolean;
@@ -1354,6 +1858,7 @@ export interface components {
             /** Format: int64 */
             label_code: number;
             name: string;
+            room?: null | components["schemas"]["RoomSummary"];
             room_id?: string | null;
             /** Format: int64 */
             rows: number;
@@ -1367,6 +1872,8 @@ export interface components {
             /** @description `null` clears the icon. */
             icon?: string | null;
             name?: string | null;
+            /** @description Absent keeps the room; `null` removes it; an id moves the shelf there. */
+            room_id?: string | null;
             /** Format: int64 */
             rows?: number | null;
             /** Format: int64 */
@@ -1383,6 +1890,33 @@ export interface components {
             shelf_fill: components["schemas"]["ShelfFill"][];
             top_authors: components["schemas"]["CountBy"][];
         };
+        TagFacet: {
+            color: string;
+            /** Format: int64 */
+            count: number;
+            id: string;
+            name: string;
+        };
+        TagList: {
+            items: components["schemas"]["TagOut"][];
+        };
+        TagOut: {
+            /**
+             * Format: int64
+             * @description Books of the library carrying the tag.
+             */
+            book_count: number;
+            /** @description `sage`, `terracotta`, `night`, `plum`, `amber` or `graphite`. */
+            color: string;
+            id: string;
+            name: string;
+        };
+        /** @description A tag as shown inside a book. */
+        TagSummary: {
+            color: string;
+            id: string;
+            name: string;
+        };
         /**
          * @description How the server is reached; serialized with the contract names.
          * @enum {string}
@@ -1393,6 +1927,11 @@ export interface components {
             email?: string | null;
             id: string;
             role: components["schemas"]["Role"];
+        };
+        ValueCount: {
+            /** Format: int64 */
+            count: number;
+            value: string;
         };
         WishList: {
             items: components["schemas"]["WishOut"][];
@@ -1410,6 +1949,12 @@ export interface components {
             title: string;
             user_id: string;
         };
+        YearRange: {
+            /** Format: int64 */
+            max?: number | null;
+            /** Format: int64 */
+            min?: number | null;
+        };
     };
     responses: never;
     parameters: never;
@@ -1419,6 +1964,103 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    list_audit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string | null;
+                device_id: string | null;
+                action: string | null;
+                entity_type: string | null;
+                /** @description Inclusive, unix seconds. */
+                from: number | null;
+                /** @description Inclusive, unix seconds. */
+                to: number | null;
+                /** @description 1..=200, default 50. */
+                limit: number | null;
+                offset: number | null;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Activity log, newest first */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditList"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: owner and admin only */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description validation: invalid query */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    list_actions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Distinct actions present in the log */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditActions"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: owner and admin only */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
     confirm: {
         parameters: {
             query?: never;
@@ -1977,9 +2619,9 @@ export interface operations {
             query?: {
                 /** @description Full-text search; the last word matches by prefix */
                 q?: string;
-                /** @description Exact match */
+                /** @description Case-insensitive match */
                 genre?: string;
-                /** @description Exact match */
+                /** @description Case-insensitive match */
                 language?: string;
                 /** @description hardcover, paperback, ebook or audiobook */
                 format?: string;
@@ -1989,7 +2631,21 @@ export interface operations {
                 unshelved?: boolean;
                 /** @description true: open loan; false: no open loan */
                 on_loan?: boolean;
-                /** @description created_at (default), title, author, year or progressive */
+                /** @description Caller's state: to_read, reading, read, abandoned, or none for books without a state */
+                reading?: string;
+                /** @description Repeatable, at most 10: the book has all the given tags */
+                tag_id?: string[];
+                /** @description Books placed on a shelf of this room */
+                room_id?: string;
+                /** @description published_year >= value; must not exceed year_to */
+                year_from?: number;
+                /** @description published_year <= value */
+                year_to?: number;
+                /** @description acquired_at >= value (unix seconds); must not exceed acquired_to */
+                acquired_from?: number;
+                /** @description acquired_at <= value (unix seconds) */
+                acquired_to?: number;
+                /** @description created_at (default), title, author, year or published_year, acquired_at, page_count, progressive or progressive_number, rating (caller's); missing values come last */
                 sort?: string;
                 /** @description asc or desc */
                 order?: string;
@@ -2171,6 +2827,35 @@ export interface operations {
             };
             /** @description validation: more than 500 ids */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    facets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Counts over the whole library */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Facets"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2784,6 +3469,239 @@ export interface operations {
             };
         };
     };
+    get_reading: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Book id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The caller's reading state, or null when there is none */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": null | components["schemas"]["ReadingOut"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description not_found: unknown book */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    put_reading: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Book id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PutReading"];
+            };
+        };
+        responses: {
+            /** @description The stored state */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadingOut"];
+                };
+            };
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description not_found: unknown book */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description validation: invalid body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    delete_reading: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Book id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted, or there was nothing to delete */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description not_found: unknown book */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    put_book_tags: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Book id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PutBookTags"];
+            };
+        };
+        responses: {
+            /** @description The book with its new tags */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookOut"];
+                };
+            };
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: role too low */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description not_found: unknown book or tag; nothing changes */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description validation: more than 20 tags */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
     list_devices: {
         parameters: {
             query?: never;
@@ -3275,6 +4193,56 @@ export interface operations {
             };
         };
     };
+    list_borrowers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Case-insensitive prefix; empty or absent gives the 10 most recent names. */
+                q: string | null;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Up to 10 borrower names, most recent first */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BorrowerList"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: role too low */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description validation: invalid query */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
     delete_loan: {
         parameters: {
             query?: never;
@@ -3733,6 +4701,51 @@ export interface operations {
             };
         };
     };
+    list_reading: {
+        parameters: {
+            query?: {
+                /** @description to_read, reading, read or abandoned */
+                status?: string;
+                /** @description 1 to 200, default 50 */
+                limit?: number;
+                /** @description Default 0 */
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The caller's reading states, most recently updated first */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadingList"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description validation: invalid query */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
     restore: {
         parameters: {
             query?: never;
@@ -3787,6 +4800,251 @@ export interface operations {
             };
             /** @description payload_too_large */
             413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    list_rooms: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The library's rooms, by name */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoomList"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    create_room: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateRoom"];
+            };
+        };
+        responses: {
+            /** @description Created room */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoomOut"];
+                };
+            };
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: role too low */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description room_exists: the name is taken */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description validation: invalid body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    delete_room: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Room id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted; its shelves stay, without a room */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: role too low */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description not_found: unknown room */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    patch_room: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Room id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchRoom"];
+            };
+        };
+        responses: {
+            /** @description Updated room */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoomOut"];
+                };
+            };
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: role too low */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description not_found: unknown room */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description room_exists: the name is taken */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description validation: invalid body */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3992,6 +5250,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
+            /** @description not_found: unknown room_id; nothing is created */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
             /** @description payload_too_large */
             413: {
                 headers: {
@@ -4153,7 +5420,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description not_found: unknown shelf */
+            /** @description not_found: unknown shelf or room_id; nothing changes */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -4333,6 +5600,292 @@ export interface operations {
             };
             /** @description unauthorized, token_expired or device_revoked */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    get_reading_stats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Calendar year, 1900..=2200. Defaults to the current year (UTC). */
+                year: string | null;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Reading statistics (year, month and day boundaries in UTC) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadingStats"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description validation: year not a number or outside 1900..2200 */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    list_tags: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The library's tags, by name */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagList"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    create_tag: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTag"];
+            };
+        };
+        responses: {
+            /** @description Created tag */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagOut"];
+                };
+            };
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: role too low */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description tag_exists: the name is taken */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description validation: invalid body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    delete_tag: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Tag id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted, along with its assignments; the books stay */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: role too low */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description not_found: unknown tag */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    patch_tag: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Tag id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchTag"];
+            };
+        };
+        responses: {
+            /** @description Updated tag */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagOut"];
+                };
+            };
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: role too low */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description not_found: unknown tag */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description tag_exists: the name is taken */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description validation: invalid body */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
