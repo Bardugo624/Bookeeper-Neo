@@ -1,7 +1,7 @@
 import type { DragEvent, KeyboardEvent } from 'react';
 import { Tooltip } from '../overlays';
 import { clothTone } from '../book';
-import { spineHeight, spineWidth } from './spine';
+import { spineHeight, spineWidth } from './spineMetrics';
 import { BOOK_MIME, type SpineBook, type SpineLabel } from './types';
 import styles from './Shelf.module.css';
 
