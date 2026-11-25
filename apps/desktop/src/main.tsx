@@ -1,3 +1,4 @@
+import '@bookeeper/ui/fonts.css';
 import '@bookeeper/ui/tokens.css';
 import '@bookeeper/ui/base.css';
 import { StrictMode } from 'react';

@@ -103,6 +103,8 @@ impl Store {
     }
 
     pub fn activate(&self, id: &str) -> Result<Connections, String> {
+        let id = normalize_id(id)?;
+        let id = id.as_str();
         let _g = self.guard();
         let mut all = self.read()?;
         if !all.items.iter().any(|c| c.id == id) {
@@ -114,6 +116,8 @@ impl Store {
     }
 
     pub fn remove(&self, id: &str) -> Result<Connections, String> {
+        let id = normalize_id(id)?;
+        let id = id.as_str();
         let _g = self.guard();
         let mut all = self.read()?;
         all.items.retain(|c| c.id != id);
@@ -140,9 +144,17 @@ impl Store {
                     .duration_since(std::time::UNIX_EPOCH)
                     .map(|d| d.as_secs())
                     .unwrap_or(0);
-                let aside = self
+                let mut aside = self
                     .path
                     .with_file_name(format!("connections.json.corrotto-{secs}"));
+                // Never overwrite a file set aside earlier.
+                let mut n = 0u32;
+                while aside.exists() {
+                    n += 1;
+                    aside = self
+                        .path
+                        .with_file_name(format!("connections.json.corrotto-{secs}-{n}"));
+                }
                 // Never log the content: it may hold tokens.
                 tracing::warn!(
                     "connections file is unreadable; setting it aside and starting empty"
@@ -180,9 +192,13 @@ impl Store {
     }
 }
 
+fn normalize_id(id: &str) -> Result<String, String> {
+    let id = uuid::Uuid::parse_str(id).map_err(|_| "id must be a UUID".to_string())?;
+    Ok(id.hyphenated().to_string())
+}
+
 fn normalize(c: &mut Connection) -> Result<(), String> {
-    let id = uuid::Uuid::parse_str(&c.id).map_err(|_| "id must be a UUID".to_string())?;
-    c.id = id.hyphenated().to_string();
+    c.id = normalize_id(&c.id)?;
     if let Some(fp) = &c.fingerprint {
         if fp.len() != 64 || !fp.chars().all(|ch| ch.is_ascii_hexdigit()) {
             return Err("fingerprint must be 64 hexadecimal digits".into());

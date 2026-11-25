@@ -205,7 +205,7 @@ describe('cover', () => {
     const revoke = vi.fn();
     vi.stubGlobal('URL', Object.assign(URL, { createObjectURL: create, revokeObjectURL: revoke }));
     const { container, unmount, platform } = renderBooks({
-      books: makeDb(1),
+      books: [book(1, { cover_color: '#aabbcc' })],
       cover: { bytes: new Uint8Array([1, 2, 3]), etag: '"e1"' },
     });
     await waitFor(() => expect(container.querySelector('img')).toHaveAttribute('src', 'blob:cover-1'));
@@ -213,6 +213,12 @@ describe('cover', () => {
     expect(revoke).not.toHaveBeenCalled();
     unmount();
     expect(revoke).toHaveBeenCalledWith('blob:cover-1');
+  });
+
+  it('does not request the cover of a book that has none', async () => {
+    const { platform } = renderBooks({ books: makeDb(3) });
+    await screen.findByRole('link', { name: 'Libro 1, Autore 1' });
+    expect(platform.calls.some((c) => c.path.endsWith('/cover'))).toBe(false);
   });
 
   it('draws the placeholder with cover_color when there is no image', async () => {

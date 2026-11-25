@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { readdirSync, readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
+import { findLiteralColor } from '../styleCheck';
 
 const dir = new URL('./', import.meta.url);
 const files = readdirSync(dir).filter((f) => f.endsWith('.module.css'));
@@ -32,9 +33,7 @@ it('finds the module stylesheets', () => {
 
 it.each(files)('%s has no literal colors', (file) => {
   const css = strip(readFileSync(new URL(file, dir), 'utf8'));
-  expect(css).not.toMatch(/#[0-9a-f]{3,8}\b/i);
-  expect(css).not.toMatch(/\brgba?\(/i);
-  expect(css).not.toMatch(/\bhsla?\(/i);
+  expect(findLiteralColor(css)).toBeNull();
 });
 
 it.each(files)('%s animates only under prefers-reduced-motion: no-preference', (file) => {

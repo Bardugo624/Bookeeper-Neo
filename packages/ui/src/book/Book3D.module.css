@@ -13,14 +13,14 @@
     transform: var(--book-rest);
     transform-style: preserve-3d;
     transform-origin: center;
-    filter: drop-shadow(0 6px 10px color-mix(in srgb, black 25%, transparent));
+    filter: drop-shadow(0 6px 10px color-mix(in srgb, var(--bk-cover-shade) 25%, transparent));
 }
 
 .spine {
     flex: none;
     width: var(--book-spine);
     border-radius: 2px 0 0 2px;
-    background: color-mix(in srgb, var(--book-bg) 70%, black);
+    background: color-mix(in srgb, var(--book-bg) 70%, var(--bk-cover-shade));
 }
 
 .cover {
@@ -66,7 +66,7 @@
     background: repeating-linear-gradient(
         to bottom,
         var(--book-pages) 0 2px,
-        color-mix(in srgb, var(--book-pages) 82%, black) 2px 3px
+        color-mix(in srgb, var(--book-pages) 82%, var(--bk-cover-shade)) 2px 3px
     );
 }
 

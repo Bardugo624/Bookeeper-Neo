@@ -26,6 +26,10 @@ it.each([
   [800, '40px'],
   [2000, '40px'],
   [undefined, '24px'],
+  [Infinity, '40px'],
+  [NaN, '24px'],
+  [0, '24px'],
+  [-5, '24px'],
 ])('spine thickness for %s pages', (pages, expected) => {
   expect(spine(pages)).toBe(expected);
 });

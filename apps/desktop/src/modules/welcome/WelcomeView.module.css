@@ -34,6 +34,7 @@
 
 .heroText {
   margin: 0;
+  font-weight: 400;
   font-size: 14px;
   line-height: 1.5;
   color: var(--bk-text-muted);
@@ -71,6 +72,7 @@
 .sub {
   margin: -8px 0 6px;
   font-size: 14px;
+  font-weight: 400;
   color: var(--bk-text-muted);
 }
 

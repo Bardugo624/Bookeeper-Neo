@@ -25,3 +25,12 @@ it('renders children in the center', () => {
   );
   expect(screen.getByText('50%')).toBeInTheDocument();
 });
+
+it('shows 0 as a child but not false, null or undefined', () => {
+  const { container, rerender } = render(<ProgressRing value={0.5} label="L">{0}</ProgressRing>);
+  expect(container.textContent).toBe('0');
+  for (const child of [false, null, undefined]) {
+    rerender(<ProgressRing value={0.5} label="L">{child}</ProgressRing>);
+    expect(container.textContent).toBe('');
+  }
+});

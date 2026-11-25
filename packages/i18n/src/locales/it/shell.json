@@ -1,5 +1,6 @@
 {
   "sidebar": { "label": "Navigazione principale" },
+  "toast": { "close": "Chiudi notifica" },
   "window": {
     "minimize": "Riduci a icona",
     "maximize": "Ingrandisci",

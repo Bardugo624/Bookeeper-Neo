@@ -21,6 +21,30 @@ interface PanelProps extends DialogProps {
   panelClassName?: string;
 }
 
+const FOCUSABLE = 'a[href],button,input,select,textarea,[tabindex]:not([tabindex="-1"])';
+
+/**
+ * Where focus may go back to, best first: the element focused at open time; the trigger of the menu
+ * it lives in (a menu item is removed when the menu closes); the focusable elements that preceded it,
+ * nearest first; finally the first focusable element of the page.
+ */
+function focusCandidates(): Element[] {
+  const list: Element[] = [];
+  const active = document.activeElement;
+  if (active && active !== document.body) {
+    list.push(active);
+    const menuId = active.closest('[role="menu"]')?.getAttribute('aria-labelledby');
+    const menuTrigger = menuId ? document.getElementById(menuId) : null;
+    if (menuTrigger) list.push(menuTrigger);
+    const all = Array.from(document.querySelectorAll(FOCUSABLE)).filter((el) => !el.hasAttribute('disabled'));
+    const at = all.indexOf(active);
+    if (at > 0) list.push(...all.slice(0, at).reverse());
+  }
+  const first = document.querySelector(FOCUSABLE);
+  if (first) list.push(first);
+  return list;
+}
+
 /** Shared by Dialog and Drawer: overlay, panel, header, body and footer. */
 export function DialogPanel({
   open,
@@ -34,14 +58,15 @@ export function DialogPanel({
 }: PanelProps) {
   // The dialog is controlled and has no Radix Trigger, so remember who had focus when it opened
   // (captured during render, before focus moves into the panel) and give focus back on close.
-  const opener = useRef<Element | null>(null);
+  const candidates = useRef<Element[]>([]);
   const wasOpen = useRef(false);
-  if (open && !wasOpen.current) opener.current = document.activeElement;
+  if (open && !wasOpen.current) candidates.current = focusCandidates();
   wasOpen.current = open;
   const restoreFocus = (event: Event) => {
     event.preventDefault();
-    const target = opener.current;
-    if (target instanceof HTMLElement && target.isConnected) target.focus();
+    // First candidate still in the document; never leave focus on <body>.
+    const target = candidates.current.find((el) => el.isConnected && el instanceof HTMLElement);
+    (target as HTMLElement | undefined)?.focus();
   };
 
   return (

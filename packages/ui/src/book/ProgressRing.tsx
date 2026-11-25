@@ -40,7 +40,7 @@ export function ProgressRing({ value, size = 60, label, children }: ProgressRing
           strokeDashoffset={c * (1 - v)}
         />
       </svg>
-      {children ? <div className={styles.center}>{children}</div> : null}
+      {children !== null && children !== undefined && children !== false ? <div className={styles.center}>{children}</div> : null}
     </div>
   );
 }
