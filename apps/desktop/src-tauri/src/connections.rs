@@ -164,22 +164,20 @@ impl Store {
         {
             return true;
         }
+        let mut written: Vec<String> = Vec::new();
         for c in &all.items {
             for (suffix, tok) in [("access", &c.access_token), ("refresh", &c.refresh_token)] {
                 if let Some(t) = tok {
-                    if self.secrets.set(&format!("{}/{suffix}", c.id), t).is_err() {
+                    let key = format!("{}/{suffix}", c.id);
+                    if self.secrets.set(&key, t).is_err() {
                         tracing::warn!("keychain refused a token; keeping them in the file");
                         return false;
                     }
+                    written.push(key);
                 }
             }
         }
-        // The fresh values replace whatever was pending deletion under those keys.
-        let written: Vec<String> = all
-            .items
-            .iter()
-            .flat_map(|c| [format!("{}/access", c.id), format!("{}/refresh", c.id)])
-            .collect();
+        // Only keys actually overwritten stop being pending deletion.
         all.stale_secrets.retain(|k| !written.contains(k));
         let mut clean = all.clone();
         for c in &mut clean.items {

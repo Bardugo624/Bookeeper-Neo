@@ -678,4 +678,44 @@ mod stale {
         assert_eq!(kc.inner.get(&format!("{}/access", c.id)).unwrap(), None);
         assert!(fresh.load().unwrap().items[0].access_token.is_none());
     }
+
+    #[test]
+    fn migration_keeps_unwritten_keys_stale_and_unread() {
+        let d = tempfile::tempdir().unwrap();
+        let kc = Arc::new(Flaky::default());
+        let keychain = Store::with_secrets(d.path(), kc.clone(), SecretsMode::Keychain);
+        let mut a = remote("https://a.example");
+        a.access_token = Some("A-old".into());
+        a.refresh_token = Some("A-old-r".into());
+        keychain.upsert(a.clone()).unwrap();
+        let b = remote("https://b.example");
+        keychain.upsert(b.clone()).unwrap();
+
+        // File mode, deletions failing: log out of A, refresh B.
+        kc.fail_delete.store(true, Ordering::SeqCst);
+        let file = Store::with_secrets(d.path(), kc.clone(), SecretsMode::File);
+        let mut out = a.clone();
+        out.access_token = None;
+        out.refresh_token = None;
+        file.upsert(out).unwrap();
+        let mut b2 = b.clone();
+        b2.access_token = Some("B-new".into());
+        file.upsert(b2).unwrap();
+
+        // Keychain mode, deletions still failing: migration runs because B has tokens.
+        kc.reads.lock().unwrap().clear();
+        let s = Store::with_secrets(d.path(), kc.clone(), SecretsMode::Keychain);
+        let loaded = s.load().unwrap();
+        let la = loaded.items.iter().find(|c| c.id == a.id).unwrap();
+        assert!(la.access_token.is_none() && la.refresh_token.is_none());
+        let stale = file_json(d.path())["stale_secrets"].to_string();
+        assert!(stale.contains(&format!("{}/access", a.id)));
+        assert!(stale.contains(&format!("{}/refresh", a.id)));
+        assert!(!kc
+            .reads
+            .lock()
+            .unwrap()
+            .iter()
+            .any(|k| k.starts_with(&a.id)));
+    }
 }
