@@ -1,0 +1,92 @@
+{
+  "title": "Scaffali",
+  "new": "Nuovo mobile",
+  "tabs": "Mobili",
+  "row": "Ripiano {n}",
+  "count": {
+    "units": { "one": "{count} mobile", "other": "{count} mobili" },
+    "placed": { "one": "{count} libro collocato", "other": "{count} libri collocati" }
+  },
+  "loading": "Caricamento degli scaffali",
+  "loadingBooks": "Caricamento dei libri del mobile",
+  "error": { "title": "Impossibile caricare gli scaffali", "text": "Controlla la connessione e riprova." },
+  "booksError": { "title": "Impossibile caricare i libri del mobile", "text": "Controlla la connessione e riprova." },
+  "empty": {
+    "title": "Nessun mobile",
+    "text": "Crea un mobile per dire dove stanno i tuoi libri.",
+    "create": "Crea il primo mobile"
+  },
+  "emptyUnit": {
+    "invite": "Il mobile è vuoto. Trascina qui i libri da «Non collocati».",
+    "readOnly": "Nessun libro su questo mobile."
+  },
+  "panel": {
+    "label": "Dettagli di {name}",
+    "edit": "Modifica {name}",
+    "delete": "Elimina {name}",
+    "layout": "{rows} ripiani da {slots} posti",
+    "fill": "Riempimento di {name}",
+    "books": { "one": "{count} libro", "other": "{count} libri" },
+    "booksFree": "{books} libri · circa {free} posti liberi"
+  },
+  "unshelved": {
+    "title": "Non collocati",
+    "search": "Cerca tra i non collocati",
+    "dragHint": "Trascina un libro su un ripiano, oppure usa «Colloca in…».",
+    "placeIn": "Colloca «{title}» in…",
+    "none": "Tutti i libri hanno un posto.",
+    "noMatch": "Nessun libro non collocato corrisponde alla ricerca.",
+    "loading": "Caricamento dei libri non collocati",
+    "error": "Impossibile caricare i libri non collocati."
+  },
+  "place": {
+    "title": "Colloca «{title}» in…",
+    "unit": "Mobile",
+    "row": "Ripiano",
+    "confirm": "Colloca"
+  },
+  "spine": {
+    "open": "Apri scheda",
+    "remove": "Togli dallo scaffale"
+  },
+  "announce": {
+    "pick": "{title} sollevato dal {row}. Usa le frecce per scegliere il posto, Spazio per lasciarlo, Esc per annullare.",
+    "move": "{title}: {row}, posizione {position}.",
+    "drop": "{title} collocato: {row}, posizione {position}.",
+    "cancel": "Spostamento di {title} annullato."
+  },
+  "toast": {
+    "failed": "Non è stato possibile spostare il libro",
+    "rowFull": "Il ripiano è pieno.",
+    "slotTaken": "Quel posto è stato preso nel frattempo. L'ordine è stato ripristinato."
+  },
+  "colors": {
+    "sage": "Salvia",
+    "terracotta": "Terracotta",
+    "night": "Notte",
+    "plum": "Prugna",
+    "amber": "Ambra",
+    "graphite": "Grafite"
+  },
+  "form": {
+    "newTitle": "Nuovo mobile",
+    "editTitle": "Modifica mobile",
+    "name": "Nome",
+    "color": "Colore",
+    "rows": "Numero di ripiani",
+    "slots": "Posti per ripiano",
+    "slotsHint": "La capienza è ripiani × posti.",
+    "errors": {
+      "required": "Campo obbligatorio",
+      "tooLong": "Al massimo {max} caratteri",
+      "rows": "Da {minRows} a {maxRows} ripiani",
+      "slots": "Da {minSlots} a {maxSlots} posti",
+      "tooSmall": "Un libro collocato resterebbe fuori dal mobile. Sposta prima i libri dei ripiani o dei posti da togliere."
+    }
+  },
+  "delete": {
+    "title": "Eliminare il mobile?",
+    "withBooks": { "one": "Il mobile «{name}» sarà eliminato. Il libro collocato resta in biblioteca, ma risulta non collocato. L'operazione non si può annullare.", "other": "Il mobile «{name}» sarà eliminato. I {count} libri collocati restano in biblioteca, ma risultano non collocati. L'operazione non si può annullare." },
+    "empty": "Il mobile «{name}» sarà eliminato. L'operazione non si può annullare."
+  }
+}
