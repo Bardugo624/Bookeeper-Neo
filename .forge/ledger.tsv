@@ -281,3 +281,8 @@
 2026-11-25T10:11:32Z	bookeeper-fase-2d	keychain	dwarf	sonnet	-	-	-	-	41
 2026-11-25T10:15:52Z	bookeeper-fase-2d	keychain	qa	opus	PASS	-	-	-	255
 2026-11-25T10:22:55Z	bookeeper-fase-2d	sharing-core	dwarf	sonnet	-	trap	axum server handle generico handle socketaddr in axum server 0 8 a differenza di 0 7	`axum_server::Handle` è generico (`Handle<SocketAddr>`) in axum-server 0.8, a differenza di 0.7 [apps/desktop/src-tauri/Cargo.toml]	412	1
+2026-11-25T10:26:51Z	bookeeper-fase-2d	sharing-core	qa	opus	PASS	-	-	-	232
+2026-11-25T10:29:25Z	bookeeper-fase-2d	sharing-ui	dwarf	sonnet	-	-	-	-	144
+2026-11-25T10:30:39Z	bookeeper-fase-2d	sharing-ui	qa	opus	FAIL	trap	sharing status keeps returning the last set error inner error is cleared only by set so ui must not treat a re read error	`Sharing::status()` keeps returning the last `set()` error (`inner.error` is cleared only by `set`), so UI must not treat a re-read `error`… [apps/desktop/src-tauri/src/sharing.rs]	69	1
+2026-11-25T10:31:43Z	bookeeper-fase-2d	sharing-ui	dwarf	sonnet	-	trap	sharing status keeps returning the last set error inner error is cleared only by set so ui must not treat a re read error	`Sharing::status()` keeps returning the last `set()` error (`inner.error` is cleared only by `set`), so UI must not treat a re-read `error`… [apps/desktop/src-tauri/src/sharing.rs]	61	1
+2026-11-25T10:32:31Z	bookeeper-fase-2d	sharing-ui	qa	opus	PASS	-	-	-	44
