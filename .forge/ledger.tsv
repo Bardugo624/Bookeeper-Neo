@@ -212,3 +212,5 @@
 2026-11-25T03:01:54Z	bookeeper-fase-2b	ui-shelf	qa	opus	FAIL	-	-	-	137
 2026-11-25T03:02:25Z	bookeeper-fase-2b	ui-shelf	dwarf	sonnet	-	-	-	-	28
 2026-11-25T03:03:06Z	bookeeper-fase-2b	ui-shelf	qa	opus	PASS	-	-	-	37
+2026-11-25T03:11:41Z	bookeeper-fase-2b	app-kit	dwarf	sonnet	-	trap	react router s functional setsearchparams prev does not see a write made earlier in the same handler so a hook that patches the	react-router's functional `setSearchParams(prev => …)` does not see a write made earlier in the same handler, so a hook that patches the… [apps/desktop/src/kit/useListParams.ts]	80	1
+2026-11-25T03:12:35Z	bookeeper-fase-2b	app-kit	qa	opus	PASS	-	-	-	50
