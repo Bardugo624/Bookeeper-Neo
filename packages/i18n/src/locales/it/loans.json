@@ -1,0 +1,112 @@
+{
+  "title": "Prestiti",
+  "count": {
+    "active": "{count} in corso",
+    "overdue": "{count} in ritardo"
+  },
+  "filters": {
+    "label": "Filtro dei prestiti",
+    "active": "In corso",
+    "overdue": "In ritardo",
+    "returned": "Restituiti",
+    "all": "Tutti"
+  },
+  "bookFilter": {
+    "text": "Solo i prestiti di un libro.",
+    "clear": "Mostra tutti"
+  },
+  "status": {
+    "active": "In corso",
+    "overdue": "In ritardo",
+    "returned": "Restituito"
+  },
+  "list": {
+    "label": "Prestiti",
+    "loading": "Caricamento dei prestiti",
+    "loadingMore": "Caricamento di altri prestiti",
+    "more": "Mostra altri"
+  },
+  "card": {
+    "openBook": "Apri la scheda di {title}",
+    "to": "A {name}",
+    "since": "dal {date}",
+    "due": "scadenza {date}",
+    "noDue": "senza scadenza",
+    "returnedOn": "restituito il {date}"
+  },
+  "actions": {
+    "return": "Segna come restituito",
+    "reopen": "Riapri"
+  },
+  "empty": {
+    "active": {
+      "title": "Nessun prestito in corso",
+      "text": "I libri che presti compaiono qui finché non tornano a casa."
+    },
+    "overdue": {
+      "title": "Nessun prestito in ritardo",
+      "text": "Tutti i prestiti aperti sono entro la scadenza."
+    },
+    "returned": {
+      "title": "Nessun prestito restituito",
+      "text": "I prestiti conclusi compaiono qui."
+    },
+    "all": {
+      "title": "Nessun prestito",
+      "text": "Non hai ancora prestato nessun libro."
+    }
+  },
+  "error": {
+    "title": "Non riesco a caricare i prestiti",
+    "text": "Controlla la connessione e riprova."
+  },
+  "new": {
+    "button": "Nuovo prestito",
+    "title": "Nuovo prestito",
+    "submit": "Presta"
+  },
+  "edit": {
+    "title": "Modifica il prestito"
+  },
+  "form": {
+    "forBook": "Libro: {title}",
+    "book": "Libro",
+    "bookSearch": "Cerca un libro non in prestito",
+    "bookResults": "Libri disponibili",
+    "bookSearchError": "Non riesco a cercare i libri. Riprova.",
+    "noBooks": "Nessun libro disponibile con questo nome.",
+    "changeBook": "Cambia",
+    "borrower": "A chi",
+    "lentAt": "Data del prestito",
+    "dueAt": "Scadenza",
+    "dueHint": "Facoltativa",
+    "notes": "Note",
+    "errors": {
+      "book": "Scegli un libro.",
+      "borrower": "Scrivi a chi presti il libro.",
+      "borrowerLong": "Al massimo {max} caratteri.",
+      "lent": "Indica una data valida.",
+      "dueInvalid": "Indica una data valida.",
+      "dueBefore": "La scadenza non può essere prima della data del prestito.",
+      "notesLong": "Al massimo {max} caratteri."
+    }
+  },
+  "return": {
+    "title": "Segna come restituito",
+    "description": "«{title}» prestato a {name}.",
+    "date": "Data di restituzione",
+    "submit": "Segna come restituito",
+    "errors": {
+      "required": "Indica una data valida.",
+      "before": "La restituzione non può essere prima del prestito."
+    }
+  },
+  "delete": {
+    "title": "Elimina il prestito",
+    "description": "Il prestito di «{title}» a {name} sarà eliminato. L'operazione non si può annullare."
+  },
+  "errors": {
+    "alreadyLent": "Questo libro è già in prestito. Restituiscilo prima di prestarlo di nuovo.",
+    "reopenLent": "Il libro è già in prestito a qualcun altro: non posso riaprire questo prestito."
+  }
+}

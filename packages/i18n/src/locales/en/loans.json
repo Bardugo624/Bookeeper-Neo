@@ -1,0 +1,112 @@
+{
+  "title": "Loans",
+  "count": {
+    "active": "{count} active",
+    "overdue": "{count} overdue"
+  },
+  "filters": {
+    "label": "Loan filter",
+    "active": "Active",
+    "overdue": "Overdue",
+    "returned": "Returned",
+    "all": "All"
+  },
+  "bookFilter": {
+    "text": "Only the loans of one book.",
+    "clear": "Show all"
+  },
+  "status": {
+    "active": "Active",
+    "overdue": "Overdue",
+    "returned": "Returned"
+  },
+  "list": {
+    "label": "Loans",
+    "loading": "Loading loans",
+    "loadingMore": "Loading more loans",
+    "more": "Show more"
+  },
+  "card": {
+    "openBook": "Open the page of {title}",
+    "to": "To {name}",
+    "since": "since {date}",
+    "due": "due {date}",
+    "noDue": "no due date",
+    "returnedOn": "returned on {date}"
+  },
+  "actions": {
+    "return": "Mark as returned",
+    "reopen": "Reopen"
+  },
+  "empty": {
+    "active": {
+      "title": "No active loans",
+      "text": "Books you lend show up here until they come back."
+    },
+    "overdue": {
+      "title": "No overdue loans",
+      "text": "Every open loan is within its due date."
+    },
+    "returned": {
+      "title": "No returned loans",
+      "text": "Finished loans show up here."
+    },
+    "all": {
+      "title": "No loans",
+      "text": "You haven't lent any book yet."
+    }
+  },
+  "error": {
+    "title": "Can't load the loans",
+    "text": "Check your connection and try again."
+  },
+  "new": {
+    "button": "New loan",
+    "title": "New loan",
+    "submit": "Lend"
+  },
+  "edit": {
+    "title": "Edit loan"
+  },
+  "form": {
+    "forBook": "Book: {title}",
+    "book": "Book",
+    "bookSearch": "Search a book that isn't on loan",
+    "bookResults": "Available books",
+    "bookSearchError": "Can't search the books. Try again.",
+    "noBooks": "No available book with this name.",
+    "changeBook": "Change",
+    "borrower": "Lent to",
+    "lentAt": "Lending date",
+    "dueAt": "Due date",
+    "dueHint": "Optional",
+    "notes": "Notes",
+    "errors": {
+      "book": "Choose a book.",
+      "borrower": "Write who you are lending the book to.",
+      "borrowerLong": "At most {max} characters.",
+      "lent": "Enter a valid date.",
+      "dueInvalid": "Enter a valid date.",
+      "dueBefore": "The due date can't be before the lending date.",
+      "notesLong": "At most {max} characters."
+    }
+  },
+  "return": {
+    "title": "Mark as returned",
+    "description": "“{title}” lent to {name}.",
+    "date": "Return date",
+    "submit": "Mark as returned",
+    "errors": {
+      "required": "Enter a valid date.",
+      "before": "The return can't be before the lending date."
+    }
+  },
+  "delete": {
+    "title": "Delete loan",
+    "description": "The loan of “{title}” to {name} will be deleted. This can't be undone."
+  },
+  "errors": {
+    "alreadyLent": "This book is already on loan. Return it before lending it again.",
+    "reopenLent": "The book is already on loan to someone else: this loan can't be reopened."
+  }
+}

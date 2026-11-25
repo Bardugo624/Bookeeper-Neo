@@ -1,0 +1,70 @@
+import type { CreateLoan, LoanOut, PatchLoan } from '@bookeeper/api';
+import { toDateInputValue, toUnixSeconds, type FormErrors } from '../../kit';
+import type { Translate } from '../../app';
+
+/** Limits of the core (`api/loans.rs`): borrower 1..120 characters, notes at most 10000. */
+export const NAME_MAX = 120;
+export const NOTES_MAX = 10_000;
+
+export interface LoanFormValues {
+  book_id: string;
+  borrower_name: string;
+  lent_at: string;
+  due_at: string;
+  notes: string;
+}
+
+export function todayInput(now: Date = new Date()): string {
+  return toDateInputValue(Math.floor(now.getTime() / 1000));
+}
+
+export function emptyValues(bookId: string, now?: Date): LoanFormValues {
+  return { book_id: bookId, borrower_name: '', lent_at: todayInput(now), due_at: '', notes: '' };
+}
+
+export function valuesOf(loan: LoanOut): LoanFormValues {
+  return {
+    book_id: loan.book_id,
+    borrower_name: loan.borrower_name,
+    lent_at: toDateInputValue(loan.lent_at),
+    due_at: loan.due_at == null ? '' : toDateInputValue(loan.due_at),
+    notes: loan.notes ?? '',
+  };
+}
+
+export function validateLoan(t: Translate): (v: LoanFormValues) => FormErrors<LoanFormValues> {
+  return (v) => {
+    const errors: FormErrors<LoanFormValues> = {};
+    if (!v.book_id) errors.book_id = t('loans.form.errors.book');
+    const name = v.borrower_name.trim();
+    if (!name) errors.borrower_name = t('loans.form.errors.borrower');
+    else if (name.length > NAME_MAX) errors.borrower_name = t('loans.form.errors.borrowerLong', { max: NAME_MAX });
+    if (toUnixSeconds(v.lent_at) === null) errors.lent_at = t('loans.form.errors.lent');
+    if (v.due_at && toUnixSeconds(v.due_at) === null) errors.due_at = t('loans.form.errors.dueInvalid');
+    // ISO dates compare as text; the core refuses a due date before the lending date.
+    else if (v.due_at && !errors.lent_at && v.due_at < v.lent_at) errors.due_at = t('loans.form.errors.dueBefore');
+    if (v.notes.length > NOTES_MAX) errors.notes = t('loans.form.errors.notesLong', { max: NOTES_MAX });
+    return errors;
+  };
+}
+
+export function toCreateBody(v: LoanFormValues): CreateLoan {
+  const body: CreateLoan = {
+    book_id: v.book_id,
+    borrower_name: v.borrower_name.trim(),
+    lent_at: toUnixSeconds(v.lent_at),
+  };
+  if (v.due_at) body.due_at = toUnixSeconds(v.due_at);
+  if (v.notes.trim()) body.notes = v.notes.trim();
+  return body;
+}
+
+/** Edit sends every editable field: an emptied due date or note clears it (`null`). */
+export function toPatchBody(v: LoanFormValues): PatchLoan {
+  return {
+    borrower_name: v.borrower_name.trim(),
+    lent_at: toUnixSeconds(v.lent_at),
+    due_at: v.due_at ? toUnixSeconds(v.due_at) : null,
+    notes: v.notes.trim() ? v.notes.trim() : null,
+  };
+}
