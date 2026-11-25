@@ -41,7 +41,7 @@ export function useKeyboardMove(
       setMessage(announce?.pick(book, rows[rowIndex]!) ?? '');
     };
     if (!picked) {
-      if (event.key === ' ') {
+      if (event.key === ' ' && onSlotDrop) {
         event.preventDefault();
         start();
       }

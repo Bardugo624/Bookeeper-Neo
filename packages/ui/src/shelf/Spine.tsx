@@ -14,6 +14,7 @@ export interface SpineProps {
   label: SpineLabel;
   selected: boolean;
   picked: boolean;
+  draggable: boolean;
   onClick?: (book: SpineBook) => void;
   onDragStart: (id: string) => void;
   onDragEnd: () => void;
@@ -27,6 +28,7 @@ export function Spine(props: SpineProps) {
   const name = book.author ? `${book.title}, ${book.author}` : book.title;
 
   const dragStart = (event: DragEvent) => {
+    if (!props.draggable) return event.preventDefault();
     event.dataTransfer.setData(BOOK_MIME, book.id);
     event.dataTransfer.effectAllowed = 'move';
     props.onDragStart(book.id);
@@ -37,13 +39,13 @@ export function Spine(props: SpineProps) {
       content={
         <>
           <strong className={styles.tipTitle}>{label.title}</strong>
-          <span className={styles.tipDetail}>{label.detail}</span>
+          {label.detail && <span className={styles.tipDetail}>{label.detail}</span>}
         </>
       }
     >
       <button
         type="button"
-        draggable
+        draggable={props.draggable}
         aria-label={name}
         aria-pressed={selected}
         data-spine-id={book.id}

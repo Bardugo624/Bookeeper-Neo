@@ -10,22 +10,27 @@ export interface ShelfUnitProps {
   /** Cabinet color (see `SHELF_COLORS`). */
   color: string;
   rows: ShelfRow[];
-  /** Tooltip texts for a spine; the component writes none. */
-  spineLabel: (book: SpineBook) => SpineLabel;
+  /** Tooltip texts for a spine; the component writes none. Without it the tooltip shows just the title. */
+  spineLabel?: (book: SpineBook) => SpineLabel;
   /** Live-region texts for the keyboard move. */
   announce?: ShelfAnnounce;
   onSpineClick?: (book: SpineBook) => void;
   onSlotDrop?: (drop: SlotDrop) => void;
   selectedId?: string;
   /** Draws the dashed insertion slot, e.g. while something outside the unit is dragged over it. */
+  /** No dragging or keyboard move, even if `onSlotDrop` is given (e.g. no write permission). */
+  readOnly?: boolean;
   dropTarget?: { rowId: string; index: number } | null;
 }
+
+const defaultLabel = (book: SpineBook): SpineLabel => ({ title: book.title, detail: '' });
 
 /** A cabinet: frame, darkened back panel and one band per shelf, with drag and keyboard moves. */
 export function ShelfUnit(props: ShelfUnitProps) {
   const { rows, dropTarget } = props;
   const root = useRef<HTMLDivElement>(null);
-  const kb = useKeyboardMove(rows, props.onSlotDrop, props.announce, root);
+  const onSlotDrop = props.readOnly ? undefined : props.onSlotDrop;
+  const kb = useKeyboardMove(rows, onSlotDrop, props.announce, root);
 
   const externalIndex = (rowId: string) => {
     if (kb.marker?.rowId === rowId) return kb.marker.index;
@@ -41,12 +46,12 @@ export function ShelfUnit(props: ShelfUnitProps) {
               key={row.id}
               row={row}
               rowIndex={rowIndex}
-              spineLabel={props.spineLabel}
+              spineLabel={props.spineLabel ?? defaultLabel}
               selectedId={props.selectedId}
               pickedId={kb.picked}
               externalIndex={externalIndex(row.id)}
               onSpineClick={props.onSpineClick}
-              onSlotDrop={props.onSlotDrop}
+              onSlotDrop={onSlotDrop}
               onKeyDown={kb.onKeyDown}
               onKeyUp={kb.onKeyUp}
               onBlur={kb.cancel}

@@ -190,3 +190,15 @@ describe('keyboard', () => {
     expect(onSlotDrop).not.toHaveBeenCalled();
   });
 });
+
+describe('ShelfUnit read-only and defaults', () => {
+  it('renders without spineLabel and disables dragging when readOnly', () => {
+    render(<ShelfUnit color={SHELF_COLORS[0]!} rows={rows} readOnly onSlotDrop={() => {}} />);
+    const b = screen.getAllByRole('button')[0]!;
+    expect(b.getAttribute('draggable')).toBe('false');
+  });
+  it('is not draggable without onSlotDrop', () => {
+    render(<ShelfUnit color={SHELF_COLORS[0]!} rows={rows} />);
+    expect(screen.getAllByRole('button')[0]!.getAttribute('draggable')).toBe('false');
+  });
+});

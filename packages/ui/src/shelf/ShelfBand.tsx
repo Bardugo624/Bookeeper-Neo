@@ -18,6 +18,8 @@ export interface ShelfBandProps {
   onBlur: () => void;
 }
 
+const SLOT_HALF = 10;
+
 const hasBook = (event: DragEvent) => Array.from(event.dataTransfer?.types ?? []).includes(BOOK_MIME);
 
 /** One shelf: a scrolling strip of spines, the board under it and the drop target for books. */
@@ -27,6 +29,7 @@ export function ShelfBand(props: ShelfBandProps) {
   const dragId = useRef<string | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
   const [left, setLeft] = useState(0);
+  const interactive = !!props.onSlotDrop;
   const index = overIndex ?? props.externalIndex;
 
   // Place the dashed slot between spines without shifting any of them.
@@ -47,13 +50,13 @@ export function ShelfBand(props: ShelfBandProps) {
   };
 
   const onDragOver = (event: DragEvent) => {
-    if (!hasBook(event)) return;
+    if (!interactive || !hasBook(event)) return;
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
     setOverIndex(indexAt(event.clientX));
   };
   const onDrop = (event: DragEvent) => {
-    if (!hasBook(event)) return;
+    if (!interactive || !hasBook(event)) return;
     event.preventDefault();
     const bookId = event.dataTransfer.getData(BOOK_MIME);
     const at = indexAt(event.clientX);
@@ -82,6 +85,7 @@ export function ShelfBand(props: ShelfBandProps) {
             label={props.spineLabel(book)}
             selected={props.selectedId === book.id}
             picked={props.pickedId === book.id}
+            draggable={interactive}
             onClick={props.onSpineClick}
             onDragStart={(id) => (dragId.current = id)}
             onDragEnd={() => {
@@ -97,7 +101,7 @@ export function ShelfBand(props: ShelfBandProps) {
           <span key={`free-${i}`} className={styles.empty} aria-hidden="true" />
         ))}
         {index !== null && (
-          <span className={styles.slot} aria-hidden="true" style={{ transform: `translateX(${left}px)` }} />
+          <span className={styles.slot} aria-hidden="true" style={{ transform: `translateX(${Math.max(0, left - SLOT_HALF)}px)` }} />
         )}
       </div>
       <div className={styles.board} aria-hidden="true" />
