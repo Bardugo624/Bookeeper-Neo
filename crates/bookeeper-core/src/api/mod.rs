@@ -9,6 +9,7 @@ pub mod books_search;
 pub mod confirm;
 pub mod covers;
 pub mod devices;
+pub mod facets;
 pub mod health;
 pub mod labels;
 pub mod loans;
@@ -46,6 +47,7 @@ pub fn router(state: AppState) -> Router {
         .merge(pairing::routes())
         .merge(devices::routes())
         .merge(books::routes())
+        .merge(facets::routes())
         .merge(books_search::routes())
         .merge(reading::routes())
         .merge(tags::routes())
