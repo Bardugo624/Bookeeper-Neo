@@ -607,3 +607,77 @@ async fn cover_color_patch_sets_clears_and_leaves() {
     assert_eq!(st, 200);
     assert!(b["cover_color"].is_null());
 }
+
+#[tokio::test]
+async fn reading_is_per_caller_in_list_search_and_detail() {
+    let s = seed(Role::Owner, None, None).await;
+    let (_, other) = add_user(&s.state, &s.library_id, Role::Member, "Bob").await;
+    let a = create(&s, json!({"title": "Dune Messiah"})).await;
+    let b = create(&s, json!({"title": "Dune"})).await;
+    let c = create(&s, json!({"title": "Altro"})).await;
+    let (ida, idb) = (a["id"].as_str().unwrap(), b["id"].as_str().unwrap());
+    assert!(a["reading"].is_null());
+    let owner = s.session.access_token.as_str();
+    let bob = other.access_token.as_str();
+    for (tok, id, body) in [
+        (
+            owner,
+            ida,
+            json!({"status": "reading", "current_page": 30, "rating": 4}),
+        ),
+        (owner, idb, json!({"status": "to_read"})),
+        (bob, ida, json!({"status": "read", "rating": 2})),
+    ] {
+        let (st, _, v) = call(
+            &s.state,
+            "PUT",
+            &format!("/api/v1/books/{id}/reading"),
+            Some(tok),
+            Some(body),
+        )
+        .await;
+        assert_eq!(st, 200, "{v}");
+    }
+    let expect_a_owner = json!({"status": "reading", "current_page": 30, "rating": 4});
+    let expect_a_bob = json!({"status": "read", "current_page": null, "rating": 2});
+
+    let (_, list) = get(&s.state, owner, "/api/v1/books").await;
+    let by_id = |v: &Value, id: &str| {
+        v["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|i| i["id"] == id)
+            .unwrap()
+            .clone()
+    };
+    assert_eq!(by_id(&list, ida)["reading"], expect_a_owner);
+    assert_eq!(by_id(&list, idb)["reading"]["status"], "to_read");
+    assert!(by_id(&list, c["id"].as_str().unwrap())["reading"].is_null());
+    let (_, list) = get(&s.state, bob, "/api/v1/books").await;
+    assert_eq!(by_id(&list, ida)["reading"], expect_a_bob);
+    assert!(by_id(&list, idb)["reading"].is_null());
+
+    let (_, found) = get(&s.state, owner, "/api/v1/books?q=Messiah").await;
+    assert_eq!(found["items"][0]["reading"], expect_a_owner);
+    let (_, found) = get(&s.state, bob, "/api/v1/books?q=Messiah").await;
+    assert_eq!(found["items"][0]["reading"], expect_a_bob);
+
+    let (_, d) = get(&s.state, owner, &format!("/api/v1/books/{ida}")).await;
+    assert_eq!(d["reading"], expect_a_owner);
+    let (_, d) = get(&s.state, bob, &format!("/api/v1/books/{ida}")).await;
+    assert_eq!(d["reading"], expect_a_bob);
+    let (_, d) = get(&s.state, bob, &format!("/api/v1/books/{idb}")).await;
+    assert!(d["reading"].is_null());
+
+    let (st, _, p) = call(
+        &s.state,
+        "PATCH",
+        &format!("/api/v1/books/{ida}"),
+        Some(bob),
+        Some(json!({"notes": "x"})),
+    )
+    .await;
+    assert_eq!(st, 200);
+    assert_eq!(p["reading"], expect_a_bob);
+}

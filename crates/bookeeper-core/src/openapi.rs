@@ -3,7 +3,7 @@ use utoipa::OpenApi;
 use crate::{
     api::{
         auth, backup, books, books_search, confirm, covers, devices, health, labels, loans, lookup,
-        pairing, server, setup, shelves, stats, transfer, wishlist,
+        pairing, reading, server, setup, shelves, stats, transfer, wishlist,
     },
     error::ApiErrorBody,
 };
@@ -25,6 +25,7 @@ pub fn openapi() -> utoipa::openapi::OpenApi {
     doc.merge(devices::Doc::openapi());
     doc.merge(books::Doc::openapi());
     doc.merge(books_search::Doc::openapi());
+    doc.merge(reading::Doc::openapi());
     doc.merge(shelves::Doc::openapi());
     doc.merge(loans::Doc::openapi());
     doc.merge(wishlist::Doc::openapi());
