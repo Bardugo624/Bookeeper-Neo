@@ -12,6 +12,7 @@
 - UPDATE_OPENAPI=1 cargo test -p bookeeper-core --test openapi -- --include-ignored && npm run gen -w @bookeeper/api && npm test -w @bookeeper/api [packages/api/openapi.json]
 
 ## Known traps
+- API error bodies are `{error_code, message}`, not `{error:{code}}`; a fake handler using the latter makes `ApiError.code` empty so… [apps/desktop/src/session/authTransport.ts]
 - desktop authTransport `errorCode` reads `body.error.code` and the session fixtures use `{error:{code}}`, but the core and Tauri… [apps/desktop/src/session/authTransport.ts]
 - `cargo fmt -p bookeeper-desktop` is safe to run from src-tauri and only touched my files [apps/desktop/src-tauri/Cargo.toml]
 - tests of anything that sends requests through `createAuthTransport` need `useSession.setState({ connection: fakeConnection() })`, or… [apps/desktop/src/session/authTransport.ts]
@@ -28,5 +29,4 @@
 - `npm ci --offline` is needed in a fresh worktree before any `npm test`/`tsc`, or vitest is "not found" [package.json]
 - apps/mobile typechecks `packages/i18n/src` sources directly, so ambient `.d.ts` files there must be pulled in with `/// <reference path>` [packages/i18n/src/index.ts]
 - bookeeper-server writes its tracing logs to stdout, so a test that waits for a fixed number of stdout lines depends on RUST_LOG and can hang [crates/bookeeper-server/src/main.rs]
-- utoipa 5 leaves `Option<T>` fields out of `required`; use `#[schema(required = true)]` to list a nullable field as required [crates/bookeeper-core/src/api/server.rs]
 

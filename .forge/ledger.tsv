@@ -214,3 +214,20 @@
 2026-11-25T03:03:06Z	bookeeper-fase-2b	ui-shelf	qa	opus	PASS	-	-	-	37
 2026-11-25T03:11:41Z	bookeeper-fase-2b	app-kit	dwarf	sonnet	-	trap	react router s functional setsearchparams prev does not see a write made earlier in the same handler so a hook that patches the	react-router's functional `setSearchParams(prev => …)` does not see a write made earlier in the same handler, so a hook that patches the… [apps/desktop/src/kit/useListParams.ts]	80	1
 2026-11-25T03:12:35Z	bookeeper-fase-2b	app-kit	qa	opus	PASS	-	-	-	50
+2026-11-25T03:16:23Z	bookeeper-fase-2b	wishlist	dwarf	sonnet	-	-	-	-	209
+2026-11-25T03:17:46Z	bookeeper-fase-2b	loans	dwarf	sonnet	-	-	-	-	293
+2026-11-25T03:17:58Z	bookeeper-fase-2b	wishlist	qa	opus	PASS	-	-	-	91
+2026-11-25T03:20:03Z	bookeeper-fase-2b	loans	qa	opus	FAIL	-	-	-	132
+2026-11-25T03:20:24Z	bookeeper-fase-2b	stats	dwarf	sonnet	-	trap	statcard s count up runs on requestanimationframe unless window matchmedia reports reduced motion and jsdom has no matchmedia so	StatCard's count-up runs on requestAnimationFrame unless `window.matchMedia` reports reduced motion, and jsdom has no `matchMedia`, so… [apps/desktop/src/modules/stats/testkit.tsx]	142	1
+2026-11-25T03:20:33Z	bookeeper-fase-2b	loans	dwarf	sonnet	-	-	-	-	26
+2026-11-25T03:21:29Z	bookeeper-fase-2b	loans	qa	opus	FAIL	finding	desktop tounixseconds sends local noon so comparing iso date strings on the client lets same day dates through while the core compares seconds	desktop `toUnixSeconds` sends local noon, so comparing ISO date strings on the client lets same-day dates through while the core compares seconds… [apps/desktop/src/kit/dates.ts]	50	1
+2026-11-25T03:21:51Z	bookeeper-fase-2b	stats	qa	opus	FAIL	-	-	-	82
+2026-11-25T03:22:42Z	bookeeper-fase-2b	stats	dwarf	sonnet	-	-	-	-	48
+2026-11-25T03:23:18Z	bookeeper-fase-2b	stats	qa	opus	PASS	-	-	-	31
+2026-11-25T03:25:35Z	bookeeper-fase-2b	devices	dwarf	sonnet	-	trap	userevent setup installa un suo navigator clipboard nei test di copia si legge con navigator clipboard readtext	`userEvent.setup()` installa un suo `navigator.clipboard`: nei test di "Copia" si legge con `navigator.clipboard.readText()`… [apps/desktop/src/modules/devices/devices.test.tsx]	243	1
+2026-11-25T03:27:16Z	bookeeper-fase-2b	devices	qa	opus	PASS	-	-	-	96
+2026-11-25T03:31:13Z	bookeeper-fase-2b	shelves	dwarf	sonnet	-	trap	api error bodies are error code message not error code a fake handler using the latter makes apierror code empty so	API error bodies are `{error_code, message}`, not `{error:{code}}`; a fake handler using the latter makes `ApiError.code` empty so… [apps/desktop/src/session/authTransport.ts]	471	1
+2026-11-25T03:31:13Z	bookeeper-fase-2b	shelves	dwarf	sonnet	-	trap	desktop module tests that open a spine tooltip need globalthis resizeobserver stubbed locally since	desktop module tests that open a spine tooltip need `globalThis.ResizeObserver` stubbed locally, since… [apps/desktop/src/modules/shelves/testkit.tsx]	471	1
+2026-11-25T03:33:14Z	bookeeper-fase-2b	shelves	qa	opus	FAIL	-	-	-	116
+2026-11-25T03:34:07Z	bookeeper-fase-2b	shelves	dwarf	sonnet	-	-	-	-	51
+2026-11-25T03:35:19Z	bookeeper-fase-2b	shelves	qa	opus	FAIL	-	-	-	67
