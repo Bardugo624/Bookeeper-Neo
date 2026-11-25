@@ -81,4 +81,15 @@ describe('update', () => {
     });
     expect(spy).toHaveBeenCalledWith({ queryKey: ['books', 'c1'] });
   });
+
+  it('reports a failed second color save as colorFailed, not coverFailed', async () => {
+    client.updateBook.mockResolvedValueOnce(saved).mockRejectedValueOnce(new Error('500'));
+    const { result } = renderHook(() => useBookWrites(), { wrapper });
+    let out: Awaited<ReturnType<typeof result.current.update.mutateAsync>> | undefined;
+    await act(async () => {
+      out = await result.current.update.mutateAsync({ id: 'b1', patch: { cover_color: '#112233' }, cover: { kind: 'remove' }, hadCover: true });
+    });
+    expect(out?.coverFailed).toBe(false);
+    expect(out?.colorFailed).toBe(true);
+  });
 });

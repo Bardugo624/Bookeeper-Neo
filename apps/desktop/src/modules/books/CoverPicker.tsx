@@ -4,7 +4,7 @@ import { BookCover, CLOTH_TONES } from '@bookeeper/ui/book';
 import { useT } from '../../app';
 import { COVER_MAX_BYTES, COVER_TYPES, coverFileProblem, type CoverFileProblem } from './coverFile';
 import type { CoverPlan } from './useBookWrites';
-import { mayHaveCover } from './useCover';
+import type { CoverStatus } from './useCover';
 import { useFilePreview } from './useFilePreview';
 import styles from './BookForm.module.css';
 
@@ -13,6 +13,8 @@ export interface CoverPickerProps {
   author?: string;
   /** Object URL of the cover already stored (editing). */
   storedSrc?: string;
+  /** How the request for the stored cover stands; absent for a new book. */
+  storedStatus?: CoverStatus;
   /** Cover URLs the lookup offered, most authoritative first. */
   candidates: string[];
   plan: CoverPlan;
@@ -74,7 +76,7 @@ function ColorSwatches({ value, onChange }: { value: string | null; onChange(col
 }
 
 /** Preview and choice of the cover: the lookup's, a file, none. */
-export function CoverPicker({ title, author, storedSrc, candidates, plan, onPlan, color, onColor }: CoverPickerProps) {
+export function CoverPicker({ title, author, storedSrc, storedStatus = 'none', candidates, plan, onPlan, color, onColor }: CoverPickerProps) {
   const t = useT();
   const input = useRef<HTMLInputElement>(null);
   const [problem, setProblem] = useState<CoverFileProblem | null>(null);
@@ -84,9 +86,10 @@ export function CoverPicker({ title, author, storedSrc, candidates, plan, onPlan
   if (plan.kind === 'file') shown = filePreview;
   else if (plan.kind === 'lookup') shown = offered;
   else if (plan.kind === 'keep') shown = storedSrc;
-  // A stored cover tints the book with a color taken from its image: while that color is there and the
-  // image has not arrived, the book may still have a cover, so no swatch is offered yet.
-  const storedPending = plan.kind === 'keep' && !storedSrc && mayHaveCover(color);
+  // Swatches only once it is certain there is no cover: the request ended "absent" or failed, or the
+  // cover was removed in the form. While it loads, a skeleton stands in.
+  const storedPending = plan.kind === 'keep' && !storedSrc && storedStatus === 'loading';
+  const storedFailed = plan.kind === 'keep' && !storedSrc && storedStatus === 'failed';
   const canUseOffered = offered !== undefined && plan.kind !== 'lookup';
 
   const choose = (file: File | undefined) => {
@@ -113,10 +116,15 @@ export function CoverPicker({ title, author, storedSrc, candidates, plan, onPlan
           <Button variant="secondary" size="sm" onClick={() => input.current?.click()}>
             {t('books.cover.upload')}
           </Button>
-          {shown ? (
+          {shown || storedFailed ? (
             <Button variant="ghost" size="sm" onClick={() => onPlan({ kind: 'remove' })}>
               {t('books.cover.remove')}
             </Button>
+          ) : null}
+          {storedFailed ? (
+            <p role="alert" className={styles.error}>
+              {t('common.errors.network')}
+            </p>
           ) : null}
           {shown ? null : storedPending ? (
             <Skeleton width={160} height={26} />
