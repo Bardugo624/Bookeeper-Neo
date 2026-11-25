@@ -18,6 +18,8 @@ export interface ToastInput {
   title: string;
   description?: string;
   tone?: ToastTone;
+  /** Optional action button; running it closes the toast. */
+  action?: { label: string; onClick: () => void };
 }
 
 interface ToastEntry extends ToastInput {
@@ -32,6 +34,7 @@ export interface ToastApi {
 
 const MAX_VISIBLE = 3;
 const DURATION_MS = 5000;
+const ACTION_DURATION_MS = 8000;
 const ICONS: Record<ToastTone, IconName> = { neutral: 'info', ok: 'check', warn: 'alert', danger: 'alert' };
 
 const ToastContext = createContext<ToastApi | null>(null);
@@ -51,7 +54,7 @@ export interface ToastProviderProps {
 function ToastItem({ toast, closeLabel, onDismiss }: { toast: ToastEntry; closeLabel: string; onDismiss: () => void }) {
   const [hover, setHover] = useState(false);
   const [focus, setFocus] = useState(false);
-  useAutoDismiss(DURATION_MS, hover || focus, onDismiss);
+  useAutoDismiss(toast.action ? ACTION_DURATION_MS : DURATION_MS, hover || focus, onDismiss);
   return (
     <div
       className={cx(styles.toast, styles[toast.tone])}
@@ -66,6 +69,18 @@ function ToastItem({ toast, closeLabel, onDismiss }: { toast: ToastEntry; closeL
       <div className={styles.text}>
         <p className={styles.title}>{toast.title}</p>
         {toast.description ? <p className={styles.description}>{toast.description}</p> : null}
+        {toast.action ? (
+          <button
+            type="button"
+            className={styles.action}
+            onClick={() => {
+              toast.action?.onClick();
+              onDismiss();
+            }}
+          >
+            {toast.action.label}
+          </button>
+        ) : null}
       </div>
       <IconButton icon="close" label={closeLabel} size="sm" onClick={onDismiss} />
     </div>

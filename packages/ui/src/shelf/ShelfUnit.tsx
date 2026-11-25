@@ -17,9 +17,9 @@ export interface ShelfUnitProps {
   onSpineClick?: (book: SpineBook) => void;
   onSlotDrop?: (drop: SlotDrop) => void;
   selectedId?: string;
-  /** Draws the dashed insertion slot, e.g. while something outside the unit is dragged over it. */
   /** No dragging or keyboard move, even if `onSlotDrop` is given (e.g. no write permission). */
   readOnly?: boolean;
+  /** Draws the dashed insertion slot, e.g. while something outside the unit is dragged over it. */
   dropTarget?: { rowId: string; index: number } | null;
 }
 
