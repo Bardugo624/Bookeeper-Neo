@@ -10,10 +10,11 @@ In `packages/ui/src/shelf/` esistono `Spine.tsx` (componente) e `spine.ts` (funz
 
 1. Rinomina `spine.ts` in `spineMetrics.ts` e `spine.test.ts` in `spineMetrics.test.ts` (con `git mv`), e aggiorna ogni importazione. L'interfaccia pubblica di `@bookeeper/ui/shelf` non cambia.
 2. Aggiungi `packages/ui/src/caseCollisions.test.ts`: elenca i file tracciati del repository sotto `packages/` e `apps/` (con `git ls-files`, eseguito dalla radice del repository) e fallisce se due percorsi, tolta l'estensione e portati in minuscolo, coincidono nella stessa cartella. Sono esclusi i casi voluti in cui i due file hanno lo stesso nome con le stesse maiuscole e differiscono solo per estensione o suffisso (`Foo.tsx` con `Foo.module.css`, `Foo.test.tsx`, `foo.ts` con `foo.test.ts`): la collisione è solo tra nomi che differiscono per maiuscole. Il messaggio d'errore elenca le coppie.
-3. Se il test nuovo trova altre collisioni sotto `packages/ui/`, correggile allo stesso modo. Se ne trova altrove, elencale nel rapporto e fermati.
+3. Correggi allo stesso modo ogni altra collisione che il test trova sotto `packages/` e `apps/` (per esempio `apps/desktop/src/modules/books/BookForm.tsx` con `bookForm.ts`): rinomina il file di funzioni con un nome che dica cosa contiene, sposta il suo test, aggiorna le importazioni. Nessun cambiamento di comportamento.
 
 ## Acceptance criteria
 
 - `npm run typecheck -w @bookeeper/ui -w @bookeeper/desktop` e `npm test -w @bookeeper/ui` passano.
 - `git ls-files packages/ui/src/shelf | tr 'A-Z' 'a-z' | sed 's/\.[^.]*$//' | sort | uniq -d` non elenca coppie che differiscono per maiuscole.
-- Cambiano solo: file sotto `packages/ui/src/shelf/` e `packages/ui/src/caseCollisions.test.ts`.
+- `npm run typecheck` e `npm test` dalla radice passano.
+- Cambiano solo file sotto `packages/*/src/` e `apps/*/src/`: rinomine, importazioni aggiornate e il test nuovo.

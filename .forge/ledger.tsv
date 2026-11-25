@@ -300,3 +300,7 @@
 2026-11-25T11:44:04Z	bookeeper-fase-2d1	rust-fix	qa	opus	FAIL	-	-	-	273
 2026-11-25T11:44:50Z	bookeeper-fase-2d1	rust-fix	dwarf	sonnet	-	-	-	-	42
 2026-11-25T11:48:30Z	bookeeper-fase-2d1	rust-fix	qa	opus	PASS	-	-	-	211
+2026-11-25T14:28:35Z	bookeeper-pr-1	case-fix	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npm test w bookeeper ui or typecheck work	a fresh worktree needs `npm ci --offline` at the root before `npm test -w @bookeeper/ui` or typecheck work [package.json]	134	1
+2026-11-25T14:29:25Z	bookeeper-pr-1	case-fix	qa	opus	FAIL	trap	casecollisions test ts scans all of packages and apps so any new file whose name differs from a neighbour only by case e g	caseCollisions.test.ts scans all of packages/ and apps/, so any new file whose name differs from a neighbour only by case (e.g.… [packages/ui/src/caseCollisions.test.ts]	43	1
+2026-11-25T14:33:16Z	bookeeper-pr-1	ci-fix	dwarf	sonnet	-	-	-	-	415
+2026-11-25T14:35:18Z	bookeeper-pr-1	ci-fix	qa	opus	PASS	-	-	-	116

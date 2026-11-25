@@ -13,6 +13,7 @@
 
 ## Known traps
 - a fresh worktree has no node_modules; run `npm ci --offline` at the root, then `npx vitest run <path>` from apps/desktop [apps/desktop/package.json]
+- a fresh worktree needs `npm ci --offline` at the root before `npm test -w @bookeeper/ui` or typecheck work [package.json]
 - sharing.test.tsx "names the port that was tried when the shell reports the old one" fails intermittently when… [apps/desktop/src/modules/settings/sections/sharing/sharing.test.tsx]
 - tauri-plugin-updater 2.x deserializza `plugins.updater` con `pubkey` obbligatoria: senza quella voce l'app non parte, a meno di inserirla in… [apps/desktop/src-tauri/src/lib.rs]
 - `Sharing::status()` keeps returning the last `set()` error (`inner.error` is cleared only by `set`), so UI must not treat a re-read `error`… [apps/desktop/src-tauri/src/sharing.rs]
