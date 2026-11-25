@@ -106,6 +106,8 @@ pub struct CreateBook {
     pub acquired_at: Option<i64>,
     pub price_cents: Option<i64>,
     pub notes: Option<String>,
+    /// Placeholder colour `#rrggbb` (stored lowercase); `null` clears it.
+    pub cover_color: Option<String>,
 }
 
 /// A creation body that passed validation.
@@ -128,6 +130,7 @@ pub struct NewBook {
     pub acquired_at: Option<i64>,
     pub price_cents: Option<i64>,
     pub notes: Option<String>,
+    pub cover_color: Option<String>,
 }
 
 /// Distinguishes an absent field (`None`) from an explicit `null` (`Some(None)`).
@@ -194,6 +197,10 @@ pub struct PatchBook {
     #[serde(default, deserialize_with = "present")]
     #[schema(value_type = Option<String>)]
     pub notes: Option<Option<String>>,
+    /// `#rrggbb`; `null` clears the placeholder colour.
+    #[serde(default, deserialize_with = "present")]
+    #[schema(value_type = Option<String>)]
+    pub cover_color: Option<Option<String>>,
 }
 
 #[derive(Debug, Deserialize, ToSchema)]
@@ -228,6 +235,16 @@ fn check_range(name: &str, value: Option<i64>, min: i64, max: i64) -> ApiResult<
             "{name} must be between {min} and {max}"
         ))),
         _ => Ok(()),
+    }
+}
+
+/// `#rrggbb` (any case) to lowercase.
+fn normalize_color(c: &str) -> ApiResult<String> {
+    let ok = c.len() == 7 && c.starts_with('#') && c[1..].bytes().all(|b| b.is_ascii_hexdigit());
+    if ok {
+        Ok(c.to_ascii_lowercase())
+    } else {
+        Err(ApiError::validation("cover_color must be #rrggbb"))
     }
 }
 
@@ -288,6 +305,10 @@ pub fn validate_new(input: CreateBook) -> ApiResult<NewBook> {
     check_text("language", &input.language, 35)?;
     check_text("description", &input.description, 10_000)?;
     check_text("notes", &input.notes, 10_000)?;
+    let cover_color = match &input.cover_color {
+        Some(c) => Some(normalize_color(c)?),
+        None => None,
+    };
     Ok(NewBook {
         isbn_13,
         isbn_10,
@@ -306,6 +327,7 @@ pub fn validate_new(input: CreateBook) -> ApiResult<NewBook> {
         acquired_at: input.acquired_at,
         price_cents: input.price_cents,
         notes: input.notes,
+        cover_color,
     })
 }
 
@@ -456,9 +478,9 @@ pub fn insert_in_tx_unaudited(
     tx.execute(
         "INSERT INTO books (id, library_id, isbn_13, isbn_10, title, subtitle, authors_json, \
          publisher, published_year, language, page_count, description, genre, format, \
-         progressive_number, condition, acquired_at, price_cents, notes, created_at, updated_at) \
+         progressive_number, condition, acquired_at, price_cents, notes, cover_color, created_at, updated_at) \
          VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, \
-         ?18, ?19, ?20, ?20)",
+         ?18, ?19, ?20, ?21, ?21)",
         params![
             id,
             library_id,
@@ -479,6 +501,7 @@ pub fn insert_in_tx_unaudited(
             book.acquired_at,
             book.price_cents,
             book.notes,
+            book.cover_color,
             now
         ],
     )?;
@@ -581,6 +604,7 @@ fn merge(current: BookOut, p: PatchBook) -> ApiResult<NewBook> {
         acquired_at: p.acquired_at.flatten(),
         price_cents: p.price_cents.flatten(),
         notes: p.notes.clone().flatten(),
+        cover_color: p.cover_color.clone().flatten(),
     };
     let v = validate_new(probe)?;
     Ok(NewBook {
@@ -605,6 +629,7 @@ fn merge(current: BookOut, p: PatchBook) -> ApiResult<NewBook> {
         acquired_at: p.acquired_at.map_or(current.acquired_at, |_| v.acquired_at),
         price_cents: p.price_cents.map_or(current.price_cents, |_| v.price_cents),
         notes: p.notes.map_or(current.notes, |_| v.notes),
+        cover_color: p.cover_color.map_or(current.cover_color, |_| v.cover_color),
     })
 }
 
@@ -657,7 +682,7 @@ pub async fn patch_book(
                  authors_json = ?5, publisher = ?6, published_year = ?7, language = ?8, \
                  page_count = ?9, description = ?10, genre = ?11, format = ?12, \
                  progressive_number = ?13, condition = ?14, acquired_at = ?15, price_cents = ?16, \
-                 notes = ?17, updated_at = ?18 WHERE id = ?19 AND library_id = ?20",
+                 notes = ?17, cover_color = ?18, updated_at = ?19 WHERE id = ?20 AND library_id = ?21",
                 params![
                     book.isbn_13,
                     book.isbn_10,
@@ -676,6 +701,7 @@ pub async fn patch_book(
                     book.acquired_at,
                     book.price_cents,
                     book.notes,
+                    book.cover_color,
                     now,
                     id,
                     who.library_id
