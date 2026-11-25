@@ -345,3 +345,5 @@
 2026-11-25T16:33:45Z	bookeeper-fase-3a	m-account-b	qa	opus	PASS	-	-	-	50
 2026-11-25T16:44:44Z	bookeeper-fase-3a	m-case-fix	dwarf	sonnet	-	trap	casecollisions test ts can be run alone with npx vitest run packages ui src casecollisions test ts from the root after npm ci offline	caseCollisions.test.ts can be run alone with `npx vitest run packages/ui/src/caseCollisions.test.ts` from the root after `npm ci --offline` [packages/ui/src/caseCollisions.test.ts]	38	1
 2026-11-25T16:45:17Z	bookeeper-fase-3a	m-case-fix	qa	opus	PASS	-	-	-	27
+2026-11-25T16:58:07Z	bookeeper-fase-3a1	m-p3	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npm test w bookeeper mobile works without it vitest and vite plugins are not found	a fresh worktree needs `npm ci --offline` at the root before `npm test -w @bookeeper/mobile` works; without it vitest and vite plugins are not found [apps/mobile/package.json]	46	1
+2026-11-25T16:58:45Z	bookeeper-fase-3a1	m-p3	qa	opus	PASS	-	-	-	32
