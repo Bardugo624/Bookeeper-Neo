@@ -24,6 +24,7 @@ export function RestoreBlock({ ops }: { ops: BackupOps }) {
       <label className={styles.note}>
         {t('backup.restore.file')}
         <input
+          key={restore.inputKey}
           type="file"
           accept=".zip,application/zip"
           disabled={ops.busy}

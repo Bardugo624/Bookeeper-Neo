@@ -12,6 +12,7 @@ export function useRestore(ops: BackupOps) {
   const client = useClient();
   const confirm = usePasswordConfirm();
   const [file, setFile] = useState<File | null>(null);
+  const [inputKey, setInputKey] = useState(0);
   const [asking, setAsking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<RestoreReport | null>(null);
@@ -35,16 +36,21 @@ export function useRestore(ops: BackupOps) {
     setError(null);
     setReport(null);
     try {
-      const bytes = await readFileBytes(file);
-      const outcome = await ops.restore(() => confirm.run((token) => client.restoreBackup(bytes, token ?? '')));
-      if (outcome && !outcome.cancelled) {
+      const outcome = await ops.restore(async () => {
+        const bytes = await readFileBytes(file);
+        return confirm.run((token) => client.restoreBackup(bytes, token ?? ''));
+      });
+      if (!outcome) {
+        setError(t('backup.restore.errors.busy'));
+      } else if (!outcome.cancelled) {
         setReport(outcome.value);
         setFile(null);
+        setInputKey((k) => k + 1);
       }
     } catch (e) {
       setError(describe(e));
     }
   };
 
-  return { file, pick, asking, setAsking, start, error, report, passwordDialog: confirm.dialog };
+  return { inputKey, file, pick, asking, setAsking, start, error, report, passwordDialog: confirm.dialog };
 }

@@ -55,7 +55,8 @@
     "errors": {
       "invalid_archive": "The file is not a valid Bookeeper backup.",
       "unsupportedVersion": "This backup is from a version this app cannot read.",
-      "payload_too_large": "The file is too large to restore."
+      "payload_too_large": "The file is too large to restore.",
+      "busy": "Another operation is in progress: try again when it finishes."
     }
   }
 }
