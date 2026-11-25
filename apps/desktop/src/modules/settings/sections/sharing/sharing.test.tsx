@@ -106,6 +106,21 @@ describe('turning on', () => {
     expect((screen.getByLabelText('Numero di porta') as HTMLInputElement).disabled).toBe(false);
   });
 
+  it('names the port that was tried when the shell reports the old one', async () => {
+    const { platform } = renderSharing();
+    platform.setSharingHandler((_e, _p, cur) => ({ ...cur, enabled: false, running: false, error: 'port_in_use' }));
+    const field = (await screen.findByLabelText('Numero di porta')) as HTMLInputElement;
+    await userEvent.clear(field);
+    await userEvent.type(field, '9000');
+    await userEvent.click(await toggle());
+    expect(await screen.findByText(/La porta 9000 è già usata/)).toBeTruthy();
+  });
+
+  it('does not lock the switch on a stale password_required read on open', async () => {
+    renderSharing({ status: { enabled: false, running: false, error: 'password_required' } });
+    expect((await toggle() as HTMLInputElement).disabled).toBe(false);
+  });
+
   it('warns without blocking on mdns', async () => {
     const { platform } = renderSharing();
     platform.setSharingHandler((_e, p, cur) => ({ ...cur, enabled: true, running: true, port: p ?? cur.port, addresses: ['https://10.0.0.2:7842'], fingerprint: 'AA', phrase: 'a b c d e f', error: 'mdns' }));

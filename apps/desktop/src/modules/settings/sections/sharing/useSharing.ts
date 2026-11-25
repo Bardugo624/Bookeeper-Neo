@@ -7,6 +7,8 @@ export function useSharing() {
   const [status, setStatus] = useState<SharingStatus | null>(null);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
+  // Set only by an answer to `set` in this mount: a re-read `error` is a leftover of an old attempt.
+  const [attempt, setAttempt] = useState<{ port?: number } | null>(null);
 
   useEffect(() => {
     let live = true;
@@ -25,7 +27,9 @@ export function useSharing() {
       setBusy(true);
       setFailed(false);
       try {
-        setStatus(await sharing.set(enabled, port));
+        const next = await sharing.set(enabled, port);
+        setAttempt({ port });
+        setStatus(next);
       } catch {
         setFailed(true);
       } finally {
@@ -35,5 +39,5 @@ export function useSharing() {
     [sharing],
   );
 
-  return { status, busy, failed, set };
+  return { status, busy, failed, attempt, set };
 }

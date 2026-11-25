@@ -12,7 +12,7 @@ import styles from './SharingSection.module.css';
 export function SharingSection() {
   const t = useT();
   const { me } = useSettingsSession();
-  const { status, busy, failed, set } = useSharing();
+  const { status, busy, failed, attempt, set } = useSharing();
   const [port, setPort] = useState('');
   const [portError, setPortError] = useState(false);
 
@@ -31,7 +31,10 @@ export function SharingSection() {
   }
 
   // Without an email the owner cannot have a password (the account page asks for one first).
-  const noPassword = !me?.user.email || status.error === 'password_required';
+  const noEmail = !me?.user.email;
+  // A `password_required` read back on open is stale (the shell clears it only in `set`): only a fresh answer counts.
+  const freshNoPassword = attempt !== null && status.error === 'password_required';
+  const noPassword = noEmail || freshNoPassword;
   const on = status.enabled && status.running;
 
   const toggle = (next: boolean) => {
@@ -57,7 +60,7 @@ export function SharingSection() {
             type="checkbox"
             role="switch"
             checked={on}
-            disabled={busy || (noPassword && !on)}
+            disabled={busy || (noEmail && !on)}
             aria-busy={busy}
             onChange={(e) => toggle(e.target.checked)}
           />
@@ -80,7 +83,7 @@ export function SharingSection() {
         ) : null}
         {status.error === 'port_in_use' ? (
           <p className={styles.error} role="alert">
-            {t('sharing.errors.portInUse', { port: status.port })}
+            {t('sharing.errors.portInUse', { port: attempt?.port ?? status.port })}
           </p>
         ) : null}
         {status.error === 'tls' ? (
