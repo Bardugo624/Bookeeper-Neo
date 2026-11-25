@@ -37,6 +37,8 @@ export interface World {
   role?: 'owner' | 'member' | 'guest';
   /** Status for every placement write instead of success. */
   placeFails?: number;
+  /** Placement writes of this book id get `409 slot_taken`, once. */
+  takenOnce?: string;
   listFails?: boolean;
   /** Never answers the shelf list. */
   listPending?: boolean;
@@ -111,6 +113,10 @@ export function shelvesPlatform(w: World): FakePlatform {
         }
         await w.gate;
         if (w.placeFails) return err(w.placeFails, w.placeFails === 409 ? 'slot_taken' : 'internal');
+        if (w.takenOnce === m[1]) {
+          w.takenOnce = undefined;
+          return err(409, 'slot_taken');
+        }
         const b = r.body as { shelf_id: string; row_index: number; slot_index: number };
         const taken = Object.entries(w.spots).some(
           ([id, s]) => id !== m![1] && s.shelf === b.shelf_id && s.row === b.row_index && s.slot === b.slot_index,

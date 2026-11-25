@@ -4,7 +4,7 @@ import { useToast } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
 import { apiErrorMessage } from '../../kit';
 import { useClient } from '../../session';
-import { applyMoves, asShelfBook, freeSlotElsewhere, inRow, isSamePlace, planPlacement, type Move } from './model';
+import { applyMoves, asShelfBook, inRow, isSamePlace, planPlacement, type Move } from './model';
 import { useKeys } from './useShelves';
 
 interface PlaceInput {
@@ -20,8 +20,11 @@ interface PlaceInput {
 interface Prepared extends PlaceInput {
   shifts: Move[];
   slot: number;
-  /** Where the moved book waits while its row is rearranged. */
-  park?: { row: number; slot: number };
+  /**
+   * The moved book leaves its row while the row is rearranged (a full row being reordered): it is
+   * taken off the shelf, then placed again with the spine width it had.
+   */
+  park?: ShelfBook;
   /** The book as an unplaced one, when it is not on this shelf yet. */
   fresh?: BookOut;
 }
@@ -54,9 +57,27 @@ export function usePlacement() {
 
   const place = useMutation<unknown, unknown, Prepared, Snapshot>({
     mutationFn: async (p) => {
-      if (p.park) await client.placeBook(p.bookId, { shelf_id: p.shelf.id, row_index: p.park.row, slot_index: p.park.slot });
-      for (const m of p.shifts) await client.placeBook(m.bookId, { shelf_id: p.shelf.id, row_index: p.rowIndex, slot_index: m.slot });
-      return client.placeBook(p.bookId, { shelf_id: p.shelf.id, row_index: p.rowIndex, slot_index: p.slot });
+      const put = (bookId: string, row: number, slot: number, spine?: number | null) =>
+        client.placeBook(bookId, { shelf_id: p.shelf.id, row_index: row, slot_index: slot, ...(spine ? { spine_width: spine } : {}) });
+      // Each step that went through, as the write that puts it back.
+      const undo: Array<() => Promise<unknown>> = [];
+      try {
+        const park = p.park;
+        if (park) {
+          await client.unplaceBook(p.bookId);
+          undo.push(() => put(p.bookId, park.row_index, park.slot_index, park.spine_width));
+        }
+        for (const m of p.shifts) {
+          const from = p.books.find((b) => b.book_id === m.bookId)!;
+          await put(m.bookId, p.rowIndex, m.slot);
+          undo.push(() => put(m.bookId, from.row_index, from.slot_index));
+        }
+        return await put(p.bookId, p.rowIndex, p.slot, park?.spine_width);
+      } catch (e) {
+        // Leave the shelf as the user saw it before the move, as far as the core allows.
+        for (const step of undo.reverse()) await step().catch(() => undefined);
+        throw e;
+      }
     },
     onMutate: async (p) => {
       await qc.cancelQueries({ queryKey: keys.shelves });
@@ -107,12 +128,7 @@ export function usePlacement() {
       fail(new RowFull());
       return false;
     }
-    const spot = plan.park ? freeSlotElsewhere(input.books, input.shelf.rows, input.shelf.slots_per_row, input.rowIndex) : null;
-    if (plan.park && !spot) {
-      fail(new RowFull());
-      return false;
-    }
-    const park = spot ? { row: spot.row, slot: spot.slot } : undefined;
+    const park = plan.park ? row.find((b) => b.book_id === input.bookId) : undefined;
     try {
       await place.mutateAsync({ shifts: plan.shifts, slot: plan.slot, park, ...input, fresh });
       return true;

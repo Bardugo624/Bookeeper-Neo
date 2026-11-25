@@ -178,6 +178,46 @@ describe('placing', () => {
   });
 });
 
+describe('reordering a full row', () => {
+  const full = (over: Partial<World> = {}) => {
+    const w = world(over);
+    w.books.push(book('c5'));
+    w.spots.c5 = { shelf: 's2', row: 0, slot: 4 };
+    return w;
+  };
+  const deletes = (platform: ReturnType<typeof renderShelves>['platform']) =>
+    platform.calls.filter((c) => c.method === 'DELETE').map((c) => c.path);
+
+  it('takes the book off for a moment when the cabinet has no other free slot', async () => {
+    const w = full();
+    const { platform } = renderShelves(w, '/shelves?unit=s2');
+    await screen.findByRole('button', { name: 'Libro c5, Autore c5' });
+    dropOnRow('c5', 'Ripiano 1', 0);
+    await waitFor(() => expect(w.spots.c5).toEqual({ shelf: 's2', row: 0, slot: 0 }));
+    expect(deletes(platform)).toEqual(['/api/v1/books/c5/placement']);
+    expect(placements(platform)).toEqual([['c4', 0, 4], ['c3', 0, 3], ['c2', 0, 2], ['c1', 0, 1], ['c5', 0, 0]]);
+    expect(spineNames('Ripiano 1')).toEqual(['c5', 'c1', 'c2', 'c3', 'c4'].map((id) => `Libro ${id}, Autore ${id}`));
+    expect(screen.queryByText('Il ripiano è pieno.')).toBeNull();
+  });
+
+  it('puts every book back where it was when a step fails halfway', async () => {
+    const w = full({ takenOnce: 'c2' });
+    const before = structuredClone(w.spots);
+    const { platform } = renderShelves(w, '/shelves?unit=s2');
+    await screen.findByRole('button', { name: 'Libro c5, Autore c5' });
+    dropOnRow('c5', 'Ripiano 1', 0);
+    expect(await screen.findByText('Non è stato possibile spostare il libro')).toBeInTheDocument();
+    await waitFor(() => expect(w.spots).toEqual(before));
+    // c4 and c3 had moved, c2 was refused: they go back last first, then c5 returns to its slot.
+    expect(placements(platform)).toEqual([
+      ['c4', 0, 4], ['c3', 0, 3], ['c2', 0, 2], ['c3', 0, 2], ['c4', 0, 3], ['c5', 0, 4],
+    ]);
+    await waitFor(() =>
+      expect(spineNames('Ripiano 1')).toEqual(['c1', 'c2', 'c3', 'c4', 'c5'].map((id) => `Libro ${id}, Autore ${id}`)),
+    );
+  });
+});
+
 describe('without write permission', () => {
   it('has nothing to edit and nothing draggable', async () => {
     renderShelves(world({ role: 'guest' }));

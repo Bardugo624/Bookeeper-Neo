@@ -94,16 +94,6 @@ export function planPlacement(row: ShelfBook[], movedId: string, index: number, 
   return null;
 }
 
-/** A slot of the shelf, outside `rowIndex`, where nobody sits; null when there is none. */
-export function freeSlotElsewhere(books: ShelfBook[], rows: number, slots: number, rowIndex: number): Move & { row: number } | null {
-  const taken = new Set(books.map((b) => `${b.row_index}:${b.slot_index}`));
-  for (let r = 0; r < rows; r++) {
-    if (r === rowIndex) continue;
-    for (let s = 0; s < slots; s++) if (!taken.has(`${r}:${s}`)) return { bookId: '', slot: s, row: r };
-  }
-  return null;
-}
-
 /** True when dropping `bookId` at `index` of its own row would change nothing. */
 export function isSamePlace(row: ShelfBook[], bookId: string, index: number): boolean {
   return row.findIndex((b) => b.book_id === bookId) === index;
