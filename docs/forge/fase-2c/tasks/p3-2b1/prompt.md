@@ -9,4 +9,4 @@ Leggi prima `docs/forge/fase-2c/CONTRATTO.md`, `docs/forge/fase-2b/CONTRATTO.md`
 ## Acceptance criteria
 
 - `npm test -w @bookeeper/ui -w @bookeeper/desktop` e `npm run typecheck -w @bookeeper/ui -w @bookeeper/desktop` passano.
-- Cambiano solo: `packages/ui/src/overlays/Toast.module.css`, `apps/desktop/src/modules/books/useBookWrites.ts`, `useBookWrites.test.tsx`, `CoverPicker.tsx`, `CoverPicker.test.tsx`.
+- Cambiano solo: `packages/ui/src/overlays/Toast.module.css` e file sotto `apps/desktop/src/modules/books/` (compreso `BookDrawer.tsx`, dove serve per sapere se la richiesta della copertina è finita, è fallita o ha risposto "assente"). Lo scheletro del selettore non resta mai per sempre: "assente" (404) mostra i campioni; un errore di rete o 5xx mostra i campioni con un avviso e lascia rimuovere o sostituire la copertina.

@@ -253,3 +253,16 @@
 2026-11-25T05:05:51Z	bookeeper-fase-2b1	modules-b1b	qa	opus	FAIL	finding	core put placement with shift true slides left not right when the book moves right in its own row and the run reaches the row	core `PUT placement` with `shift:true` slides left (not right) when the book moves right in its own row and the run reaches the row… [apps/desktop/src/modules/shelves/model.ts]	154	1
 2026-11-25T05:07:15Z	bookeeper-fase-2b1	modules-b1b	dwarf	sonnet	-	-	-	-	81
 2026-11-25T05:09:09Z	bookeeper-fase-2b1	modules-b1b	qa	opus	PASS	-	-	-	109
+2026-11-25T08:10:06Z	bookeeper-fase-2c	p3-2b1	dwarf	sonnet	-	trap	a fresh worktree has no node modules run npm ci offline at the root then npx vitest run path from apps desktop	a fresh worktree has no node_modules; run `npm ci --offline` at the root, then `npx vitest run <path>` from apps/desktop [apps/desktop/package.json]	172	1
+2026-11-25T08:11:38Z	bookeeper-fase-2c	p3-2b1	qa	opus	FAIL	-	-	-	85
+2026-11-25T08:15:31Z	bookeeper-fase-2c	desktop-files	dwarf	sonnet	-	trap	tauri plugin dialog needs its default features gtk3 backend for rfd or the rfd build script panics on linux	tauri-plugin-dialog needs its default features (gtk3 backend for rfd) or the `rfd` build script panics on Linux [apps/desktop/src-tauri/Cargo.toml]	496	1
+2026-11-25T08:17:16Z	bookeeper-fase-2c	settings	dwarf	sonnet	-	trap	a module s routes tsx must not import the app barrel use app i18n app types app index globs all modules so the cycle leaves	a module's `routes.tsx` must not import the `app` barrel (use `app/i18n`, `app/types`): `app/index` globs all modules, so the cycle leaves… [apps/desktop/src/app/modules.ts]	335	1
+2026-11-25T08:17:16Z	bookeeper-fase-2c	settings	dwarf	sonnet	-	trap	jsdom s navigator language is en us so tests that render appproviders without a locale prop come out in english unless the test sets it	jsdom's `navigator.language` is `en-US`, so tests that render `AppProviders` without a `locale` prop come out in English unless the test sets it [apps/desktop/src/app/i18n.tsx]	335	1
+2026-11-25T08:18:52Z	bookeeper-fase-2c	settings	qa	opus	PASS	-	-	-	89
+2026-11-25T08:19:36Z	bookeeper-fase-2c	desktop-files	qa	opus	PASS	-	-	-	240
+2026-11-25T08:23:04Z	bookeeper-fase-2c	transfer	dwarf	sonnet	-	trap	rendersettings in settings testkit tsx has a fixed handler so a section that needs extra routes or requestraw for	`renderSettings` in `settings/testkit.tsx` has a fixed handler, so a section that needs extra routes (or `requestRaw` for… [apps/desktop/src/modules/settings/testkit.tsx]	198	1
+2026-11-25T08:23:27Z	bookeeper-fase-2c	backup	dwarf	sonnet	-	trap	in jsdom a uint8array built by a test s textencoder can fail instanceof uint8array in app code so authtransport s errorcode	in jsdom a `Uint8Array` built by a test's `TextEncoder` can fail `instanceof Uint8Array` in app code, so authTransport's `errorCode`… [apps/desktop/src/session/authTransport.ts]	221	1
+2026-11-25T08:24:41Z	bookeeper-fase-2c	transfer	qa	opus	PASS	-	-	-	92
+2026-11-25T08:25:16Z	bookeeper-fase-2c	backup	qa	opus	FAIL	-	-	-	103
+2026-11-25T08:25:55Z	bookeeper-fase-2c	backup	dwarf	sonnet	-	-	-	-	36
+2026-11-25T08:26:27Z	bookeeper-fase-2c	backup	qa	opus	PASS	-	-	-	27

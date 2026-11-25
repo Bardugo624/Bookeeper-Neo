@@ -1,5 +1,5 @@
 # id	deps	difficulty	files	dwarf	qa	title
-p3-2b1	-	low	packages/ui/src/overlays/Toast.module.css,apps/desktop/src/modules/books/useBookWrites.ts,apps/desktop/src/modules/books/useBookWrites.test.tsx,apps/desktop/src/modules/books/CoverPicker.tsx,apps/desktop/src/modules/books/CoverPicker.test.tsx	-	-	Tre difetti P3 del run 2B1
+p3-2b1	-	low	packages/ui/src/overlays/Toast.module.css,apps/desktop/src/modules/books	-	-	Tre difetti P3 del run 2B1
 desktop-files	-	high	apps/desktop/src-tauri/src/lib.rs,apps/desktop/src-tauri/src/files.rs,apps/desktop/src-tauri/Cargo.toml,Cargo.lock,apps/desktop/src-tauri/capabilities/default.json,apps/desktop/src-tauri/tests/files.rs,apps/desktop/src/platform,.github/workflows/ci.yml	-	-	Guscio: salvataggio di file con finestra di sistema
 settings	-	high	apps/desktop/src/modules/settings,apps/desktop/src/app/i18n.tsx,apps/desktop/src/app/i18n.test.tsx,packages/i18n/src/locales/it/settings.json,packages/i18n/src/locales/en/settings.json	-	-	Impostazioni: aspetto, lingua, account, libreria, informazioni
 transfer	settings,desktop-files	high	apps/desktop/src/modules/settings/sections/transfer,packages/i18n/src/locales/it/transfer.json,packages/i18n/src/locales/en/transfer.json	-	-	Import ed export

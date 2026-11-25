@@ -13,6 +13,10 @@
 
 ## Known traps
 - a fresh worktree has no node_modules; run `npm ci --offline` at the root, then `npx vitest run <path>` from apps/desktop [apps/desktop/package.json]
+- in jsdom a `Uint8Array` built by a test's `TextEncoder` can fail `instanceof Uint8Array` in app code, so authTransport's `errorCode`… [apps/desktop/src/session/authTransport.ts]
+- a module's `routes.tsx` must not import the `app` barrel (use `app/i18n`, `app/types`): `app/index` globs all modules, so the cycle leaves… [apps/desktop/src/app/modules.ts]
+- jsdom's `navigator.language` is `en-US`, so tests that render `AppProviders` without a `locale` prop come out in English unless the test sets it [apps/desktop/src/app/i18n.tsx]
+- tauri-plugin-dialog needs its default features (gtk3 backend for rfd) or the `rfd` build script panics on Linux [apps/desktop/src-tauri/Cargo.toml]
 - fake timers that include `setTimeout` break testing-library `findBy*`/`waitFor` in desktop tests, so fake only… [apps/desktop/src/modules/devices/devices.test.tsx]
 - the toast provider renders empty `role="alert"` live regions, so `findByRole('alert')` matches even with no error shown [packages/ui/src/overlays/Toast.tsx]
 - `cargo test`/`clippy` on bookeeper-desktop takes over 2 minutes cold, so run it in the background and wait for the exit [apps/desktop/src-tauri/Cargo.toml]
@@ -25,7 +29,4 @@
 - react-router's functional `setSearchParams(prev => …)` does not see a write made earlier in the same handler, so a hook that patches the… [apps/desktop/src/kit/useListParams.ts]
 - desktop authTransport `errorCode` reads `body.error.code` and the session fixtures use `{error:{code}}`, but the core and Tauri… [apps/desktop/src/session/authTransport.ts]
 - `cargo fmt -p bookeeper-desktop` is safe to run from src-tauri and only touched my files [apps/desktop/src-tauri/Cargo.toml]
-- tests of anything that sends requests through `createAuthTransport` need `useSession.setState({ connection: fakeConnection() })`, or… [apps/desktop/src/session/authTransport.ts]
-- @fontsource-variable packages declare family names like 'Inter Variable' and 'Lora Variable', and their wght.css bundles every subset, so a latin-only… [packages/ui/src/fonts.css]
-- `import.meta.glob` is typed by `vite/client`, so declaring `glob` in a local `.d.ts` triggers TS2300/TS2717 when `skipLibCheck` is false; cast… [packages/i18n/src/index.ts]
 
