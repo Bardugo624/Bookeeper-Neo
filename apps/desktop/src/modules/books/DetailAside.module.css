@@ -41,3 +41,7 @@
   font-weight: 500;
   color: var(--bk-primary-600);
 }
+
+.action {
+  margin-top: 10px;
+}

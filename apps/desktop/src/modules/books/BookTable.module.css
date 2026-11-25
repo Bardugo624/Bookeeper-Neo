@@ -71,3 +71,8 @@
   overflow: hidden;
   clip-path: inset(50%);
 }
+
+.table td.tags {
+  max-width: 260px;
+  white-space: normal;
+}

@@ -16,6 +16,8 @@ export interface ListState {
   view: ViewMode;
   sort: SortKey | null;
   order: SortOrder;
+  /** `?tag=<id>`: only the books carrying the tag. */
+  tag: string | null;
 }
 
 const FILTERS: Filter[] = ['loan', 'unshelved'];
@@ -67,6 +69,7 @@ export function useListParams(): ListParams {
     READING_FILTERS.find((f) => f === rawReading) ?? FILTERS.find((f) => f === rawFilter) ?? 'all';
   const rawView = params.get('view');
   const view: ViewMode = rawView === 'list' || rawView === 'grid' ? rawView : readStoredView(connectionId);
+  const tag = params.get('tag') || null;
   const rawSort = params.get('sort');
   const sort = SORTS.find((s) => s === rawSort) ?? null;
   const order: SortOrder = sort && params.get('order') === 'desc' ? 'desc' : 'asc';
@@ -96,6 +99,7 @@ export function useListParams(): ListParams {
       view,
       sort,
       order,
+      tag,
       search,
       setQuery: (value) => update({ q: value }),
       setFilter: (value) =>
@@ -113,8 +117,8 @@ export function useListParams(): ListParams {
         else if (order === 'asc') update({ sort: key, order: 'desc' });
         else update({ sort: null, order: null });
       },
-      reset: () => update({ q: null, filter: null, reading: null }),
+      reset: () => update({ q: null, filter: null, reading: null, tag: null }),
     }),
-    [q, filter, view, sort, order, search, update, connectionId],
+    [q, filter, view, sort, order, tag, search, update, connectionId],
   );
 }

@@ -230,6 +230,7 @@
     "updated": "«{title}» salvato",
     "deleted": "«{title}» eliminato",
     "coverFailed": "Il libro è stato salvato, ma la copertina no.",
-    "colorFailed": "Il libro è stato salvato, ma il colore del dorso no."
+    "colorFailed": "Il libro è stato salvato, ma il colore del dorso no.",
+    "tagsFailed": "Il libro è stato salvato, ma non i tag."
   }
 }

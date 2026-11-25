@@ -4,6 +4,7 @@ import { Button, EmptyState } from '@bookeeper/ui/base';
 import { PillTabs, type PillTabItem } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
 import { usePermission } from '../../kit';
+import { ManageTagsDialog } from '../tags';
 import { FirstBookHint, useFirstBook } from '../onboarding';
 import { BookDrawer } from './BookDrawer';
 import { BookGrid, GridSkeleton } from './BookGrid';
@@ -25,6 +26,7 @@ export function BooksPage() {
   const sentinel = useEndReached(() => void query.fetchNextPage(), more, items.length);
   const canWrite = usePermission().can('write');
   const [adding, setAdding] = useState(false);
+  const [managingTags, setManagingTags] = useState(false);
   const firstBook = useFirstBook(() => setAdding(true));
   // Whether the panel was opened on an empty library: the list is already refreshed when a save ends.
   const session = useRef<{ empty: boolean; first: BookOut | null }>({ empty: false, first: null });
@@ -45,7 +47,7 @@ export function BooksPage() {
     return () => document.removeEventListener('keydown', onKey);
   }, [selecting, selectAll]);
   const picking = selecting ? selection : undefined;
-  const filtered = params.q.trim() !== '' || params.filter !== 'all';
+  const filtered = params.q.trim() !== '' || params.filter !== 'all' || params.tag !== null;
 
   const filters: PillTabItem[] = [
     { id: 'all', label: t('books.filters.all') },
@@ -130,6 +132,7 @@ export function BooksPage() {
                 selecting,
                 onAdd: openAdd,
                 onToggleSelect: () => (selecting ? selection.stop() : selection.start()),
+                onManageTags: () => setManagingTags(true),
               }
             : undefined
         }
@@ -141,7 +144,14 @@ export function BooksPage() {
         label={t('books.filters.label')}
       />
       {body}
-      {selecting ? <SelectionBar selected={selection.selected} onDone={selection.stop} /> : null}
+      {selecting ? (
+        <SelectionBar
+          selected={selection.selected}
+          books={items.filter((b) => selection.selected.has(b.id))}
+          onDone={selection.stop}
+        />
+      ) : null}
+      {canWrite ? <ManageTagsDialog open={managingTags} onClose={() => setManagingTags(false)} /> : null}
       <BookDrawer
         open={adding}
         onClose={closeAdd}

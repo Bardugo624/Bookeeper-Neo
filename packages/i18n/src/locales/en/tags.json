@@ -1,0 +1,91 @@
+{
+  "title": "Tags",
+  "column": "Tags",
+  "action": "Tags…",
+  "manageMenu": "Manage tags",
+  "colors": {
+    "sage": "Sage",
+    "terracotta": "Terracotta",
+    "night": "Night",
+    "plum": "Plum",
+    "amber": "Amber",
+    "graphite": "Graphite"
+  },
+  "errors": {
+    "exists": "A tag with this name already exists.",
+    "tooLong": "At most {max} characters."
+  },
+  "picker": {
+    "label": "Tags",
+    "chosen": "Chosen tags",
+    "remove": "Remove “{name}”",
+    "placeholder": "Search or create a tag",
+    "options": "Available tags",
+    "count": "{count} of {max} tags",
+    "limit": "You have reached the limit of {max} tags.",
+    "loading": "Loading tags…",
+    "failed": "Could not read the tags.",
+    "none": "No tag matches.",
+    "create": "Create “{name}”",
+    "newColor": "Color of the new tag"
+  },
+  "toast": {
+    "saved": "Tags of “{title}” updated",
+    "deleted": "Tag “{name}” deleted"
+  },
+  "detail": {
+    "title": "Tags",
+    "none": "No tags",
+    "edit": "Edit tags",
+    "list": "Tags of the book"
+  },
+  "edit": {
+    "title": "Edit tags"
+  },
+  "manage": {
+    "title": "Manage tags",
+    "loading": "Loading tags",
+    "error": "Could not read the tags. Try again later.",
+    "empty": "There are no tags yet. They are created from a book's form.",
+    "list": "Tags of the library",
+    "name": "Name of “{name}”",
+    "rename": "Save the name of “{name}”",
+    "delete": "Delete “{name}”",
+    "color": "Color of “{name}”",
+    "books": {
+      "one": "{count} book",
+      "other": "{count} books"
+    }
+  },
+  "delete": {
+    "title": "Delete the tag “{name}”?",
+    "text": {
+      "one": "The tag will be removed from {count} book. The books are not deleted. This cannot be undone.",
+      "other": "The tag will be removed from {count} books. The books are not deleted. This cannot be undone."
+    }
+  },
+  "assign": {
+    "title": {
+      "one": "Tags for {count} book",
+      "other": "Tags for {count} books"
+    },
+    "action": "Action",
+    "add": "Add the tag",
+    "remove": "Remove the tag",
+    "tag": "Tag",
+    "noTags": "There are no tags yet.",
+    "apply": {
+      "one": "Add to {count} book",
+      "other": "Add to {count} books"
+    },
+    "applyRemove": {
+      "one": "Remove from {count} book",
+      "other": "Remove from {count} books"
+    },
+    "working": "Updating",
+    "progress": "Updated {done} of {total} books",
+    "done": "Updated: {updated}. Already fine: {unchanged}. Failed: {failed}.",
+    "failedTitle": "These books were not updated:",
+    "failure": "{title}: {message}"
+  }
+}

@@ -1,5 +1,5 @@
-import { Button } from '@bookeeper/ui/base';
-import { PillTabs, type PillTabItem } from '@bookeeper/ui/overlays';
+import { Button, IconButton } from '@bookeeper/ui/base';
+import { Menu, PillTabs, type PillTabItem } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
 import { SearchField } from './SearchField';
 import type { ListParams, ViewMode } from './listParams';
@@ -10,7 +10,7 @@ export interface BooksHeaderProps {
   total: number | undefined;
   onLoan: number | undefined;
   /** Write actions ("Add", "Select"); absent for roles that cannot write. */
-  actions?: { selecting: boolean; onAdd(): void; onToggleSelect(): void };
+  actions?: { selecting: boolean; onAdd(): void; onToggleSelect(): void; onManageTags(): void };
 }
 
 export function BooksHeader({ params, total, onLoan, actions }: BooksHeaderProps) {
@@ -47,6 +47,10 @@ export function BooksHeader({ params, total, onLoan, actions }: BooksHeaderProps
             <Button variant="primary" icon="plus" onClick={actions.onAdd}>
               {t('books.new.button')}
             </Button>
+            <Menu
+              trigger={<IconButton icon="more" label={t('books.detail.more')} />}
+              items={[{ id: 'tags', label: t('tags.manageMenu'), onSelect: actions.onManageTags }]}
+            />
           </>
         ) : null}
       </div>

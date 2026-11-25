@@ -7,6 +7,7 @@ import {
   applyMetadata, emptyForm, fromBook, toCreateBody, toPatchBody, validateBook, type BookFormValues,
 } from './bookFormModel';
 import { useNextProgressive, useTypedIsbnDuplicate, type LookupOutcome } from './useIsbnLookup';
+import { sameSet } from '../tags';
 import { useBookWrites, type CoverPlan, type SaveResult } from './useBookWrites';
 
 export interface UseBookEditor {
@@ -20,6 +21,9 @@ export interface UseBookEditor {
   setColor(color: string | null): void;
   /** A book already in the library under the ISBN typed by hand, after the typing paused. */
   duplicate: BookOut | null;
+  /** Ids of the tags chosen for the book. */
+  tagIds: string[];
+  setTagIds(ids: string[]): void;
   saving: boolean;
   /** Fills the form from a lookup (or leaves it empty with the ISBN typed in). */
   start(result: { isbn: string; outcome: LookupOutcome | null }): void;
@@ -46,6 +50,7 @@ export function useBookEditor(
   const color = picked === undefined ? (book?.cover_color ?? null) : picked;
   // An ISBN typed by hand is checked against the library; one from the lookup already was.
   const duplicate = useTypedIsbnDuplicate(form.values.isbn13, form.values.isbn10, !book && outcome === null);
+  const [tagIds, setTagIds] = useState<string[]>(() => book?.tags.map((tag) => tag.id) ?? []);
   const proposal = useNextProgressive(!book);
   const proposed = useRef(false);
 
@@ -75,11 +80,15 @@ export function useBookEditor(
           const patch = toPatchBody(book, values);
           if (picked !== undefined && picked !== (book.cover_color ?? null)) patch.cover_color = picked;
           const removesNothing = plan.kind === 'remove' && !hadCover;
+          const tagsChanged = !sameSet(tagIds, book.tags.map((tag) => tag.id));
           // Nothing changed: nothing is sent.
-          if (Object.keys(patch).length === 0 && (plan.kind === 'keep' || removesNothing)) return onSaved(null, false);
-          onSaved(await writes.update.mutateAsync({ id: book.id, patch, cover: plan, hadCover }), false);
+          if (Object.keys(patch).length === 0 && !tagsChanged && (plan.kind === 'keep' || removesNothing)) return onSaved(null, false);
+          const saved = await writes.update.mutateAsync({
+            id: book.id, patch, cover: plan, hadCover, tagIds: tagsChanged ? tagIds : undefined,
+          });
+          onSaved(saved, false);
         } else {
-          onSaved(await writes.create.mutateAsync({ body: { ...toCreateBody(values), ...(color ? { cover_color: color } : {}) }, cover: plan }), another);
+          onSaved(await writes.create.mutateAsync({ body: { ...toCreateBody(values), ...(color ? { cover_color: color } : {}) }, cover: plan, tagIds }), another);
         }
       } catch (e) {
         if (!(e instanceof ApiError && e.code === 'progressive_taken')) throw e;
@@ -97,6 +106,8 @@ export function useBookEditor(
     color,
     setColor,
     duplicate,
+    tagIds,
+    setTagIds,
     saving: form.submitting,
     start,
     save,

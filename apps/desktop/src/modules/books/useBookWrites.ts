@@ -16,6 +16,8 @@ export interface SaveResult {
   coverFailed: boolean;
   /** The cover was removed but the color chosen with the removal could not be written. */
   colorFailed?: boolean;
+  /** The book was saved but its tags were not. */
+  tagsFailed?: boolean;
 }
 
 /** Every write refreshes the books (list, detail, counts), shelves, loans, stats and covers. */
@@ -30,6 +32,8 @@ export function useRefreshBooks() {
       queryClient.invalidateQueries({ queryKey: ['shelf-thumbs'] }),
       queryClient.invalidateQueries({ queryKey: ['loans'] }),
       queryClient.invalidateQueries({ queryKey: ['stats'] }),
+      queryClient.invalidateQueries({ queryKey: ['facets'] }),
+      queryClient.invalidateQueries({ queryKey: ['tags', connectionId] }),
     ]);
 }
 
@@ -48,18 +52,37 @@ export function useBookWrites() {
     }
   }
 
+  /** Replaces the tags of the book; a failure leaves the saved book as it is. */
+  async function applyTags(book: BookOut, tagIds: string[] | undefined): Promise<{ book: BookOut; tagsFailed: boolean }> {
+    if (!tagIds) return { book, tagsFailed: false };
+    try {
+      return { book: await client.setBookTags(book.id, tagIds), tagsFailed: false };
+    } catch {
+      return { book, tagsFailed: true };
+    }
+  }
+
   return {
     create: useMutation({
-      mutationFn: async (v: { body: CreateBook; cover: CoverPlan }): Promise<SaveResult> => {
-        const book = await client.createBook(v.body);
+      mutationFn: async (v: { body: CreateBook; cover: CoverPlan; tagIds?: string[] }): Promise<SaveResult> => {
+        const created = await client.createBook(v.body);
         // A new book has no cover to remove.
         const cover = v.cover.kind === 'remove' ? { kind: 'keep' as const } : v.cover;
-        return { book, coverFailed: await applyCover(book.id, cover) };
+        const coverFailed = await applyCover(created.id, cover);
+        const { book, tagsFailed } = await applyTags(created, v.tagIds?.length ? v.tagIds : undefined);
+        return { book, coverFailed, tagsFailed };
       },
       onSuccess: refresh,
     }),
     update: useMutation({
-      mutationFn: async (v: { id: string; patch: PatchBook; cover: CoverPlan; hadCover: boolean }): Promise<SaveResult> => {
+      mutationFn: async (v: {
+        id: string;
+        patch: PatchBook;
+        cover: CoverPlan;
+        hadCover: boolean;
+        /** The new set of tags; absent when it did not change. */
+        tagIds?: string[];
+      }): Promise<SaveResult> => {
         const changed = Object.keys(v.patch).length > 0;
         // Only a cover that was stored can be deleted.
         const cover = v.cover.kind === 'remove' && !v.hadCover ? { kind: 'keep' as const } : v.cover;
@@ -76,7 +99,8 @@ export function useBookWrites() {
             colorFailed = true;
           }
         }
-        return { book, coverFailed, colorFailed };
+        const withTags = await applyTags(book, v.tagIds);
+        return { book: withTags.book, coverFailed, colorFailed, tagsFailed: withTags.tagsFailed };
       },
       // Also after a partial failure: the fields may be saved even if the cover is not.
       onSettled: refresh,
