@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { fakeConnection } from '../../platform/testing';
 import { book, installIntersectionObserver } from '../books/testkit';
 import { openNewBook, renderWithWrites } from '../books/writeKit';
 
@@ -9,6 +10,11 @@ beforeEach(() => {
   installIntersectionObserver();
 });
 afterEach(() => vi.unstubAllGlobals());
+
+const TWO = {
+  first: { active: 'c1', items: [fakeConnection({ id: 'c1' }), fakeConnection({ id: 'c2', library_name: 'Ufficio' })] },
+  other: { active: 'c2', items: [fakeConnection({ id: 'c1' }), fakeConnection({ id: 'c2', library_name: 'Ufficio' })] },
+};
 
 async function create(title: string) {
   await userEvent.click(screen.getByRole('button', { name: 'Inserisci a mano' }));
@@ -40,6 +46,20 @@ describe('empty library', () => {
 });
 
 describe('first book', () => {
+  it('celebrates the first book saved with "Salva e aggiungi un altro", once the panel closes', async () => {
+    renderWithWrites({ books: [] }, {}, '/books', { celebrate: true });
+    await openNewBook();
+    await userEvent.click(screen.getByRole('button', { name: 'Inserisci a mano' }));
+    await userEvent.type(screen.getByRole('textbox', { name: 'Titolo' }), 'Dune');
+    await userEvent.click(screen.getByRole('button', { name: 'Salva e aggiungi un altro' }));
+    await screen.findByText('«Dune» aggiunto');
+    expect(screen.queryByRole('dialog', { name: 'Il primo libro' })).not.toBeInTheDocument();
+    await create('Secondo');
+    const dialog = await screen.findByRole('dialog', { name: 'Il primo libro' });
+    expect(dialog).toHaveTextContent('«Dune»');
+    expect(dialog).not.toHaveTextContent('Secondo');
+  });
+
   it('celebrates 0 → 1 once, with the title; "Aggiungine un altro" reopens the panel', async () => {
     renderWithWrites({ books: [] }, {}, '/books', { celebrate: true });
     await openNewBook();
@@ -69,22 +89,22 @@ describe('first book', () => {
   });
 
   it('says nothing the second time on the same connection, but does on another', async () => {
-    const first = renderWithWrites({ books: [] }, {}, '/books', { celebrate: true });
+    const first = renderWithWrites({ books: [] }, {}, '/books', { celebrate: true, connections: TWO.first });
     await openNewBook();
     await create('Dune');
     await userEvent.click(await screen.findByRole('button', { name: 'Vai alla libreria' }));
     first.unmount();
     // Same connection, library emptied again: nothing.
-    const second = renderWithWrites({ books: [] }, {}, '/books', { celebrate: true });
+    const second = renderWithWrites({ books: [] }, {}, '/books', { celebrate: true, connections: TWO.first });
     await openNewBook();
     await create('Dune');
     await screen.findByText('«Dune» aggiunto');
     expect(screen.queryByRole('dialog', { name: 'Il primo libro' })).not.toBeInTheDocument();
     second.unmount();
-    // Another connection: celebrates.
-    localStorage.clear();
-    localStorage.setItem('bookeeper.onboarding.firstBook.other', '1');
-    renderWithWrites({ books: [] }, {}, '/books', { celebrate: true });
+    expect(localStorage.getItem('bookeeper.onboarding.firstBook.c1')).toBe('1');
+    expect(localStorage.getItem('bookeeper.onboarding.firstBook.c2')).toBeNull();
+    // Another connection of the same app: celebrates.
+    renderWithWrites({ books: [] }, {}, '/books', { celebrate: true, connections: TWO.other });
     await openNewBook();
     await create('Dune');
     expect(await screen.findByRole('dialog', { name: 'Il primo libro' })).toBeInTheDocument();

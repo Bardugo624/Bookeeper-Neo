@@ -17,3 +17,4 @@ export {
   type ParamSchema,
   type ParamSpec,
 } from './useListParams';
+export { FilePicker, type FilePickerProps } from './FilePicker';

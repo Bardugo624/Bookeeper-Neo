@@ -225,6 +225,7 @@
     "created": "“{title}” added",
     "updated": "“{title}” saved",
     "deleted": "“{title}” deleted",
-    "coverFailed": "The book was saved, but its cover was not."
+    "coverFailed": "The book was saved, but its cover was not.",
+    "colorFailed": "The book was saved, but its spine color was not."
   }
 }

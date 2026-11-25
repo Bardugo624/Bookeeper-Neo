@@ -1,0 +1,42 @@
+.root {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 2px;
+  border-radius: var(--bk-radius-sm);
+}
+
+.dragging {
+  outline: 1.5px dashed var(--bk-primary-400);
+  outline-offset: 2px;
+}
+
+.input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  opacity: 0;
+}
+
+.root:has(.input:focus-visible) .button {
+  outline: 2px solid var(--bk-primary-400);
+  outline-offset: 2px;
+}
+
+.name {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13px;
+  color: var(--bk-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty {
+  color: var(--bk-text-muted);
+}

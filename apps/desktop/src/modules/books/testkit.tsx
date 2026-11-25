@@ -4,6 +4,7 @@ import type { BookOut, RawResponse } from '@bookeeper/api';
 import { renderApp } from '../../app/testing';
 import { fakeConnection, fakePlatform, type FakePlatform } from '../../platform/testing';
 import { ME, ok } from '../../session/fixtures';
+import type { Connections } from '../../platform/types';
 import { module } from './routes';
 
 export function book(i: number, over: Partial<BookOut> = {}): BookOut {
@@ -63,9 +64,9 @@ export function libraryHandler(lib: Library) {
   };
 }
 
-export function booksPlatform(lib: Library): FakePlatform {
+export function booksPlatform(lib: Library, connections?: Connections): FakePlatform {
   const platform = fakePlatform({
-    connections: { active: 'c1', items: [fakeConnection()] },
+    connections: connections ?? { active: 'c1', items: [fakeConnection()] },
     handler: libraryHandler(lib),
   });
   const base = platform.transport.bind(platform);
@@ -89,8 +90,8 @@ export function booksPlatform(lib: Library): FakePlatform {
   return platform;
 }
 
-export function renderBooks(lib: Library, route = '/books') {
-  const platform = booksPlatform(lib);
+export function renderBooks(lib: Library, route = '/books', connections?: Connections) {
+  const platform = booksPlatform(lib, connections);
   return { ...renderApp({ platform, modules: [module], route }), platform };
 }
 

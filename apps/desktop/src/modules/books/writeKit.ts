@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { BookOut } from '@bookeeper/api';
+import type { Connections } from '../../platform/types';
 import type { FakePlatform } from '../../platform/testing';
 import { ok } from '../../session/fixtures';
 import { book, renderBooks, type Library } from './testkit';
@@ -47,11 +48,11 @@ export function renderWithWrites(
   lib: Omit<Library, 'extra'>,
   routes: Parameters<typeof writeRoutes>[0] = {},
   route = '/books',
-  opts: { celebrate?: boolean } = {},
+  opts: { celebrate?: boolean; connections?: Connections } = {},
 ) {
   if (!opts.celebrate) localStorage.setItem('bookeeper.onboarding.firstBook.c1', '1');
   const handler = writeRoutes(routes);
-  const view = renderBooks({ ...lib, extra: (r) => handler(r) }, route);
+  const view = renderBooks({ ...lib, extra: (r) => handler(r) }, route, opts.connections);
   return view;
 }
 

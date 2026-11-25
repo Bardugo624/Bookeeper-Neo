@@ -225,6 +225,7 @@
     "created": "«{title}» aggiunto",
     "updated": "«{title}» salvato",
     "deleted": "«{title}» eliminato",
-    "coverFailed": "Il libro è stato salvato, ma la copertina no."
+    "coverFailed": "Il libro è stato salvato, ma la copertina no.",
+    "colorFailed": "Il libro è stato salvato, ma il colore del dorso no."
   }
 }

@@ -1,10 +1,10 @@
 import { Button } from '@bookeeper/ui/base';
 import { PillTabs } from '@bookeeper/ui/overlays';
 import { useT } from '../../../../app/i18n';
+import { FilePicker } from '../../../../kit';
 import { SettingsBlock } from '../../SettingsBlock';
-import { ImportDropzone } from './ImportDropzone';
 import { ImportReportView } from './ImportReportView';
-import { IMPORT_FORMATS, isImportFormat } from './transferModel';
+import { IMPORT_FORMATS, IMPORT_LIMIT_MB, isImportFormat } from './transferModel';
 import { useImport } from './useImport';
 import styles from './TransferSection.module.css';
 
@@ -21,7 +21,17 @@ export function ImportBlock() {
         onChange={(id) => isImportFormat(id) && imp.setFormat(id)}
         items={IMPORT_FORMATS.map((f) => ({ id: f, label: t(`transfer.import.format.${f}`) }))}
       />
-      <ImportDropzone disabled={imp.busy} onPick={imp.choose} />
+      <FilePicker
+        label={t('common.file.choose')}
+        inputLabel={t('transfer.import.drop.label')}
+        accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values,text/plain"
+        fileName={imp.file?.name}
+        disabled={imp.busy}
+        droppable
+        draggingLabel={t('transfer.import.drop.dragging')}
+        onPick={imp.choose}
+      />
+      <p className={styles.note}>{t('transfer.import.drop.hint', { size: IMPORT_LIMIT_MB })}</p>
       {imp.file ? (
         <p className={styles.note}>{t('transfer.import.selected', { name: imp.file.name, size: Math.max(1, Math.round(imp.file.size / 1024)) })}</p>
       ) : null}

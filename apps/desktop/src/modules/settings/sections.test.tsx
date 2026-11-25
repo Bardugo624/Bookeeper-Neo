@@ -19,6 +19,17 @@ function fake(id: string, order: number, extra: Partial<SettingsSection> = {}) {
   return { section: { id, labelKey: `fake.${id}`, icon: 'info', order, element: <p>contenuto {id}</p>, ...extra } as SettingsSection };
 }
 
+describe('section icons', () => {
+  it('gives each of the original sections its own icon, and none is the map pin', () => {
+    const known = ['account', 'appearance', 'library', 'transfer', 'backup', 'about'];
+    const mine = collectSections({ role: 'owner', platform: 'desktop' } as never).filter((s) => known.includes(s.id));
+    expect(mine.map((s) => s.id).sort()).toEqual([...known].sort());
+    const icons = mine.map((s) => s.icon);
+    expect(new Set(icons).size).toBe(icons.length);
+    expect(icons).not.toContain('pin');
+  });
+});
+
 describe('collectSections', () => {
   it('orders by `order` and drops hidden ones', () => {
     const files = { a: fake('late', 90), b: fake('early', 5), c: fake('hidden', 1, { visible: () => false }), d: {} };
