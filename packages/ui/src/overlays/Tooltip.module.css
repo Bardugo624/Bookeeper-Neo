@@ -1,0 +1,29 @@
+.content {
+    z-index: var(--bk-z-tooltip);
+    max-width: 280px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    background: var(--bk-tooltip-bg);
+    color: var(--bk-tooltip-text);
+    font-size: 12px;
+    line-height: 1.4;
+    transform-origin: var(--radix-tooltip-content-transform-origin);
+}
+
+.arrow {
+    fill: var(--bk-tooltip-bg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .content[data-state='delayed-open'],
+    .content[data-state='instant-open'] {
+        animation: tooltip-in var(--bk-dur-fast) var(--bk-ease-spring);
+    }
+
+    @keyframes tooltip-in {
+        from {
+            opacity: 0;
+            transform: scale(0.92);
+        }
+    }
+}
