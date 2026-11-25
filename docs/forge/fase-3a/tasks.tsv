@@ -1,0 +1,6 @@
+# id	deps	difficulty	files	dwarf	qa	title
+m-foundation	-	high	apps/mobile,package-lock.json,packages/i18n/src/locales/it/mobile.json,packages/i18n/src/locales/en/mobile.json,crates/bookeeper-server/build.rs	-	-	Mobile: fondamenta, sessione, guscio a schede, PWA
+m-pair	m-foundation	high	apps/mobile/src/modules/pair,packages/i18n/src/locales/it/mpair.json,packages/i18n/src/locales/en/mpair.json	-	-	Mobile: abbinamento da QR o codice
+m-search	m-foundation	high	apps/mobile/src/modules/search,packages/i18n/src/locales/it/msearch.json,packages/i18n/src/locales/en/msearch.json	-	-	Mobile: cerca e scheda libro
+m-account	m-foundation	medium	apps/mobile/src/modules/account,packages/i18n/src/locales/it/maccount.json,packages/i18n/src/locales/en/maccount.json	-	-	Mobile: account
+m-scan	m-search	high	apps/mobile/src/modules/scan,packages/i18n/src/locales/it/mscan.json,packages/i18n/src/locales/en/mscan.json	-	-	Mobile: scansione ISBN
