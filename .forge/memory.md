@@ -11,6 +11,7 @@
 - UPDATE_OPENAPI=1 cargo test -p bookeeper-core --test openapi -- --include-ignored && npm run gen -w @bookeeper/api && npm test -w @bookeeper/api [packages/api/openapi.json]
 
 ## Known traps
+- bookeeper-server writes its tracing logs to stdout, so a test that waits for a fixed number of stdout lines depends on RUST_LOG and can hang [crates/bookeeper-server/src/main.rs]
 - utoipa 5 leaves `Option<T>` fields out of `required`; use `#[schema(required = true)]` to list a nullable field as required [crates/bookeeper-core/src/api/server.rs]
 - clap `global = true` on flattened Config args lets server flags work before or after a subcommand; setup-code/fingerprint keep their own… [crates/bookeeper-server/src/config.rs]
 - `cargo test -p bookeeper-core` needs a free network-less run only if `tests/plumbing_c.rs` stub_lookup is unaffected; utoipa response edits… [crates/bookeeper-core/src/api/mod.rs]
@@ -28,5 +29,4 @@
 - the bookeeper-server binary builds its router through `build_with_db` in main.rs, not lib.rs `build()`; changing only `build()` does not… [crates/bookeeper-server/src/main.rs]
 - the `uuid` dependency only enables the `v7` feature, so use `Uuid::now_v7()`, not `new_v4()` [crates/bookeeper-core/Cargo.toml]
 - tests/skeleton_b.rs asserted 404 on routes that later tasks implement; it breaks whenever one of them lands [crates/bookeeper-core/tests/skeleton_b.rs]
-- tests/skeleton_b.rs `empty_modules_are_mounted` asserts 404 on routes that later tasks implement; it breaks whenever one of them lands [crates/bookeeper-core/tests/skeleton_b.rs]
 
