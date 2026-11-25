@@ -49,6 +49,9 @@ export function BooksPage() {
 
   const filters: PillTabItem[] = [
     { id: 'all', label: t('books.filters.all') },
+    { id: 'to_read', label: t('books.filters.to_read') },
+    { id: 'reading', label: t('books.filters.reading') },
+    { id: 'read', label: t('books.filters.read') },
     { id: 'loan', label: t('books.filters.loan') },
     { id: 'unshelved', label: t('books.filters.unshelved') },
   ];

@@ -1,0 +1,150 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--bk-border);
+  border-radius: var(--bk-radius-lg);
+  background: var(--bk-surface);
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bk-text-muted);
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.facts {
+  min-width: 0;
+}
+
+.status {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--bk-text-strong);
+}
+
+.note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--bk-text-muted);
+}
+
+.invite {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--bk-text-strong);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+
+.label {
+  font-size: 11px;
+  color: var(--bk-text-faint);
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pageInput {
+  width: 64px;
+  text-align: center;
+}
+
+.stars {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.starGroup {
+  display: flex;
+}
+
+.star,
+.starOn {
+  padding: 0 1px;
+  border: 0;
+  background: none;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: var(--bk-radius-sm);
+  color: var(--bk-border-strong);
+}
+
+.starOn {
+  color: var(--bk-warn);
+}
+
+.star:focus-visible,
+.starOn:focus-visible,
+.clear:focus-visible {
+  outline: 2px solid var(--bk-focus);
+  outline-offset: 2px;
+}
+
+.clear {
+  border: 0;
+  background: none;
+  padding: 2px 4px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--bk-text-muted);
+  cursor: pointer;
+  border-radius: var(--bk-radius-sm);
+}
+
+.clear:hover {
+  color: var(--bk-text-strong);
+}
+
+.count {
+  margin: 0;
+  font-size: 12px;
+  color: var(--bk-text-muted);
+  text-align: right;
+}
+
+.error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--bk-danger-strong);
+}
+
+.readOn {
+  display: inline-flex;
+  align-items: center;
+  height: 38px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--bk-ok-strong);
+}

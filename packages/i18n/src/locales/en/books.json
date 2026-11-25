@@ -15,6 +15,9 @@
   "filters": {
     "label": "Filters",
     "all": "All",
+    "to_read": "To read",
+    "reading": "Reading",
+    "read": "Read",
     "loan": "On loan",
     "unshelved": "Unshelved"
   },
@@ -36,6 +39,7 @@
       "author": "Author",
       "year": "Year",
       "placement": "Location",
+      "reading": "Reading",
       "status": "Loan"
     },
     "sortBy": "Sort by {column}"

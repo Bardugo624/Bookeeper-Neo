@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useClient, useSession } from '../../session';
-import type { ListState } from './listParams';
+import { isReadingFilter, type ListState } from './listParams';
 
 export const PAGE_SIZE = 60;
 
@@ -14,6 +14,7 @@ export function useBookList(state: Pick<ListState, 'q' | 'filter' | 'sort' | 'or
     q: q || undefined,
     on_loan: state.filter === 'loan' ? true : undefined,
     unshelved: state.filter === 'unshelved' ? true : undefined,
+    reading: isReadingFilter(state.filter) ? state.filter : undefined,
     sort: state.sort ?? undefined,
     // The API refuses `order` without `sort`.
     order: state.sort ? state.order : undefined,

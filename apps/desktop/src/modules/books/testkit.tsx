@@ -50,6 +50,7 @@ export function libraryHandler(lib: Library) {
       if (lib.fail?.on) return { status: 500, body: { error_code: 'internal', message: 'x' } };
       let rows = lib.books;
       if (q.get('on_loan') === 'true') rows = rows.filter((b) => b.on_loan);
+      if (q.get('reading')) rows = rows.filter((b) => b.reading?.status === q.get('reading'));
       if (q.get('unshelved') === 'true') rows = rows.filter((b) => !b.placement);
       const text = q.get('q');
       if (text) rows = rows.filter((b) => [b.title, b.isbn_13, b.isbn_10].some((f) => f?.toLowerCase().includes(text.toLowerCase())));
@@ -57,6 +58,7 @@ export function libraryHandler(lib: Library) {
       const limit = Number(q.get('limit') ?? 50);
       return ok({ items: rows.slice(offset, offset + limit), total: rows.length });
     }
+    if (/^\/api\/v1\/books\/[^/]+\/reading$/.test(p)) return ok(null);
     const m = /^\/api\/v1\/books\/([^/]+)$/.exec(p);
     if (m) {
       const found = lib.books.find((b) => b.id === decodeURIComponent(m[1]!));
