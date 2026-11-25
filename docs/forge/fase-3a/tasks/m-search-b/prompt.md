@@ -1,4 +1,4 @@
-Leggi prima `docs/forge/fase-3a/CONTRATTO.md`, `docs/forge/fase-2a/CONTRATTO.md` e `docs/forge/fase-2a/MOCKUP.md`. La task `m-foundation` è già unita. Leggi `apps/mobile/src/{app,session,kit}`, `packages/api/src/resources/{books,covers}.ts`, il modulo `books` di `apps/desktop` (per come usa elenco e copertine: non importarlo) e `clients/mobile-web/src/views/{SearchView,BookDetailView}.vue`.
+Leggi prima `docs/forge/fase-3a/CONTRATTO.md`, `docs/forge/fase-2a/CONTRATTO.md` e `docs/forge/fase-2a/MOCKUP.md`. Le task `m-foundation` e `m-foundation-2` sono già unite. Leggi `apps/mobile/src/{app,session,kit}`, `packages/api/src/resources/{books,covers}.ts`, il modulo `books` di `apps/desktop` (per come usa elenco e copertine: non importarlo) e `clients/mobile-web/src/views/{SearchView,BookDetailView}.vue`.
 
 # Mobile: cerca e scheda libro
 
@@ -22,7 +22,7 @@ Testi nello spazio dei nomi `msearch`.
 - Scheda: collocato e non collocato; in prestito; descrizione lunga richiusa e apribile; 404; ritorno con ricerca conservata.
 - Bersagli tattili: le righe sono alte almeno 44px (controllo sul CSS).
 
-## Aggiunta dopo il primo giro di revisione
+## Punti da non sbagliare
 
 La task `m-foundation-2` è unita: il trasporto autenticato ha `requestRaw`. Le copertine si leggono davvero: aggiungi un test con il trasporto vero dell'app e una risposta binaria finta. Correggi anche l'offline: una ricerca o un filtro nuovo senza rete NON sostituisce l'ultimo risultato con lo stato d'errore; resta l'ultimo risultato con la striscia offline (`placeholderData` con i dati precedenti).
 

@@ -1,4 +1,4 @@
-Leggi prima `docs/forge/fase-3a/CONTRATTO.md`, `docs/forge/fase-2a/CONTRATTO.md` e `docs/forge/fase-2a/MOCKUP.md`. La task `m-foundation` è già unita. Leggi `apps/mobile/src/{app,session,shell,kit}` e `clients/mobile-web/src/views/AccountView.vue`.
+Leggi prima `docs/forge/fase-3a/CONTRATTO.md`, `docs/forge/fase-2a/CONTRATTO.md` e `docs/forge/fase-2a/MOCKUP.md`. Le task `m-foundation` e `m-foundation-2` sono già unite. Leggi `apps/mobile/src/{app,session,shell,kit}` e `clients/mobile-web/src/views/AccountView.vue`.
 
 # Mobile: account
 
@@ -22,7 +22,7 @@ Testi nello spazio dei nomi `maccount`.
 - Scollega: conferma; logout chiamato; sessione cancellata; errore di rete → cancellata comunque, con messaggio.
 - "Cerca aggiornamenti" chiama la piattaforma.
 
-## Aggiunta dopo il primo giro di revisione
+## Punti da non sbagliare
 
 La task `m-foundation-2` è unita: le preferenze di tema e lingua vivono nelle fondamenta. Usa `useThemePreference()` e `useLocalePreference()` da `apps/mobile/src/app`; togli dal modulo ogni gestione propria di tema e lingua.
 

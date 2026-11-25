@@ -1,4 +1,4 @@
-Leggi prima `docs/forge/fase-3a/CONTRATTO.md`, `docs/forge/fase-2a/CONTRATTO.md` e `docs/forge/fase-2a/MOCKUP.md`. Le task `m-foundation` e `m-search` sono già unite. Leggi `apps/mobile/src/platform` (fotocamera e lettore di codici), `apps/mobile/src/modules/search` (per collegarti alla scheda libro: solo per indirizzo, senza importare file interni), `packages/api/src/resources/{books,lookup}.ts`, i ruoli richiesti dal core per creare un libro, e `clients/mobile-web/src/views/ScanView.vue` della 0.3 (flusso e messaggi).
+Leggi prima `docs/forge/fase-3a/CONTRATTO.md`, `docs/forge/fase-2a/CONTRATTO.md` e `docs/forge/fase-2a/MOCKUP.md`. Le task `m-foundation`, `m-foundation-2` e `m-search-b` (modulo `search`) sono già unite. Leggi `apps/mobile/src/platform` (fotocamera e lettore di codici), `apps/mobile/src/modules/search` (per collegarti alla scheda libro: solo per indirizzo, senza importare file interni), `packages/api/src/resources/{books,lookup}.ts`, i ruoli richiesti dal core per creare un libro, e `clients/mobile-web/src/views/ScanView.vue` della 0.3 (flusso e messaggi).
 
 # Mobile: scansione ISBN
 

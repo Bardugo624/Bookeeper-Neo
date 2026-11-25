@@ -1,4 +1,4 @@
-Leggi prima `docs/forge/fase-3a/CONTRATTO.md`, `docs/forge/fase-2a/CONTRATTO.md` e `docs/forge/fase-2a/MOCKUP.md`. La task `m-foundation` è già unita. Leggi `apps/mobile/src/{app,session,kit,platform}`, `crates/bookeeper-core/src/api/pairing.rs` (campi, codici d'errore, scadenza) e `clients/mobile-web/src/views/Pair*.vue` della 0.3.
+Leggi prima `docs/forge/fase-3a/CONTRATTO.md`, `docs/forge/fase-2a/CONTRATTO.md` e `docs/forge/fase-2a/MOCKUP.md`. Le task `m-foundation` e `m-foundation-2` sono già unite. Leggi `apps/mobile/src/{app,session,kit,platform}`, `crates/bookeeper-core/src/api/pairing.rs` (campi, codici d'errore, scadenza) e `clients/mobile-web/src/views/Pair*.vue` della 0.3.
 
 # Mobile: abbinamento da QR o codice
 
@@ -23,7 +23,7 @@ Testi nello spazio dei nomi `mpair`.
 - Già collegato: i due esiti.
 - Doppio tocco → una richiesta.
 
-## Aggiunta dopo il primo giro di revisione
+## Punti da non sbagliare
 
 La task `m-foundation-2` è unita: con una sessione valida le rotte `/pair` restano raggiungibili quando l'indirizzo porta un `code`. Il test "già collegato" DEVE montare l'app vera con `renderMobile` e il cancello di sessione, non il componente da solo.
 
