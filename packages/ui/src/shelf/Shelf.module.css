@@ -1,0 +1,146 @@
+.unit {
+    position: relative;
+    padding: 14px;
+    border-radius: 8px;
+    background-color: var(--shelf-color);
+    background-image: var(--shelf-grain);
+    box-shadow: var(--bk-shadow-2);
+}
+
+.back {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 6px 6px 0;
+    border-radius: 3px;
+    background: var(--shelf-back);
+}
+
+.band {
+    position: relative;
+}
+
+.strip {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 132px;
+    padding: 6px 6px 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    background: var(--shelf-niche);
+    background-repeat: no-repeat;
+    background-size: 100% 26px;
+}
+
+.board {
+    height: 10px;
+    margin: 0 -6px;
+    background: var(--shelf-board);
+    background-image: var(--shelf-grain);
+    border-radius: 1px;
+    box-shadow: 0 6px 8px -2px var(--shelf-cast);
+}
+
+.spine {
+    position: relative;
+    flex: none;
+    box-sizing: border-box;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 2px 2px 0 0;
+    background-image: var(--spine-shade);
+    cursor: grab;
+}
+
+.spine::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--spine-glow);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.spine:hover,
+.spine:focus-visible,
+.spine[data-picked] {
+    transform: translateY(-2.5px);
+}
+
+.spine:hover::after,
+.spine:focus-visible::after {
+    opacity: 0.16;
+}
+
+.spine:focus-visible {
+    outline: 2px solid var(--bk-primary-400);
+    outline-offset: 2px;
+}
+
+.spine[aria-pressed='true'] {
+    border-color: var(--bk-primary-300);
+}
+
+.spine[data-picked] {
+    opacity: 0.7;
+}
+
+.empty {
+    flex: none;
+    width: 20px;
+    height: 80%;
+    border-radius: 2px 2px 0 0;
+    background: var(--shelf-empty);
+}
+
+.slot {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 20px;
+    height: 90%;
+    box-sizing: border-box;
+    border: 1.5px dashed var(--bk-primary-300);
+    border-radius: 2px 2px 0 0;
+    pointer-events: none;
+}
+
+.tipTitle {
+    display: block;
+    font-weight: 700;
+}
+
+.tipDetail {
+    display: block;
+}
+
+.live {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .spine {
+        transition:
+            transform var(--bk-dur-fast) var(--bk-ease),
+            opacity var(--bk-dur-fast) var(--bk-ease);
+        animation: spine-in var(--bk-dur-slow) var(--bk-ease) var(--spine-delay, 0ms) backwards;
+    }
+
+    .spine::after {
+        transition: opacity var(--bk-dur-fast) var(--bk-ease);
+    }
+
+    @keyframes spine-in {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+    }
+}
