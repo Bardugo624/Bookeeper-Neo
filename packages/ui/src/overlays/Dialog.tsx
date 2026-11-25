@@ -36,9 +36,15 @@ function focusCandidates(): Element[] {
     const menuId = active.closest('[role="menu"]')?.getAttribute('aria-labelledby');
     const menuTrigger = menuId ? document.getElementById(menuId) : null;
     if (menuTrigger) list.push(menuTrigger);
-    const all = Array.from(document.querySelectorAll(FOCUSABLE)).filter((el) => !el.hasAttribute('disabled'));
-    const at = all.indexOf(active);
-    if (at > 0) list.push(...all.slice(0, at).reverse());
+    // Position in the document, even when the opener itself does not match the selector.
+    const before = Array.from(document.querySelectorAll(FOCUSABLE)).filter(
+      (el) =>
+        el !== active &&
+        !el.hasAttribute('disabled') &&
+        !el.contains(active) &&
+        Boolean(active.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_PRECEDING),
+    );
+    list.push(...before.reverse());
   }
   const first = document.querySelector(FOCUSABLE);
   if (first) list.push(first);

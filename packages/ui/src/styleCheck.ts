@@ -33,7 +33,8 @@ export function findLiteralColor(css: string): string | null {
   for (const decl of src.split(/[;{}]/)) {
     const colon = decl.indexOf(':');
     if (colon === -1) continue;
-    const named = NAMED.exec(decl.slice(colon + 1).replace(/var\([^)]*\)/g, ''));
+    // Only the variable name is dropped: a fallback, however nested, is checked like any other value.
+    const named = NAMED.exec(decl.slice(colon + 1).replace(/var\(\s*--[\w-]*\s*,?/gi, ' '));
     if (named) return named[0];
   }
   return null;

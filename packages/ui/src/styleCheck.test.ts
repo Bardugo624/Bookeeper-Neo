@@ -16,3 +16,9 @@ it('accepts transparent, currentColor, inherit, tokens and words that merely con
     findLiteralColor('.red-box { color: currentColor; background: transparent; border-color: inherit; white-space: nowrap; fill: var(--bk-cover-light); }'),
   ).toBeNull();
 });
+it('checks the fallback of var() like any other value', () => {
+  expect(findLiteralColor('.a { color: var(--x, red); }')).toBe('red');
+  expect(findLiteralColor('.a { color: var(--a, var(--b, #fff)); }')).not.toBeNull();
+  expect(findLiteralColor('.a { color: var(--a, var(--b, white)); }')).toBe('white');
+  expect(findLiteralColor('.a { color: var(--x); background: var(--x, transparent); }')).toBeNull();
+});

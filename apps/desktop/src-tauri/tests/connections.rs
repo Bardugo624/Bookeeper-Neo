@@ -264,3 +264,61 @@ fn two_corrupt_files_in_one_second_are_both_kept() {
     bodies.sort();
     assert_eq!(bodies, ["{ first", "{ second", "{ third"]);
 }
+
+fn aside_files(dir: &std::path::Path) -> Vec<(String, String)> {
+    let mut v: Vec<_> = std::fs::read_dir(dir)
+        .unwrap()
+        .filter_map(Result::ok)
+        .filter(|e| {
+            e.file_name()
+                .to_string_lossy()
+                .starts_with("connections.json.corrotto-")
+        })
+        .map(|e| {
+            (
+                e.file_name().to_string_lossy().into_owned(),
+                std::fs::read_to_string(e.path()).unwrap(),
+            )
+        })
+        .collect();
+    v.sort();
+    v
+}
+
+#[test]
+fn a_taken_aside_name_stays_intact_and_the_next_name_is_used() {
+    let (d, s) = store();
+    let path = d.path().join("connections.json");
+    // Every name this second could pick is already taken.
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+    for secs in now.saturating_sub(1)..=now + 2 {
+        std::fs::write(
+            d.path().join(format!("connections.json.corrotto-{secs}")),
+            "old",
+        )
+        .unwrap();
+    }
+    std::fs::write(&path, "{ new").unwrap();
+    assert!(s.load().unwrap().items.is_empty());
+    let files = aside_files(d.path());
+    assert_eq!(files.iter().filter(|(_, b)| b == "old").count(), 4);
+    assert_eq!(files.iter().filter(|(_, b)| b == "{ new").count(), 1);
+    assert!(!path.exists());
+}
+
+#[test]
+fn two_stores_on_one_folder_keep_two_files() {
+    let d = tempfile::tempdir().unwrap();
+    let (a, b) = (Store::new(d.path()), Store::new(d.path()));
+    let path = d.path().join("connections.json");
+    std::fs::write(&path, "{ one").unwrap();
+    assert!(a.load().unwrap().items.is_empty());
+    std::fs::write(&path, "{ two").unwrap();
+    assert!(b.load().unwrap().items.is_empty());
+    let bodies: Vec<_> = aside_files(d.path()).into_iter().map(|(_, b)| b).collect();
+    assert_eq!(bodies.len(), 2);
+    assert!(bodies.contains(&"{ one".to_string()) && bodies.contains(&"{ two".to_string()));
+}
