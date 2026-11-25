@@ -3,7 +3,7 @@ import { Select } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
 import type { FormState } from '../../kit';
 import { AuthorsField } from './AuthorsField';
-import { FORMATS, type BookFormValues } from './bookForm';
+import { FORMATS, type BookFormValues } from './bookFormModel';
 import styles from './BookForm.module.css';
 
 type Form = FormState<BookFormValues>;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { t as translate } from '@bookeeper/i18n';
 import { book } from './testkit';
-import { emptyForm, fromBook, toCreateBody, toPatchBody, validateBook } from './bookForm';
+import { emptyForm, fromBook, toCreateBody, toPatchBody, validateBook } from './bookFormModel';
 
 const t = (key: string, vars?: Record<string, string | number>) => translate('it', key, vars);
 

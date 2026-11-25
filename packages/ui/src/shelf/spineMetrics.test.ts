@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { spineHeight, spineWidth } from './spine';
+import { spineHeight, spineWidth } from './spineMetrics';
 
 describe('spineWidth', () => {
   it('is 12 up to 80 pages and 34 from 900', () => {
