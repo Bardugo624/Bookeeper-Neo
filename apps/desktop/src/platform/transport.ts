@@ -35,7 +35,9 @@ function networkError(e: unknown): ApiError {
   return new ApiError(0, 'network', e instanceof Error ? e.message : String(e));
 }
 
-export function createTauriTransport(): Transport {
+export function createTauriTransport(connectionId?: string): Transport {
+  // Omitted when absent so the shell falls back to the active connection.
+  const conn = connectionId === undefined ? {} : { connection_id: connectionId };
   return {
     async request(method, path, body, headers) {
       let res: ApiResponse;
@@ -44,6 +46,7 @@ export function createTauriTransport(): Transport {
           method,
           path,
           body: body === undefined ? null : JSON.stringify(body),
+          ...conn,
           ...(headers === undefined ? {} : { headers }),
         });
       } catch (e) {
@@ -66,6 +69,7 @@ export function createTauriTransport(): Transport {
           body_base64: req.body === undefined ? null : toBase64(req.body),
           content_type: req.contentType ?? null,
           headers: req.headers ?? {},
+          ...conn,
         });
       } catch (e) {
         throw networkError(e);

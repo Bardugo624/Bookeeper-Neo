@@ -1,0 +1,38 @@
+.shell {
+  display: flex;
+  height: 100vh;
+  background: var(--bk-bg);
+  overflow: hidden;
+}
+
+.column {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 8px 32px 32px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .content {
+    animation: enter var(--bk-dur) var(--bk-ease) both;
+  }
+
+  @keyframes enter {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}

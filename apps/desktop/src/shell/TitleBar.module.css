@@ -1,0 +1,15 @@
+.bar {
+  height: 36px;
+  flex: none;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 8px;
+  user-select: none;
+}
+
+.controls {
+  display: flex;
+  gap: 2px;
+  color: var(--bk-text-faint);
+}
