@@ -49,49 +49,69 @@ export interface Move {
 }
 
 export interface Plan {
-  /** Neighbours that make room, in the order the requests must run. */
-  shifts: Move[];
+  /** The slot the moved book is sent to. */
   slot: number;
-  /** The moved book has to step aside first: its row is full and its own slot is the only gap. */
-  park?: boolean;
+  /** Books that slide with it, as the core will move them; empty when the core answers `row_full`. */
+  moves: Move[];
 }
 
 /**
- * Where a book dropped at `index` (among the row's other books) lands. The core keeps fixed slots, so
- * the book takes a free slot between its neighbours, or the neighbours shift by one towards the nearest
- * gap. `row` holds every book of the row, including the moved one when it comes from the same row:
- * it still sits on its slot until its own request runs. Null when the row has no free slot.
+ * Where a book dropped at `index` (among the row's other books) is sent. It takes a free slot between
+ * its neighbours; with none, it asks for the slot of the book it goes before and the core slides the
+ * run of books from there one slot right (`shift: true`). `row` holds every book of the row, including
+ * the moved one when it comes from the same row. Null when the row has no free slot for a newcomer.
  */
 export function planPlacement(row: ShelfBook[], movedId: string, index: number, slots: number): Plan | null {
   const rest = row.filter((b) => b.book_id !== movedId);
+  if (rest.length >= slots) return null;
   const at = rest[index];
-  const pos = at ? row.indexOf(at) : row.length;
-  const prev = row[pos - 1];
-  const next = row[pos];
+  const prev = rest[(at ? index : rest.length) - 1];
   const lo = prev ? prev.slot_index + 1 : 0;
-  const hi = next ? next.slot_index - 1 : slots - 1;
-  if (lo <= hi) return { shifts: [], slot: lo };
+  const hi = at ? at.slot_index - 1 : slots - 1;
+  let slot = lo <= hi ? lo : at ? at.slot_index : prev!.slot_index;
+  if (lo > hi && at && prev) {
+    // Moving right within the row, with the run from `at` reaching the row end, the core slides the
+    // books between left and `at` itself would end up before the moved book: ask for the previous
+    // neighbour's slot instead, so the book lands just before `at`.
+    const old = row.find((b) => b.book_id === movedId);
+    let next = slot;
+    for (const b of rest.filter((o) => o.slot_index >= slot)) {
+      if (b.slot_index !== next) break;
+      next += 1;
+    }
+    if (old && old.slot_index < slot && next >= slots) slot = prev.slot_index;
+  }
+  return { slot, moves: shiftedBy(row, movedId, slot, slots) };
+}
 
-  for (let j = pos; j < row.length; j++) {
-    const after = row[j + 1];
-    const room = after ? after.slot_index - row[j]!.slot_index > 1 : row[j]!.slot_index < slots - 1;
-    if (!room) continue;
-    const shifts = row.slice(pos, j + 1).reverse().map((b) => ({ bookId: b.book_id, slot: b.slot_index + 1 }));
-    return { shifts, slot: row[pos]!.slot_index };
+/**
+ * What the core does for `PUT placement` with `shift: true`: the moved book leaves its old slot, the
+ * contiguous run from `slot` slides one slot right; when the run reaches the end of a row the book
+ * is moving right in, the books between its old slot and `slot` slide left instead. The moved book
+ * comes last. Empty when the core answers `row_full`.
+ */
+export function shiftedBy(row: ShelfBook[], movedId: string, slot: number, slots: number): Move[] {
+  const old = row.find((b) => b.book_id === movedId);
+  const others = row.filter((b) => b.book_id !== movedId);
+  const run: ShelfBook[] = [];
+  let next = slot;
+  for (const b of others.filter((o) => o.slot_index >= slot)) {
+    if (b.slot_index !== next) break;
+    run.push(b);
+    next += 1;
   }
-  for (let j = pos - 1; j >= 0; j--) {
-    const before = row[j - 1];
-    const room = before ? row[j]!.slot_index - before.slot_index > 1 : row[j]!.slot_index > 0;
-    if (!room) continue;
-    const shifts = row.slice(j, pos).map((b) => ({ bookId: b.book_id, slot: b.slot_index - 1 }));
-    return { shifts, slot: row[pos - 1]!.slot_index };
+  const overflow = next >= slots && run.length > 0;
+  let moves: Move[];
+  if (overflow && old && old.slot_index < slot) {
+    moves = others
+      .filter((o) => o.slot_index > old.slot_index && o.slot_index <= slot)
+      .map((o) => ({ bookId: o.book_id, slot: o.slot_index - 1 }));
+  } else if (overflow) {
+    return [];
+  } else {
+    moves = run.map((o) => ({ bookId: o.book_id, slot: o.slot_index + 1 }));
   }
-  // A full row being reordered: the moved book's own slot is the gap, once it has stepped aside.
-  if (rest.length !== row.length) {
-    const plan = planPlacement(rest, movedId, index, slots);
-    return plan && { ...plan, park: true };
-  }
-  return null;
+  return [...moves, { bookId: movedId, slot }];
 }
 
 /** True when dropping `bookId` at `index` of its own row would change nothing. */

@@ -2,7 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { dropOnRow, startDrag } from './dnd';
-import { book, placements, renderShelves, shelf, type World } from './testkit';
+import { book, placementRequests, placements, renderShelves, shelf, type World } from './testkit';
 
 function world(over: Partial<World> = {}): World {
   return {
@@ -112,8 +112,11 @@ describe('placing', () => {
     expect(w.spots.u1).toBeUndefined();
     open();
     await waitFor(() => expect(w.spots.u1).toEqual({ shelf: 's1', row: 0, slot: 1 }));
-    // Neighbours made room, last one first.
-    expect(placements(platform)).toEqual([['b3', 0, 3], ['b2', 0, 2], ['u1', 0, 1]]);
+    // One request: the core makes room for it.
+    expect(placements(platform)).toEqual([['u1', 0, 1]]);
+    expect(placementRequests(platform)).toEqual([{ method: 'PUT', shift: true }]);
+    expect(w.spots.b2).toEqual({ shelf: 's1', row: 0, slot: 2 });
+    expect(w.spots.b3).toEqual({ shelf: 's1', row: 0, slot: 3 });
     await waitFor(() => expect(screen.queryByText('Libro u1')).toBeNull());
   });
 
@@ -178,43 +181,78 @@ describe('placing', () => {
   });
 });
 
-describe('reordering a full row', () => {
+describe('reordering', () => {
   const full = (over: Partial<World> = {}) => {
     const w = world(over);
     w.books.push(book('c5'));
     w.spots.c5 = { shelf: 's2', row: 0, slot: 4 };
     return w;
   };
-  const deletes = (platform: ReturnType<typeof renderShelves>['platform']) =>
-    platform.calls.filter((c) => c.method === 'DELETE').map((c) => c.path);
+  const order = (ids: string[]) => ids.map((id) => `Libro ${id}, Autore ${id}`);
 
-  it('takes the book off for a moment when the cabinet has no other free slot', async () => {
+  it('moves a book inside a full row with one request and no DELETE', async () => {
     const w = full();
     const { platform } = renderShelves(w, '/shelves?unit=s2');
     await screen.findByRole('button', { name: 'Libro c5, Autore c5' });
     dropOnRow('c5', 'Ripiano 1', 0);
     await waitFor(() => expect(w.spots.c5).toEqual({ shelf: 's2', row: 0, slot: 0 }));
-    expect(deletes(platform)).toEqual(['/api/v1/books/c5/placement']);
-    expect(placements(platform)).toEqual([['c4', 0, 4], ['c3', 0, 3], ['c2', 0, 2], ['c1', 0, 1], ['c5', 0, 0]]);
-    expect(spineNames('Ripiano 1')).toEqual(['c5', 'c1', 'c2', 'c3', 'c4'].map((id) => `Libro ${id}, Autore ${id}`));
+    expect(placementRequests(platform)).toEqual([{ method: 'PUT', shift: true }]);
+    expect(placements(platform)).toEqual([['c5', 0, 0]]);
+    expect(spineNames('Ripiano 1')).toEqual(order(['c5', 'c1', 'c2', 'c3', 'c4']));
     expect(screen.queryByText('Il ripiano è pieno.')).toBeNull();
   });
 
-  it('puts every book back where it was when a step fails halfway', async () => {
-    const w = full({ takenOnce: 'c2' });
+  it('moves a book to the end of a full row with one request', async () => {
+    const w = full();
+    const { platform } = renderShelves(w, '/shelves?unit=s2');
+    await screen.findByRole('button', { name: 'Libro c1, Autore c1' });
+    dropOnRow('c1', 'Ripiano 1', 500);
+    await waitFor(() => expect(w.spots.c1).toEqual({ shelf: 's2', row: 0, slot: 4 }));
+    expect(placementRequests(platform)).toEqual([{ method: 'PUT', shift: true }]);
+    expect(Object.entries(w.spots).filter(([id]) => id.startsWith('c')).map(([id, s]) => [id, s.slot])).toEqual(
+      [['c1', 4], ['c2', 0], ['c3', 1], ['c4', 2], ['c5', 3]],
+    );
+    await waitFor(() => expect(spineNames('Ripiano 1')).toEqual(order(['c2', 'c3', 'c4', 'c5', 'c1'])));
+  });
+
+  it('moves a book between rows with one request', async () => {
+    const w = world();
+    const { platform } = renderShelves(w);
+    await screen.findByRole('button', { name: 'Libro b3, Autore b3' });
+    dropOnRow('b3', 'Ripiano 2', 0);
+    await waitFor(() => expect(w.spots.b3).toEqual({ shelf: 's1', row: 1, slot: 0 }));
+    expect(placementRequests(platform)).toEqual([{ method: 'PUT', shift: true }]);
+    expect(w.spots.b4).toEqual({ shelf: 's1', row: 1, slot: 1 });
+  });
+
+  it('shows "row full" and restores the order when the core answers row_full', async () => {
+    // Free slot 1, but the books from slot 3 on reach the end: sliding right has no room.
+    const w = world({ shelves: [shelf(1), shelf(2, { rows: 1, slots_per_row: 5, capacity: 5 })] });
+    w.spots = {
+      c1: { shelf: 's2', row: 0, slot: 0 }, c2: { shelf: 's2', row: 0, slot: 2 },
+      c3: { shelf: 's2', row: 0, slot: 3 }, c4: { shelf: 's2', row: 0, slot: 4 },
+    };
+    const { platform } = renderShelves(w, '/shelves?unit=s2');
+    await screen.findByRole('button', { name: 'Libro c4, Autore c4' });
+    const before = structuredClone(w.spots);
+    dropOnRow('u1', 'Ripiano 1', 45);
+    expect(await screen.findByText('Il ripiano è pieno.')).toBeInTheDocument();
+    expect(placementRequests(platform)).toEqual([{ method: 'PUT', shift: true }]);
+    await waitFor(() => expect(w.spots).toEqual(before));
+    await waitFor(() => expect(spineNames('Ripiano 1')).toEqual(order(['c1', 'c2', 'c3', 'c4'])));
+    expect(screen.getByText('Libro u1')).toBeInTheDocument();
+  });
+
+  it('never sends a DELETE while reordering, even when the request fails', async () => {
+    const w = full({ placeFails: 500 });
     const before = structuredClone(w.spots);
     const { platform } = renderShelves(w, '/shelves?unit=s2');
     await screen.findByRole('button', { name: 'Libro c5, Autore c5' });
     dropOnRow('c5', 'Ripiano 1', 0);
     expect(await screen.findByText('Non è stato possibile spostare il libro')).toBeInTheDocument();
-    await waitFor(() => expect(w.spots).toEqual(before));
-    // c4 and c3 had moved, c2 was refused: they go back last first, then c5 returns to its slot.
-    expect(placements(platform)).toEqual([
-      ['c4', 0, 4], ['c3', 0, 3], ['c2', 0, 2], ['c3', 0, 2], ['c4', 0, 3], ['c5', 0, 4],
-    ]);
-    await waitFor(() =>
-      expect(spineNames('Ripiano 1')).toEqual(['c1', 'c2', 'c3', 'c4', 'c5'].map((id) => `Libro ${id}, Autore ${id}`)),
-    );
+    expect(placementRequests(platform)).toEqual([{ method: 'PUT', shift: true }]);
+    expect(w.spots).toEqual(before);
+    await waitFor(() => expect(spineNames('Ripiano 1')).toEqual(order(['c1', 'c2', 'c3', 'c4', 'c5'])));
   });
 });
 

@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import type { BookOut } from '@bookeeper/api';
 import { useT } from '../../app';
 import { apiErrorMessage } from '../../kit';
 import { detailPath } from './format';
@@ -33,12 +34,19 @@ export function LookupNotice({ outcome }: { outcome: LookupOutcome | null }) {
           {t('books.lookup.failed', { reason: apiErrorMessage(t, outcome.error) })}
         </p>
       ) : null}
-      {existing ? (
-        <p className={`${styles.notice} ${styles.warn}`} role="alert">
-          {t('books.lookup.exists', { title: existing.title })}{' '}
-          <Link to={detailPath(existing.id)}>{t('books.lookup.openExisting')}</Link>
-        </p>
-      ) : null}
+      <ExistingNotice existing={existing} />
     </>
+  );
+}
+
+/** "This ISBN is already in the library", with a link to that copy. */
+export function ExistingNotice({ existing }: { existing: BookOut | null }) {
+  const t = useT();
+  if (!existing) return null;
+  return (
+    <p className={`${styles.notice} ${styles.warn}`} role="alert">
+      {t('books.lookup.exists', { title: existing.title })}{' '}
+      <Link to={detailPath(existing.id)}>{t('books.lookup.openExisting')}</Link>
+    </p>
   );
 }

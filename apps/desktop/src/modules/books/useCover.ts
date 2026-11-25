@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '@bookeeper/api';
+import { CLOTH_TONES } from '@bookeeper/ui/book';
 import { useClient, useSession } from '../../session';
 
 interface CoverData {
@@ -9,9 +10,18 @@ interface CoverData {
 }
 
 /**
+ * A book with a `cover_color` may have a stored cover, unless the color is one of the placeholder
+ * tints the user picks (a stored cover's color is taken from its image, so it is never exactly one).
+ */
+export function mayHaveCover(coverColor: string | null | undefined): boolean {
+  if (!coverColor) return false;
+  return !CLOTH_TONES.some((tone) => tone.toLowerCase() === coverColor.toLowerCase());
+}
+
+/**
  * Object URL of a book's stored cover, or undefined while loading or when there is none.
- * `hasCover` comes from the list answer (`cover_color` is set exactly when a cover is stored), so a
- * book without one costs no request.
+ * `hasCover` comes from the list answer (see `mayHaveCover`), so a book that surely has none costs no
+ * request.
  * The bytes travel through the transport (with `ETag` revalidation); the URL is revoked on unmount.
  */
 export function useCover(bookId: string, hasCover: boolean): string | undefined {
