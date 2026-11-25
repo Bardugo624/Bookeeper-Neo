@@ -9,8 +9,8 @@
     "label": "Search books",
     "placeholder": "Search title, author, ISBN",
     "clear": "Clear search",
-    "hint": "Ctrl K",
-    "hintMac": "⌘K"
+    "hint": "/",
+    "hintMac": "/"
   },
   "filters": {
     "label": "Filters",

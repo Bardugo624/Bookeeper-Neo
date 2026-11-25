@@ -9,8 +9,8 @@
     "label": "Cerca nei libri",
     "placeholder": "Cerca titolo, autore, ISBN",
     "clear": "Svuota la ricerca",
-    "hint": "Ctrl K",
-    "hintMac": "⌘K"
+    "hint": "/",
+    "hintMac": "/"
   },
   "filters": {
     "label": "Filtri",
