@@ -21,6 +21,8 @@ export interface BookDrawerProps {
   onClose(): void;
   /** Runs after a successful save of an existing book. */
   onSaved?(book: BookOut): void;
+  /** Runs after a successful creation; `another` is true for "Save and add another". */
+  onCreated?(book: BookOut, another: boolean): void;
 }
 
 /** "New book" (ISBN step, then form) or "Edit book" (form). Mounted only while open. */
@@ -31,7 +33,7 @@ export function BookDrawer(props: BookDrawerProps) {
   return <BookEditor key={round} {...props} onAnother={() => setRound((n) => n + 1)} />;
 }
 
-function BookEditor({ book, onClose, onSaved, onAnother }: BookDrawerProps & { onAnother(): void }) {
+function BookEditor({ book, onClose, onSaved, onCreated, onAnother }: BookDrawerProps & { onAnother(): void }) {
   const t = useT();
   const toast = useToast();
   const formId = useId();
@@ -50,6 +52,7 @@ function BookEditor({ book, onClose, onSaved, onAnother }: BookDrawerProps & { o
         tone: result.coverFailed || result.colorFailed ? 'warn' : 'ok',
       });
       if (book) onSaved?.(result.book);
+      else onCreated?.(result.book, another);
     }
     if (another) onAnother();
     else onClose();

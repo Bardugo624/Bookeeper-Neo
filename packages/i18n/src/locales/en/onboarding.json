@@ -1,0 +1,18 @@
+{
+  "hint": {
+    "title": "Start your library",
+    "text": "Three steps to put your books in order.",
+    "steps": {
+      "add": "Add the first book by ISBN",
+      "shelf": "Create a bookcase",
+      "devices": "Connect your phone or another computer"
+    },
+    "add": "Add the first book"
+  },
+  "celebration": {
+    "title": "The first book",
+    "line": "“{title}” is the first book in your library.",
+    "another": "Add another",
+    "library": "Go to the library"
+  }
+}
