@@ -117,7 +117,12 @@ async fn a_remote_connection_reaches_the_server() {
     assert_eq!(direct.status, 200);
     let local =
         bookeeper_desktop_lib::dispatch(core(), "GET", "/api/v1/health", None, no_headers()).await;
-    assert_eq!(direct.body, local.body);
+    let strip = |b: &str| {
+        let mut v: serde_json::Value = serde_json::from_str(b).expect("json");
+        v.as_object_mut().map(|o| o.remove("time"));
+        v
+    };
+    assert_eq!(strip(&direct.body), strip(&local.body));
     let raw = route_raw(
         &store().1,
         core(),

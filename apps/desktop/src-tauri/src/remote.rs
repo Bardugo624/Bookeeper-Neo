@@ -567,7 +567,11 @@ pub async fn probe(url: &str) -> ProbeOut {
         .dangerous()
         .with_custom_certificate_verifier(recorder.clone())
         .with_no_client_auth();
-    let Ok(client) = base_builder().timeout(CONNECT_TIMEOUT).use_preconfigured_tls(cfg).build() else {
+    let Ok(client) = base_builder()
+        .timeout(CONNECT_TIMEOUT)
+        .use_preconfigured_tls(cfg)
+        .build()
+    else {
         return ProbeOut::failed("network");
     };
     let out = read_info(&client, &base, ProbeOut::default()).await;
