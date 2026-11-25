@@ -9,7 +9,7 @@ export interface ButtonProps extends ComponentProps<'button'> {
   size?: 'md' | 'sm';
   icon?: IconName;
   loading?: boolean;
-  /** Accessible name of the spinner while loading; defaults to the text children. */
+  /** Accessible name of the spinner while loading; defaults to "Loading"; pass a localised string. */
   loadingLabel?: string;
 }
 
@@ -18,14 +18,13 @@ export function Button({
   size = 'md',
   icon,
   loading = false,
-  loadingLabel,
+  loadingLabel = 'Loading',
   disabled,
   className,
   children,
   type = 'button',
   ...rest
 }: ButtonProps) {
-  const spinnerLabel = loadingLabel ?? (typeof children === 'string' ? children : '');
   return (
     <button
       {...rest}
@@ -34,7 +33,7 @@ export function Button({
       aria-busy={loading || undefined}
       className={cx(styles.button, styles[variant], styles[size], className)}
     >
-      {loading ? <Spinner label={spinnerLabel} size={14} /> : icon ? <Icon name={icon} size={size === 'sm' ? 14 : 16} /> : null}
+      {loading ? <Spinner label={loadingLabel} size={14} /> : icon ? <Icon name={icon} size={size === 'sm' ? 14 : 16} /> : null}
       {children}
     </button>
   );

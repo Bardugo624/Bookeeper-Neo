@@ -21,7 +21,7 @@ it('keeps motion and radius values', () => {
 });
 it('defines the 2A state, focus and tooltip tokens in light and dark', () => {
   const added = ['--bk-ok','--bk-ok-bg','--bk-ok-strong','--bk-warn','--bk-warn-bg','--bk-warn-strong',
-    '--bk-danger','--bk-danger-bg','--bk-danger-strong','--bk-on-primary','--bk-focus',
+    '--bk-danger','--bk-danger-bg','--bk-danger-strong','--bk-danger-fill','--bk-danger-fill-hover','--bk-on-primary','--bk-focus',
     '--bk-tooltip-bg','--bk-tooltip-text','--bk-ease-spring'];
   const [light, dark] = css.split('html.dark');
   for (const name of added) {

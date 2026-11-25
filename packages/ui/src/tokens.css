@@ -95,6 +95,8 @@
     --bk-danger: #b4493b;
     --bk-danger-bg: rgb(180 73 59 / 0.12);
     --bk-danger-strong: #98382b;
+    --bk-danger-fill: #b4493b;
+    --bk-danger-fill-hover: #98382b;
     --bk-on-primary: #ffffff;
     --bk-focus: var(--bk-primary-400);
     --bk-tooltip-bg: #27241f;
@@ -143,6 +145,8 @@ html.dark {
     --bk-danger: #d9786a;
     --bk-danger-bg: rgb(217 120 106 / 0.16);
     --bk-danger-strong: #e8978b;
+    --bk-danger-fill: #b4493b;
+    --bk-danger-fill-hover: #98382b;
     --bk-on-primary: #ffffff;
     --bk-focus: var(--bk-primary-400);
     --bk-tooltip-bg: #f4f4f3;

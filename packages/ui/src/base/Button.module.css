@@ -51,12 +51,12 @@
 }
 
 .danger {
-    background: var(--bk-danger);
+    background: var(--bk-danger-fill);
     color: var(--bk-on-primary);
 }
 
 .danger:hover:not(:disabled) {
-    background: var(--bk-danger-strong);
+    background: var(--bk-danger-fill-hover);
 }
 
 .button:disabled {

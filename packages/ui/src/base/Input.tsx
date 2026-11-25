@@ -10,8 +10,8 @@ export function Input({ className, id, 'aria-describedby': describedBy, ...rest 
   return (
     <input
       {...rest}
-      id={id ?? field?.id}
-      aria-describedby={describedBy ?? field?.describedBy}
+      id={field?.id ?? id}
+      aria-describedby={[field?.describedBy, describedBy].filter(Boolean).join(' ') || undefined}
       aria-invalid={field?.invalid ? true : rest['aria-invalid']}
       className={cx(styles.control, className)}
     />
