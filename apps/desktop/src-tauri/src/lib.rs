@@ -90,9 +90,7 @@ pub fn connections_view(store: &connections::Store) -> Result<ConnectionsView, S
 }
 
 #[tauri::command]
-fn connections_get(
-    store: tauri::State<'_, connections::Store>,
-) -> Result<ConnectionsView, String> {
+fn connections_get(store: tauri::State<'_, connections::Store>) -> Result<ConnectionsView, String> {
     connections_view(&store)
 }
 

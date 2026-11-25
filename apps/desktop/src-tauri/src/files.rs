@@ -102,7 +102,9 @@ impl SaveLock {
 
 impl Drop for SavePermit<'_> {
     fn drop(&mut self) {
-        (self.0).0.store(false, std::sync::atomic::Ordering::Release);
+        (self.0)
+            .0
+            .store(false, std::sync::atomic::Ordering::Release);
     }
 }
 
