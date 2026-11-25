@@ -1,4 +1,4 @@
-import { useId, type FocusEvent } from 'react';
+import { useEffect, useId, type FocusEvent } from 'react';
 import { Icon, Input } from '@bookeeper/ui/base';
 import { useT } from '../../app';
 import { TagColorPicker } from './TagColorPicker';
@@ -24,7 +24,20 @@ export function TagPicker({ value, onChange, disabled = false }: TagPickerProps)
   const showList = picker.open && !disabled;
   const creating = picker.options.find((o) => o.kind === 'create');
 
-  const leave = (e: FocusEvent<HTMLDivElement>) => {
+  const setOpen = picker.setOpen;
+  // The dialog closes on Escape from a capture listener on the document; a window capture one runs first.
+  useEffect(() => {
+    if (!showList) return;
+    const onEscape = (e: globalThis.KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.stopPropagation();
+      setOpen(false);
+    };
+    window.addEventListener('keydown', onEscape, true);
+    return () => window.removeEventListener('keydown', onEscape, true);
+  }, [showList, setOpen]);
+
+  const leave =(e: FocusEvent<HTMLDivElement>) => {
     if (!e.currentTarget.contains(e.relatedTarget)) picker.setOpen(false);
   };
 
@@ -66,10 +79,7 @@ export function TagPicker({ value, onChange, disabled = false }: TagPickerProps)
         onFocus={() => picker.setOpen(true)}
         onClick={() => picker.setOpen(true)}
         onKeyDown={(e) => {
-          if (picker.onKeyDown(e.key)) {
-            e.preventDefault();
-            if (e.key === 'Escape') e.stopPropagation();
-          }
+          if (e.key !== 'Escape' && picker.onKeyDown(e.key)) e.preventDefault();
         }}
       />
       <p className={styles.hint} role={picker.full ? 'status' : undefined}>
@@ -105,7 +115,7 @@ export function TagPicker({ value, onChange, disabled = false }: TagPickerProps)
             ) : null}
           </ul>
           {creating ? (
-            <div className={styles.newColor}>
+            <div className={styles.newColor} onMouseDown={(e) => e.preventDefault()}>
               <span className={styles.label}>{t('tags.picker.newColor')}</span>
               <TagColorPicker value={picker.color} label={t('tags.picker.newColor')} onChange={picker.setColor} disabled={picker.creating} />
             </div>

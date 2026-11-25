@@ -29,6 +29,22 @@ describe('TagPicker', () => {
     expect(reported.at(-1)).toEqual(['t2']);
   });
 
+  it('closes only the list on Escape, before a document capture listener (dialog) sees it', async () => {
+    renderPicker({ tags: [...TAGS] });
+    const seen: string[] = [];
+    const onDoc = (e: KeyboardEvent) => seen.push(e.key);
+    document.addEventListener('keydown', onDoc, true);
+    try {
+      await userEvent.click(await box());
+      await screen.findByRole('listbox');
+      await userEvent.keyboard('{Escape}');
+      expect(screen.queryByRole('listbox')).toBeNull();
+      expect(seen).not.toContain('Escape');
+    } finally {
+      document.removeEventListener('keydown', onDoc, true);
+    }
+  });
+
   it('moves with the arrows and picks the active option', async () => {
     const { reported } = renderPicker({ tags: [...TAGS] });
     await userEvent.click(await box());
