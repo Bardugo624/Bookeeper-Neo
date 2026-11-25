@@ -1,0 +1,96 @@
+{
+  "title": "Settings",
+  "sections": {
+    "label": "Settings sections",
+    "appearance": "Appearance",
+    "account": "Account",
+    "library": "Library",
+    "about": "About"
+  },
+  "empty": { "title": "No settings", "text": "There are no settings available to you." },
+  "appearance": {
+    "theme": {
+      "title": "Theme",
+      "description": "Choose the app colors. “System” follows the theme of your computer.",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "language": {
+      "title": "Language",
+      "description": "“System” uses the language of your computer. The change is immediate.",
+      "system": "System",
+      "it": "Italiano",
+      "en": "English"
+    }
+  },
+  "account": {
+    "profile": {
+      "title": "Your profile",
+      "readOnly": "Name and email cannot be changed from here.",
+      "name": "Name",
+      "email": "Email",
+      "noEmail": "No email"
+    },
+    "password": {
+      "title": "Password",
+      "why": "The password protects your access to the library from other devices.",
+      "whyLocal": "This library is on your computer and needs no password to be used here. You need one if you share it over the network or invite other people: without a password they could not sign in with your account.",
+      "needsEmail": "To set a password your account needs an email address first.",
+      "current": "Current password",
+      "currentHint": "Leave it empty if you have not set one yet.",
+      "new": "New password",
+      "newHint": "At least {min} characters.",
+      "confirm": "Repeat the new password",
+      "save": "Save password",
+      "saved": "Password saved",
+      "savedHint": "Your other devices will need to sign in again.",
+      "errors": {
+        "tooShort": "The password must have at least {min} characters.",
+        "tooLong": "The password can have at most {max} characters.",
+        "mismatch": "The two passwords do not match.",
+        "wrongCurrent": "The current password is not correct.",
+        "currentRequired": "Type your current password."
+      }
+    },
+    "signOut": {
+      "title": "This device",
+      "description": "Sign out of Bookeeper on this computer. Your books stay in the library.",
+      "action": "Sign out of this device"
+    }
+  },
+  "library": {
+    "title": "Your library",
+    "readOnly": "The library name cannot be changed from here.",
+    "name": "Name",
+    "connection": "Connection",
+    "local": "On this computer",
+    "remote": "On the server {url}",
+    "role": "Your role",
+    "switch": {
+      "title": "Another library",
+      "description": "Sign out of this library to open another one or create a new one.",
+      "action": "Use another library"
+    }
+  },
+  "about": {
+    "title": "Versions",
+    "app": "App",
+    "server": "Server",
+    "mode": "Server mode",
+    "loading": "Loading…",
+    "unavailable": "Not available",
+    "tls": {
+      "local": "Only on this computer",
+      "off": "Local network, not encrypted",
+      "self": "Encrypted, with its own certificate",
+      "acme": "Encrypted, with a public address"
+    },
+    "phone": {
+      "title": "The phone needs a secure address",
+      "text": "To connect a phone the library must be reachable at a secure address. Once you have set one on the server, the button to add a phone will appear here.",
+      "readyTitle": "A phone can connect",
+      "readyText": "The library has a secure address: you can add a phone from the Devices page."
+    }
+  }
+}

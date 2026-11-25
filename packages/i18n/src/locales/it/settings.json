@@ -1,0 +1,96 @@
+{
+  "title": "Impostazioni",
+  "sections": {
+    "label": "Sezioni delle impostazioni",
+    "appearance": "Aspetto",
+    "account": "Account",
+    "library": "Libreria",
+    "about": "Informazioni"
+  },
+  "empty": { "title": "Nessuna impostazione", "text": "Non ci sono impostazioni disponibili per te." },
+  "appearance": {
+    "theme": {
+      "title": "Tema",
+      "description": "Scegli i colori dell'app. «Sistema» segue il tema del computer.",
+      "light": "Chiaro",
+      "dark": "Scuro",
+      "system": "Sistema"
+    },
+    "language": {
+      "title": "Lingua",
+      "description": "«Sistema» usa la lingua del computer. Il cambio è immediato.",
+      "system": "Sistema",
+      "it": "Italiano",
+      "en": "English"
+    }
+  },
+  "account": {
+    "profile": {
+      "title": "Il tuo profilo",
+      "readOnly": "Nome ed email non si possono modificare da qui.",
+      "name": "Nome",
+      "email": "Email",
+      "noEmail": "Nessuna email"
+    },
+    "password": {
+      "title": "Password",
+      "why": "La password protegge il tuo accesso alla libreria da altri dispositivi.",
+      "whyLocal": "Questa libreria è sul tuo computer e non ha bisogno di una password per essere usata qui. Serve se la condividi in rete o se inviti altre persone: senza password non potrebbero entrare con il tuo account.",
+      "needsEmail": "Per impostare una password serve prima un indirizzo email sul tuo account.",
+      "current": "Password attuale",
+      "currentHint": "Lasciala vuota se non ne hai ancora impostata una.",
+      "new": "Nuova password",
+      "newHint": "Almeno {min} caratteri.",
+      "confirm": "Ripeti la nuova password",
+      "save": "Salva la password",
+      "saved": "Password salvata",
+      "savedHint": "Gli altri dispositivi dovranno accedere di nuovo.",
+      "errors": {
+        "tooShort": "La password deve avere almeno {min} caratteri.",
+        "tooLong": "La password può avere al massimo {max} caratteri.",
+        "mismatch": "Le due password non coincidono.",
+        "wrongCurrent": "La password attuale non è corretta.",
+        "currentRequired": "Scrivi la password attuale."
+      }
+    },
+    "signOut": {
+      "title": "Questo dispositivo",
+      "description": "Esci da Bookeeper su questo computer. I tuoi libri restano nella libreria.",
+      "action": "Esci da questo dispositivo"
+    }
+  },
+  "library": {
+    "title": "La tua libreria",
+    "readOnly": "Il nome della libreria non si può cambiare da qui.",
+    "name": "Nome",
+    "connection": "Connessione",
+    "local": "Su questo computer",
+    "remote": "Sul server {url}",
+    "role": "Il tuo ruolo",
+    "switch": {
+      "title": "Un'altra libreria",
+      "description": "Esci da questa libreria per aprirne un'altra o crearne una nuova.",
+      "action": "Usa un'altra libreria"
+    }
+  },
+  "about": {
+    "title": "Versioni",
+    "app": "App",
+    "server": "Server",
+    "mode": "Modalità del server",
+    "loading": "Caricamento…",
+    "unavailable": "Non disponibile",
+    "tls": {
+      "local": "Solo su questo computer",
+      "off": "Rete locale, senza cifratura",
+      "self": "Cifrata, con certificato proprio",
+      "acme": "Cifrata, con indirizzo pubblico"
+    },
+    "phone": {
+      "title": "Il telefono ha bisogno di un indirizzo sicuro",
+      "text": "Per collegare un telefono la libreria deve essere raggiungibile con un indirizzo sicuro. Quando lo avrai impostato sul server, qui comparirà il bottone per aggiungere un telefono.",
+      "readyTitle": "Il telefono può collegarsi",
+      "readyText": "La libreria ha un indirizzo sicuro: puoi aggiungere un telefono dalla pagina Dispositivi."
+    }
+  }
+}
