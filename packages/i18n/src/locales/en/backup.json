@@ -1,0 +1,62 @@
+{
+  "section": "Backup",
+  "now": {
+    "title": "Backup",
+    "description": "Saves the whole library, covers included, to a file. Keep it somewhere safe.",
+    "action": "Create a backup",
+    "working": "Creating the backup",
+    "saved": "Backup saved."
+  },
+  "schedule": {
+    "title": "Scheduled backup",
+    "description": "The server creates a backup by itself every few days and keeps only the latest ones.",
+    "interval": "Every how many days",
+    "intervalHint": "From 1 to {max}. With 0 automatic backups are off.",
+    "off": "Off: no automatic backups.",
+    "intervalError": "Enter a whole number from 0 to {max}.",
+    "keep": "How many to keep",
+    "keepHint": "From {min} to {max}.",
+    "keepError": "Enter a whole number from {min} to {max}.",
+    "save": "Save",
+    "saved": "Schedule saved."
+  },
+  "auto": {
+    "title": "Automatic backups",
+    "description": "The backups created by the server, newest first.",
+    "loading": "Loading…",
+    "empty": "There are no automatic backups yet."
+  },
+  "restore": {
+    "title": "Restore",
+    "description": "Brings the library back to the state of a backup. Only the owner can do this.",
+    "warning": "Warning: restoring replaces all the current data of the library (books, shelves, loans, wishlist and covers) with the backup's. Anything that is not in the backup will be lost and this cannot be undone.",
+    "file": "Backup file (.zip)",
+    "action": "Restore from file…",
+    "working": "Restoring",
+    "dialog": {
+      "title": "Restore the library?",
+      "description": "You are about to replace the current data with that of {file}.",
+      "typeName": "To confirm, type the library name: {name}",
+      "confirm": "Restore"
+    },
+    "report": {
+      "title": "Restore report",
+      "done": "Restore complete. The library now has:",
+      "books": "Books",
+      "shelves": "Shelves",
+      "loans": "Loans",
+      "wishlist": "Wishlist",
+      "covers": "Covers",
+      "remapped": {
+        "one": "{count} user in the backup does not exist in this library.",
+        "other": "{count} users in the backup do not exist in this library."
+      }
+    },
+    "errors": {
+      "invalid_archive": "The file is not a valid Bookeeper backup.",
+      "unsupportedVersion": "This backup is from a version this app cannot read.",
+      "payload_too_large": "The file is too large to restore.",
+      "busy": "Another operation is in progress: try again when it finishes."
+    }
+  }
+}
