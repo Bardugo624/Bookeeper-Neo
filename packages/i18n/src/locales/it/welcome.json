@@ -1,0 +1,113 @@
+{
+  "brand": { "label": "Bookeeper" },
+  "hero": {
+    "title": "I tuoi libri,\nin ordine.",
+    "text": "Una libreria che resta tua: sul tuo computer, o su un server che scegli tu.",
+    "cover1": "Il nome della rosa",
+    "cover2": "Cent'anni di solitudine",
+    "cover3": "Le città invisibili",
+    "cover4": "Se una notte d'inverno"
+  },
+  "heading": "Come vuoi iniziare?",
+  "subheading": "Puoi cambiare idea più tardi dalle impostazioni.",
+  "paths": { "label": "Percorsi di avvio" },
+  "back": {
+    "title": "Bentornato in {library}",
+    "titleNoName": "Bentornato",
+    "text": "Accedi di nuovo per continuare, {user}.",
+    "textNoName": "Accedi di nuovo per continuare.",
+    "localText": "La libreria si trova su questo computer.",
+    "open": "Apri",
+    "signIn": "Accedi",
+    "other": "Usa un'altra libreria",
+    "forget": "Dimentica questa libreria",
+    "openFailed": "Non riesco ad aprire la libreria: l'accesso salvato su questo computer non è più valido."
+  },
+  "forget": {
+    "title": "Dimenticare questa libreria?",
+    "text": "{library} sparirà da questo computer. I libri restano dove sono: potrai ricollegarla più tardi.",
+    "confirm": "Dimentica",
+    "cancel": "Annulla",
+    "close": "Chiudi"
+  },
+  "local": {
+    "title": "Crea qui",
+    "badge": "Consigliato",
+    "text": "La libreria vive su questo computer. Non serve altro.",
+    "openTitle": "Apri la libreria di questo computer",
+    "openText": "Su questo computer c'è già una libreria.",
+    "libraryName": "Nome della libreria",
+    "displayName": "Il tuo nome",
+    "submit": "Crea la libreria",
+    "open": "Apri la libreria",
+    "openFailed": "Non riesco ad aprire la libreria: l'accesso salvato su questo computer non è più valido."
+  },
+  "join": {
+    "title": "Unisciti",
+    "text": "Collega questo computer a una libreria che esiste già.",
+    "found": {
+      "one": "{count} trovata in rete",
+      "other": "{count} trovate in rete"
+    },
+    "foundList": "Librerie trovate in rete",
+    "mode": "Come vuoi entrare",
+    "modeCode": "Codice di abbinamento",
+    "modeAccount": "Email e password",
+    "submit": "Unisciti",
+    "chooseTitle": "In quale libreria vuoi entrare?",
+    "choose": "Entra in {library}",
+    "chooseBack": "Indietro",
+    "needsSetup": "Questo server non ha ancora una libreria. Puoi crearla dalla scheda «Crea su un server».",
+    "goServer": "Vai a «Crea su un server»"
+  },
+  "server": {
+    "title": "Crea su un server",
+    "text": "Per raggiungerla anche dal telefono, fuori casa.",
+    "submit": "Crea la libreria",
+    "alreadySet": "Questo server ha già una libreria. Per entrare usa la scheda «Unisciti».",
+    "goJoin": "Vai a «Unisciti»"
+  },
+  "fields": {
+    "address": "Indirizzo del server",
+    "addressHint": "Per esempio https://libreria.example.org",
+    "code": "Codice di abbinamento",
+    "codeHint": "Lo trovi nelle impostazioni dei dispositivi, su un dispositivo già collegato.",
+    "setupCode": "Codice di setup",
+    "setupCodeHint": "Lo mostra il server quando si avvia per la prima volta.",
+    "libraryName": "Nome della libreria",
+    "displayName": "Il tuo nome",
+    "email": "Email",
+    "password": "Password",
+    "passwordHint": "Almeno {min} caratteri."
+  },
+  "probe": {
+    "checking": "Controllo il server…",
+    "insecure": "Questo indirizzo non è sicuro. Usa un indirizzo che inizia con https://, oppure un indirizzo della tua rete di casa.",
+    "network": "Non riesco a raggiungere il server. Controlla l'indirizzo e la connessione, poi riprova.",
+    "notBookeeper": "A questo indirizzo risponde qualcosa, ma non è un server Bookeeper."
+  },
+  "phrase": {
+    "title": "Controlla la frase",
+    "text": "Il certificato di questo server non è noto a questo computer. Queste sei parole devono coincidere con quelle mostrate dal server.",
+    "words": "Frase di verifica",
+    "match": "Coincidono",
+    "cancel": "Annulla",
+    "close": "Chiudi"
+  },
+  "errors": {
+    "required": "Compila questo campo.",
+    "address": "Scrivi un indirizzo valido.",
+    "email": "Scrivi un indirizzo email valido, con la @.",
+    "passwordShort": "La password deve avere almeno {min} caratteri.",
+    "tooLong": "Massimo {max} caratteri.",
+    "invalidCredentials": "Email o password non corrette.",
+    "invalidCode": "Il codice non è corretto oppure è scaduto. Chiedine uno nuovo.",
+    "invalidSetupCode": "Il codice di setup non è corretto.",
+    "rateLimited": "Troppi tentativi. Riprova tra {seconds} secondi.",
+    "rateLimitedNoTime": "Troppi tentativi. Aspetta un po' e riprova.",
+    "validation": "Alcuni dati non sono validi. Controlla i campi e riprova.",
+    "setupClosed": "Su questo server esiste già una libreria.",
+    "network": "Non riesco a raggiungere la libreria. Controlla la connessione e riprova.",
+    "generic": "Qualcosa è andato storto. Riprova."
+  }
+}
