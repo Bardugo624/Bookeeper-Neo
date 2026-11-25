@@ -1,0 +1,57 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 8px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--bk-border);
+  background: transparent;
+  color: var(--bk-text-muted);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+a.row,
+button.row {
+  cursor: pointer;
+}
+
+.row:focus-visible {
+  outline: 2px solid var(--bk-primary-400);
+  outline-offset: -2px;
+  border-radius: var(--bk-radius-sm);
+}
+
+.leading {
+  flex: none;
+  display: flex;
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 16px;
+  color: var(--bk-text-strong);
+}
+
+.subtitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  color: var(--bk-text-muted);
+}

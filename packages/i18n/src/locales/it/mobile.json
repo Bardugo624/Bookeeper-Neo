@@ -1,3 +1,33 @@
 {
-  "needsHttps": "Per usare Bookeeper dal telefono serve un indirizzo sicuro. Chiedi a chi gestisce la libreria."
+  "needsHttps": "Per usare Bookeeper dal telefono serve un indirizzo sicuro. Chiedi a chi gestisce la libreria.",
+  "needsHttpsTitle": "Serve un indirizzo sicuro",
+  "needsHttpsWho": "Chi gestisce la libreria può attivare l'accesso con HTTPS sul computer che ospita Bookeeper.",
+  "needsHttpsHow": "Quando l'indirizzo inizia con https://, riapri questa pagina dal telefono.",
+  "deviceFallback": "Telefono",
+  "cameraLabel": "Fotocamera {n}",
+  "loading": "Caricamento…",
+  "close": "Chiudi",
+  "tabs": "Schede principali",
+  "offline": "Sei offline",
+  "update": {
+    "text": "È disponibile una nuova versione",
+    "action": "Aggiorna"
+  },
+  "empty": {
+    "title": "Niente da mostrare",
+    "text": "Questa versione dell'app non ha ancora sezioni."
+  },
+  "notFound": {
+    "title": "Pagina non trovata",
+    "text": "L'indirizzo non corrisponde a nessuna pagina dell'app."
+  },
+  "unpaired": {
+    "title": "Telefono non collegato",
+    "text": "Scansiona il codice QR mostrato da Bookeeper sul computer per collegare questo telefono."
+  },
+  "error": {
+    "title": "Qualcosa è andato storto",
+    "text": "Non è stato possibile mostrare questa pagina.",
+    "retry": "Riprova"
+  }
 }

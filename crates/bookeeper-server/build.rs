@@ -8,7 +8,9 @@ fn main() {
     let manifest = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR"));
     let dist = manifest.join("../../apps/mobile/dist");
     let index = dist.join("index.html");
-    println!("cargo:rerun-if-changed={}", index.display());
+    // The whole folder is embedded (service worker, manifest, icons, assets), so any file
+    // changing there must rebuild the server. A directory is scanned recursively by cargo.
+    println!("cargo:rerun-if-changed={}", dist.display());
     if !index.exists() {
         std::fs::create_dir_all(&dist).expect("create apps/mobile/dist");
         std::fs::write(&index, PLACEHOLDER).expect("write placeholder index.html");
