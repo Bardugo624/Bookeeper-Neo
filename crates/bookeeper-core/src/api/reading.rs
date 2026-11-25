@@ -142,13 +142,6 @@ pub fn resolve(input: PutReading, page_count: Option<i64>, now: i64) -> ApiResul
             )));
         }
     }
-    if let (Some(s), Some(f)) = (input.started_at, input.finished_at) {
-        if f < s {
-            return Err(ApiError::validation(
-                "finished_at must not be before started_at",
-            ));
-        }
-    }
     if let Some(p) = input.current_page {
         if p < 0 {
             return Err(ApiError::validation("current_page must not be negative"));
@@ -185,6 +178,13 @@ pub fn resolve(input: PutReading, page_count: Option<i64>, now: i64) -> ApiResul
             }
         }
         _ => {}
+    }
+    if let (Some(s), Some(f)) = (out.started_at, out.finished_at) {
+        if f < s {
+            return Err(ApiError::validation(
+                "finished_at must not be before started_at",
+            ));
+        }
     }
     Ok(out)
 }

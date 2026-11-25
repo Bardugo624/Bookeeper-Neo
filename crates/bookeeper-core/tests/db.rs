@@ -184,3 +184,12 @@ fn a_version_1_database_is_migrated_without_losing_data() {
     drop(db);
     std::fs::remove_dir_all(&dir).ok();
 }
+
+#[test]
+fn ulower_folds_unicode() {
+    let db = Db::open_in_memory().unwrap();
+    let v: String = db
+        .with(|c| c.query_row("SELECT ulower('ÉTICA')", [], |r| r.get(0)))
+        .unwrap();
+    assert_eq!(v, "ética");
+}

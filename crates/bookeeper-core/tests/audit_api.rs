@@ -337,3 +337,16 @@ async fn actions_are_distinct_and_sorted() {
     assert_eq!(st, 200);
     assert_eq!(b["items"], json!(["a.y", "b.x"]));
 }
+
+#[tokio::test]
+async fn empty_filters_are_absent_and_non_object_detail_is_null() {
+    let s = seed(Role::Owner, None, None).await;
+    let l = s.library_id.clone();
+    put_row(&s, &l, None, None, "a", "book", Some("[1,2]"), 1).await;
+    put_row(&s, &l, None, None, "b", "book", Some("5"), 2).await;
+    let (st, b) = get(&s, "/api/v1/audit?action=&user_id=&device_id=&entity_type=").await;
+    assert_eq!(st, 200, "{b}");
+    assert_eq!(b["total"], 2);
+    assert!(b["items"][0]["detail"].is_null());
+    assert!(b["items"][1]["detail"].is_null());
+}

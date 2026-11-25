@@ -189,8 +189,8 @@ fn build_filter(
     }
     for (col, val) in [("b.genre", &q.genre), ("b.language", &q.language)] {
         if let Some(v) = val {
-            let n = f.bind(Value::Text(v.to_ascii_lowercase()));
-            f.conds.push(format!("lower({col}) = ?{n}"));
+            let n = f.bind(Value::Text(v.to_lowercase()));
+            f.conds.push(format!("ulower({col}) = ?{n}"));
         }
     }
     if unshelved {
