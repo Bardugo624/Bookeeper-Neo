@@ -1,0 +1,68 @@
+{
+  "tab": "Scan",
+  "title": "Scan",
+  "camera": {
+    "label": "Camera preview",
+    "hint": "Point at the barcode on the back of the book",
+    "starting": "Starting the camera…",
+    "torchOn": "Turn the torch on",
+    "torchOff": "Turn the torch off",
+    "switch": "Switch camera",
+    "notIsbn": "This code is not an ISBN"
+  },
+  "added": {
+    "one": "{count} book added",
+    "other": "{count} books added"
+  },
+  "blocked": {
+    "deniedTitle": "Camera not allowed",
+    "deniedText": "Reading codes needs the camera. Turn it back on in the browser settings for this site, then try again.",
+    "missingTitle": "Camera not available",
+    "missingText": "This phone has no camera that can be used from here. You can type the ISBN instead.",
+    "retry": "Try again",
+    "manual": "Type the ISBN"
+  },
+  "manual": {
+    "label": "ISBN",
+    "description": "10 or 13 digits, with or without hyphens",
+    "submit": "Look up",
+    "invalid": "This ISBN is not valid: check the digits."
+  },
+  "sheet": {
+    "looking": "Looking for the book…",
+    "unknownAuthors": "Author not given",
+    "isbn": "ISBN {isbn}",
+    "owned": {
+      "tag": "It is in your library",
+      "where": "Where: {place}",
+      "shelfRow": "{shelf}, row {row}",
+      "row": "row {row}",
+      "unplaced": "Not placed yet",
+      "open": "Open the book"
+    },
+    "found": {
+      "title": "Book found",
+      "readOnly": "You cannot add books to this library.",
+      "add": "Add to the library",
+      "adding": "Adding…"
+    },
+    "added": {
+      "tag": "Added",
+      "another": "Scan another"
+    },
+    "none": {
+      "title": "No data found",
+      "text": "I found no information for this ISBN.",
+      "readOnly": "You cannot add books to this library.",
+      "titleLabel": "Title",
+      "add": "Add with just the ISBN and title",
+      "needTitle": "Type the title of the book."
+    },
+    "error": {
+      "title": "The book could not be looked up",
+      "retry": "Try again",
+      "addFailed": "The book was not added."
+    },
+    "close": "Close"
+  }
+}
