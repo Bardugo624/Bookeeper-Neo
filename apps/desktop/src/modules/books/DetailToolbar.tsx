@@ -5,6 +5,7 @@ import { Button, IconButton } from '@bookeeper/ui/base';
 import { Menu, useToast } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
 import { ConfirmDialog, apiErrorMessage } from '../../kit';
+import { LabelsDialog } from '../labels';
 import { BookDrawer } from './BookDrawer';
 import { useBookWrites } from './useBookWrites';
 import styles from './DetailToolbar.module.css';
@@ -17,6 +18,7 @@ export function DetailToolbar({ book, listPath }: { book: BookOut; listPath: To 
   const { remove } = useBookWrites();
   const [editing, setEditing] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [labelling, setLabelling] = useState(false);
 
   const confirm = () => {
     if (remove.isPending) return;
@@ -40,10 +42,12 @@ export function DetailToolbar({ book, listPath }: { book: BookOut; listPath: To 
       <Menu
         trigger={<IconButton icon="more" label={t('books.detail.more')} />}
         items={[
+          { id: 'label', label: t('labels.menu'), icon: 'grid', onSelect: () => setLabelling(true) },
           { id: 'delete', label: t('common.delete'), icon: 'trash', danger: true, onSelect: () => setConfirming(true) },
         ]}
       />
       <BookDrawer open={editing} book={book} onClose={() => setEditing(false)} />
+      <LabelsDialog bookIds={[book.id]} open={labelling} onClose={() => setLabelling(false)} />
       <ConfirmDialog
         open={confirming}
         title={t('books.delete.title', { title: book.title })}
