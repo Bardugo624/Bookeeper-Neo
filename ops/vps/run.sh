@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
 # Executed on the VPS by .github/workflows/vps-ops.yml.
-# Current content: read-only memory survey. It changes nothing.
-set -u
+# Current content: stop the projectzomboid container and keep it stopped.
+# The container, its image and its data are left in place.
+set -eu
 
-echo "== memory"
+c=projectzomboid
+echo "== before"
+docker inspect -f '{{.State.Status}} restart={{.HostConfig.RestartPolicy.Name}}' "$c"
+docker update --restart=no "$c" >/dev/null
+docker stop --time 120 "$c" >/dev/null
+echo "== after"
+docker inspect -f '{{.State.Status}} exit={{.State.ExitCode}} restart={{.HostConfig.RestartPolicy.Name}}' "$c"
+docker ps --format '{{.Names}}\t{{.Status}}'
 free -m
-echo "== containers (all)"
-docker ps -a --format '{{.Names}}\t{{.Status}}\t{{.Image}}'
-echo "== container memory"
-docker stats --no-stream --format '{{.Name}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.CPUPerc}}'
-echo "== top processes by resident memory"
-ps -eo rss,pid,user,comm --sort=-rss | head -15 | awk 'NR==1{print;next}{printf "%d MB\t%s\t%s\t%s\n",$1/1024,$2,$3,$4}'
-echo "== swap and pressure"
-swapon --show 2>/dev/null || true
-cat /proc/pressure/memory 2>/dev/null || true
