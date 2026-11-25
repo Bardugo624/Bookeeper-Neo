@@ -1,3 +1,4 @@
+pub mod connections;
 mod dispatch;
 
 use bookeeper_core::{AppState, Db, SetupPolicy};
@@ -48,6 +49,37 @@ async fn api_request_raw(
     .await)
 }
 
+#[tauri::command]
+fn connections_get(
+    store: tauri::State<'_, connections::Store>,
+) -> Result<connections::Connections, String> {
+    store.load()
+}
+
+#[tauri::command]
+fn connection_upsert(
+    store: tauri::State<'_, connections::Store>,
+    connection: connections::Connection,
+) -> Result<connections::Connections, String> {
+    store.upsert(connection)
+}
+
+#[tauri::command]
+fn connection_activate(
+    store: tauri::State<'_, connections::Store>,
+    id: String,
+) -> Result<connections::Connections, String> {
+    store.activate(&id)
+}
+
+#[tauri::command]
+fn connection_remove(
+    store: tauri::State<'_, connections::Store>,
+    id: String,
+) -> Result<connections::Connections, String> {
+    store.remove(&id)
+}
+
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
@@ -60,10 +92,18 @@ pub fn run() {
                 let _guard = tauri::async_runtime::handle().inner().enter();
                 bookeeper_core::backup::schedule::spawn(state.clone());
             }
+            app.manage(connections::Store::new(&dir));
             app.manage(CoreRouter(bookeeper_core::router(state)));
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![api_request, api_request_raw])
+        .invoke_handler(tauri::generate_handler![
+            api_request,
+            api_request_raw,
+            connections_get,
+            connection_upsert,
+            connection_activate,
+            connection_remove
+        ])
         .run(tauri::generate_context!())
         .expect("error while running Bookeeper");
 }

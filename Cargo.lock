@@ -540,8 +540,11 @@ dependencies = [
  "serde_json",
  "tauri",
  "tauri-build",
+ "tempfile",
  "tokio",
  "tower",
+ "tracing",
+ "uuid",
 ]
 
 [[package]]
