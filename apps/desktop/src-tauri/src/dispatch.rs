@@ -15,14 +15,14 @@ pub struct ApiResponse {
     pub body: String,
 }
 
-fn error(status: StatusCode, code: &str, message: &str) -> ApiResponse {
+pub(crate) fn error(status: StatusCode, code: &str, message: &str) -> ApiResponse {
     ApiResponse {
         status: status.as_u16(),
         body: serde_json::json!({ "error_code": code, "message": message }).to_string(),
     }
 }
 
-fn bad_request(message: &str) -> ApiResponse {
+pub(crate) fn bad_request(message: &str) -> ApiResponse {
     error(StatusCode::BAD_REQUEST, "bad_request", message)
 }
 
@@ -35,6 +35,47 @@ const ALLOWED_METHODS: [Method; 5] = [
     Method::DELETE,
 ];
 
+/// Validated method and path shared by the in-process and remote transports.
+pub(crate) fn check_request(method: &str, path: &str) -> Result<Method, &'static str> {
+    let method = match Method::from_bytes(method.as_bytes()) {
+        Ok(m) if ALLOWED_METHODS.contains(&m) => m,
+        _ => return Err("Invalid HTTP method"),
+    };
+    if !path.starts_with("/api/") {
+        return Err("Path must start with /api/");
+    }
+    Ok(method)
+}
+
+/// Request headers to forward: the allowed ones, lower-cased, invalid values dropped.
+/// `Authorization` is forwarded only to a remote server.
+pub(crate) fn filter_request_headers(
+    headers: &BTreeMap<String, String>,
+    remote: bool,
+) -> Vec<(String, String)> {
+    headers
+        .iter()
+        .filter_map(|(name, value)| {
+            let lower = name.to_ascii_lowercase();
+            let allowed = ALLOWED_REQUEST_HEADERS.contains(&lower.as_str())
+                || (remote && lower == "authorization");
+            (allowed && axum::http::HeaderValue::from_str(value).is_ok())
+                .then(|| (lower, value.clone()))
+        })
+        .collect()
+}
+
+/// Response headers handed back to the webview, from any response type.
+pub(crate) fn exposed_headers(headers: &axum::http::HeaderMap) -> BTreeMap<String, String> {
+    let mut out = BTreeMap::new();
+    for name in EXPOSED_RESPONSE_HEADERS {
+        if let Some(v) = headers.get(name).and_then(|v| v.to_str().ok()) {
+            out.insert(name.to_owned(), v.to_owned());
+        }
+    }
+    out
+}
+
 /// Calls the core router in-process, without opening a socket.
 pub async fn dispatch(
     router: Router,
@@ -43,13 +84,10 @@ pub async fn dispatch(
     body: Option<String>,
     headers: BTreeMap<String, String>,
 ) -> ApiResponse {
-    let method = match Method::from_bytes(method.as_bytes()) {
-        Ok(m) if ALLOWED_METHODS.contains(&m) => m,
-        _ => return bad_request("Invalid HTTP method"),
+    let method = match check_request(method, path) {
+        Ok(m) => m,
+        Err(msg) => return bad_request(msg),
     };
-    if !path.starts_with("/api/") {
-        return bad_request("Path must start with /api/");
-    }
     let mut builder = Request::builder().method(method).uri(path);
     if body.is_some() {
         builder = builder.header("content-type", "application/json");
@@ -100,19 +138,13 @@ fn apply_allowed_headers(
     mut builder: axum::http::request::Builder,
     headers: &BTreeMap<String, String>,
 ) -> axum::http::request::Builder {
-    for (name, value) in headers {
-        let lower = name.to_ascii_lowercase();
-        if !ALLOWED_REQUEST_HEADERS.contains(&lower.as_str()) {
-            continue;
-        }
-        if let Ok(v) = axum::http::HeaderValue::from_str(value) {
-            builder = builder.header(lower, v);
-        }
+    for (name, value) in filter_request_headers(headers, false) {
+        builder = builder.header(name, value);
     }
     builder
 }
 
-fn raw_error(status: StatusCode, code: &str, message: &str) -> RawApiResponse {
+pub(crate) fn raw_error(status: StatusCode, code: &str, message: &str) -> RawApiResponse {
     let body = serde_json::json!({ "error_code": code, "message": message }).to_string();
     RawApiResponse {
         status: status.as_u16(),
@@ -122,7 +154,7 @@ fn raw_error(status: StatusCode, code: &str, message: &str) -> RawApiResponse {
     }
 }
 
-fn raw_bad_request(message: &str) -> RawApiResponse {
+pub(crate) fn raw_bad_request(message: &str) -> RawApiResponse {
     raw_error(StatusCode::BAD_REQUEST, "bad_request", message)
 }
 
@@ -135,13 +167,10 @@ pub async fn dispatch_raw(
     content_type: Option<String>,
     headers: BTreeMap<String, String>,
 ) -> RawApiResponse {
-    let method = match Method::from_bytes(method.as_bytes()) {
-        Ok(m) if ALLOWED_METHODS.contains(&m) => m,
-        _ => return raw_bad_request("Invalid HTTP method"),
+    let method = match check_request(method, path) {
+        Ok(m) => m,
+        Err(msg) => return raw_bad_request(msg),
     };
-    if !path.starts_with("/api/") {
-        return raw_bad_request("Path must start with /api/");
-    }
     let body = match body_base64 {
         Some(b) => match STANDARD.decode(b) {
             Ok(bytes) => Some(bytes),
@@ -169,12 +198,7 @@ pub async fn dispatch_raw(
         .get("content-type")
         .and_then(|v| v.to_str().ok())
         .map(str::to_owned);
-    let mut out_headers = BTreeMap::new();
-    for name in EXPOSED_RESPONSE_HEADERS {
-        if let Some(v) = response.headers().get(name).and_then(|v| v.to_str().ok()) {
-            out_headers.insert(name.to_owned(), v.to_owned());
-        }
-    }
+    let out_headers = exposed_headers(response.headers());
     match response.into_body().collect().await {
         Ok(collected) => RawApiResponse {
             status,
