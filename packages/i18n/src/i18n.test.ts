@@ -1,11 +1,18 @@
+import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import ts from 'typescript';
 import { describe, expect, it } from 'vitest';
+import * as api from './index';
 import { LOCALES, resolveLocale, t } from './index';
+import { __setForTest } from './testing';
 
 type Messages = { [key: string]: string | Messages };
-const files = import.meta.glob('./locales/*/*.json', { eager: true }) as Record<
-  string,
-  { default: Messages }
->;
+const files = (
+  import.meta as unknown as {
+    glob(pattern: string, options: { eager: true }): Record<string, { default: Messages }>;
+  }
+).glob('./locales/*/*.json', { eager: true });
 
 function namespaces(locale: string): Record<string, Messages> {
   const out: Record<string, Messages> = {};
@@ -74,18 +81,46 @@ it('falls back from en to it, then to the key', () => {
 
 describe('plurals and variables', () => {
   // Plural objects are exercised through a catalog entry injected for the test.
-  it('picks one/other with Intl.PluralRules', async () => {
-    const { __setForTest } = await import('./index');
+  it('picks one/other with Intl.PluralRules', () => {
     __setForTest('it', 'test', { books: { one: '{count} libro', other: '{count} libri' } });
     expect(t('it', 'test.books', { count: 1 })).toBe('1 libro');
     expect(t('it', 'test.books', { count: 5 })).toBe('5 libri');
   });
-  it('falls back to it when en lacks the key', async () => {
-    const { __setForTest } = await import('./index');
+  it('falls back to it when en lacks the key', () => {
     __setForTest('it', 'only', { x: 'solo italiano' });
     expect(t('en', 'only.x')).toBe('solo italiano');
   });
   it('keeps the placeholder when the variable is absent', () => {
     expect(t('it', 'status.connected', {})).toBe('Collegato · versione {version}');
+  });
+});
+
+describe('public surface', () => {
+  it('exports exactly the documented names from the entry point', () => {
+    expect(Object.keys(api).sort()).toEqual(['DEFAULT_LOCALE', 'LOCALES', 'resolveLocale', 't']);
+  });
+});
+
+describe('coexistence with vite/client', () => {
+  it('type-checks with skipLibCheck disabled', () => {
+    const vitePkg = createRequire(import.meta.url).resolve('vite/package.json');
+    const viteClient = join(dirname(vitePkg), 'client.d.ts');
+    const entry = fileURLToPath(new URL('./index.ts', import.meta.url));
+    const program = ts.createProgram([viteClient, entry], {
+      target: ts.ScriptTarget.ES2022,
+      module: ts.ModuleKind.ESNext,
+      moduleResolution: ts.ModuleResolutionKind.Bundler,
+      lib: ['lib.es2022.d.ts', 'lib.dom.d.ts'],
+      strict: true,
+      noEmit: true,
+      skipLibCheck: false,
+      resolveJsonModule: true,
+      types: [],
+    });
+    const errors = ts
+      .getPreEmitDiagnostics(program)
+      .filter((d) => d.category === ts.DiagnosticCategory.Error)
+      .map((d) => `TS${d.code}: ${ts.flattenDiagnosticMessageText(d.messageText, ' ')}`);
+    expect(errors).toEqual([]);
   });
 });
