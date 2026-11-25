@@ -21,7 +21,11 @@
   "others": "Others",
   "showAll": "Show all ({count})",
   "showLess": "Show less",
-  "table": { "label": "Item", "bar": "Proportion", "count": "Books" },
+  "table": {
+    "label": "Item",
+    "bar": "Proportion",
+    "count": "Books"
+  },
   "shelfFill": {
     "title": "Shelf unit fill",
     "bar": "{name}: {pct}% full",
@@ -32,5 +36,23 @@
     "text": "Add books to your library to see the numbers.",
     "action": "Go to books"
   },
-  "error": { "title": "Could not load statistics", "text": "Check your connection and try again." }
+  "error": {
+    "title": "Could not load statistics",
+    "text": "Check your connection and try again."
+  },
+  "formatLabel": {
+    "paperback": "Paperback",
+    "hardcover": "Hardcover",
+    "ebook": "E-book",
+    "audiobook": "Audiobook"
+  },
+  "langLabel": {
+    "it": "Italian",
+    "en": "English",
+    "fr": "French",
+    "de": "German",
+    "es": "Spanish",
+    "pt": "Portuguese",
+    "la": "Latin"
+  }
 }

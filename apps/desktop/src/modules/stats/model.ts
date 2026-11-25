@@ -27,6 +27,10 @@ export const DISTRIBUTIONS: { key: DistributionKey; chronological?: boolean }[] 
   { key: 'top_authors' },
 ];
 
+/** Codes the core stores for formats (see import.rs `map_binding`) and the languages we translate. */
+export const FORMAT_CODES = ['paperback', 'hardcover', 'ebook', 'audiobook'];
+export const LANGUAGE_CODES = ['it', 'en', 'fr', 'de', 'es', 'pt', 'la'];
+
 export interface Row {
   id: string;
   label: string;
@@ -39,7 +43,7 @@ const OTHERS_KEY = '…';
 /** Rows with readable labels, most frequent first; the empty and "others" buckets stay last. */
 export function toRows(
   items: { key: string; count: number }[],
-  opts: { chronological?: boolean; decade?: boolean; missing: string; others: string; decadeLabel: (d: string) => string },
+  opts: { chronological?: boolean; decade?: boolean; missing: string; others: string; decadeLabel: (d: string) => string; keyLabel?: (key: string) => string | undefined },
 ): Row[] {
   const rank = (k: string) => (k === '' ? 2 : k === OTHERS_KEY ? 1 : 0);
   const rows = items.map((i, n) => ({ n, key: i.key, count: i.count }));
@@ -50,7 +54,7 @@ export function toRows(
   });
   return rows.map((r) => ({
     id: r.key || '∅',
-    label: r.key === '' ? opts.missing : r.key === OTHERS_KEY ? opts.others : opts.decade ? opts.decadeLabel(r.key) : r.key,
+    label: r.key === '' ? opts.missing : r.key === OTHERS_KEY ? opts.others : opts.decade ? opts.decadeLabel(r.key) : (opts.keyLabel?.(r.key) ?? r.key),
     count: r.count,
   }));
 }

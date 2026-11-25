@@ -4,7 +4,7 @@ import { StatCard } from '@bookeeper/ui/book';
 import { useT } from '../../app';
 import { PageHeader } from '../../kit';
 import { DistributionCard } from './DistributionCard';
-import { DISTRIBUTIONS, TOTALS, toRows, type Overview } from './model';
+import { DISTRIBUTIONS, FORMAT_CODES, LANGUAGE_CODES, TOTALS, toRows, type Overview } from './model';
 import { ShelfFillCard } from './ShelfFillCard';
 import { useStats } from './useStats';
 import styles from './StatsPage.module.css';
@@ -68,6 +68,11 @@ export function StatsPage() {
               missing: t('stats.missing'),
               others: t('stats.others'),
               decadeLabel: (decade) => t('stats.decade', { decade }),
+              keyLabel: (key) => {
+                if (d.key === 'by_format' && FORMAT_CODES.includes(key)) return t(`stats.formatLabel.${key}`);
+                if (d.key === 'by_language' && LANGUAGE_CODES.includes(key)) return t(`stats.langLabel.${key}`);
+                return undefined;
+              },
             });
             return rows.length > 0 ? <DistributionCard key={d.key} title={t(`stats.${d.key}`)} rows={rows} /> : null;
           })}

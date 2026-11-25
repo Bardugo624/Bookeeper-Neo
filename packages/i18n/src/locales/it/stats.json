@@ -21,7 +21,11 @@
   "others": "Altri",
   "showAll": "Mostra tutto ({count})",
   "showLess": "Mostra meno",
-  "table": { "label": "Voce", "bar": "Proporzione", "count": "Libri" },
+  "table": {
+    "label": "Voce",
+    "bar": "Proporzione",
+    "count": "Libri"
+  },
   "shelfFill": {
     "title": "Riempimento dei mobili",
     "bar": "{name}: {pct}% pieno",
@@ -32,5 +36,23 @@
     "text": "Aggiungi dei libri alla libreria per vedere i numeri.",
     "action": "Vai ai libri"
   },
-  "error": { "title": "Impossibile caricare le statistiche", "text": "Controlla la connessione e riprova." }
+  "error": {
+    "title": "Impossibile caricare le statistiche",
+    "text": "Controlla la connessione e riprova."
+  },
+  "formatLabel": {
+    "paperback": "Brossura",
+    "hardcover": "Rilegato",
+    "ebook": "E-book",
+    "audiobook": "Audiolibro"
+  },
+  "langLabel": {
+    "it": "Italiano",
+    "en": "Inglese",
+    "fr": "Francese",
+    "de": "Tedesco",
+    "es": "Spagnolo",
+    "pt": "Portoghese",
+    "la": "Latino"
+  }
 }

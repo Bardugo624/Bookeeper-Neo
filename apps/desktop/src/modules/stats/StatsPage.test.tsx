@@ -44,6 +44,16 @@ describe('distributions', () => {
     expect(within(rows[0]!).getByRole('rowheader', { name: 'Brossura' })).toBeInTheDocument();
   });
 
+  it('translates known format and language codes', async () => {
+    renderStats({ stats: stats({ by_format: [{ key: 'paperback', count: 2 }], by_language: [{ key: 'it', count: 3 }, { key: 'xx', count: 1 }] }) });
+    const tables = await screen.findAllByRole('table');
+    const text = tables.map((t) => t.textContent).join('|');
+    expect(text).toContain('Brossura');
+    expect(text).toContain('Italiano');
+    expect(text).toContain('xx');
+    expect(text).not.toContain('paperback');
+  });
+
   it('shows ten rows, then everything on request', async () => {
     renderStats({ stats: stats({ by_genre: many(14) }) });
     const table = await screen.findByRole('table');
