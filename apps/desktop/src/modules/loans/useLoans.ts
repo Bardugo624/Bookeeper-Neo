@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useClient, useSession } from '../../session';
 import type { LoanFilter } from './listParams';
@@ -11,7 +12,8 @@ export function useLoansKey(): readonly ['loans', string | undefined] {
 }
 
 /** Loans for a filter (and optionally one book), in pages; the next page comes with `fetchNextPage`. */
-export function useLoanList(filter: LoanFilter, book: string) {
+/** With `loadAll` the remaining pages are fetched one after the other (history, per-person view). */
+export function useLoanList(filter: LoanFilter, book: string, loadAll = false) {
   const client = useClient();
   const key = useLoansKey();
   const params = { status: filter, book_id: book || undefined };
@@ -25,6 +27,10 @@ export function useLoanList(filter: LoanFilter, book: string) {
       return last.items.length > 0 && loaded < last.total ? loaded : undefined;
     },
   });
+  const { hasNextPage, isFetchingNextPage, isError, fetchNextPage } = query;
+  useEffect(() => {
+    if (loadAll && hasNextPage && !isFetchingNextPage && !isError) void fetchNextPage();
+  }, [loadAll, hasNextPage, isFetchingNextPage, isError, fetchNextPage]);
   const items = query.data?.pages.flatMap((p) => p.items) ?? [];
   return { query, items };
 }

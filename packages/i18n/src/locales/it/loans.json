@@ -32,7 +32,8 @@
     "since": "dal {date}",
     "due": "scadenza {date}",
     "noDue": "senza scadenza",
-    "returnedOn": "restituito il {date}"
+    "returnedOn": "restituito il {date}",
+    "byBorrower": "Mostra i prestiti di {name}"
   },
   "actions": {
     "return": "Segna come restituito",
@@ -90,7 +91,8 @@
       "dueBefore": "La scadenza non può essere prima della data del prestito.",
       "lentAfterReturn": "La data del prestito non può essere dopo la restituzione.",
       "notesLong": "Al massimo {max} caratteri."
-    }
+    },
+    "borrowerSuggestions": "Nomi già usati"
   },
   "return": {
     "title": "Segna come restituito",
@@ -109,5 +111,22 @@
   "errors": {
     "alreadyLent": "Questo libro è già in prestito. Restituiscilo prima di prestarlo di nuovo.",
     "reopenLent": "Il libro è già in prestito a qualcun altro: non posso riaprire questo prestito."
+  },
+  "borrowerFilter": {
+    "text": "Solo i prestiti a {name}.",
+    "clear": "Mostra tutti"
+  },
+  "history": {
+    "summary": "Riepilogo",
+    "closed": "Prestiti chiusi",
+    "average": "Durata media",
+    "top": "Prestato più spesso a",
+    "topValue": "{name} ({count})",
+    "days": "{count} g",
+    "duration": "durata {count} g",
+    "late": "{count} g di ritardo",
+    "search": "Cerca per persona o titolo",
+    "noMatch": "Nessun prestito corrisponde alla ricerca.",
+    "monthList": "Prestiti restituiti, {month}"
   }
 }
