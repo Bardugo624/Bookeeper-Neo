@@ -3,7 +3,7 @@ import { Button } from '@bookeeper/ui/base';
 import { Drawer } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
 import { FilterGroups } from './FilterGroups';
-import { NO_FILTERS, type Filters } from './filterModel';
+import { NO_FILTERS, badRanges, type Filters } from './filterModel';
 import { useMatchCount } from './useMatchCount';
 import styles from './FiltersDrawer.module.css';
 
@@ -25,6 +25,7 @@ export function FiltersDrawer({ open, ...rest }: FiltersDrawerProps) {
 function Panel({ filters, q, onApply, onClose }: Omit<FiltersDrawerProps, 'open'>) {
   const t = useT();
   const [draft, setDraft] = useState<Filters>(filters);
+  const bad = badRanges(draft);
   const count = useMatchCount(q, draft);
   return (
     <Drawer
@@ -41,6 +42,7 @@ function Panel({ filters, q, onApply, onClose }: Omit<FiltersDrawerProps, 'open'
           </Button>
           <Button
             variant="primary"
+            disabled={bad.years || bad.acquired}
             onClick={() => {
               onApply(draft);
               onClose();

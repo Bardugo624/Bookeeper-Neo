@@ -266,6 +266,7 @@
     }
   },
   "panel": {
+    "rangeError": "Invalid range: the start is after the end.",
     "title": "Filters",
     "button": "Filters",
     "buttonCount": "Filters ({count})",
@@ -300,6 +301,7 @@
   },
   "sort": {
     "button": "Sort by: {name}",
+    "relevance": "Relevance",
     "label": "Sort by",
     "asc": "Ascending",
     "desc": "Descending",

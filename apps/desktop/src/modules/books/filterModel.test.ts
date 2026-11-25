@@ -60,4 +60,21 @@ describe('filter model', () => {
     expect(serializeView({ q: ' dune ', filters: parse('reading=read'), sort: 'created_at', order: 'desc' })).toBe('q=dune&reading=read&sort=created_at');
     expect(serializeView({ q: '', filters: NO_FILTERS, sort: 'title', order: 'desc' })).toBe('sort=title&order=desc');
   });
+
+  it('ignores address values the API would refuse', () => {
+    expect(parse('format=xyz').format).toBeNull();
+    const inverted = parse('year_from=2000&year_to=1990&acquired_from=2024-03-01&acquired_to=2024-01-01');
+    expect([inverted.yearFrom, inverted.yearTo, inverted.acquiredFrom, inverted.acquiredTo]).toEqual([null, null, null, null]);
+    const many = parse(Array.from({ length: 12 }, (_, i) => `tag=t${i}`).join('&'));
+    expect(many.tags).toHaveLength(10);
+    const both = parse('filter=unshelved&shelf=s1');
+    expect([both.unshelved, both.shelf]).toEqual([true, null]);
+  });
+
+  it('never sends a combination the API refuses', () => {
+    const api = toApiFilters({ ...NO_FILTERS, unshelved: true, shelf: 's1', format: 'x', yearFrom: 5, yearTo: 1 });
+    expect(api.shelf_id).toBeUndefined();
+    expect(api.format).toBeUndefined();
+    expect(api.year_from).toBeUndefined();
+  });
 });

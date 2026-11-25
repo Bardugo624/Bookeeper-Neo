@@ -127,7 +127,8 @@ export function useListParams(): ListParams {
         // Pills keep their own spelling in the address: `?reading=` and `?filter=`.
         const base: Filters = { ...filters, reading: null, onLoan: false, unshelved: false };
         edit((n) => {
-          putFilters(n, { ...base, unshelved: value === 'unshelved' });
+          // "Unshelved" cannot go with a place: the API refuses a shelf, and a room would match nothing.
+          putFilters(n, value === 'unshelved' ? { ...base, unshelved: true, room: null, shelf: null } : base);
           if (isReadingFilter(value)) n.set('reading', value);
           if (value === 'loan') n.set('filter', 'loan');
         });

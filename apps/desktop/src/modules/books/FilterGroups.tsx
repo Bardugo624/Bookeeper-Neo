@@ -2,7 +2,7 @@ import { useId, type ReactNode } from 'react';
 import { Input } from '@bookeeper/ui/base';
 import { useT } from '../../app';
 import { FacetSelect } from './FacetSelect';
-import { READING_STATES, validDate, type Filters } from './filterModel';
+import { MAX_TAGS, READING_STATES, badRanges, validDate, type Filters } from './filterModel';
 import { useFacets, useShelfRooms } from './useFacets';
 import styles from './FiltersDrawer.module.css';
 
@@ -29,6 +29,7 @@ export function FilterGroups({ draft, set }: FilterGroupsProps) {
   const facets = useFacets().data;
   const shelves = useShelfRooms();
   const range = facets?.years;
+  const bad = badRanges(draft);
   const clamp = (n: number | null) =>
     n === null || !range ? n : Math.min(Math.max(n, range.min ?? n), range.max ?? n);
   const toggleTag = (id: string) =>
@@ -63,7 +64,11 @@ export function FilterGroups({ draft, set }: FilterGroupsProps) {
             {facets.tags.map((tag) => (
               <li key={tag.id}>
                 <label className={styles.check}>
-                  <input type="checkbox" checked={draft.tags.includes(tag.id)} onChange={() => toggleTag(tag.id)} />
+                  <input
+                    type="checkbox"
+                    checked={draft.tags.includes(tag.id)}
+                    disabled={!draft.tags.includes(tag.id) && draft.tags.length >= MAX_TAGS}
+                    onChange={() => toggleTag(tag.id)} />
                   {t('books.panel.withCount', { name: tag.name, count: tag.count })}
                 </label>
               </li>
@@ -88,7 +93,7 @@ export function FilterGroups({ draft, set }: FilterGroupsProps) {
           anyLabel={t('books.panel.anyShelf')}
           value={draft.shelf}
           options={(facets?.shelves ?? []).filter((s) => shelfIds.has(s.id)).map((s) => ({ value: s.id, label: s.name, count: s.count }))}
-          onChange={(shelf) => set({ shelf })}
+          onChange={(shelf) => set(shelf ? { shelf, unshelved: false } : { shelf })}
         />
       </Group>
       <Group title={t('books.panel.edition')}>
@@ -138,6 +143,7 @@ export function FilterGroups({ draft, set }: FilterGroupsProps) {
             </div>
           ))}
         </div>
+        {bad.years ? <p role="alert">{t('books.panel.rangeError')}</p> : null}
       </Group>
       <Group title={t('books.panel.acquired')}>
         <div className={styles.pair}>
@@ -150,6 +156,7 @@ export function FilterGroups({ draft, set }: FilterGroupsProps) {
             </div>
           ))}
         </div>
+        {bad.acquired ? <p role="alert">{t('books.panel.rangeError')}</p> : null}
       </Group>
     </div>
   );

@@ -34,7 +34,7 @@ export function FilterBar({ params, active, hideActive }: FilterBarProps) {
           {active.length > 0 ? t('books.panel.buttonCount', { count: active.length }) : t('books.panel.button')}
         </Button>
         <SavedViews current={serializeView(params)} onApply={params.applySaved} />
-        <SortMenu sort={params.sort} order={params.order} onChange={params.setSort} />
+        <SortMenu searching={params.q.trim() !== ''} sort={params.sort} order={params.order} onChange={params.setSort} />
       </div>
       {active.length > 0 && !hideActive ? (
         <ActiveFilters items={active} onRemove={(item) => params.setFilters(item.without)} onClearAll={params.clearFilters} />

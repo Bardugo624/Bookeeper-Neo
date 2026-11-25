@@ -66,6 +66,34 @@ export const NO_FILTERS: Filters = {
   acquiredTo: null,
 };
 
+/** Values of `format` the API accepts. */
+export const FORMATS = ['hardcover', 'paperback', 'ebook', 'audiobook'] as const;
+/** The API refuses more `tag_id` values than this. */
+export const MAX_TAGS = 10;
+
+/** Which ranges are inverted (the API answers 422 to those). */
+export function badRanges(f: Filters): { years: boolean; acquired: boolean } {
+  return {
+    years: f.yearFrom !== null && f.yearTo !== null && f.yearFrom > f.yearTo,
+    acquired: f.acquiredFrom !== null && f.acquiredTo !== null && f.acquiredFrom > f.acquiredTo,
+  };
+}
+
+/** Drops what the API would refuse: unknown format, too many tags, inverted ranges, a shelf with "unshelved". */
+export function normalizeFilters(f: Filters): Filters {
+  const bad = badRanges(f);
+  return {
+    ...f,
+    format: FORMATS.find((x) => x === f.format) ?? null,
+    tags: f.tags.slice(0, MAX_TAGS),
+    shelf: f.unshelved ? null : f.shelf,
+    yearFrom: bad.years ? null : f.yearFrom,
+    yearTo: bad.years ? null : f.yearTo,
+    acquiredFrom: bad.acquired ? null : f.acquiredFrom,
+    acquiredTo: bad.acquired ? null : f.acquiredTo,
+  };
+}
+
 /** Address keys written by `writeFilters`, apart from the legacy `filter`. */
 const KEYS = [
   'reading',
@@ -95,7 +123,7 @@ export function validDate(raw: string | null): string | null {
 /** Reads the filters from an address; anything invalid counts as absent. */
 export function parseFilters(p: URLSearchParams): Filters {
   const legacy = p.get('filter');
-  return {
+  return normalizeFilters({
     reading: READING_STATES.find((s) => s === p.get('reading')) ?? null,
     onLoan: p.get('on_loan') === 'true' || legacy === 'loan',
     unshelved: legacy === 'unshelved',
@@ -109,7 +137,7 @@ export function parseFilters(p: URLSearchParams): Filters {
     yearTo: year(p.get('year_to')),
     acquiredFrom: validDate(p.get('acquired_from')),
     acquiredTo: validDate(p.get('acquired_to')),
-  };
+  });
 }
 
 /** Writes the filters into `p`, replacing what was there. A loan filter is always `on_loan=true` here. */
@@ -141,7 +169,8 @@ function localDay(d: string, shift = 0): number {
 }
 
 /** Query of `GET /books` for the filters; absent values stay out. */
-export function toApiFilters(f: Filters): ListBooksParams {
+export function toApiFilters(raw: Filters): ListBooksParams {
+  const f = normalizeFilters(raw);
   return {
     reading: f.reading ?? undefined,
     on_loan: f.onLoan ? true : undefined,
