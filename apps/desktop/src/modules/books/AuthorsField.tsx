@@ -1,6 +1,6 @@
 import { Button, Field, IconButton, Input } from '@bookeeper/ui/base';
 import { useT } from '../../app';
-import { LIMITS } from './bookForm';
+import { LIMITS } from './bookFormModel';
 import styles from './BookForm.module.css';
 
 export interface AuthorsFieldProps {
