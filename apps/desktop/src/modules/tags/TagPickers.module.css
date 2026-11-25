@@ -1,0 +1,127 @@
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bk-text-muted);
+}
+
+.chosen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chosenItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.remove {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--bk-text-muted);
+  cursor: pointer;
+}
+
+.remove:hover {
+  background: var(--bk-inset);
+  color: var(--bk-text-strong);
+}
+
+.remove:focus-visible,
+.swatch:focus-visible {
+  outline: 2px solid var(--bk-primary-400);
+  outline-offset: 2px;
+}
+
+.hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--bk-text-muted);
+}
+
+.error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--bk-danger-strong);
+}
+
+.list {
+  max-height: 200px;
+  margin: 0;
+  padding: 4px;
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--bk-border);
+  border-radius: var(--bk-radius);
+  background: var(--bk-surface);
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--bk-radius-sm);
+  font-size: 14px;
+  color: var(--bk-text);
+  cursor: pointer;
+}
+
+.activeOption {
+  background: var(--bk-inset);
+}
+
+.option[aria-disabled='true'] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.empty {
+  padding: 6px 8px;
+  font-size: 13px;
+  color: var(--bk-text-muted);
+}
+
+.newColor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.swatches {
+  display: flex;
+  gap: 10px;
+}
+
+.swatch {
+  --tag-color: var(--bk-neutral-500);
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 2px solid var(--bk-surface);
+  border-radius: 50%;
+  background: var(--tag-color);
+  box-shadow: 0 0 0 1px var(--bk-border-strong);
+  cursor: pointer;
+}
+
+.swatch[aria-checked='true'] {
+  box-shadow: 0 0 0 2px var(--bk-text-strong);
+}

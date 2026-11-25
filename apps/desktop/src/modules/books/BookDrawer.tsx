@@ -4,6 +4,7 @@ import { Button } from '@bookeeper/ui/base';
 import { Drawer, useToast } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
 import { apiErrorMessage } from '../../kit';
+import { TagPicker } from '../tags';
 import { BookFormFields } from './BookFormFields';
 import { CoverPicker } from './CoverPicker';
 import { IsbnStep } from './IsbnStep';
@@ -48,8 +49,10 @@ function BookEditor({ book, onClose, onSaved, onCreated, onAnother }: BookDrawer
           ? t('books.toast.colorFailed')
           : result.coverFailed
             ? t('books.toast.coverFailed')
-            : undefined,
-        tone: result.coverFailed || result.colorFailed ? 'warn' : 'ok',
+            : result.tagsFailed
+              ? t('books.toast.tagsFailed')
+              : undefined,
+        tone: result.coverFailed || result.colorFailed || result.tagsFailed ? 'warn' : 'ok',
       });
       if (book) onSaved?.(result.book);
       else onCreated?.(result.book, another);
@@ -104,6 +107,7 @@ function BookEditor({ book, onClose, onSaved, onCreated, onAnother }: BookDrawer
           <LookupNotice outcome={editor.outcome} />
           <ExistingNotice existing={editor.duplicate} />
           <BookFormFields form={form} />
+          <TagPicker value={editor.tagIds} onChange={editor.setTagIds} disabled={editor.saving} />
           <CoverPicker
             title={form.values.title}
             author={authorsOf(form.values) || undefined}

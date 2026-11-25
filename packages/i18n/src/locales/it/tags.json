@@ -1,0 +1,91 @@
+{
+  "title": "Tag",
+  "column": "Tag",
+  "action": "Tag…",
+  "manageMenu": "Gestisci tag",
+  "colors": {
+    "sage": "Salvia",
+    "terracotta": "Terracotta",
+    "night": "Notte",
+    "plum": "Prugna",
+    "amber": "Ambra",
+    "graphite": "Grafite"
+  },
+  "errors": {
+    "exists": "Esiste già un tag con questo nome.",
+    "tooLong": "Al massimo {max} caratteri."
+  },
+  "picker": {
+    "label": "Tag",
+    "chosen": "Tag scelti",
+    "remove": "Rimuovi «{name}»",
+    "placeholder": "Cerca o crea un tag",
+    "options": "Tag disponibili",
+    "count": "{count} di {max} tag",
+    "limit": "Hai raggiunto il limite di {max} tag.",
+    "loading": "Caricamento dei tag…",
+    "failed": "Non riesco a leggere i tag.",
+    "none": "Nessun tag corrisponde.",
+    "create": "Crea «{name}»",
+    "newColor": "Colore del nuovo tag"
+  },
+  "toast": {
+    "saved": "Tag di «{title}» aggiornati",
+    "deleted": "Tag «{name}» eliminato"
+  },
+  "detail": {
+    "title": "Tag",
+    "none": "Nessun tag",
+    "edit": "Modifica tag",
+    "list": "Tag del libro"
+  },
+  "edit": {
+    "title": "Modifica tag"
+  },
+  "manage": {
+    "title": "Gestisci tag",
+    "loading": "Caricamento dei tag",
+    "error": "Non riesco a leggere i tag. Riprova più tardi.",
+    "empty": "Non ci sono ancora tag. Si creano dal modulo di un libro.",
+    "list": "Tag della libreria",
+    "name": "Nome di «{name}»",
+    "rename": "Salva il nome di «{name}»",
+    "delete": "Elimina «{name}»",
+    "color": "Colore di «{name}»",
+    "books": {
+      "one": "{count} libro",
+      "other": "{count} libri"
+    }
+  },
+  "delete": {
+    "title": "Eliminare il tag «{name}»?",
+    "text": {
+      "one": "Il tag sarà tolto da {count} libro. I libri non vengono eliminati. L'operazione non si può annullare.",
+      "other": "Il tag sarà tolto da {count} libri. I libri non vengono eliminati. L'operazione non si può annullare."
+    }
+  },
+  "assign": {
+    "title": {
+      "one": "Tag per {count} libro",
+      "other": "Tag per {count} libri"
+    },
+    "action": "Operazione",
+    "add": "Aggiungi il tag",
+    "remove": "Togli il tag",
+    "tag": "Tag",
+    "noTags": "Non ci sono ancora tag.",
+    "apply": {
+      "one": "Aggiungi a {count} libro",
+      "other": "Aggiungi a {count} libri"
+    },
+    "applyRemove": {
+      "one": "Togli da {count} libro",
+      "other": "Togli da {count} libri"
+    },
+    "working": "Aggiornamento in corso",
+    "progress": "Aggiornati {done} libri su {total}",
+    "done": "Aggiornati: {updated}. Già a posto: {unchanged}. Non riusciti: {failed}.",
+    "failedTitle": "Questi libri non sono stati aggiornati:",
+    "failure": "{title}: {message}"
+  }
+}

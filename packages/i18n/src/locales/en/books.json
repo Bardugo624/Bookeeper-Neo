@@ -230,6 +230,7 @@
     "updated": "“{title}” saved",
     "deleted": "“{title}” deleted",
     "coverFailed": "The book was saved, but its cover was not.",
-    "colorFailed": "The book was saved, but its spine color was not."
+    "colorFailed": "The book was saved, but its spine color was not.",
+    "tagsFailed": "The book was saved, but not its tags."
   }
 }

@@ -51,6 +51,7 @@ export function libraryHandler(lib: Library) {
       let rows = lib.books;
       if (q.get('on_loan') === 'true') rows = rows.filter((b) => b.on_loan);
       if (q.get('reading')) rows = rows.filter((b) => b.reading?.status === q.get('reading'));
+      for (const id of q.getAll('tag_id')) rows = rows.filter((b) => b.tags.some((tag) => tag.id === id));
       if (q.get('unshelved') === 'true') rows = rows.filter((b) => !b.placement);
       const text = q.get('q');
       if (text) rows = rows.filter((b) => [b.title, b.isbn_13, b.isbn_10].some((f) => f?.toLowerCase().includes(text.toLowerCase())));

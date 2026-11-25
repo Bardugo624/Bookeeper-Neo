@@ -6,7 +6,7 @@ import { isReadingFilter, type ListState } from './listParams';
 export const PAGE_SIZE = 60;
 
 /** Fetches the list in pages of 60; the next page is requested with `fetchNextPage`. */
-export function useBookList(state: Pick<ListState, 'q' | 'filter' | 'sort' | 'order'>) {
+export function useBookList(state: Pick<ListState, 'q' | 'filter' | 'sort' | 'order' | 'tag'>) {
   const client = useClient();
   const connectionId = useSession((s) => s.connection?.id);
   const q = state.q.trim();
@@ -14,6 +14,7 @@ export function useBookList(state: Pick<ListState, 'q' | 'filter' | 'sort' | 'or
     q: q || undefined,
     on_loan: state.filter === 'loan' ? true : undefined,
     unshelved: state.filter === 'unshelved' ? true : undefined,
+    tag_id: state.tag ? [state.tag] : undefined,
     reading: isReadingFilter(state.filter) ? state.filter : undefined,
     sort: state.sort ?? undefined,
     // The API refuses `order` without `sort`.
