@@ -28,6 +28,7 @@
     "fill": "Fill of {name}",
     "books": { "one": "{count} book", "other": "{count} books" },
     "free": { "one": "about {count} free place", "other": "about {count} free places" },
+    "room": "Room: {name}",
     "booksFree": "{books} · {free}"
   },
   "unshelved": {
@@ -77,17 +78,53 @@
     "rows": "Number of shelves",
     "slots": "Places per shelf",
     "slotsHint": "Capacity is shelves × places.",
+    "room": "Room",
+    "noRoom": "None",
+    "createRoom": "New room…",
+    "newRoomName": "Name of the new room",
     "errors": {
       "required": "Required field",
       "tooLong": "At most {max} characters",
       "rows": "From {minRows} to {maxRows} shelves",
       "slots": "From {minSlots} to {maxSlots} places",
-      "tooSmall": "A placed book would be left outside the cabinet. Move the books off the shelves or places you want to remove first."
+      "tooSmall": "A placed book would be left outside the cabinet. Move the books off the shelves or places you want to remove first.",
+      "exists": "A room with this name already exists",
+      "roomTooLong": "At most {roomMax} characters"
     }
   },
   "delete": {
     "title": "Delete the cabinet?",
     "withBooks": { "one": "The cabinet “{name}” will be deleted. Its placed book stays in the library but becomes unplaced. This can't be undone.", "other": "The cabinet “{name}” will be deleted. Its {count} placed books stay in the library but become unplaced. This can't be undone." },
     "empty": "The cabinet “{name}” will be deleted. This can't be undone."
+  },
+  "rooms": {
+    "none": "No room",
+    "manage": "Rooms…",
+    "title": "Rooms",
+    "tabsOf": "Cabinets: {name}",
+    "empty": "No rooms yet. Add one below.",
+    "shelves": {
+      "one": "{count} cabinet",
+      "other": "{count} cabinets"
+    },
+    "newName": "Name of the new room",
+    "add": "Add",
+    "rename": "Rename {name}",
+    "renameLabel": "New name of {name}",
+    "delete": "Delete {name}",
+    "deleteTitle": "Delete the room?",
+    "deleteText": "The room “{name}” will be deleted. Its cabinets stay, but without a room.",
+    "errors": {
+      "required": "Required field",
+      "tooLong": "At most {max} characters",
+      "exists": "A room with this name already exists",
+      "invalid": "The name must be 1 to {max} characters"
+    },
+    "filter": "Only the cabinets of the room “{name}”.",
+    "showAll": "Show all",
+    "filterEmpty": {
+      "title": "No cabinets in this room",
+      "text": "The room has no cabinets, or it no longer exists."
+    }
   }
 }

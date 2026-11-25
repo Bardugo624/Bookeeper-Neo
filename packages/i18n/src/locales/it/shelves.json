@@ -28,6 +28,7 @@
     "fill": "Riempimento di {name}",
     "books": { "one": "{count} libro", "other": "{count} libri" },
     "free": { "one": "circa {count} posto libero", "other": "circa {count} posti liberi" },
+    "room": "Stanza: {name}",
     "booksFree": "{books} · {free}"
   },
   "unshelved": {
@@ -77,17 +78,53 @@
     "rows": "Numero di ripiani",
     "slots": "Posti per ripiano",
     "slotsHint": "La capienza è ripiani × posti.",
+    "room": "Stanza",
+    "noRoom": "Nessuna",
+    "createRoom": "Nuova stanza…",
+    "newRoomName": "Nome della nuova stanza",
     "errors": {
       "required": "Campo obbligatorio",
       "tooLong": "Al massimo {max} caratteri",
       "rows": "Da {minRows} a {maxRows} ripiani",
       "slots": "Da {minSlots} a {maxSlots} posti",
-      "tooSmall": "Un libro collocato resterebbe fuori dal mobile. Sposta prima i libri dei ripiani o dei posti da togliere."
+      "tooSmall": "Un libro collocato resterebbe fuori dal mobile. Sposta prima i libri dei ripiani o dei posti da togliere.",
+      "exists": "Esiste già una stanza con questo nome",
+      "roomTooLong": "Al massimo {roomMax} caratteri"
     }
   },
   "delete": {
     "title": "Eliminare il mobile?",
     "withBooks": { "one": "Il mobile «{name}» sarà eliminato. Il libro collocato resta in biblioteca, ma risulta non collocato. L'operazione non si può annullare.", "other": "Il mobile «{name}» sarà eliminato. I {count} libri collocati restano in biblioteca, ma risultano non collocati. L'operazione non si può annullare." },
     "empty": "Il mobile «{name}» sarà eliminato. L'operazione non si può annullare."
+  },
+  "rooms": {
+    "none": "Senza stanza",
+    "manage": "Stanze…",
+    "title": "Stanze",
+    "tabsOf": "Mobili: {name}",
+    "empty": "Nessuna stanza. Aggiungine una qui sotto.",
+    "shelves": {
+      "one": "{count} mobile",
+      "other": "{count} mobili"
+    },
+    "newName": "Nome della nuova stanza",
+    "add": "Aggiungi",
+    "rename": "Rinomina {name}",
+    "renameLabel": "Nuovo nome di {name}",
+    "delete": "Elimina {name}",
+    "deleteTitle": "Eliminare la stanza?",
+    "deleteText": "La stanza «{name}» sarà eliminata. I suoi mobili restano, ma senza stanza.",
+    "errors": {
+      "required": "Campo obbligatorio",
+      "tooLong": "Al massimo {max} caratteri",
+      "exists": "Esiste già una stanza con questo nome",
+      "invalid": "Il nome deve avere da 1 a {max} caratteri"
+    },
+    "filter": "Solo i mobili della stanza «{name}».",
+    "showAll": "Mostra tutti",
+    "filterEmpty": {
+      "title": "Nessun mobile in questa stanza",
+      "text": "La stanza non ha mobili, oppure non esiste più."
+    }
   }
 }
