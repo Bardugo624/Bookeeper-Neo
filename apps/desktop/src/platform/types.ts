@@ -61,6 +61,46 @@ export interface SaveFileResult {
   path?: string;
 }
 
+/** Mirrors `SharingStatus` in `sharing.rs`. */
+export interface SharingStatus {
+  enabled: boolean;
+  running: boolean;
+  port: number;
+  addresses: string[];
+  fingerprint: string | null;
+  phrase: string | null;
+  error: 'port_in_use' | 'password_required' | 'tls' | 'mdns' | null;
+}
+
+export interface SharingControls {
+  status(): Promise<SharingStatus>;
+  set(enabled: boolean, port?: number): Promise<SharingStatus>;
+}
+
+export type UpdateChannel = 'stable' | 'beta';
+
+/** Mirrors `UpdateState` in `updates.rs` (tagged by `state`). */
+export type UpdateState =
+  | { state: 'disabled' }
+  | { state: 'up_to_date' }
+  | { state: 'available'; version: string; notes: string; date: string | null }
+  | { state: 'error'; code: UpdateErrorCode };
+
+export type UpdateErrorCode = 'network' | 'signature' | 'manifest' | 'install';
+
+export interface UpdateProgress {
+  downloaded: number;
+  total: number | null;
+}
+
+export interface UpdateControls {
+  check(channel: UpdateChannel): Promise<UpdateState>;
+  /** Downloads, verifies, installs and restarts; rejects with an `UpdateErrorCode`. */
+  install(channel: UpdateChannel): Promise<void>;
+  /** Calls `cb` with the download progress; returns the unsubscribe function. */
+  onProgress(cb: (p: UpdateProgress) => void): () => void;
+}
+
 export interface Platform {
   kind: 'tauri' | 'browser';
   transport(connectionId?: string): Transport;
@@ -77,6 +117,10 @@ export interface Platform {
   deviceName(): Promise<string>;
   /** Saves a file the app produced; `saved: false` when the user cancels. */
   saveFile(req: SaveFileRequest): Promise<SaveFileResult>;
+  /** `null` where the app cannot serve the library on the network (browser). */
+  sharing: SharingControls | null;
+  /** `null` where the app cannot update itself (browser). */
+  updates: UpdateControls | null;
 }
 
 export const NETWORK_PROBE: ProbeOut = {

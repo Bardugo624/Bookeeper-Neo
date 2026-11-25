@@ -76,6 +76,32 @@ describe('LabelsDialog', () => {
   });
 });
 
+describe('reopening', () => {
+  it('forgets the error of an earlier try', async () => {
+    const fail = (): RawResponse => ({ status: 500, bytes: new TextEncoder().encode('{"error_code":"internal","message":"boom"}'), contentType: 'application/json', headers: {} });
+    raws = [];
+    platform = fakePlatform({
+      connections: { active: 'c1', items: [fakeConnection()] },
+      handler: (r) => (r.path.endsWith('/me') ? ok(ME) : { status: 404, body: { error_code: 'not_found', message: 'x' } }),
+    });
+    const base = platform.transport.bind(platform);
+    platform.transport = (id) => ({ ...base(id), async requestRaw() { return fail(); } });
+    useSession.setState({ status: 'loading', connection: null, me: null, platform: null });
+    const view = (open: boolean) => (
+      <AppProviders platform={platform} locale="it">
+        <LabelsDialog bookIds={ids(1)} open={open} onClose={() => {}} />
+      </AppProviders>
+    );
+    const { rerender } = render(view(true));
+    await userEvent.click(await screen.findByRole('button', { name: 'Crea il PDF' }));
+    expect(await screen.findByText(/Qualcosa|errore|boom/i, { selector: 'p[role="alert"]' })).toBeInTheDocument();
+    rerender(view(false));
+    rerender(view(true));
+    await screen.findByRole('button', { name: 'Crea il PDF' });
+    expect(document.querySelector('p[role="alert"]')).toBeNull();
+  });
+});
+
 describe('sheet preview', () => {
   it('highlights as many boxes as books, from the first box', async () => {
     setup(ids(5));

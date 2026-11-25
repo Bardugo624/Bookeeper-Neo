@@ -1,0 +1,43 @@
+{
+  "section": "Updates",
+  "banner": {
+    "available": "Bookeeper {version} is available",
+    "notes": "See what's new",
+    "later": "Later"
+  },
+  "dialog": {
+    "title": "What's new in Bookeeper {version}",
+    "close": "Close",
+    "noNotes": "This version has no notes.",
+    "install": "Update and restart",
+    "installing": "Updating…",
+    "retry": "Try again",
+    "progress": "Download progress",
+    "installingHint": "Don't close Bookeeper: it restarts by itself when done."
+  },
+  "errors": {
+    "network": "Could not reach the update server. Check your connection and try again.",
+    "signature": "The update does not have a valid signature and was not installed. Try again later.",
+    "manifest": "The update information could not be read. Try again later.",
+    "install": "The update could not be installed. Try again."
+  },
+  "settings": {
+    "title": "Updates",
+    "description": "Bookeeper looks for new versions by itself and tells you without interrupting your work.",
+    "installed": "Installed version",
+    "channel": "Channel",
+    "channelLabel": "Update channel",
+    "stable": "Stable",
+    "beta": "Beta",
+    "betaWarning": "Beta versions arrive sooner but may have defects. If you go back to stable you stay on the beta until a newer stable version is out.",
+    "check": "Check for updates",
+    "checking": "Checking…",
+    "lastCheck": "Last check",
+    "never": "Never",
+    "status": "Status",
+    "upToDate": "Bookeeper is up to date.",
+    "available": "Version {version} is available.",
+    "notes": "See what's new",
+    "unknown": "Not checked yet."
+  }
+}

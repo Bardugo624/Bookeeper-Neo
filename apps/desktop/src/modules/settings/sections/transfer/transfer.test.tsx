@@ -29,6 +29,30 @@ describe('import', () => {
     expect(importCalls(platform)).toHaveLength(0);
   });
 
+  it('measures the JSON body, not the raw file', async () => {
+    const { platform } = renderTransfer();
+    // 6 MB of quotes: under the limit as a file, 12 MB once escaped in the body.
+    await pick(csv('quotes.csv', '"'.repeat(6 * 1024 * 1024)));
+    expect(await screen.findByText('Il file è troppo grande: il limite è 10 MB.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Importa' })).toBeDisabled();
+    expect(importCalls(platform)).toHaveLength(0);
+  });
+
+  it('says so when the file cannot be read, not the generic message', async () => {
+    const spy = vi.spyOn(FileReader.prototype, 'readAsText').mockImplementation(function (this: FileReader) {
+      queueMicrotask(() => this.onerror?.(new ProgressEvent('error') as ProgressEvent<FileReader>));
+    });
+    try {
+      const { platform } = renderTransfer();
+      await pick(csv());
+      expect(await screen.findByText('Non è stato possibile leggere il file.')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Importa' })).toBeDisabled();
+      expect(importCalls(platform)).toHaveLength(0);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
   it('sends the chosen format and the file text', async () => {
     const { platform } = renderTransfer();
     await pick(csv());

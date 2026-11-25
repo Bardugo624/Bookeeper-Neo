@@ -56,7 +56,7 @@ export function ScheduleBlock({ locked }: { locked: boolean }) {
             void submit();
           }}
         >
-          <div className={styles.field}>
+          <div className={`${styles.field} ${styles.interval}`}>
             <Field
               label={t('backup.schedule.interval')}
               description={off ? t('backup.schedule.off') : t('backup.schedule.intervalHint', { max: MAX_INTERVAL_DAYS })}
@@ -65,7 +65,7 @@ export function ScheduleBlock({ locked }: { locked: boolean }) {
               <Input inputMode="numeric" name="interval" value={values.interval} disabled={!config.data} onChange={(e) => change('interval', e.target.value)} />
             </Field>
           </div>
-          <div className={styles.field}>
+          <div className={`${styles.field} ${styles.keep}`}>
             <Field
               label={t('backup.schedule.keep')}
               description={t('backup.schedule.keepHint', { min: MIN_KEEP, max: MAX_KEEP })}
@@ -74,7 +74,7 @@ export function ScheduleBlock({ locked }: { locked: boolean }) {
               <Input inputMode="numeric" name="keep" value={values.keep} disabled={!config.data} onChange={(e) => change('keep', e.target.value)} />
             </Field>
           </div>
-          <Button type="submit" variant="primary" disabled={!config.data || locked} loading={save.isPending} loadingLabel={t('common.saving')}>
+          <Button className={styles.submit} type="submit" variant="primary" disabled={!config.data || locked} loading={save.isPending} loadingLabel={t('common.saving')}>
             {t('backup.schedule.save')}
           </Button>
         </form>

@@ -42,6 +42,17 @@ describe('locale preference', () => {
     expect(document.documentElement.lang).toBe('en');
   });
 
+  it('re-reads the system language on languagechange', () => {
+    render(<LocaleProvider><Probe /></LocaleProvider>);
+    expect(screen.getByText('it:Salva')).toBeInTheDocument();
+    act(() => {
+      setSystemLanguage('en-US');
+      window.dispatchEvent(new Event('languagechange'));
+    });
+    expect(screen.getByText('en:Save')).toBeInTheDocument();
+    expect(document.documentElement.lang).toBe('en');
+  });
+
   it('switches text and <html lang> without remounting', () => {
     const { result } = renderHook(() => useLocalePreference());
     render(<LocaleProvider><Probe /></LocaleProvider>);

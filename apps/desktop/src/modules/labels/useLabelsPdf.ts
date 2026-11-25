@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@bookeeper/ui/overlays';
 import { useT } from '../../app/i18n';
@@ -7,7 +8,7 @@ import { useClient } from '../../session';
 import { MAX_BOOKS, labelsFileName } from './labelsModel';
 
 /** Asks the core for the PDF and hands it to the system "Save as" window. */
-export function useLabelsPdf(bookIds: string[], onDone: () => void) {
+export function useLabelsPdf(bookIds: string[], onDone: () => void, open = true) {
   const t = useT();
   const client = useClient();
   const platform = usePlatform();
@@ -37,6 +38,12 @@ export function useLabelsPdf(bookIds: string[], onDone: () => void) {
       onDone();
     },
   });
+
+  // Opening the dialog starts from a clean slate: no error from an earlier try.
+  const { reset } = run;
+  useEffect(() => {
+    if (open) reset();
+  }, [open, reset]);
 
   const submit = () => {
     if (run.isPending || tooMany || bookIds.length === 0) return;

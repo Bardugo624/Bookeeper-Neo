@@ -1,5 +1,6 @@
 import { Button, Icon } from '@bookeeper/ui/base';
 import { useT } from '../../../../app/i18n';
+import { FilePicker } from '../../../../kit';
 import { SettingsBlock } from '../../SettingsBlock';
 import { useSettingsSession } from '../../useSettingsSession';
 import { RestoreDialog } from './RestoreDialog';
@@ -21,16 +22,15 @@ export function RestoreBlock({ ops }: { ops: BackupOps }) {
         <Icon name="alert" />
         <p>{t('backup.restore.warning')}</p>
       </div>
-      <label className={styles.note}>
-        {t('backup.restore.file')}
-        <input
-          key={restore.inputKey}
-          type="file"
-          accept=".zip,application/zip"
-          disabled={ops.busy}
-          onChange={(e) => restore.pick(e.target.files?.[0] ?? null)}
-        />
-      </label>
+      <FilePicker
+        key={restore.inputKey}
+        label={t('common.file.choose')}
+        inputLabel={t('backup.restore.file')}
+        accept=".zip,application/zip"
+        fileName={restore.file?.name}
+        disabled={ops.busy}
+        onPick={restore.pick}
+      />
       <Button
         variant="danger"
         disabled={!restore.file || (ops.busy && !restoring) || libraryName === ''}

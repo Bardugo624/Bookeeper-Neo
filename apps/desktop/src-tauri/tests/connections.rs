@@ -345,3 +345,245 @@ fn setting_aside_never_uses_hard_links() {
     let src = include_str!("../src/connections.rs");
     assert!(!src.contains(concat!("hard", "_link")));
 }
+
+// ---- secrets (keychain mode) ----
+
+mod keychain {
+    use super::*;
+    use bookeeper_desktop_lib::secrets::{probe, MemoryStore, SecretStore, SecretsMode};
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::Arc;
+
+    /// A store that fails on command.
+    #[derive(Default)]
+    struct Flaky {
+        inner: MemoryStore,
+        fail_get: AtomicBool,
+        fail_set: AtomicBool,
+        fail_all: AtomicBool,
+        fail_get_key: std::sync::Mutex<Option<String>>,
+        fail_set_key: std::sync::Mutex<Option<String>>,
+    }
+    impl SecretStore for Flaky {
+        fn get(&self, key: &str) -> Result<Option<String>, String> {
+            let k = self.fail_get_key.lock().unwrap().clone();
+            if self.fail_all.load(Ordering::SeqCst)
+                || self.fail_get.load(Ordering::SeqCst)
+                || k.as_deref().is_some_and(|k| key.starts_with(k))
+            {
+                return Err("boom".into());
+            }
+            self.inner.get(key)
+        }
+        fn set(&self, key: &str, value: &str) -> Result<(), String> {
+            let k = self.fail_set_key.lock().unwrap().clone();
+            if self.fail_all.load(Ordering::SeqCst)
+                || self.fail_set.load(Ordering::SeqCst)
+                || k.as_deref().is_some_and(|k| key.starts_with(k))
+            {
+                return Err("boom".into());
+            }
+            self.inner.set(key, value)
+        }
+        fn delete(&self, key: &str) -> Result<(), String> {
+            if self.fail_all.load(Ordering::SeqCst) {
+                return Err("boom".into());
+            }
+            self.inner.delete(key)
+        }
+    }
+
+    fn with(secrets: Arc<dyn SecretStore>) -> (tempfile::TempDir, Store) {
+        let d = tempfile::tempdir().unwrap();
+        let s = Store::with_secrets(d.path(), secrets, SecretsMode::Keychain);
+        (d, s)
+    }
+
+    fn with_tokens(url: &str, a: &str, r: &str) -> Connection {
+        let mut c = remote(url);
+        c.access_token = Some(a.into());
+        c.refresh_token = Some(r.into());
+        c
+    }
+
+    fn file(d: &tempfile::TempDir) -> String {
+        std::fs::read_to_string(d.path().join("connections.json")).unwrap()
+    }
+
+    #[test]
+    fn tokens_never_reach_the_file_in_keychain_mode() {
+        let m = Arc::new(MemoryStore::new());
+        let (d, s) = with(m.clone());
+        let c = with_tokens("https://a.example", "ACCESS-1", "REFRESH-1");
+        let saved = s.upsert(c.clone()).unwrap();
+        assert_eq!(saved.items, vec![c.clone()]);
+        let text = file(&d);
+        assert!(!text.contains("ACCESS-1") && !text.contains("REFRESH-1"));
+        s.activate(&c.id).unwrap();
+        let text = file(&d);
+        assert!(!text.contains("ACCESS-1") && !text.contains("REFRESH-1"));
+        assert_eq!(m.len(), 2);
+    }
+
+    #[test]
+    fn load_fills_tokens_from_the_store() {
+        let m = Arc::new(MemoryStore::new());
+        let (d, s) = with(m.clone());
+        let c = with_tokens("https://a.example", "A", "R");
+        s.upsert(c.clone()).unwrap();
+        let again = Store::with_secrets(d.path(), m, SecretsMode::Keychain);
+        assert_eq!(again.load().unwrap().items, vec![c]);
+    }
+
+    #[test]
+    fn migration_moves_tokens_and_rewrites_the_file() {
+        let d = tempfile::tempdir().unwrap();
+        let c = with_tokens("https://a.example", "OLD-A", "OLD-R");
+        Store::new(d.path()).upsert(c.clone()).unwrap();
+        assert!(file(&d).contains("OLD-A"));
+        let m = Arc::new(MemoryStore::new());
+        let s = Store::with_secrets(d.path(), m.clone(), SecretsMode::Keychain);
+        assert_eq!(s.load().unwrap().items, vec![c.clone()]);
+        let text = file(&d);
+        assert!(!text.contains("OLD-A") && !text.contains("OLD-R"));
+        assert_eq!(
+            m.get(&format!("{}/access", c.id)).unwrap().as_deref(),
+            Some("OLD-A")
+        );
+        assert_eq!(
+            m.get(&format!("{}/refresh", c.id)).unwrap().as_deref(),
+            Some("OLD-R")
+        );
+    }
+
+    #[test]
+    fn migration_keeps_the_file_when_the_store_refuses() {
+        let d = tempfile::tempdir().unwrap();
+        let c = with_tokens("https://a.example", "OLD-A", "OLD-R");
+        Store::new(d.path()).upsert(c.clone()).unwrap();
+        let before = file(&d);
+        let f = Arc::new(Flaky::default());
+        f.fail_set.store(true, Ordering::SeqCst);
+        let s = Store::with_secrets(d.path(), f, SecretsMode::Keychain);
+        assert_eq!(s.load().unwrap().items, vec![c.clone()]);
+        assert_eq!(file(&d), before);
+        // Other operations do not strip the tokens still in the file either.
+        s.activate(&c.id).unwrap();
+        assert!(file(&d).contains("OLD-A"));
+    }
+
+    #[test]
+    fn keychain_only_tokens_survive_a_failed_migration() {
+        let d = tempfile::tempdir().unwrap();
+        let a = with_tokens("https://a.example", "OLD-A", "OLD-R");
+        Store::new(d.path()).upsert(a.clone()).unwrap();
+        let f = Arc::new(Flaky::default());
+        *f.fail_set_key.lock().unwrap() = Some(a.id.clone());
+        let s = Store::with_secrets(d.path(), f, SecretsMode::Keychain);
+        let b = with_tokens("https://b.example", "B1", "B2");
+        s.upsert(b.clone()).unwrap();
+        let all = s.load().unwrap();
+        let got = all.items.iter().find(|c| c.id == b.id).unwrap();
+        assert_eq!(got, &b);
+        assert!(file(&d).contains("OLD-A"));
+    }
+
+    #[test]
+    fn file_mode_remove_clears_leftover_keychain_entries() {
+        let d = tempfile::tempdir().unwrap();
+        let m = Arc::new(MemoryStore::new());
+        let c = with_tokens("https://a.example", "A", "R");
+        Store::with_secrets(d.path(), m.clone(), SecretsMode::Keychain)
+            .upsert(c.clone())
+            .unwrap();
+        assert_eq!(m.len(), 2);
+        Store::with_secrets(d.path(), m.clone(), SecretsMode::File)
+            .remove(&c.id)
+            .unwrap();
+        assert!(m.is_empty());
+    }
+
+    #[test]
+    fn a_none_token_deletes_the_entry() {
+        let m = Arc::new(MemoryStore::new());
+        let (_d, s) = with(m.clone());
+        let mut c = with_tokens("https://a.example", "A", "R");
+        s.upsert(c.clone()).unwrap();
+        c.access_token = None;
+        c.refresh_token = None;
+        let saved = s.upsert(c).unwrap();
+        assert!(saved.items[0].access_token.is_none());
+        assert!(m.is_empty());
+    }
+
+    #[test]
+    fn remove_deletes_both_entries() {
+        let m = Arc::new(MemoryStore::new());
+        let (_d, s) = with(m.clone());
+        let c = with_tokens("https://a.example", "A", "R");
+        s.upsert(c.clone()).unwrap();
+        assert_eq!(m.len(), 2);
+        s.remove(&c.id).unwrap();
+        assert!(m.is_empty());
+    }
+
+    #[test]
+    fn a_read_failure_leaves_that_connection_without_tokens() {
+        let f = Arc::new(Flaky::default());
+        let (_d, s) = with(f.clone());
+        let a = with_tokens("https://a.example", "A1", "R1");
+        let b = with_tokens("https://b.example", "A2", "R2");
+        s.upsert(a.clone()).unwrap();
+        s.upsert(b.clone()).unwrap();
+        *f.fail_get_key.lock().unwrap() = Some(a.id.clone());
+        let all = s.load().unwrap();
+        let (ra, rb) = (&all.items[0], &all.items[1]);
+        assert!(ra.access_token.is_none() && ra.refresh_token.is_none());
+        assert_eq!(rb, &b);
+    }
+
+    #[test]
+    fn file_mode_behaves_as_before() {
+        let d = tempfile::tempdir().unwrap();
+        let m = Arc::new(MemoryStore::new());
+        let s = Store::with_secrets(d.path(), m.clone(), SecretsMode::File);
+        let c = with_tokens("https://a.example", "A", "R");
+        assert_eq!(s.upsert(c.clone()).unwrap().items, vec![c]);
+        assert!(file(&d).contains("\"A\""));
+        assert!(m.is_empty());
+        assert_eq!(s.mode(), SecretsMode::File);
+    }
+
+    #[test]
+    fn the_probe_picks_file_when_the_store_is_unavailable() {
+        assert_eq!(probe(&MemoryStore::new()), SecretsMode::Keychain);
+        let f = Flaky::default();
+        f.fail_all.store(true, Ordering::SeqCst);
+        assert_eq!(probe(&f), SecretsMode::File);
+        let f = Flaky::default();
+        f.fail_set.store(true, Ordering::SeqCst);
+        assert_eq!(probe(&f), SecretsMode::File);
+    }
+
+    #[test]
+    fn secrets_is_reported() {
+        let (_d, s) = with(Arc::new(MemoryStore::new()));
+        let v = serde_json::to_value(bookeeper_desktop_lib::connections_view(&s).unwrap()).unwrap();
+        assert_eq!(v["secrets"], "keychain");
+        assert!(v["items"].is_array());
+        let (_d, s) = store();
+        let v = serde_json::to_value(bookeeper_desktop_lib::connections_view(&s).unwrap()).unwrap();
+        assert_eq!(v["secrets"], "file");
+    }
+
+    #[test]
+    #[ignore = "uses the real system keychain"]
+    fn the_real_keychain_round_trips() {
+        let s = bookeeper_desktop_lib::secrets::SystemStore;
+        let key = format!("test/{}", id());
+        s.set(&key, "v").unwrap();
+        assert_eq!(s.get(&key).unwrap().as_deref(), Some("v"));
+        s.delete(&key).unwrap();
+        assert_eq!(s.get(&key).unwrap(), None);
+    }
+}

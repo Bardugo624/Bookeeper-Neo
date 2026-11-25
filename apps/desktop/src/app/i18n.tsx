@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useSyncExternalStore, type ReactNode } from 'react';
 import { create } from 'zustand';
 import { resolveLocale, t, type Locale } from '@bookeeper/i18n';
 
@@ -51,10 +51,16 @@ function systemLanguage(): string {
   return typeof navigator === 'undefined' ? 'it' : navigator.language;
 }
 
+function subscribeSystemLanguage(onChange: () => void): () => void {
+  window.addEventListener('languagechange', onChange);
+  return () => window.removeEventListener('languagechange', onChange);
+}
+
 /** An explicit `locale` (tests, previews) wins over the stored preference. */
 export function LocaleProvider({ locale, children }: { locale?: Locale; children: ReactNode }) {
   const preference = usePreferenceStore((s) => s.preference);
-  const value = locale ?? resolveLocale(preference, systemLanguage());
+  const system = useSyncExternalStore(subscribeSystemLanguage, systemLanguage, () => 'it');
+  const value = locale ?? resolveLocale(preference, system);
   useEffect(() => {
     document.documentElement.lang = value;
   }, [value]);

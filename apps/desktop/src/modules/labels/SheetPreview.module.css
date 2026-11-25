@@ -12,5 +12,5 @@
   box-shadow: var(--bk-shadow-1, none);
 }
 .box { border: 1px dashed var(--bk-border); border-radius: 2px; }
-.used { background: var(--bk-accent, #3b6ea5); border: 1px solid var(--bk-accent, #3b6ea5); opacity: 0.8; }
+.used { background: var(--bk-primary-400); border: 1px solid var(--bk-primary-400); opacity: 0.8; }
 .caption { margin: 0; font-size: 12px; color: var(--bk-text-muted, var(--bk-text)); }

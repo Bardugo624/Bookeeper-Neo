@@ -21,6 +21,7 @@ pub struct FileFilter {
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 pub struct SaveOutcome {
     pub saved: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
 }
 
@@ -37,7 +38,9 @@ pub fn sanitize_name(raw: &str) -> String {
             }
         })
         .collect();
-    let cleaned = cleaned.trim().trim_matches('.').trim().to_string();
+    let cleaned = cleaned
+        .trim_matches(|c: char| c == '.' || c.is_whitespace())
+        .to_string();
     // A run of dots inside the name is never meaningful and `..` must not survive.
     let mut name = cleaned;
     while name.contains("..") {
@@ -61,10 +64,48 @@ fn truncate_keeping_extension(name: &str, max: usize) -> String {
     let ext_len = ext.chars().count();
     // An absurdly long "extension" is just part of the name.
     if ext_len >= max {
-        return name.chars().take(max).collect();
+        let cut: String = name.chars().take(max).collect();
+        return cut
+            .trim_end_matches(|c: char| c == '.' || c.is_whitespace())
+            .to_string();
     }
     let stem: String = name.chars().take(max - ext_len).collect();
+    // Cutting must not leave a trailing dot/space (it would meet the extension's
+    // dot as `..`, or end the name).
+    let stem = stem.trim_end_matches(|c: char| c == '.' || c.is_whitespace());
+    let stem = if stem.is_empty() { "file" } else { stem };
     format!("{stem}{ext}")
+}
+
+/// One save window at a time. Not tied to Tauri so it can be tested alone.
+#[derive(Debug, Default)]
+pub struct SaveLock(std::sync::atomic::AtomicBool);
+
+/// Held while a save is in progress; releases the lock when dropped.
+#[derive(Debug)]
+pub struct SavePermit<'a>(&'a SaveLock);
+
+impl SaveLock {
+    pub const fn new() -> Self {
+        Self(std::sync::atomic::AtomicBool::new(false))
+    }
+
+    /// `None` when a save is already in progress.
+    pub fn try_acquire(&self) -> Option<SavePermit<'_>> {
+        use std::sync::atomic::Ordering;
+        self.0
+            .compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
+            .ok()
+            .map(|_| SavePermit(self))
+    }
+}
+
+impl Drop for SavePermit<'_> {
+    fn drop(&mut self) {
+        (self.0)
+            .0
+            .store(false, std::sync::atomic::Ordering::Release);
+    }
 }
 
 pub fn decode_base64(data: &str) -> Result<Vec<u8>, String> {

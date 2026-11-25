@@ -26,12 +26,13 @@
   },
   "bundle": {
     "active": true,
+    "createUpdaterArtifacts": true,
     "targets": [
       "nsis",
-      "deb",
+      "dmg",
       "appimage",
-      "app",
-      "dmg"
+      "deb",
+      "app"
     ],
     "icon": [
       "icons/32x32.png",
