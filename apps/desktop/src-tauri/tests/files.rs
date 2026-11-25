@@ -1,5 +1,5 @@
 use bookeeper_desktop_lib::files::{
-    decode_base64, sanitize_name, save_to, write_atomic, MAX_NAME_LEN,
+    decode_base64, sanitize_name, save_to, write_atomic, SaveLock, SaveOutcome, MAX_NAME_LEN,
 };
 
 #[test]
@@ -70,4 +70,78 @@ fn existing_file_is_replaced() {
 fn missing_folder_is_an_error() {
     let dir = tempfile::tempdir().unwrap();
     assert!(write_atomic(&dir.path().join("nope/out.bin"), b"x").is_err());
+}
+
+fn clean(n: &str) -> bool {
+    !n.contains("..") && !n.ends_with('.') && !n.ends_with(' ') && !n.is_empty()
+}
+
+#[test]
+fn truncation_never_leaves_double_dot_or_trailing_dot() {
+    // Cut falls right after a dot, which then meets the extension's dot.
+    let dot_cut = format!("{}.{}.csv", "x".repeat(115), "y".repeat(50));
+    let s = sanitize_name(&dot_cut);
+    assert!(clean(&s) && s.ends_with(".csv"), "{s}");
+    assert!(s.chars().count() <= MAX_NAME_LEN);
+    // Cut falls after a space / the whole tail is a long "extension".
+    let space_cut = format!("{} {}.csv", "x".repeat(115), "y".repeat(50));
+    let s = sanitize_name(&space_cut);
+    assert!(clean(&s) && s.ends_with(".csv"), "{s:?}");
+    for pre in 100..125 {
+        let n = format!("{}.{}.pdf", "a".repeat(pre), "b".repeat(80));
+        let s = sanitize_name(&n);
+        assert!(clean(&s) && s.ends_with(".pdf"), "{pre}: {s:?}");
+        let n = format!("{}.{}", "a".repeat(pre), " ".repeat(5) + &"b".repeat(200));
+        assert!(clean(&sanitize_name(&n)), "{pre}");
+    }
+    assert!(clean(&sanitize_name("a. .")));
+}
+
+#[test]
+fn sanitizing_is_idempotent() {
+    let names: Vec<String> = (0..20)
+        .map(|i| match i % 4 {
+            0 => format!("{}.{}.csv", "x".repeat(100 + i), "y".repeat(60)),
+            1 => format!("{} .{}", "é".repeat(110 + i), "z".repeat(40)),
+            2 => format!("..{}/a\\b. .", "q".repeat(i * 7)),
+            _ => format!("{}{}.zip", "m".repeat(119 - i % 3), ". ".repeat(i)),
+        })
+        .collect();
+    for n in names {
+        let once = sanitize_name(&n);
+        assert_eq!(sanitize_name(&once), once, "{n:?}");
+    }
+}
+
+#[test]
+fn cancelled_outcome_has_no_path_key() {
+    let v = serde_json::to_value(SaveOutcome {
+        saved: false,
+        path: None,
+    })
+    .unwrap();
+    assert_eq!(v, serde_json::json!({ "saved": false }));
+    assert!(v.get("path").is_none());
+    let v = serde_json::to_value(SaveOutcome {
+        saved: true,
+        path: Some("/x".into()),
+    })
+    .unwrap();
+    assert_eq!(v["path"], "/x");
+}
+
+#[test]
+fn save_lock_allows_one_at_a_time_and_releases_on_error() {
+    let lock = SaveLock::new();
+    let first = lock.try_acquire().expect("first");
+    assert!(lock.try_acquire().is_none());
+    drop(first);
+    assert!(lock.try_acquire().is_some());
+    // Released even when the guarded work fails.
+    let run = |l: &SaveLock| -> Result<(), String> {
+        let _p = l.try_acquire().ok_or("busy")?;
+        Err("boom".into())
+    };
+    assert_eq!(run(&lock), Err("boom".to_string()));
+    assert!(lock.try_acquire().is_some());
 }
