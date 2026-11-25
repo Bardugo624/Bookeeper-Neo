@@ -43,6 +43,11 @@ jobs:
             echo "::error::Tag ${GITHUB_REF_NAME} does not match the workspace version in Cargo.toml (expected v${version})"
             exit 1
           fi
+          tauri_version=$(sed -n 's/^[[:space:]]*"version":[[:space:]]*"\([^"]*\)".*/\1/p' apps/desktop/src-tauri/tauri.conf.json | head -1)
+          if [ "$tauri_version" != "$version" ]; then
+            echo "::error::apps/desktop/src-tauri/tauri.conf.json has version ${tauri_version}, Cargo.toml has ${version}"
+            exit 1
+          fi
           echo "version=${version}" >> "$GITHUB_OUTPUT"
           echo "major=${version%%.*}" >> "$GITHUB_OUTPUT"
           core=${version%%-*}
@@ -206,8 +211,106 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  desktop:
+    needs: check
+    name: desktop (${{ matrix.name }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows-x64
+            runner: windows-latest
+            target: x86_64-pc-windows-msvc
+            arch: x64
+          - name: macos-arm64
+            runner: macos-latest
+            target: aarch64-apple-darwin
+            arch: aarch64
+          - name: macos-x64
+            runner: macos-latest
+            target: x86_64-apple-darwin
+            arch: x64
+          - name: linux-x64
+            runner: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            arch: amd64
+    env:
+      VERSION: ${{ needs.check.outputs.version }}
+      TARGET: ${{ matrix.target }}
+      ARCH: ${{ matrix.arch }}
+      BOOKEEPER_UPDATER_PUBKEY: ${{ vars.BOOKEEPER_UPDATER_PUBKEY }}
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: desktop-${{ matrix.name }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: System libraries (linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev \
+            librsvg2-dev libssl-dev libsoup-3.0-dev libjavascriptcoregtk-4.1-dev patchelf xdg-utils
+      - run: npm ci
+      - name: Build
+        shell: bash
+        run: |
+          if [ -n "$TAURI_SIGNING_PRIVATE_KEY" ] && [ -n "$BOOKEEPER_UPDATER_PUBKEY" ]; then
+            # The CLI wants plugins.updater.pubkey in the configuration when it makes update artifacts.
+            cfg=$(node -e 'console.log(JSON.stringify({plugins:{updater:{pubkey:process.env.BOOKEEPER_UPDATER_PUBKEY}}}))')
+            npm run tauri build -w @bookeeper/desktop -- --target "$TARGET" --config "$cfg"
+          else
+            echo "::warning::TAURI_SIGNING_PRIVATE_KEY or BOOKEEPER_UPDATER_PUBKEY is not set: building installers without update artifacts"
+            npm run tauri build -w @bookeeper/desktop -- --target "$TARGET" \
+              --config '{"bundle":{"createUpdaterArtifacts":false}}'
+          fi
+      - name: Collect
+        shell: bash
+        run: |
+          bundle="target/${TARGET}/release/bundle"
+          [ -d "$bundle" ] || bundle="apps/desktop/src-tauri/target/${TARGET}/release/bundle"
+          [ -d "$bundle" ] || { echo "::error::bundle folder not found"; exit 1; }
+          mkdir -p out/installers out/updates
+          find "$bundle" -type f \( -name '*-setup.exe' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.deb' \) \
+            -exec cp {} out/installers/ \;
+          # Update artifacts: the NSIS and AppImage installers themselves, and the .app.tar.gz.
+          # The macOS archive has the same name on both architectures: add the architecture.
+          for f in out/installers/*-setup.exe out/installers/*.AppImage; do
+            [ -f "$f" ] || continue
+            if [ -f "$(find "$bundle" -name "$(basename "$f").sig" | head -1)" ]; then
+              cp "$f" out/updates/
+              cp "$(find "$bundle" -name "$(basename "$f").sig" | head -1)" out/updates/
+            fi
+          done
+          tgz=$(find "$bundle" -name '*.app.tar.gz' | head -1)
+          if [ -n "$tgz" ] && [ -f "${tgz}.sig" ]; then
+            cp "$tgz" "out/updates/Bookeeper_${VERSION}_${ARCH}.app.tar.gz"
+            cp "${tgz}.sig" "out/updates/Bookeeper_${VERSION}_${ARCH}.app.tar.gz.sig"
+          fi
+          if [ -z "$(ls out/installers)" ]; then echo "::error::no installer built"; exit 1; fi
+          ls -l out/installers out/updates
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installers-${{ matrix.name }}
+          path: out/installers/*
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: updates-${{ matrix.name }}
+          path: out/updates/*
+          if-no-files-found: ignore
+
   release:
-    needs: [check, server, docker]
+    needs: [check, server, docker, desktop]
     if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish) }}
     runs-on: ubuntu-latest
     permissions:
@@ -218,9 +321,14 @@ jobs:
           pattern: archive-*
           path: dist
           merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: installers-*
+          path: dist
+          merge-multiple: true
       - name: Checksums
         working-directory: dist
-        run: sha256sum bookeeper-server-* > SHA256SUMS && cat SHA256SUMS
+        run: sha256sum bookeeper-server-* Bookeeper_* > SHA256SUMS && cat SHA256SUMS
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.check.outputs.version }}
@@ -230,4 +338,133 @@ jobs:
           prerelease: ${{ needs.check.outputs.prerelease == 'true' }}
           files: |
             dist/bookeeper-server-*
+            dist/Bookeeper_*
             dist/SHA256SUMS
+
+  publish-updates:
+    needs: [check, desktop, release]
+    if: ${{ github.ref_type == 'tag' }}
+    # One publisher at a time across all tags, so manifests are never written concurrently.
+    concurrency:
+      group: publish-updates
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VERSION: ${{ needs.check.outputs.version }}
+      VPS_HOST: 82.165.185.245
+      VPS_USER: root
+      VPS_PORT: "22"
+      VPS_HOST_KEY: "SHA256:aT+GlEdo8ocxbB3WUGXnDAo7j7dotW8LepYZELK2Uj8"
+      VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: updates-*
+          path: updates
+          merge-multiple: true
+      - name: Is there anything to publish
+        id: gate
+        run: |
+          if [ -z "$VPS_SSH_KEY" ]; then
+            echo "::warning::VPS_SSH_KEY is not set: updates are not published"
+            echo "go=false" >> "$GITHUB_OUTPUT"
+          elif ! ls updates/*.sig >/dev/null 2>&1; then
+            echo "::warning::No signed update artifacts: updates are not published"
+            echo "go=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "go=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Manifest
+        id: manifest
+        if: steps.gate.outputs.go == 'true'
+        run: |
+          channel=$(node scripts/update-manifest.mjs --dir updates --version "$VERSION" \
+            --base-url https://app.neokeeper.dev/updates \
+            --notes "Bookeeper ${VERSION}: https://github.com/${GITHUB_REPOSITORY}/releases/tag/v${VERSION}" \
+            --out latest.json)
+          echo "channel=${channel}" >> "$GITHUB_OUTPUT"
+          cat latest.json
+      - name: SSH setup
+        if: steps.gate.outputs.go == 'true'
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          if printf '%s' "$VPS_SSH_KEY" | grep -q 'BEGIN'; then
+            printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_vps
+          else
+            printf '%s' "$VPS_SSH_KEY" | tr -d ' \r\n' | base64 -d > ~/.ssh/id_vps
+          fi
+          chmod 600 ~/.ssh/id_vps
+          ssh-keyscan -p "$VPS_PORT" -t ed25519 "$VPS_HOST" > ~/.ssh/known_hosts 2>/dev/null
+          if ! ssh-keygen -lf ~/.ssh/known_hosts | grep -qF "$VPS_HOST_KEY"; then
+            echo "::error::The host key of the VPS is not the expected one"
+            exit 1
+          fi
+          cat > ~/.ssh/config <<CFG
+          Host vps
+            HostName $VPS_HOST
+            User $VPS_USER
+            Port $VPS_PORT
+            IdentityFile ~/.ssh/id_vps
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            ConnectTimeout 15
+          CFG
+          chmod 600 ~/.ssh/config
+          ssh vps true
+      - name: Upload the files, then the manifest
+        if: steps.gate.outputs.go == 'true'
+        env:
+          CHANNEL: ${{ steps.manifest.outputs.channel }}
+        run: |
+          dest=/opt/bookeeper/updates
+          ssh vps "mkdir -p ${dest}/files/${VERSION} ${dest}/stable ${dest}/beta"
+          scp updates/* "vps:${dest}/files/${VERSION}/"
+          scp latest.json "vps:${dest}/.latest-${VERSION}.json.tmp"
+          # The manifest goes last and atomically; a stable release also moves the beta channel.
+          # A manifest is never replaced by an older version; the newest 3 folders and the
+          # ones the live manifests still point to are kept.
+          ssh vps "bash -s" -- "$dest" "$VERSION" "$CHANNEL" <<'REMOTE'
+          set -eu
+          dest=$1; version=$2; channel=$3
+          cd "$dest"
+          tmp=".latest-${version}.json.tmp"
+          key() { printf '%s' "$1" | tr '-' '~'; }
+          newer_or_absent() {
+            [ -f "$1/latest.json" ] || return 0
+            cur=$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$1/latest.json" | head -1)
+            [ -z "$cur" ] && return 0
+            [ "$cur" = "$version" ] && return 0
+            [ "$(printf '%s\n%s\n' "$(key "$cur")" "$(key "$version")" | sort -V | tail -1)" = "$(key "$version")" ]
+          }
+          publish() {
+            if newer_or_absent "$1"; then
+              cp "$tmp" "$1/.latest.json.new-${version}"
+              mv "$1/.latest.json.new-${version}" "$1/latest.json"
+            else
+              echo "Keeping the newer manifest in $1"
+            fi
+          }
+          publish "$channel"
+          if [ "$channel" = stable ]; then publish beta; fi
+          rm -f "$tmp"
+          cd files
+          keep=$(ls -1dt */ | head -3 | tr -d /)
+          for m in ../stable/latest.json ../beta/latest.json; do
+            [ -f "$m" ] || continue
+            keep="$keep
+          $(grep -o '/files/[^/]*/' "$m" | cut -d/ -f3)"
+          done
+          for d in */; do
+            d=${d%/}
+            printf '%s\n' "$keep" | grep -qxF "$d" || rm -rf -- "$d"
+          done
+          REMOTE
+      - name: Remove the key
+        if: always()
+        run: rm -f ~/.ssh/id_vps
