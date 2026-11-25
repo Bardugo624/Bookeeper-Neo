@@ -1,0 +1,36 @@
+{
+  "title": "Statistiche",
+  "loading": "Caricamento delle statistiche",
+  "totals": {
+    "total_books": "Libri",
+    "total_authors": "Autori",
+    "total_shelves": "Scaffali",
+    "total_pages": "Pagine",
+    "wishlist_count": "Wishlist",
+    "active_loans": "Prestiti attivi",
+    "overdue_loans": "Prestiti in ritardo",
+    "returned_loans": "Prestiti restituiti"
+  },
+  "by_genre": "Per genere",
+  "by_language": "Per lingua",
+  "by_format": "Per formato",
+  "by_decade": "Per decennio",
+  "top_authors": "Autori più presenti",
+  "decade": "Anni {decade}",
+  "missing": "Non indicato",
+  "others": "Altri",
+  "showAll": "Mostra tutto ({count})",
+  "showLess": "Mostra meno",
+  "table": { "label": "Voce", "bar": "Proporzione", "count": "Libri" },
+  "shelfFill": {
+    "title": "Riempimento dei mobili",
+    "bar": "{name}: {pct}% pieno",
+    "used": "{used} / {capacity}"
+  },
+  "empty": {
+    "title": "Ancora nessuna statistica",
+    "text": "Aggiungi dei libri alla libreria per vedere i numeri.",
+    "action": "Vai ai libri"
+  },
+  "error": { "title": "Impossibile caricare le statistiche", "text": "Controlla la connessione e riprova." }
+}
