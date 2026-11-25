@@ -1,0 +1,26 @@
+.field {
+  position: relative;
+  width: 280px;
+}
+
+.lens {
+  position: absolute;
+  inset: 0 auto 0 12px;
+  display: flex;
+  align-items: center;
+  color: var(--bk-text-faint);
+  pointer-events: none;
+}
+
+.input {
+  width: 100%;
+  padding-inline: 36px 64px;
+}
+
+.hint,
+.clear {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+}

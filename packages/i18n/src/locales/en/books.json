@@ -1,0 +1,92 @@
+{
+  "title": "Books",
+  "count": { "one": "{count} book", "other": "{count} books" },
+  "onLoan": "{count} on loan",
+  "search": {
+    "label": "Search books",
+    "placeholder": "Search title, author, ISBN",
+    "clear": "Clear search"
+  },
+  "filters": {
+    "label": "Filters",
+    "all": "All",
+    "loan": "On loan",
+    "unshelved": "Unshelved"
+  },
+  "view": {
+    "label": "View",
+    "grid": "Grid",
+    "list": "List"
+  },
+  "list": {
+    "label": "Books",
+    "loading": "Loading books",
+    "loadingMore": "Loading more books",
+    "onLoan": "On loan",
+    "available": "At home",
+    "unplaced": "Unshelved",
+    "cardName": "{title}, {author}",
+    "columns": {
+      "title": "Title",
+      "author": "Author",
+      "year": "Year",
+      "placement": "Location",
+      "status": "Loan"
+    },
+    "sortBy": "Sort by {column}"
+  },
+  "empty": {
+    "title": "No books",
+    "text": "The library is still empty."
+  },
+  "noResults": {
+    "title": "No results",
+    "text": "No book matches the search and filters you chose.",
+    "reset": "Clear search and filters"
+  },
+  "error": {
+    "title": "Can't read the books",
+    "text": "Check the connection to the library and try again.",
+    "retry": "Try again"
+  },
+  "detail": {
+    "back": "Books",
+    "loading": "Loading the book",
+    "fields": {
+      "publisher": "Publisher",
+      "pages": "Pages",
+      "language": "Language",
+      "isbn13": "ISBN-13",
+      "isbn10": "ISBN-10",
+      "format": "Format",
+      "progressive": "Sequence number"
+    },
+    "formats": {
+      "hardcover": "Hardcover",
+      "paperback": "Paperback",
+      "ebook": "E-book",
+      "audiobook": "Audiobook"
+    },
+    "where": {
+      "title": "Where it is",
+      "none": "Not shelved",
+      "shelf": "Furniture",
+      "row": "Shelf {row}"
+    },
+    "loans": {
+      "title": "Loans",
+      "onLoan": "On loan",
+      "none": "Not on loan"
+    },
+    "notFound": {
+      "title": "Book not found",
+      "text": "This book no longer exists or the address is wrong.",
+      "back": "Back to books"
+    },
+    "error": {
+      "title": "Can't read the book",
+      "text": "Check the connection to the library and try again.",
+      "retry": "Try again"
+    }
+  }
+}

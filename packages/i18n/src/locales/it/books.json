@@ -1,0 +1,92 @@
+{
+  "title": "Libri",
+  "count": { "one": "{count} libro", "other": "{count} libri" },
+  "onLoan": "{count} in prestito",
+  "search": {
+    "label": "Cerca nei libri",
+    "placeholder": "Cerca titolo, autore, ISBN",
+    "clear": "Svuota la ricerca"
+  },
+  "filters": {
+    "label": "Filtri",
+    "all": "Tutti",
+    "loan": "In prestito",
+    "unshelved": "Non collocati"
+  },
+  "view": {
+    "label": "Vista",
+    "grid": "Griglia",
+    "list": "Lista"
+  },
+  "list": {
+    "label": "Libri",
+    "loading": "Caricamento dei libri",
+    "loadingMore": "Caricamento di altri libri",
+    "onLoan": "In prestito",
+    "available": "In casa",
+    "unplaced": "Non collocato",
+    "cardName": "{title}, {author}",
+    "columns": {
+      "title": "Titolo",
+      "author": "Autore",
+      "year": "Anno",
+      "placement": "Collocazione",
+      "status": "Prestito"
+    },
+    "sortBy": "Ordina per {column}"
+  },
+  "empty": {
+    "title": "Nessun libro",
+    "text": "La libreria è ancora vuota."
+  },
+  "noResults": {
+    "title": "Nessun risultato",
+    "text": "Nessun libro corrisponde alla ricerca e ai filtri scelti.",
+    "reset": "Azzera ricerca e filtri"
+  },
+  "error": {
+    "title": "Non riesco a leggere i libri",
+    "text": "Controlla la connessione alla libreria e riprova.",
+    "retry": "Riprova"
+  },
+  "detail": {
+    "back": "Libri",
+    "loading": "Caricamento del libro",
+    "fields": {
+      "publisher": "Editore",
+      "pages": "Pagine",
+      "language": "Lingua",
+      "isbn13": "ISBN-13",
+      "isbn10": "ISBN-10",
+      "format": "Formato",
+      "progressive": "Numero progressivo"
+    },
+    "formats": {
+      "hardcover": "Rilegato",
+      "paperback": "Brossura",
+      "ebook": "E-book",
+      "audiobook": "Audiolibro"
+    },
+    "where": {
+      "title": "Dove si trova",
+      "none": "Non collocato",
+      "shelf": "Mobile",
+      "row": "Ripiano {row}"
+    },
+    "loans": {
+      "title": "Prestiti",
+      "onLoan": "In prestito",
+      "none": "Non in prestito"
+    },
+    "notFound": {
+      "title": "Libro non trovato",
+      "text": "Questo libro non esiste più o l'indirizzo non è corretto.",
+      "back": "Torna ai libri"
+    },
+    "error": {
+      "title": "Non riesco a leggere il libro",
+      "text": "Controlla la connessione alla libreria e riprova.",
+      "retry": "Riprova"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--bk-font-serif);
+  font-weight: 600;
+  font-size: 28px;
+  line-height: 1.2;
+  color: var(--bk-text-strong);
+}
+
+.count {
+  margin: 4px 0 0;
+  min-height: 1.4em;
+  font-size: 13px;
+  color: var(--bk-text-faint);
+}
+
+.tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
