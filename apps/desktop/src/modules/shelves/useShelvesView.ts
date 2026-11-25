@@ -69,26 +69,43 @@ export function useShelvesView() {
     if (await placement.unplace(book.id)) setSpine(null);
   };
 
-  // A room made by an earlier save whose cabinet write failed: reused, not created twice.
+  // A room made by an earlier try of the open form whose cabinet write failed: reused, not
+  // created twice. Forgotten once a save succeeds or a form opens, so a room renamed or
+  // deleted since is never reused.
   const madeRoom = useRef<{ name: string; id: string } | null>(null);
+
+  const openDialog = (d: Dialog) => {
+    if (d?.kind === 'form') madeRoom.current = null;
+    setDialog(d);
+  };
+
+  const reusable = (name: string) => {
+    const kept = madeRoom.current;
+    if (!kept || kept.name !== name) return undefined;
+    const listed = rooms.find((r) => r.id === kept.id);
+    return !listed || listed.name === name ? kept.id : undefined;
+  };
 
   const save = async (current: ShelfOut | undefined, v: ShelfValues) => {
     let createdId: string | undefined;
     if (v.room === NEW_ROOM) {
       const name = v.newRoom.trim();
-      if (madeRoom.current?.name !== name) {
+      createdId = reusable(name);
+      if (!createdId) {
         const created = await roomWrites.create.mutateAsync({ name });
         madeRoom.current = { name, id: created.id };
+        createdId = created.id;
       }
-      createdId = madeRoom.current.id;
     }
     const room = roomIdOf(v, createdId);
     if (current) {
       const patch = patchBody(current, v, room);
       if (Object.keys(patch).length > 0) await writes.update.mutateAsync({ id: current.id, patch });
+      madeRoom.current = null;
       return;
     }
     const made = await writes.create.mutateAsync(createBody(v, room));
+    madeRoom.current = null;
     // A filter that would hide the new cabinet is lifted.
     params.set({ unit: made.id, book: '', ...(roomId && made.room_id !== roomId ? { room: '' } : {}) });
   };
@@ -127,7 +144,7 @@ export function useShelvesView() {
     deleting: writes.remove.isPending,
     error,
     dialog,
-    setDialog,
+    setDialog: openDialog,
     spine,
     setSpine,
   };

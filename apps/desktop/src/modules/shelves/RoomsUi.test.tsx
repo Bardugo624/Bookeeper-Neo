@@ -147,6 +147,53 @@ describe('room field', () => {
     expect(sends(platform, 'POST', '/api/v1/rooms')).toEqual([{ name: 'studio' }, { name: 'Garage' }]);
     expect(sends(platform, 'POST', '/api/v1/shelves')).toEqual([expect.objectContaining({ room_id: 'rnew3' })]);
   });
+
+  const newCabinet = async (name: string, roomName: string) => {
+    await userEvent.click(await screen.findByRole('button', { name: 'Nuovo mobile' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Nuovo mobile' });
+    await userEvent.type(within(dialog).getByLabelText('Nome'), name);
+    await pick(dialog, 'Nuova stanza…');
+    await userEvent.type(within(dialog).getByLabelText('Nome della nuova stanza'), roomName);
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Salva' }));
+    return dialog;
+  };
+
+  it('reuses the room made by a failed try instead of creating it twice', async () => {
+    const w = world({ refuse: { method: 'POST', status: 500, code: 'internal' } });
+    const { platform } = renderShelves(w);
+    const dialog = await newCabinet('Dispensa', 'Garage');
+    await waitFor(() => expect(sends(platform, 'POST', '/api/v1/rooms')).toHaveLength(1));
+    expect(screen.getByRole('dialog', { name: 'Nuovo mobile' })).toBeInTheDocument();
+    delete w.refuse;
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Salva' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(sends(platform, 'POST', '/api/v1/rooms')).toEqual([{ name: 'Garage' }]);
+    expect(sends(platform, 'POST', '/api/v1/shelves').at(-1)).toEqual(expect.objectContaining({ room_id: 'rnew3' }));
+  });
+
+  it('creates the room again after a rename instead of reusing the old one', async () => {
+    const w = world();
+    const { platform } = renderShelves(w);
+    await newCabinet('Dispensa', 'Garage');
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    w.rooms!.find((r) => r.id === 'rnew3')!.name = 'Box';
+    await newCabinet('Armadio', 'Garage');
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(sends(platform, 'POST', '/api/v1/rooms')).toEqual([{ name: 'Garage' }, { name: 'Garage' }]);
+    expect(sends(platform, 'POST', '/api/v1/shelves').at(-1)).toEqual(expect.objectContaining({ room_id: 'rnew4' }));
+  });
+
+  it('lifts the room filter when the new cabinet goes elsewhere', async () => {
+    renderShelves(world(), '/shelves?room=r2');
+    await screen.findAllByRole('tab');
+    await userEvent.click(screen.getByRole('button', { name: 'Nuovo mobile' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Nuovo mobile' });
+    await userEvent.type(within(dialog).getByLabelText('Nome'), 'Dispensa');
+    await pick(dialog, 'Cucina');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Salva' }));
+    await waitFor(() => expect(screen.getAllByRole('tab')).toHaveLength(4));
+    expect(screen.queryByText(/Solo i mobili della stanza/)).toBeNull();
+  });
 });
 
 describe('without permission', () => {
