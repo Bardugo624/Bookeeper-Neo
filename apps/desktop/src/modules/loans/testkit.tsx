@@ -3,6 +3,7 @@ import type { AppModule } from '../../app';
 import { renderApp } from '../../app/testing';
 import { fakeConnection, fakePlatform, type FakePlatform } from '../../platform/testing';
 import { ME, ok } from '../../session/fixtures';
+import { book } from '../books/testkit';
 import { module } from './routes';
 
 export const DAY = 86_400;
@@ -24,9 +25,7 @@ export function loan(i: number, over: Partial<LoanOut> = {}): LoanOut {
   };
 }
 
-export function book(i: number, over: Partial<BookOut> = {}): BookOut {
-  return { id: `b${i}`, title: `Libro ${i}`, authors: [`Autore ${i}`], on_loan: false, created_at: 0, updated_at: 0, ...over };
-}
+export { book };
 
 export interface Store {
   loans: LoanOut[];
