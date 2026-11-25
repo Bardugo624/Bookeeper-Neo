@@ -188,6 +188,62 @@ describe('authenticated transport', () => {
   });
 });
 
+describe('authenticated raw transport', () => {
+  const bytes = (o: unknown) => new TextEncoder().encode(JSON.stringify(o));
+  const raw = (status: number, o?: unknown) => ({
+    status,
+    bytes: o === undefined ? new Uint8Array([1, 2]) : bytes(o),
+    contentType: null,
+    headers: {},
+  });
+  const authz = (h?: Record<string, string>) => h?.Authorization;
+
+  async function started(rawHandler: Parameters<typeof fakePlatform>[0] extends infer O ? NonNullable<O> extends { rawHandler?: infer R } ? R : never : never) {
+    const p = fakePlatform({ handler: (r) => (r.path === '/api/v1/auth/refresh' ? refreshed(2) : ok({})), rawHandler });
+    pair(p.storage);
+    useSession.setState({ status: 'ready', tokens: JSON.parse(p.storage.get(SESSION_KEY)!), platform: p });
+    return p;
+  }
+
+  it('sends Authorization', async () => {
+    const p = await started(() => raw(200));
+    const res = await createAuthTransport(p).requestRaw!({ method: 'GET', path: '/api/v1/books/b/cover' });
+    expect(res.status).toBe(200);
+    expect(authz(p.fake.rawCalls[0].headers)).toBe('Bearer access-1');
+  });
+
+  it('renews once on token_expired (code read from bytes) and repeats', async () => {
+    const p = await started((r) =>
+      authz(r.headers) === 'Bearer access-2' ? raw(200) : raw(401, { error_code: 'token_expired', message: 'x' }),
+    );
+    const res = await createAuthTransport(p).requestRaw!({ method: 'GET', path: '/api/v1/books/b/cover' });
+    expect(res.status).toBe(200);
+    expect(p.fake.rawCalls).toHaveLength(2);
+    expect(p.fake.calls.filter((c) => c.path === '/api/v1/auth/refresh')).toHaveLength(1);
+  });
+
+  it('ends the session on device_revoked', async () => {
+    const p = await started(() => raw(401, { error_code: 'device_revoked', message: 'x' }));
+    const res = await createAuthTransport(p).requestRaw!({ method: 'GET', path: '/api/v1/books/b/cover' });
+    expect(res.status).toBe(401);
+    expect(useSession.getState().status).toBe('unpaired');
+    expect(p.fake.rawCalls).toHaveLength(1);
+  });
+
+  it('shares one renewal between simultaneous requests', async () => {
+    const p = await started((r) =>
+      authz(r.headers) === 'Bearer access-2' ? raw(200) : raw(401, { error_code: 'token_expired', message: 'x' }),
+    );
+    const t = createAuthTransport(p);
+    const [a, b] = await Promise.all([
+      t.requestRaw!({ method: 'GET', path: '/api/v1/a' }),
+      t.requestRaw!({ method: 'GET', path: '/api/v1/b' }),
+    ]);
+    expect([a.status, b.status]).toEqual([200, 200]);
+    expect(p.fake.calls.filter((c) => c.path === '/api/v1/auth/refresh')).toHaveLength(1);
+  });
+});
+
 describe('routing by session', () => {
   it('sends an unpaired phone to /pair', async () => {
     const { router } = renderMobile({ route: '/search' });

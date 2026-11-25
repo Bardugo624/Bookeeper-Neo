@@ -7,13 +7,13 @@ import { ClientProvider, useSession } from '../session';
 import { LocaleProvider, useT } from './i18n';
 import { NeedsHttps } from './NeedsHttps';
 import { createQueryClient } from './queryClient';
-import { useSystemTheme } from './theme';
+import { useTheme } from './theme';
 
 function Boot({ platform, children }: { platform: Platform; children: ReactNode }) {
   const init = useSession((s) => s.init);
   const status = useSession((s) => s.status);
   const [queryClient] = useState(createQueryClient);
-  useSystemTheme();
+  useTheme();
   useEffect(() => {
     platform.serviceWorker.register();
     void init(platform);

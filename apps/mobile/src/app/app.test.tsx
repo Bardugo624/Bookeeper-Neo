@@ -48,4 +48,33 @@ describe('modules', () => {
     const m = { id: 'x', routes: [] };
     expect(collectModules({ '../modules/b/routes.tsx': { module: m }, '../modules/a/routes.tsx': {} })).toEqual([m]);
   });
+
+  describe('pairing link on a paired phone', () => {
+    const search: MobileModule = {
+      id: 'search',
+      routes: [{ path: '/search', element: <p>Cerca qui</p> }],
+      tab: { labelKey: 'test.search', icon: 'search', to: '/search', order: 10 },
+    };
+
+    it('keeps /pair reachable when the address carries a code', async () => {
+      const platform = fakePlatform({ handler: () => ok(ME) });
+      pair(platform.storage);
+      const { router } = renderMobile({ platform, modules: [pairing, search], route: '/pair?code=X' });
+      expect(await screen.findByText('Abbina')).toBeInTheDocument();
+      expect(router.state.location.pathname).toBe('/pair');
+    });
+
+    it('sends /pair without a code to the first tab', async () => {
+      const platform = fakePlatform({ handler: () => ok(ME) });
+      pair(platform.storage);
+      renderMobile({ platform, modules: [pairing, search], route: '/pair' });
+      expect(await screen.findByText('Cerca qui')).toBeInTheDocument();
+    });
+
+    it('sends an unpaired phone from a protected route to /pair', async () => {
+      const { router } = renderMobile({ modules: [pairing, search], route: '/search' });
+      expect(await screen.findByText('Abbina')).toBeInTheDocument();
+      expect(router.state.location.pathname).toBe('/pair');
+    });
+  });
 });
