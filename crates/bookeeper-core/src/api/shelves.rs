@@ -160,6 +160,10 @@ pub struct PlaceIn {
     pub slot_index: i64,
     /// 1–3; absent keeps the current value.
     pub spine_width: Option<i64>,
+    /// When true, books from `slot_index` onwards slide one slot right up to
+    /// the first free slot, atomically. Defaults to false.
+    #[serde(default)]
+    pub shift: bool,
 }
 
 #[derive(Debug, Deserialize, ToSchema)]
@@ -598,7 +602,7 @@ pub async fn shelf_books(
         (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
         (status = 403, description = "forbidden: role too low", body = ApiErrorBody),
         (status = 404, description = "not_found: unknown book or shelf", body = ApiErrorBody),
-        (status = 409, description = "slot_taken: slot occupied", body = ApiErrorBody),
+        (status = 409, description = "slot_taken: slot occupied (without shift); row_full: shift has no free slot to the right", body = ApiErrorBody),
         (status = 422, description = "validation: slot outside the shelf or bad spine_width", body = ApiErrorBody),
     )
 )]
@@ -619,6 +623,101 @@ pub async fn place_book(
         {
             return Err(ApiError::validation("Slot is outside the shelf").into());
         }
+        let now = now_secs();
+        if body.shift {
+            let old: Option<(String, i64, i64, Option<i64>)> = tx
+                .query_row(
+                    "SELECT shelf_id, row_index, slot_index, spine_width FROM shelf_books \
+                     WHERE book_id = ?1",
+                    [&id],
+                    |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?)),
+                )
+                .optional()?;
+            let old_spine = old.as_ref().and_then(|o| o.3);
+            // The old position (possibly in this very row) becomes free.
+            tx.execute("DELETE FROM shelf_books WHERE book_id = ?1", [&id])?;
+            let tail: Vec<(String, i64)> = {
+                let mut stmt = tx.prepare(
+                    "SELECT book_id, slot_index FROM shelf_books \
+                     WHERE shelf_id = ?1 AND row_index = ?2 AND slot_index >= ?3 \
+                     ORDER BY slot_index",
+                )?;
+                let rows = stmt.query_map(
+                    params![shelf.id, body.row_index, body.slot_index],
+                    |r| Ok((r.get(0)?, r.get(1)?)),
+                )?;
+                rows.collect::<rusqlite::Result<_>>()?
+            };
+            // Contiguous run starting at slot_index; the first gap stops it.
+            let mut next = body.slot_index;
+            let mut run_len = 0;
+            for (_, slot) in &tail {
+                if *slot != next {
+                    break;
+                }
+                next += 1;
+                run_len += 1;
+            }
+            let overflow = next >= shelf.slots_per_row && run_len > 0;
+            // Moving right inside the same row with no room at the end: the
+            // freed old slot is on the left, so the books in between slide
+            // left into it instead.
+            let slide_left = overflow
+                && old.as_ref().is_some_and(|o| {
+                    o.0 == shelf.id && o.1 == body.row_index && o.2 < body.slot_index
+                });
+            if slide_left {
+                let old_slot = old.as_ref().map_or(0, |o| o.2);
+                let between: Vec<(String, i64)> = {
+                    let mut stmt = tx.prepare(
+                        "SELECT book_id, slot_index FROM shelf_books \
+                         WHERE shelf_id = ?1 AND row_index = ?2 \
+                         AND slot_index > ?3 AND slot_index <= ?4 ORDER BY slot_index",
+                    )?;
+                    let rows = stmt.query_map(
+                        params![shelf.id, body.row_index, old_slot, body.slot_index],
+                        |r| Ok((r.get(0)?, r.get(1)?)),
+                    )?;
+                    rows.collect::<rusqlite::Result<_>>()?
+                };
+                // From the start towards the end, so the unique index never trips.
+                for (book_id, slot) in &between {
+                    tx.execute(
+                        "UPDATE shelf_books SET slot_index = ?1, updated_at = ?2 WHERE book_id = ?3",
+                        params![slot - 1, now, book_id],
+                    )
+                    .map_err(slot_write)?;
+                }
+            } else if overflow {
+                return Err(ApiError::conflict("row_full", "No free slot to the right").into());
+            } else {
+                // From the end towards the start, so the unique index never trips.
+                for (book_id, slot) in tail[..run_len].iter().rev() {
+                    tx.execute(
+                        "UPDATE shelf_books SET slot_index = ?1, updated_at = ?2 WHERE book_id = ?3",
+                        params![slot + 1, now, book_id],
+                    )
+                    .map_err(slot_write)?;
+                }
+            }
+            tx.execute(
+                "INSERT INTO shelf_books (book_id, shelf_id, row_index, slot_index, spine_width, updated_at) \
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                params![id, shelf.id, body.row_index, body.slot_index, spine.or(old_spine), now],
+            )
+            .map_err(slot_write)?;
+            let detail = serde_json::json!({
+                "shelf_id": shelf.id, "row_index": body.row_index,
+                "slot_index": body.slot_index, "shift": true
+            });
+            audit::record(&tx, &user, "shelf.place", "book", &id, Some(&detail), now)?;
+            tx.commit()?;
+            return Ok(Placement {
+                shelf_id: shelf.id,
+                row_index: body.row_index,
+                slot_index: body.slot_index,
+            });
+        }
         let occupant: Option<String> = tx
             .query_row(
                 "SELECT book_id FROM shelf_books \
@@ -630,7 +729,6 @@ pub async fn place_book(
         if occupant.is_some_and(|o| o != id) {
             return Err(slot_taken().into());
         }
-        let now = now_secs();
         tx.execute(
             "INSERT INTO shelf_books (book_id, shelf_id, row_index, slot_index, spine_width, updated_at) \
              VALUES (?1, ?2, ?3, ?4, ?5, ?6) \
