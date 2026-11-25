@@ -1,0 +1,56 @@
+{
+  "title": "Devices",
+  "count": { "one": "{count} connected device", "other": "{count} connected devices" },
+  "loading": "Loading devices",
+  "error": { "title": "Couldn't load the devices", "text": "Check your connection and try again." },
+  "revokedSection": "Revoked ({count})",
+  "kind": { "desktop": "Computer", "mobile": "Phone" },
+  "card": {
+    "current": "This device",
+    "revoked": "Revoked",
+    "revokedOn": "Revoked on {date}",
+    "lastSeen": "Last seen: {when}",
+    "neverSeen": "Never used",
+    "rename": "Rename {name}",
+    "revoke": "Revoke {name}"
+  },
+  "rename": {
+    "title": "Rename the device",
+    "field": "Device name",
+    "errors": { "required": "Enter a name.", "tooLong": "The name can have at most {max} characters." }
+  },
+  "revoke": {
+    "title": "Revoke the device?",
+    "description": "\"{name}\" will no longer be able to open the library. To use it again you will have to pair it from scratch.",
+    "currentDescription": "\"{name}\" is this device: if you revoke it you will be signed out and will have to pair it again to get back in.",
+    "confirm": "Revoke"
+  },
+  "add": { "computer": "Add a computer", "phone": "Add a phone" },
+  "phoneNotice": {
+    "title": "A phone needs a secure address",
+    "text": "To connect a phone, the library must be reachable at a secure address. Once you have set it up on the server, the button to add a phone will appear here."
+  },
+  "pair": {
+    "computerTitle": "Add a computer",
+    "phoneTitle": "Add a phone",
+    "generating": "Creating the code",
+    "codeLabel": "Pairing code: {code}",
+    "copy": "Copy",
+    "copied": "Copied",
+    "expiresIn": "Expires in {time}",
+    "expired": "The code has expired.",
+    "regenerate": "Generate a new code",
+    "qrLabel": "QR code to pair the phone: point the camera at it",
+    "added": "Device added",
+    "steps": {
+      "1": "Open Bookeeper on the other computer and choose \"Join\".",
+      "2": "Pick this library or type its address.",
+      "3": "Type the code above. It works for one device only."
+    },
+    "phoneSteps": {
+      "1": "Open the phone's camera.",
+      "2": "Point it at the QR code and open the link.",
+      "3": "If you can't scan it, open the address on the phone and type the code."
+    }
+  }
+}
