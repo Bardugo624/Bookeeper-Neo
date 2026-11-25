@@ -44,5 +44,11 @@
     "newBook": "Nuovo libro",
     "help": "Mostra questo elenco",
     "close": "Chiude palette, finestre e pannelli"
+  },
+  "keys": {
+    "mod": "Ctrl",
+    "modMac": "Cmd",
+    "hint": "Ctrl K",
+    "hintMac": "Cmd K"
   }
 }

@@ -35,7 +35,7 @@ function PaletteHint() {
     <button type="button" className={styles.hint} onClick={open}>
       <Icon name="search" size={15} />
       <span>{t('palette.hint')}</span>
-      <Kbd>{isMac() ? '⌘K' : 'Ctrl K'}</Kbd>
+      <Kbd>{t(isMac() ? 'palette.keys.hintMac' : 'palette.keys.hint')}</Kbd>
     </button>
   );
 }

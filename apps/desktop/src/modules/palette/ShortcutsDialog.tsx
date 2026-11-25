@@ -7,7 +7,7 @@ export function ShortcutsDialog() {
   const t = useT();
   const open = useOverlays((s) => s.shortcuts);
   const close = useOverlays((s) => s.closeShortcuts);
-  const mod = isMac() ? 'Cmd' : 'Ctrl';
+  const mod = t(isMac() ? 'palette.keys.modMac' : 'palette.keys.mod');
   return (
     <Dialog open={open} onOpenChange={(o) => !o && close()} title={t('palette.shortcuts.title')} closeLabel={t('shell.toast.close')}>
       <table className={styles.table}>

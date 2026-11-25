@@ -7,7 +7,7 @@ import styles from './Palette.module.css';
 
 function Thumb({ item }: { item: PaletteItem }) {
   const book = item.book!;
-  const src = usePaletteCover(book.id);
+  const src = usePaletteCover(book.id, book.cover_color);
   return <BookCover title={book.title} src={src} color={book.cover_color ?? undefined} width={26} className={styles.cover} />;
 }
 
