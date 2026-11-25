@@ -118,6 +118,16 @@ describe('authenticated transport', () => {
     expect(useSession.getState().status).toBe('ready');
   });
 
+  it('keeps the session when the repeat after a renewal answers 401 with a non-session code', async () => {
+    const p = await started({
+      handler: (r) =>
+        r.path.endsWith('/auth/refresh') ? refreshed() : bearer(r.headers) === 'Bearer access-2' ? unauthorized('invalid_credentials') : unauthorized('token_expired'),
+    });
+    const res = await createAuthTransport(p).request('POST', '/api/v1/a', {});
+    expect(res.status).toBe(401);
+    expect(useSession.getState().status).toBe('ready');
+  });
+
   it('keeps the session when the renewal cannot reach the server', async () => {
     const p = await started({ handler: (r) => (r.path.endsWith('/auth/refresh') ? { status: 503, body: null } : unauthorized('token_expired')) });
     await expect(createAuthTransport(p).request('GET', '/api/v1/a')).rejects.toMatchObject({ status: 0 });
@@ -220,6 +230,15 @@ describe('authenticated raw transport', () => {
     expect(res.status).toBe(200);
     expect(p.fake.rawCalls).toHaveLength(2);
     expect(p.fake.calls.filter((c) => c.path === '/api/v1/auth/refresh')).toHaveLength(1);
+  });
+
+  it('keeps the session when the repeat answers 401 with a non-session code', async () => {
+    const p = await started((r) =>
+      authz(r.headers) === 'Bearer access-2' ? raw(401, { error_code: 'invalid_credentials', message: 'x' }) : raw(401, { error_code: 'token_expired', message: 'x' }),
+    );
+    const res = await createAuthTransport(p).requestRaw!({ method: 'GET', path: '/api/v1/books/b/cover' });
+    expect(res.status).toBe(401);
+    expect(useSession.getState().status).toBe('ready');
   });
 
   it('ends the session on device_revoked', async () => {
