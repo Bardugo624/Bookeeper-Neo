@@ -74,7 +74,7 @@ export const listCalls = (platform: FakePlatform) =>
   platform.fake.calls.filter((c) => c.path.startsWith('/api/v1/books?')).map((c) => c.path);
 
 /** Replaces `IntersectionObserver`; `reach()` tells every observer that its element is in view. */
-export function stubObserver() {
+export function stubObserver({ reportOnObserve = false } = {}) {
   const callbacks = new Set<IntersectionObserverCallback>();
   class Stub {
     constructor(cb: IntersectionObserverCallback) {
@@ -82,7 +82,9 @@ export function stubObserver() {
       this.cb = cb;
     }
     cb: IntersectionObserverCallback;
-    observe() {}
+    observe() {
+      if (reportOnObserve) this.cb([{ isIntersecting: true } as IntersectionObserverEntry], this as unknown as IntersectionObserver);
+    }
     unobserve() {}
     disconnect() {
       callbacks.delete(this.cb);

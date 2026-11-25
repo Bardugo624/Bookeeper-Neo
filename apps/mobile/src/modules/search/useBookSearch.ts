@@ -64,6 +64,8 @@ export function useBookSearch(state: SearchState) {
     refetch: () => void query.refetch(),
     hasNextPage: query.hasNextPage && !query.isPlaceholderData && offlineFallback === undefined,
     fetchingNext: query.isFetchingNextPage,
+    /** Loading the next page failed; the list stays, and asking again is up to the user. */
+    nextFailed: query.isFetchNextPageError,
     fetchNextPage: () => void query.fetchNextPage(),
   };
 }

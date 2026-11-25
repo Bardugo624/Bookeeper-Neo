@@ -40,6 +40,7 @@ export function SearchPage() {
         busy={result.stale}
         hasNext={result.hasNextPage}
         fetchingNext={result.fetchingNext}
+        nextFailed={result.nextFailed}
         onEnd={result.fetchNextPage}
       />
     );

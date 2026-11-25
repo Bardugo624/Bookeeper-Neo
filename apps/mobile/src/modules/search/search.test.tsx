@@ -91,6 +91,31 @@ describe('search page', () => {
   });
 });
 
+describe('a failed next page', () => {
+  it('does not ask again by itself, and offers a retry', async () => {
+    const view = stubObserver({ reportOnObserve: true });
+    let fail = true;
+    const { platform } = renderSearch({
+      api: {
+        books: lib(50),
+        override: (call) =>
+          fail && call.path.includes('offset=40')
+            ? { status: 400, body: { error_code: 'bad', message: 'no' } }
+            : undefined,
+      },
+    });
+    const user = userEvent.setup();
+    const retry = await screen.findByRole('button', { name: 'Riprova' });
+    await new Promise((r) => setTimeout(r, 200));
+    expect(listCalls(platform).filter((p) => p.includes('offset=40'))).toHaveLength(1);
+    expect(rows()).toHaveLength(40);
+    fail = false;
+    await user.click(retry);
+    await waitFor(() => expect(rows()).toHaveLength(50));
+    expect(view).toBeDefined();
+  });
+});
+
 describe('rows', () => {
   it('names a row "title, author" and tags only the books on loan', async () => {
     renderSearch({ api: { books: [book(1, { on_loan: true }), book(2)] } });

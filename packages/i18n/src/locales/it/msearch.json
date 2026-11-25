@@ -21,7 +21,9 @@
     },
     "onLoan": "In prestito",
     "rowName": "{title}, {author}",
-    "loadingMore": "Carico altri libri…"
+    "loadingMore": "Carico altri libri…",
+    "moreError": "Non è stato possibile caricare altri libri.",
+    "moreRetry": "Riprova"
   },
   "empty": {
     "title": "La libreria è vuota",

@@ -21,7 +21,9 @@
     },
     "onLoan": "On loan",
     "rowName": "{title}, {author}",
-    "loadingMore": "Loading more books…"
+    "loadingMore": "Loading more books…",
+    "moreError": "Could not load more books.",
+    "moreRetry": "Try again"
   },
   "empty": {
     "title": "The library is empty",

@@ -1,5 +1,5 @@
 import type { BookOut } from '@bookeeper/api';
-import { Skeleton, Spinner } from '@bookeeper/ui/base';
+import { Button, Skeleton, Spinner } from '@bookeeper/ui/base';
 import { useT } from '../../app/i18n';
 import { BookRow } from './BookRow';
 import { useEndReached } from './useBookSearch';
@@ -28,13 +28,14 @@ export interface ResultListProps {
   busy: boolean;
   hasNext: boolean;
   fetchingNext: boolean;
+  nextFailed: boolean;
   onEnd: () => void;
 }
 
 /** One column of books; the next page is asked for when the end comes into view. */
-export function ResultList({ items, from, busy, hasNext, fetchingNext, onEnd }: ResultListProps) {
+export function ResultList({ items, from, busy, hasNext, fetchingNext, nextFailed, onEnd }: ResultListProps) {
   const t = useT();
-  const endRef = useEndReached(onEnd, hasNext && !fetchingNext, items.length);
+  const endRef = useEndReached(onEnd, hasNext && !fetchingNext && !nextFailed, items.length);
   return (
     <>
       <ul className={styles.list} aria-label={t('msearch.list.label')} aria-busy={busy}>
@@ -44,6 +45,14 @@ export function ResultList({ items, from, busy, hasNext, fetchingNext, onEnd }: 
       </ul>
       <div ref={endRef} className={styles.end}>
         {fetchingNext ? <Spinner label={t('msearch.list.loadingMore')} /> : null}
+        {nextFailed && !fetchingNext ? (
+          <div role="alert" className={styles.moreError}>
+            <span>{t('msearch.list.moreError')}</span>
+            <Button variant="secondary" onClick={onEnd}>
+              {t('msearch.list.moreRetry')}
+            </Button>
+          </div>
+        ) : null}
       </div>
     </>
   );
