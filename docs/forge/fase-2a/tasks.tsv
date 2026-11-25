@@ -1,0 +1,10 @@
+# id	deps	difficulty	files	dwarf	qa	title
+ui-base	-	high	packages/ui/package.json,package-lock.json,packages/ui/tsconfig.json,packages/ui/vitest.config.ts,packages/ui/src/tokens.css,packages/ui/src/tokens.test.ts,packages/ui/src/index.ts,packages/ui/src/test-setup.ts,packages/ui/src/css.d.ts,packages/ui/src/base	-	-	UI: fondamenta, icone e componenti di base
+i18n-ns	-	low	packages/i18n	-	-	i18n: cataloghi per spazio dei nomi
+desktop-session	-	high	apps/desktop/src-tauri/src/lib.rs,apps/desktop/src-tauri/src/connections.rs,apps/desktop/src-tauri/src/window.rs,apps/desktop/src-tauri/Cargo.toml,Cargo.lock,apps/desktop/src-tauri/tauri.conf.json,apps/desktop/src-tauri/capabilities/default.json,apps/desktop/src-tauri/tests	-	-	Guscio: connessioni salvate e finestra senza cornice
+desktop-remote	desktop-session	high	apps/desktop/src-tauri/src/lib.rs,apps/desktop/src-tauri/src/remote.rs,apps/desktop/src-tauri/src/discover.rs,apps/desktop/src-tauri/src/dispatch.rs,apps/desktop/src-tauri/Cargo.toml,Cargo.lock,apps/desktop/src-tauri/tests	-	-	Guscio: trasporto remoto, impronta fissata, scoperta
+ui-overlays	ui-base	high	packages/ui/src/overlays	-	-	UI: dialog, menu, schede scorrevoli, toast, tooltip
+ui-book	ui-base	medium	packages/ui/src/book	-	-	UI: copertina, libro 3D, anello, barre, KPI
+app-foundation	ui-base,i18n-ns,desktop-session	high	apps/desktop/package.json,package-lock.json,apps/desktop/vite.config.ts,apps/desktop/tsconfig.json,apps/desktop/index.html,apps/desktop/src,packages/i18n/src/locales/it/shell.json,packages/i18n/src/locales/en/shell.json	-	-	App: fornitori, sessione, router, guscio, tema
+first-run	app-foundation,ui-overlays,desktop-remote	high	apps/desktop/src/modules/welcome,packages/i18n/src/locales/it/welcome.json,packages/i18n/src/locales/en/welcome.json	-	-	Primo avvio: i quattro percorsi
+books-view	app-foundation,ui-overlays,ui-book	high	apps/desktop/src/modules/books,packages/i18n/src/locales/it/books.json,packages/i18n/src/locales/en/books.json	-	-	Libri: griglia, ricerca, filtri, scheda in sola lettura
