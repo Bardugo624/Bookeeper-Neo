@@ -42,11 +42,15 @@ export function enc(id: string): string {
   return encodeURIComponent(id);
 }
 
-/** Builds `?a=1&b=2`; `undefined`/`null` values are omitted, no `?` when empty. */
+/** Builds `?a=1&b=2`; arrays become repeated keys (`tag_id=1&tag_id=2`); `undefined`/`null` values are omitted, no `?` when empty. */
 export function qs(params?: object): string {
   const parts: string[] = [];
   for (const [k, v] of Object.entries(params ?? {})) {
     if (v === undefined || v === null) continue;
+    if (Array.isArray(v)) {
+      for (const item of v) parts.push(`${encodeURIComponent(k)}=${encodeURIComponent(String(item))}`);
+      continue;
+    }
     parts.push(`${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`);
   }
   return parts.length ? `?${parts.join('&')}` : '';
