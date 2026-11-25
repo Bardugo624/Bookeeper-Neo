@@ -1,0 +1,66 @@
+{
+  "tab": "Account",
+  "title": "Account",
+  "who": {
+    "title": "Chi sei",
+    "library": "Libreria",
+    "name": "Nome",
+    "role": "Ruolo",
+    "device": "Questo telefono",
+    "rename": "Rinomina",
+    "renameLabel": "Nome del telefono",
+    "save": "Salva",
+    "saving": "Salvataggio…",
+    "cancel": "Annulla",
+    "roles": {
+      "owner": "Proprietario",
+      "admin": "Amministratore",
+      "member": "Membro",
+      "guest": "Ospite"
+    },
+    "errors": {
+      "empty": "Scrivi un nome per il telefono.",
+      "tooLong": "Il nome può avere al massimo 80 caratteri."
+    }
+  },
+  "look": {
+    "title": "Aspetto",
+    "theme": "Tema",
+    "language": "Lingua",
+    "system": "Sistema",
+    "light": "Chiaro",
+    "dark": "Scuro",
+    "it": "Italiano",
+    "en": "English"
+  },
+  "install": {
+    "title": "Installa l'app",
+    "text": "Aggiungi Bookeeper alla schermata Home per aprirlo come una vera app.",
+    "action": "Aggiungi alla schermata Home",
+    "iosTitle": "Come aggiungerla su iPhone",
+    "ios1": "Tocca Condividi nella barra di Safari.",
+    "ios2": "Scorri e scegli Aggiungi alla schermata Home.",
+    "ios3": "Tocca Aggiungi in alto a destra."
+  },
+  "about": {
+    "title": "Informazioni",
+    "app": "Versione dell'app",
+    "server": "Versione del server",
+    "serverUnknown": "Non disponibile",
+    "check": "Cerca aggiornamenti",
+    "upToDate": "L'app è aggiornata.",
+    "updateReady": "È disponibile una nuova versione: usa il banner per aggiornare."
+  },
+  "logout": {
+    "title": "Scollega questo telefono",
+    "text": "Il telefono non potrà più usare la libreria finché non lo colleghi di nuovo.",
+    "action": "Scollega questo telefono",
+    "confirmTitle": "Scollegare questo telefono?",
+    "confirmText": "Dovrai collegarlo di nuovo con un nuovo codice QR dal computer.",
+    "confirm": "Scollega",
+    "busy": "Scollegamento in corso…",
+    "understood": "Ho capito",
+    "cancel": "Annulla",
+    "offline": "Non è stato possibile avvisare il server. Il telefono è scollegato qui, ma va revocato dal computer, in Dispositivi."
+  }
+}
