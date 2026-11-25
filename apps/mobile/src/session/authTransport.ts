@@ -14,7 +14,24 @@ function errorCode(body: unknown): string | null {
   return typeof code === 'string' ? code : null;
 }
 
-type Renewal = { token: string } | 'rejected' | 'unreachable';
+/** `adopted`: the token came from another tab's renewal, not from our own refresh. */
+/** A 401 that a new access token may cure (no code counts as renewable). */
+function renewable(body: unknown): boolean {
+  const code = errorCode(body);
+  return code === null || RENEWABLE.has(code);
+}
+
+type Renewal = { token: string; adopted: boolean } | 'rejected' | 'unreachable';
+
+interface LockManager {
+  request<T>(name: string, cb: () => Promise<T>): Promise<T>;
+}
+
+/** Runs `fn` while holding a lock shared by every tab, so two tabs never refresh with the same token. */
+function withRefreshLock<T>(fn: () => Promise<T>): Promise<T> {
+  const locks = (globalThis.navigator as { locks?: LockManager } | undefined)?.locks;
+  return locks ? locks.request('bookeeper.mobile.refresh', fn) : fn();
+}
 
 const cache = new WeakMap<Platform, Transport>();
 
@@ -35,17 +52,29 @@ export function createAuthTransport(platform: Platform): Transport {
 function build(platform: Platform): Transport {
   let renewing: Promise<Renewal> | null = null;
 
-  function renew(failedToken: string | null): Promise<Renewal> {
-    // Another request already renewed after this one was sent.
-    // Another tab may have renewed (and rotated the refresh token) since this one read its tokens.
+  /** Takes the tokens another tab stored, if it renewed (and rotated the refresh token) since we read ours. */
+  function adoptStored(): void {
     const stored = readTokens(platform.storage);
     if (stored && stored.refresh_token !== useSession.getState().tokens?.refresh_token) {
       useSession.setState({ tokens: stored });
     }
+  }
+
+  /** A newer access token than `failedToken`: another request's or tab's, or a fresh refresh. */
+  function newer(failedToken: string | null): Renewal | null {
+    adoptStored();
     const now = useSession.getState().tokens;
-    if (now && now.access_token !== failedToken) return Promise.resolve({ token: now.access_token });
+    return now && now.access_token !== failedToken ? { token: now.access_token, adopted: true } : null;
+  }
+
+  function renew(failedToken: string | null): Promise<Renewal> {
+    const found = newer(failedToken);
+    if (found) return Promise.resolve(found);
     if (renewing) return renewing;
-    renewing = (async (): Promise<Renewal> => {
+    renewing = withRefreshLock(async (): Promise<Renewal> => {
+      // Another tab may have refreshed while we waited for the lock.
+      const meanwhile = newer(failedToken);
+      if (meanwhile) return meanwhile;
       const tokens = useSession.getState().tokens;
       if (!tokens) return 'rejected';
       try {
@@ -55,12 +84,12 @@ function build(platform: Platform): Transport {
           refresh_token: session.refresh_token,
           device_id: session.device_id,
         });
-        return { token: session.access_token };
+        return { token: session.access_token, adopted: false };
       } catch (e) {
         // Only a server rejection ends the session; a network error may be transient.
         return e instanceof ApiError && e.status >= 400 && e.status < 500 ? 'rejected' : 'unreachable';
       }
-    })().finally(() => {
+    }).finally(() => {
       renewing = null;
     });
     return renewing;
@@ -81,15 +110,21 @@ function build(platform: Platform): Transport {
         return res;
       }
       // Other 401s (wrong credentials, confirmation needed) are ordinary errors for the caller.
-      if (code !== null && !RENEWABLE.has(code)) return res;
-      const renewal = await renew(sent);
-      // The session may still be good: report it as a network failure, not as a 401.
-      if (renewal === 'unreachable') throw new ApiError(0, 'network_error', 'The server could not be reached');
-      if (renewal === 'rejected') {
-        useSession.getState().expire();
-        return res;
+      if (!renewable(res.body)) return res;
+      let renewal = await renew(sent);
+      let retry: Awaited<ReturnType<Transport['request']>> | null = null;
+      for (let tries = 1; ; tries++) {
+        // The session may still be good: report it as a network failure, not as a 401.
+        if (renewal === 'unreachable') throw new ApiError(0, 'network', 'The server could not be reached');
+        if (renewal === 'rejected') {
+          useSession.getState().expire();
+          return retry ?? res;
+        }
+        retry = await send(renewal.token);
+        // A token taken from another tab may itself have expired: refresh with its refresh token.
+        if (!renewal.adopted || tries >= 3 || retry.status !== 401 || !renewable(retry.body)) break;
+        renewal = await renew(renewal.token);
       }
-      const retry = await send(renewal.token);
       if (retry.status === 401) useSession.getState().expire();
       return retry;
     },

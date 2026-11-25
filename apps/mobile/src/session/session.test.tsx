@@ -138,6 +138,54 @@ describe('authenticated transport', () => {
     expect(p.fake.calls.some((c) => c.path.endsWith('/auth/refresh'))).toBe(false);
     expect(useSession.getState().status).toBe('ready');
   });
+
+  it('refreshes with the stored refresh token when the token another tab stored has expired too', async () => {
+    const p = await started({
+      handler: (r) => {
+        if (r.path.endsWith('/auth/refresh')) {
+          return (r.body as { refresh_token?: string })?.refresh_token === 'refresh-2' ? refreshed(3) : unauthorized('refresh_reused');
+        }
+        return bearer(r.headers) === 'Bearer access-3' ? ok({}) : unauthorized('token_expired');
+      },
+    });
+    pair(p.storage, 2); // the other tab renewed long ago
+    const res = await createAuthTransport(p).request('GET', '/api/v1/a');
+    expect(res.status).toBe(200);
+    expect(p.fake.calls.filter((c) => c.path.endsWith('/auth/refresh'))).toHaveLength(1);
+    expect(useSession.getState().status).toBe('ready');
+    expect(JSON.parse(p.storage.get(SESSION_KEY)!).refresh_token).toBe('refresh-3');
+  });
+
+  it('reports an unreachable renewal with the network error code', async () => {
+    const p = await started({ handler: (r) => (r.path.endsWith('/auth/refresh') ? { status: 502, body: null } : unauthorized('token_expired')) });
+    await expect(createAuthTransport(p).request('GET', '/api/v1/a')).rejects.toMatchObject({ status: 0, code: 'network' });
+  });
+
+  it('refreshes under a lock shared by tabs and uses what another tab stored while it waited', async () => {
+    const p = await started({
+      handler: (r) => {
+        if (r.path.endsWith('/auth/refresh')) return unauthorized('refresh_reused');
+        return bearer(r.headers) === 'Bearer access-2' ? ok({}) : unauthorized('token_expired');
+      },
+    });
+    const names: string[] = [];
+    const locks = {
+      request: async <T,>(name: string, cb: () => Promise<T>) => {
+        names.push(name);
+        pair(p.storage, 2); // the other tab held the lock and renewed
+        return cb();
+      },
+    };
+    Object.defineProperty(navigator, 'locks', { value: locks, configurable: true });
+    try {
+      const res = await createAuthTransport(p).request('GET', '/api/v1/a');
+      expect(res.status).toBe(200);
+      expect(names).toHaveLength(1);
+      expect(p.fake.calls.some((c) => c.path.endsWith('/auth/refresh'))).toBe(false);
+    } finally {
+      delete (navigator as { locks?: unknown }).locks;
+    }
+  });
 });
 
 describe('routing by session', () => {
