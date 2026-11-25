@@ -11,7 +11,7 @@ function errorCode(res: { body?: unknown; bytes?: unknown }): string | null {
   try {
     let b: unknown = res.body;
     if (b === undefined && res.bytes instanceof Uint8Array) b = JSON.parse(new TextDecoder().decode(res.bytes));
-    const code = (b as { error?: { code?: unknown } } | null)?.error?.code;
+    const code = (b as { error_code?: unknown } | null)?.error_code;
     return typeof code === 'string' ? code : null;
   } catch {
     return null;

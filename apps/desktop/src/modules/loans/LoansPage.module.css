@@ -1,0 +1,34 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 20px;
+  padding-top: 16px;
+}
+
+.page > nav,
+.page > [role='tablist'] {
+  align-self: flex-start;
+}
+
+.bookFilter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  color: var(--bk-text-muted);
+}
+
+.error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--bk-danger-bg);
+  color: var(--bk-danger-strong);
+  font-size: 13px;
+}
+
+.more {
+  align-self: center;
+}

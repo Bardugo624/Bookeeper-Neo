@@ -90,9 +90,9 @@ describe('detail', () => {
     );
   });
 
-  it('has no write actions', async () => {
-    renderBooks({ books: [full] }, '/books/b1');
+  it('has no write actions for a guest, and never "mark as read"', async () => {
+    renderBooks({ books: [full], role: 'guest' }, '/books/b1');
     await screen.findByRole('heading', { level: 1, name: 'Il nome della rosa' });
-    expect(screen.queryAllByRole('button', { name: /Aggiungi|Modifica|Presta|Segna come letto/ })).toHaveLength(0);
+    expect(screen.queryAllByRole('button', { name: /Aggiungi|Modifica|Presta|Elimina|Altro|Seleziona|Segna come letto/ })).toHaveLength(0);
   });
 });

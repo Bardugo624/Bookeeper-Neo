@@ -1,0 +1,58 @@
+{
+  "title": "Statistics",
+  "loading": "Loading statistics",
+  "totals": {
+    "total_books": "Books",
+    "total_authors": "Authors",
+    "total_shelves": "Shelves",
+    "total_pages": "Pages",
+    "wishlist_count": "Wishlist",
+    "active_loans": "Active loans",
+    "overdue_loans": "Overdue loans",
+    "returned_loans": "Returned loans"
+  },
+  "by_genre": "By genre",
+  "by_language": "By language",
+  "by_format": "By format",
+  "by_decade": "By decade",
+  "top_authors": "Most frequent authors",
+  "decade": "{decade}s",
+  "missing": "Not specified",
+  "others": "Others",
+  "showAll": "Show all ({count})",
+  "showLess": "Show less",
+  "table": {
+    "label": "Item",
+    "bar": "Proportion",
+    "count": "Books"
+  },
+  "shelfFill": {
+    "title": "Shelf unit fill",
+    "bar": "{name}: {pct}% full",
+    "used": "{used} / {capacity}"
+  },
+  "empty": {
+    "title": "No statistics yet",
+    "text": "Add books to your library to see the numbers.",
+    "action": "Go to books"
+  },
+  "error": {
+    "title": "Could not load statistics",
+    "text": "Check your connection and try again."
+  },
+  "formatLabel": {
+    "paperback": "Paperback",
+    "hardcover": "Hardcover",
+    "ebook": "E-book",
+    "audiobook": "Audiobook"
+  },
+  "langLabel": {
+    "it": "Italian",
+    "en": "English",
+    "fr": "French",
+    "de": "German",
+    "es": "Spanish",
+    "pt": "Portuguese",
+    "la": "Latin"
+  }
+}

@@ -77,12 +77,15 @@
       "title": "Where it is",
       "none": "Not shelved",
       "shelf": "Furniture",
-      "row": "Shelf {row}"
+      "row": "Shelf {row}",
+      "show": "Show on the shelf"
     },
     "loans": {
       "title": "Loans",
       "onLoan": "On loan",
-      "none": "Not on loan"
+      "none": "Not on loan",
+      "to": "To {name} since {date}",
+      "open": "See loans"
     },
     "notFound": {
       "title": "Book not found",
@@ -93,6 +96,119 @@
       "title": "Can't read the book",
       "text": "Check the connection to the library and try again.",
       "retry": "Try again"
+    },
+    "lend": "Lend",
+    "more": "More"
+  },
+  "new": {
+    "button": "Add",
+    "title": "New book",
+    "saveAnother": "Save and add another"
+  },
+  "edit": {
+    "title": "Edit book"
+  },
+  "lookup": {
+    "isbn": "ISBN",
+    "hint": "10 or 13 digits, with or without hyphens.",
+    "invalid": "The ISBN is not valid: check the digits.",
+    "search": "Search",
+    "searching": "Searching",
+    "manual": "Enter by hand",
+    "found": "Data found by: {sources}. Check it before saving.",
+    "notFound": "No provider knows this ISBN. Fill in the details by hand.",
+    "failed": "I could not look the ISBN up. {reason} You can fill in the details by hand.",
+    "exists": "This ISBN is already in the library: “{title}”.",
+    "openExisting": "Open the existing book"
+  },
+  "form": {
+    "groups": {
+      "essentials": "Essentials",
+      "edition": "Edition",
+      "collection": "Collection",
+      "notes": "Notes"
+    },
+    "title": "Title",
+    "subtitle": "Subtitle",
+    "authors": "Authors",
+    "authorN": "Author {n}",
+    "addAuthor": "Add author",
+    "removeAuthor": "Remove author {n}",
+    "publisher": "Publisher",
+    "year": "Year",
+    "language": "Language",
+    "pages": "Pages",
+    "format": "Format",
+    "formatNone": "Not specified",
+    "isbn10": "ISBN-10",
+    "isbn13": "ISBN-13",
+    "genre": "Genre",
+    "progressive": "Progressive number",
+    "condition": "Condition",
+    "acquired": "Date acquired",
+    "price": "Price (€)",
+    "description": "Description",
+    "notes": "Notes",
+    "errors": {
+      "tooLong": "At most {max} characters.",
+      "tooManyAuthors": "At most {max} authors.",
+      "isbn13": "Invalid ISBN-13.",
+      "isbn10": "Invalid ISBN-10.",
+      "range": "A number between {min} and {max}.",
+      "price": "An amount like 12.50.",
+      "date": "Invalid date.",
+      "progressiveTaken": "Another book already uses this number."
     }
+  },
+  "cover": {
+    "title": "Cover",
+    "untitled": "Untitled",
+    "useThis": "Use this cover",
+    "upload": "Upload an image",
+    "remove": "Remove",
+    "file": "Cover file",
+    "badType": "Only JPEG, PNG or WebP images are allowed.",
+    "tooBig": "The image is larger than {mb} MB."
+  },
+  "selection": {
+    "toggle": "Select",
+    "label": "Selection",
+    "column": "Selection",
+    "select": "Select “{title}”",
+    "count": {
+      "one": "{count} selected",
+      "other": "{count} selected"
+    },
+    "confirmTitle": {
+      "one": "Delete {count} book?",
+      "other": "Delete {count} books?"
+    },
+    "confirmText": {
+      "one": "The selected book will be deleted with its cover. This cannot be undone.",
+      "other": "The {count} selected books will be deleted with their covers. This cannot be undone."
+    },
+    "confirmButton": {
+      "one": "Delete {count} book",
+      "other": "Delete {count} books"
+    },
+    "deleted": {
+      "one": "{count} book deleted",
+      "other": "{count} books deleted"
+    },
+    "partial": "Deleted {deleted} of {total} books",
+    "notDeleted": {
+      "one": "{count} book was not deleted.",
+      "other": "{count} books were not deleted."
+    }
+  },
+  "delete": {
+    "title": "Delete “{title}”?",
+    "text": "The book will be deleted with its cover. This cannot be undone."
+  },
+  "toast": {
+    "created": "“{title}” added",
+    "updated": "“{title}” saved",
+    "deleted": "“{title}” deleted",
+    "coverFailed": "The book was saved, but its cover was not."
   }
 }

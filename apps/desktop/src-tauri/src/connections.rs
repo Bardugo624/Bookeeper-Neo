@@ -144,22 +144,31 @@ impl Store {
                     .duration_since(std::time::UNIX_EPOCH)
                     .map(|d| d.as_secs())
                     .unwrap_or(0);
-                let mut aside = self
-                    .path
-                    .with_file_name(format!("connections.json.corrotto-{secs}"));
-                // Never overwrite a file set aside earlier.
-                let mut n = 0u32;
-                while aside.exists() {
-                    n += 1;
-                    aside = self
-                        .path
-                        .with_file_name(format!("connections.json.corrotto-{secs}-{n}"));
-                }
                 // Never log the content: it may hold tokens.
                 tracing::warn!(
                     "connections file is unreadable; setting it aside and starting empty"
                 );
-                std::fs::rename(&self.path, &aside)
+                // The name is claimed atomically: a hard link fails when it exists, so a file set
+                // aside earlier (even by another process) is never overwritten.
+                let mut n = 0u32;
+                loop {
+                    let name = if n == 0 {
+                        format!("connections.json.corrotto-{secs}")
+                    } else {
+                        format!("connections.json.corrotto-{secs}-{n}")
+                    };
+                    match std::fs::hard_link(&self.path, self.path.with_file_name(name)) {
+                        Ok(()) => break,
+                        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => n += 1,
+                        Err(e) => {
+                            return Err(format!(
+                                "cannot set aside corrupt connections: {}",
+                                e.kind()
+                            ))
+                        }
+                    }
+                }
+                std::fs::remove_file(&self.path)
                     .map_err(|e| format!("cannot set aside corrupt connections: {}", e.kind()))?;
                 Ok(Connections::default())
             }

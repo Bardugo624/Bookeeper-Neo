@@ -2,15 +2,26 @@ import type { BookOut } from '@bookeeper/api';
 import { Skeleton } from '@bookeeper/ui/base';
 import { useT } from '../../app';
 import { BookCard } from './BookCard';
+import type { Selection } from './useSelection';
 import styles from './BookGrid.module.css';
 
-export function BookGrid({ books, from, loadingMore }: { books: BookOut[]; from: string; loadingMore: boolean }) {
+export function BookGrid({
+  books,
+  from,
+  loadingMore,
+  selection,
+}: {
+  books: BookOut[];
+  from: string;
+  loadingMore: boolean;
+  selection?: Selection;
+}) {
   const t = useT();
   return (
     <>
       <ul className={styles.grid} aria-label={t('books.list.label')}>
         {books.map((b) => (
-          <BookCard key={b.id} book={b} from={from} />
+          <BookCard key={b.id} book={b} from={from} selection={selection} />
         ))}
       </ul>
       {loadingMore ? <GridSkeleton count={6} label={t('books.list.loadingMore')} /> : null}

@@ -4,7 +4,9 @@ import { Icon, Skeleton, Tag } from '@bookeeper/ui/base';
 import { useT } from '../../app';
 import { authorsOf, detailPath, type FromList } from './format';
 import type { ListParams, SortKey } from './listParams';
+import { SelectionCheckbox } from './SelectionCheckbox';
 import { useShelfNames } from './useBook';
+import type { Selection } from './useSelection';
 import styles from './BookTable.module.css';
 
 const SORTABLE: Array<{ key: SortKey | null; id: 'title' | 'author' | 'year' | 'placement' | 'status' }> = [
@@ -19,9 +21,11 @@ export interface BookTableProps {
   books: BookOut[];
   params: ListParams;
   loadingMore: boolean;
+  /** Present while the list is in selection mode: adds a column of checkboxes. */
+  selection?: Selection;
 }
 
-export function BookTable({ books, params, loadingMore }: BookTableProps) {
+export function BookTable({ books, params, loadingMore, selection }: BookTableProps) {
   const t = useT();
   const shelves = useShelfNames();
   const state: FromList = { list: params.search };
@@ -35,6 +39,11 @@ export function BookTable({ books, params, loadingMore }: BookTableProps) {
     <table className={styles.table} aria-label={t('books.list.label')}>
       <thead>
         <tr>
+          {selection ? (
+            <th scope="col" className={styles.head}>
+              <span className={styles.hidden}>{t('books.selection.column')}</span>
+            </th>
+          ) : null}
           {SORTABLE.map(({ key, id }) => {
             const column = t(`books.list.columns.${id}`);
             const active = key !== null && params.sort === key;
@@ -65,6 +74,15 @@ export function BookTable({ books, params, loadingMore }: BookTableProps) {
       <tbody>
         {books.map((b) => (
           <tr key={b.id} className={styles.row}>
+            {selection ? (
+              <td>
+                <SelectionCheckbox
+                  label={t('books.selection.select', { title: b.title })}
+                  checked={selection.selected.has(b.id)}
+                  onToggle={(range) => selection.toggle(b.id, range)}
+                />
+              </td>
+            ) : null}
             <td>
               <Link to={detailPath(b.id)} state={state} className={styles.link}>
                 {b.title}
@@ -79,7 +97,7 @@ export function BookTable({ books, params, loadingMore }: BookTableProps) {
         {loadingMore
           ? Array.from({ length: 4 }, (_, i) => (
               <tr key={`s${i}`} aria-hidden="true">
-                <td colSpan={SORTABLE.length}>
+                <td colSpan={SORTABLE.length + (selection ? 1 : 0)}>
                   <Skeleton shape="line" width="100%" />
                 </td>
               </tr>

@@ -7,4 +7,4 @@ export const ME: MeOut = {
 } as MeOut;
 
 export const ok = (body: unknown) => ({ status: 200, body });
-export const unauthorized = { status: 401, body: { error: { code: 'unauthorized', message: 'x' } } };
+export const unauthorized = { status: 401, body: { error_code: 'unauthorized', message: 'x' } };

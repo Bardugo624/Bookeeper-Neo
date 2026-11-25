@@ -12,7 +12,8 @@
     "./base.css": "./src/base/base.css",
     "./base": "./src/base/index.ts",
     "./overlays": "./src/overlays/index.ts",
-    "./book": "./src/book/index.ts"
+    "./book": "./src/book/index.ts",
+    "./shelf": "./src/shelf/index.ts"
   },
   "scripts": {
     "test": "vitest run",

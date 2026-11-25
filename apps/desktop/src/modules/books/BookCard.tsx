@@ -4,16 +4,20 @@ import { Tag } from '@bookeeper/ui/base';
 import { BookCover } from '@bookeeper/ui/book';
 import { useT } from '../../app';
 import { authorsOf, detailPath, type FromList } from './format';
+import { SelectionCheckbox } from './SelectionCheckbox';
 import { useCover } from './useCover';
+import type { Selection } from './useSelection';
 import styles from './BookCard.module.css';
 
 export interface BookCardProps {
   book: BookOut;
   /** Address of the list (`?…`), kept for the way back. */
   from: string;
+  /** Present while the list is in selection mode. */
+  selection?: Selection;
 }
 
-export function BookCard({ book, from }: BookCardProps) {
+export function BookCard({ book, from, selection }: BookCardProps) {
   const t = useT();
   const src = useCover(book.id, Boolean(book.cover_color));
   const author = authorsOf(book);
@@ -21,6 +25,14 @@ export function BookCard({ book, from }: BookCardProps) {
   const state: FromList = { list: from };
   return (
     <li className={styles.item}>
+      {selection ? (
+        <SelectionCheckbox
+          label={t('books.selection.select', { title: book.title })}
+          checked={selection.selected.has(book.id)}
+          onToggle={(range) => selection.toggle(book.id, range)}
+          className={styles.check}
+        />
+      ) : null}
       <Link to={detailPath(book.id)} state={state} aria-label={name} className={styles.card}>
         <BookCover title={book.title} author={author || undefined} src={src} color={book.cover_color ?? undefined} lift>
           {book.on_loan ? (
