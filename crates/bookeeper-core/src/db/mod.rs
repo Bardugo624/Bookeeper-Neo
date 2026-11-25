@@ -31,7 +31,10 @@ pub struct Db {
     conn: Arc<Mutex<Connection>>,
 }
 
-const MIGRATIONS: &[&str] = &[include_str!("migrations/0001_schema.sql")];
+const MIGRATIONS: &[&str] = &[
+    include_str!("migrations/0001_schema.sql"),
+    include_str!("migrations/0002_reading_progress.sql"),
+];
 
 /// Highest schema version this build understands.
 const SUPPORTED_VERSION: usize = MIGRATIONS.len();

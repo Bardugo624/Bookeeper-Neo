@@ -11,6 +11,10 @@ import { coversApi } from './resources/covers';
 import { transferApi } from './resources/transfer';
 import { backupApi } from './resources/backup';
 import { labelsApi } from './resources/labels';
+import { readingApi } from './resources/reading';
+import { tagsApi } from './resources/tags';
+import { roomsApi } from './resources/rooms';
+import { auditApi } from './resources/audit';
 import { serverApi } from './resources/server';
 
 export type Health = components['schemas']['Health'];
@@ -45,6 +49,10 @@ export function createClient(t: Transport) {
     ...transferApi(t),
     ...backupApi(t),
     ...labelsApi(t),
+    ...readingApi(t),
+    ...tagsApi(t),
+    ...roomsApi(t),
+    ...auditApi(t),
     ...serverApi(t),
     async health() {
       return unwrap<Health>(await t.request('GET', `${P}/health`));

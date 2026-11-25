@@ -9,6 +9,8 @@ use serde::{Deserialize, Deserializer, Serialize};
 use utoipa::ToSchema;
 
 use crate::{
+    api::reading::{attach_reading, ReadingSummary},
+    api::tags::{attach_tags, TagSummary},
     api::util::{new_id, normalize_isbn10, normalize_isbn13, now_secs},
     audit,
     auth::{guard::AuthUser, Role},
@@ -81,6 +83,10 @@ pub struct BookOut {
     pub cover_color: Option<String>,
     pub placement: Option<Placement>,
     pub on_loan: bool,
+    /// The caller's own reading state; `null` when there is none.
+    pub reading: Option<ReadingSummary>,
+    /// Tags of the book, ordered by name.
+    pub tags: Vec<TagSummary>,
     pub created_at: i64,
     pub updated_at: i64,
 }
@@ -376,6 +382,8 @@ pub fn map_book(row: &rusqlite::Row<'_>) -> rusqlite::Result<BookOut> {
         cover_color: row.get(18)?,
         placement,
         on_loan: row.get(22)?,
+        reading: None,
+        tags: Vec::new(),
         created_at: row.get(23)?,
         updated_at: row.get(24)?,
     })
@@ -566,7 +574,14 @@ pub async fn get_book(
 ) -> ApiResult<Json<BookOut>> {
     let book = state
         .db
-        .run(move |conn| fetch(conn, &who.library_id, &id))
+        .run(move |conn| {
+            let mut book = fetch(conn, &who.library_id, &id)?;
+            if let Some(b) = book.as_mut() {
+                attach_reading(conn, &who.user_id, std::slice::from_mut(b))?;
+                attach_tags(conn, std::slice::from_mut(b))?;
+            }
+            Ok(book)
+        })
         .await?
         .ok_or_else(ApiError::not_found)?;
     Ok(Json(book))
@@ -712,7 +727,11 @@ pub async fn patch_book(
             tx.execute("DELETE FROM books_fts WHERE rowid = ?1", [rowid])?;
             fts_insert(&tx, rowid, &book)?;
             audit::record(&tx, &who, "book.update", "book", &id, None, now)?;
-            let out = fetch(&tx, &who.library_id, &id)?;
+            let mut out = fetch(&tx, &who.library_id, &id)?;
+            if let Some(b) = out.as_mut() {
+                attach_reading(&tx, &who.user_id, std::slice::from_mut(b))?;
+                attach_tags(&tx, std::slice::from_mut(b))?;
+            }
             tx.commit()?;
             Ok(out.ok_or_else(ApiError::internal))
         })

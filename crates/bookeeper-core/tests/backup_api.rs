@@ -307,8 +307,8 @@ async fn populate(s: &Seeded) -> World {
         )?;
         c.execute("INSERT INTO book_tags (book_id, tag_id) VALUES (?1, 'tag-1')", [&ba])?;
         c.execute(
-            "INSERT INTO reading (id, library_id, user_id, book_id, status, updated_at) \
-             VALUES ('read-1', ?1, ?2, ?3, 'reading', 5)",
+            "INSERT INTO reading (id, library_id, user_id, book_id, status, current_page, updated_at) \
+             VALUES ('read-1', ?1, ?2, ?3, 'reading', 42, 5)",
             rusqlite::params![lib, uid, ba],
         )?;
         c.execute("UPDATE shelves SET room_id = 'room-1' WHERE library_id = ?1", [&lib])?;
@@ -1188,4 +1188,63 @@ async fn archives_made_before_this_change_still_restore() {
     assert_eq!(report["books"], 1);
     assert_eq!(report["covers"], 1);
     assert_eq!(search_total(&s.state, tok, "Vecchio").await, 1);
+}
+
+#[tokio::test]
+async fn reading_rows_keep_current_page_through_a_round_trip() {
+    let s = owner().await;
+    let w = populate(&s).await;
+    let tok = &s.session.access_token;
+    let archive = do_backup(&s.state, tok).await;
+    let entries = unzip(&archive);
+    let d: Value = serde_json::from_slice(&entry(&entries, "data.json")).unwrap();
+    assert_eq!(d["reading"][0]["current_page"], 42);
+
+    sql(&s.state, |c| c.execute("DELETE FROM reading", [])).await;
+    let confirm = confirm_token(&s.state, tok, Some(PW)).await;
+    let (st, body) = do_restore(&s.state, tok, &confirm, archive).await;
+    assert_eq!(st, 200, "{}", String::from_utf8_lossy(&body));
+    let (st, _, r) = call(
+        &s.state,
+        "GET",
+        &format!("/api/v1/books/{}/reading", w.book_a),
+        Some(tok),
+        None,
+    )
+    .await;
+    assert_eq!(st, 200);
+    assert_eq!(r["status"], "reading");
+    assert_eq!(r["current_page"], 42);
+}
+
+#[tokio::test]
+async fn archive_without_current_page_restores_reading_with_null() {
+    let s = owner().await;
+    let tok = &s.session.access_token;
+    let data = json!({
+        "books": [{
+            "id": "book-old", "library_id": "whatever", "title": "Vecchio",
+            "authors_json": "[]", "created_at": 1, "updated_at": 1
+        }],
+        "reading": [{
+            "id": "r-old", "library_id": "whatever", "user_id": "ghost",
+            "book_id": "book-old", "status": "read", "started_at": 1,
+            "finished_at": 2, "rating": 4, "note": "bello", "updated_at": 3
+        }],
+        "users": []
+    });
+    let archive = rezip(&[
+        ("manifest.json".to_string(), manifest()),
+        ("data.json".to_string(), data.to_string().into_bytes()),
+    ]);
+    let confirm = confirm_token(&s.state, tok, Some(PW)).await;
+    let (st, body) = do_restore(&s.state, tok, &confirm, archive).await;
+    assert_eq!(st, 200, "{}", String::from_utf8_lossy(&body));
+    let (st, _, list) = call(&s.state, "GET", "/api/v1/reading", Some(tok), None).await;
+    assert_eq!(st, 200, "{list}");
+    assert_eq!(list["total"], 1);
+    let item = &list["items"][0];
+    assert_eq!(item["status"], "read");
+    assert_eq!(item["rating"], 4);
+    assert!(item["current_page"].is_null());
 }

@@ -7,9 +7,12 @@ export type BookList = S['BookList'];
 export type BatchDeleted = S['BatchDeleted'];
 export type NextProgressive = S['NextProgressive'];
 export type Placement = S['Placement'];
+export type BookFacets = S['Facets'];
 export type ListBooksParams = Omit<S['ListBooksQuery'], 'on_loan' | 'unshelved'> & {
   on_loan?: boolean | null;
   unshelved?: boolean | null;
+  /** Repeatable: the book must have all the given tags. */
+  tag_id?: string[] | null;
 };
 
 export function booksApi(t: Transport) {
@@ -34,6 +37,9 @@ export function booksApi(t: Transport) {
     },
     async listBooks(params?: ListBooksParams) {
       return unwrap<BookList>(await t.request('GET', `${P}/books${qs(params)}`));
+    },
+    async getBookFacets() {
+      return unwrap<BookFacets>(await t.request('GET', `${P}/books/facets`));
     },
   };
 }
