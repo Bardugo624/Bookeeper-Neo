@@ -54,5 +54,62 @@
     "es": "Spanish",
     "pt": "Portuguese",
     "la": "Latin"
+  },
+  "tabs": {
+    "label": "Sections",
+    "library": "Library",
+    "reading": "Reading"
+  },
+  "reading": {
+    "year": "Year",
+    "yearLabel": "Reading year",
+    "loading": "Loading reading statistics",
+    "error": {
+      "title": "Could not load reading statistics",
+      "text": "Check your connection and try again."
+    },
+    "empty": {
+      "title": "No reading in {year}",
+      "text": "Mark a book as read to see it here.",
+      "action": "Go to books"
+    },
+    "cards": {
+      "books": "Books read",
+      "pages": "Pages",
+      "rating": "Average rating",
+      "noRating": "—"
+    },
+    "byMonth": {
+      "title": "By month",
+      "chart": "Books read per month in {year}",
+      "month": "Month",
+      "count": "Books"
+    },
+    "calendar": {
+      "title": "Reading calendar",
+      "label": "Reading days of {year}",
+      "cell": {
+        "one": "{count} book on {date}",
+        "other": "{count} books on {date}"
+      }
+    },
+    "genres": "Genres read",
+    "longest": "Longest book",
+    "longestPages": "{count} pages"
+  },
+  "poster": {
+    "open": "Your year in books",
+    "title": "Your year in books",
+    "description": "Preview of the image to share.",
+    "preview": "Preview: your {year} in books",
+    "save": "Save image",
+    "saved": "Image saved",
+    "error": "Could not create the image.",
+    "heading": "Your {year} in books",
+    "books": "books read",
+    "pages": "pages",
+    "busiestMonth": "Busiest month",
+    "topGenre": "Top genre",
+    "covers": "Some of your books"
   }
 }

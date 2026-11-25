@@ -1,0 +1,45 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid var(--bk-border);
+  border-radius: var(--bk-radius);
+  background: var(--bk-surface);
+}
+
+.title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--bk-text);
+}
+
+.chart {
+  width: 100%;
+  height: auto;
+}
+
+.bar {
+  fill: var(--bk-primary-500);
+}
+
+.value {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  fill: var(--bk-text);
+}
+
+.month {
+  font-size: 10px;
+  fill: var(--bk-text-muted);
+}
+
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
