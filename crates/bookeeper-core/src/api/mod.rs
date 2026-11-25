@@ -2,6 +2,7 @@ use axum::{routing::get, Json, Router};
 
 use crate::{error::ApiError, state::AppState};
 
+pub mod audit;
 pub mod auth;
 pub mod backup;
 pub mod books;
@@ -53,6 +54,7 @@ pub fn router(state: AppState) -> Router {
         .merge(tags::routes())
         .merge(rooms::routes())
         .merge(shelves::routes())
+        .merge(audit::routes())
         .merge(loans::routes())
         .merge(wishlist::routes())
         .merge(stats::routes())
