@@ -235,3 +235,6 @@
 2026-11-25T04:01:31Z	bookeeper-fase-2b	loans	qa	opus	PASS	-	-	-	43
 2026-11-25T04:03:11Z	bookeeper-fase-2b	shelves	dwarf	opus	-	-	-	-	94
 2026-11-25T04:04:19Z	bookeeper-fase-2b	shelves	qa	opus	PASS	-	-	-	62
+2026-11-25T04:13:32Z	bookeeper-fase-2b	books-edit	dwarf	sonnet	-	trap	jsdom s file blob has no arraybuffer so read picked files with filereader or an upload test silently sends nothing	jsdom's `File`/`Blob` has no `arrayBuffer()`, so read picked files with `FileReader` or an upload test silently sends nothing [apps/desktop/src/modules/books/coverFile.ts]	490	1
+2026-11-25T04:13:32Z	bookeeper-fase-2b	books-edit	dwarf	sonnet	-	trap	in user event tests a held shift only reaches clicks made through the same userevent setup instance not the bare	in user-event tests a held `{Shift>}` only reaches clicks made through the same `userEvent.setup()` instance, not the bare… [apps/desktop/src/modules/books/BookActions.test.tsx]	490	1
+2026-11-25T04:16:27Z	bookeeper-fase-2b	books-edit	qa	opus	PASS	-	-	-	170
