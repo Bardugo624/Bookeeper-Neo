@@ -1,4 +1,4 @@
-import { beforeEach, expect, it } from 'vitest';
+import { beforeEach, expect, it, vi } from 'vitest';
 import { fakeConnection } from './testing';
 import { browserPlatform } from './browser';
 
@@ -27,4 +27,21 @@ it('discover is empty, there is no window and probe reports a network error offl
   expect(await p.discover()).toEqual([]);
   expect(p.window).toBeNull();
   expect((await p.probe('http://127.0.0.1:1')).error).toBe('network');
+});
+
+it('saveFile downloads through an object URL and revokes it', async () => {
+  const create = vi.fn(() => 'blob:x');
+  const revoke = vi.fn();
+  Object.assign(URL, { createObjectURL: create, revokeObjectURL: revoke });
+  const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+  const out = await browserPlatform('http://x').saveFile({
+    suggestedName: 'a.csv',
+    bytes: new Uint8Array([1]),
+    mime: 'text/csv',
+  });
+  expect(out).toEqual({ saved: true });
+  expect(create).toHaveBeenCalledTimes(1);
+  expect(click).toHaveBeenCalledTimes(1);
+  expect(revoke).toHaveBeenCalledWith('blob:x');
+  click.mockRestore();
 });

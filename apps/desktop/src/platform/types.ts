@@ -49,6 +49,18 @@ export interface WindowControls {
   onResized(cb: () => void): Promise<() => void>;
 }
 
+export interface SaveFileRequest {
+  suggestedName: string;
+  bytes: Uint8Array;
+  mime: string;
+  filters?: { name: string; extensions: string[] }[];
+}
+
+export interface SaveFileResult {
+  saved: boolean;
+  path?: string;
+}
+
 export interface Platform {
   kind: 'tauri' | 'browser';
   transport(connectionId?: string): Transport;
@@ -63,6 +75,8 @@ export interface Platform {
   /** `null` where the platform has no window chrome of its own (browser). */
   window: WindowControls | null;
   deviceName(): Promise<string>;
+  /** Saves a file the app produced; `saved: false` when the user cancels. */
+  saveFile(req: SaveFileRequest): Promise<SaveFileResult>;
 }
 
 export const NETWORK_PROBE: ProbeOut = {

@@ -1,5 +1,5 @@
 import { ApiError, type Transport, type TransportResponse } from '@bookeeper/api';
-import { NETWORK_PROBE, type Connection, type Connections, type Found, type Platform, type ProbeOut, type WindowControls } from './types';
+import { NETWORK_PROBE, type Connection, type Connections, type Found, type Platform, type ProbeOut, type SaveFileRequest, type SaveFileResult, type WindowControls } from './types';
 
 type Handler = (req: {
   method: string;
@@ -18,6 +18,10 @@ export interface FakePlatform extends Platform {
   setProbe(out: ProbeOut): void;
   setFound(found: Found[]): void;
   windowCalls: string[];
+  /** Every `saveFile` request, in order. */
+  saved: SaveFileRequest[];
+  /** Result of the next `saveFile` calls (default `{ saved: true }`). */
+  setSaveResult(r: SaveFileResult): void;
   setMaximized(v: boolean): void;
 }
 
@@ -50,6 +54,8 @@ export function fakePlatform(opts: FakePlatformOptions = {}): FakePlatform {
   let probe: ProbeOut = NETWORK_PROBE;
   let found: Found[] = [];
   let maximized = false;
+  let saveResult: SaveFileResult = { saved: true };
+  const saved: SaveFileRequest[] = [];
   const resizeListeners = new Set<() => void>();
   const windowCalls: string[] = [];
   const calls: FakePlatform['calls'] = [];
@@ -81,6 +87,10 @@ export function fakePlatform(opts: FakePlatformOptions = {}): FakePlatform {
     calls,
     state: opts.connections ?? { active: null, items: [] },
     windowCalls,
+    saved,
+    setSaveResult(r) {
+      saveResult = r;
+    },
     handle(h) {
       handler = h;
     },
@@ -141,6 +151,10 @@ export function fakePlatform(opts: FakePlatformOptions = {}): FakePlatform {
     window: opts.window === false ? null : win,
     async deviceName() {
       return 'Test device';
+    },
+    async saveFile(req) {
+      saved.push(req);
+      return { ...saveResult };
     },
   };
   return platform;
