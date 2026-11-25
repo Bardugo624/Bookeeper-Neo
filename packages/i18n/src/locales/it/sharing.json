@@ -1,0 +1,49 @@
+{
+  "section": "Condivisione",
+  "copy": "Copia",
+  "copied": "Copiato",
+  "devicesLink": "Vai a Dispositivi",
+  "loadFailed": "Non riesco a leggere lo stato della condivisione.",
+  "failed": "Non è stato possibile cambiare la condivisione. Riprova.",
+  "title": "Condivisione in rete",
+  "description": "Gli altri computer di casa con Bookeeper possono collegarsi a questa libreria mentre questo computer è acceso.",
+  "toggle": "Condividi questa libreria in rete",
+  "phones": "I telefoni non si collegano da qui: per loro serve un indirizzo sicuro, vedi Dispositivi.",
+  "password": {
+    "title": "Prima imposta una password",
+    "text": "Per aprire la libreria alla rete il proprietario deve avere una password.",
+    "link": "Vai ad Account"
+  },
+  "errors": {
+    "portInUse": "La porta {port} è già usata da un altro programma. Scegli un'altra porta e riprova.",
+    "tls": "Non sono riuscito a preparare il certificato di sicurezza. La condivisione è spenta.",
+    "mdns": "La condivisione funziona, ma questo computer non è visibile agli altri: sugli altri computer scrivi l'indirizzo a mano."
+  },
+  "port": {
+    "title": "Porta",
+    "description": "La porta si può cambiare solo a condivisione spenta.",
+    "label": "Numero di porta",
+    "hint": "Un numero da {min} a {max}.",
+    "error": "Inserisci un numero intero da {min} a {max}."
+  },
+  "reach": {
+    "title": "Come raggiungere questo computer",
+    "description": "Questi sono gli indirizzi di questa libreria nella rete di casa.",
+    "copyAddress": "Copia l'indirizzo {address}"
+  },
+  "phrase": {
+    "title": "Frase di verifica",
+    "label": "Frase di verifica: {phrase}",
+    "explain": "Chi si collega vedrà le stesse sei parole. Controlla che coincidano: se sono diverse, non continuare."
+  },
+  "fingerprint": {
+    "summary": "Impronta completa del certificato",
+    "copy": "Copia l'impronta"
+  },
+  "how": {
+    "title": "Collegare un altro computer",
+    "step1": "Sull'altro computer apri Bookeeper e scegli di collegarti a una libreria.",
+    "step2": "Su questo computer vai a Dispositivi e premi «{add}» per avere un codice.",
+    "step3": "Sull'altro computer scegli questa libreria, controlla la frase di verifica e inserisci il codice."
+  }
+}

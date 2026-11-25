@@ -1,5 +1,5 @@
 import { ApiError, type Transport, type TransportResponse } from '@bookeeper/api';
-import { NETWORK_PROBE, type Connection, type Connections, type Found, type Platform, type ProbeOut, type SaveFileRequest, type SaveFileResult, type WindowControls } from './types';
+import { NETWORK_PROBE, type Connection, type Connections, type Found, type Platform, type ProbeOut, type SaveFileRequest, type SaveFileResult, type SharingStatus, type WindowControls } from './types';
 
 type Handler = (req: {
   method: string;
@@ -23,6 +23,12 @@ export interface FakePlatform extends Platform {
   /** Result of the next `saveFile` calls (default `{ saved: true }`). */
   setSaveResult(r: SaveFileResult): void;
   setMaximized(v: boolean): void;
+  /** Current state of the fake sharing; tests read it to see what the shell would hold. */
+  sharingState: SharingStatus;
+  /** Every `sharing.set` call, in order. */
+  sharingCalls: Array<{ enabled: boolean; port?: number }>;
+  /** Replaces what the next `sharing.set` returns (receives the request). */
+  setSharingHandler(h: (enabled: boolean, port: number | undefined, current: SharingStatus) => SharingStatus | Promise<SharingStatus>): void;
 }
 
 export interface FakePlatformOptions {
@@ -31,6 +37,9 @@ export interface FakePlatformOptions {
   /** `false` gives a browser-like platform with no window controls. */
   window?: boolean;
   kind?: Platform['kind'];
+  /** `false` leaves `sharing` null, like the browser. */
+  sharing?: boolean;
+  sharingStatus?: Partial<SharingStatus>;
 }
 
 export function fakeConnection(over: Partial<Connection> = {}): Connection {
@@ -56,6 +65,17 @@ export function fakePlatform(opts: FakePlatformOptions = {}): FakePlatform {
   let maximized = false;
   let saveResult: SaveFileResult = { saved: true };
   const saved: SaveFileRequest[] = [];
+  const sharingCalls: FakePlatform['sharingCalls'] = [];
+  let sharingHandler: Parameters<FakePlatform['setSharingHandler']>[0] = (enabled, port, cur) => ({
+    ...cur,
+    enabled,
+    running: enabled,
+    port: port ?? cur.port,
+    addresses: enabled ? [`https://192.168.1.20:${port ?? cur.port}`] : [],
+    fingerprint: enabled ? 'AA:BB:CC:DD' : null,
+    phrase: enabled ? 'uno due tre quattro cinque sei' : null,
+    error: null,
+  });
   const resizeListeners = new Set<() => void>();
   const windowCalls: string[] = [];
   const calls: FakePlatform['calls'] = [];
@@ -88,6 +108,11 @@ export function fakePlatform(opts: FakePlatformOptions = {}): FakePlatform {
     state: opts.connections ?? { active: null, items: [] },
     windowCalls,
     saved,
+    sharingCalls,
+    sharingState: { enabled: false, running: false, port: 7842, addresses: [], fingerprint: null, phrase: null, error: null, ...opts.sharingStatus },
+    setSharingHandler(h) {
+      sharingHandler = h;
+    },
     setSaveResult(r) {
       saveResult = r;
     },
@@ -148,6 +173,19 @@ export function fakePlatform(opts: FakePlatformOptions = {}): FakePlatform {
     async discover() {
       return found;
     },
+    sharing:
+      opts.sharing === false
+        ? null
+        : {
+            async status() {
+              return structuredClone(platform.sharingState);
+            },
+            async set(enabled, port) {
+              sharingCalls.push({ enabled, ...(port === undefined ? {} : { port }) });
+              platform.sharingState = await sharingHandler(enabled, port, platform.sharingState);
+              return structuredClone(platform.sharingState);
+            },
+          },
     window: opts.window === false ? null : win,
     async deviceName() {
       return 'Test device';

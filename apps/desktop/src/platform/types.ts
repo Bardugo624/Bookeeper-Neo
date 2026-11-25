@@ -61,6 +61,22 @@ export interface SaveFileResult {
   path?: string;
 }
 
+/** Mirrors `SharingStatus` in `sharing.rs`. */
+export interface SharingStatus {
+  enabled: boolean;
+  running: boolean;
+  port: number;
+  addresses: string[];
+  fingerprint: string | null;
+  phrase: string | null;
+  error: 'port_in_use' | 'password_required' | 'tls' | 'mdns' | null;
+}
+
+export interface SharingControls {
+  status(): Promise<SharingStatus>;
+  set(enabled: boolean, port?: number): Promise<SharingStatus>;
+}
+
 export interface Platform {
   kind: 'tauri' | 'browser';
   transport(connectionId?: string): Transport;
@@ -77,6 +93,8 @@ export interface Platform {
   deviceName(): Promise<string>;
   /** Saves a file the app produced; `saved: false` when the user cancels. */
   saveFile(req: SaveFileRequest): Promise<SaveFileResult>;
+  /** `null` where the app cannot serve the library on the network (browser). */
+  sharing: SharingControls | null;
 }
 
 export const NETWORK_PROBE: ProbeOut = {
