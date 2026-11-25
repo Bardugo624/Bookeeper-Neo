@@ -304,3 +304,5 @@
 2026-11-25T14:29:25Z	bookeeper-pr-1	case-fix	qa	opus	FAIL	trap	casecollisions test ts scans all of packages and apps so any new file whose name differs from a neighbour only by case e g	caseCollisions.test.ts scans all of packages/ and apps/, so any new file whose name differs from a neighbour only by case (e.g.… [packages/ui/src/caseCollisions.test.ts]	43	1
 2026-11-25T14:33:16Z	bookeeper-pr-1	ci-fix	dwarf	sonnet	-	-	-	-	415
 2026-11-25T14:35:18Z	bookeeper-pr-1	ci-fix	qa	opus	PASS	-	-	-	116
+2026-11-25T14:43:31Z	bookeeper-pr-1	case-fix	dwarf	sonnet	-	-	-	-	39
+2026-11-25T14:44:12Z	bookeeper-pr-1	case-fix	qa	opus	PASS	-	-	-	36
