@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@bookeeper/ui/base';
 import { useT } from '../../app';
 import { formatCountdown, groupCode } from './model';
 import styles from './CodeBlock.module.css';
+
+const COPIED_MS = 2000;
 
 export interface CodeBlockProps {
   code: string;
@@ -17,6 +19,14 @@ export function CodeBlock({ code, remaining, onRegenerate, regenerating }: CodeB
   const t = useT();
   const [copied, setCopied] = useState(false);
   const expired = remaining <= 0;
+
+  // A new code starts un-copied, and the confirmation fades on its own.
+  useEffect(() => setCopied(false), [code]);
+  useEffect(() => {
+    if (!copied) return;
+    const timer = setTimeout(() => setCopied(false), COPIED_MS);
+    return () => clearTimeout(timer);
+  }, [copied]);
 
   const copy = async () => {
     try {

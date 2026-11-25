@@ -145,19 +145,40 @@ describe('delete', () => {
   });
 });
 
+describe('errors', () => {
+  it('clears a failed delete once another action succeeds', async () => {
+    renderWishlist({ items: [wish(1, { title: 'Resta' })], deleteFails: 500 });
+    await userEvent.click(await screen.findByRole('button', { name: 'Elimina Resta' }));
+    await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Elimina' }));
+    await waitFor(() => expect(document.querySelector('p[role="alert"]')).not.toBeNull());
+    await userEvent.click(screen.getByRole('button', { name: 'Aggiungi' }));
+    const dialog = await screen.findByRole('dialog');
+    await userEvent.type(within(dialog).getByLabelText('Titolo'), 'Nuovo');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Salva' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(document.querySelector('p[role="alert"]')).toBeNull();
+  });
+});
+
 describe('convert', () => {
   it('converts, removes the item, offers the book and invalidates books and stats', async () => {
     const { platform, router } = renderWishlist({ items: [wish(1, { title: 'Comprato' }), wish(2, { title: 'Resta' })] });
     await userEvent.click(await screen.findByRole('button', { name: 'Ho comprato Comprato' }));
-    const title = await screen.findByText('Aggiunto ai libri');
-    const notice = title.closest('[role="status"]') as HTMLElement;
+    await screen.findByText('Aggiunto ai libri');
     const calls = platform.calls.filter((c) => c.method === 'POST');
     expect(calls.map((c) => c.path)).toEqual(['/api/v1/wishlist/w1/convert']);
     expect(calls[0]?.body).toBeUndefined();
     await waitFor(() => expect(screen.queryByText('Comprato', { selector: 'h2' })).toBeNull());
     expect(screen.getByText('Resta')).toBeInTheDocument();
-    await userEvent.click(within(notice).getByRole('link', { name: 'Apri' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Apri' }));
     expect(router.state.location.pathname).toBe('/books/b9');
+  });
+
+  it('leaves no notice of its own: the shared toast carries the action', async () => {
+    renderWishlist({ items: [wish(1)] });
+    await userEvent.click(await screen.findByRole('button', { name: 'Ho comprato Desiderio 1' }));
+    await screen.findByText('Aggiunto ai libri');
+    expect(screen.queryByRole('link', { name: 'Apri' })).toBeNull();
   });
 
   it('invalidates the queries of books and stats', async () => {

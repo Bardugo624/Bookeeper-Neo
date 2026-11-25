@@ -85,8 +85,14 @@ export function createClient(t: Transport) {
     async renameDevice(id: string, name: string) {
       return unwrap<DeviceOut>(await t.request('PATCH', `${P}/devices/${encodeURIComponent(id)}`, { name }));
     },
-    async revokeDevice(id: string) {
-      unwrapEmpty(await t.request('POST', `${P}/devices/${encodeURIComponent(id)}/revoke`));
+    /** `confirmToken` (from `/auth/confirm`) goes in the header the core checks for destructive actions. */
+    async revokeDevice(id: string, confirmToken?: string) {
+      const path = `${P}/devices/${encodeURIComponent(id)}/revoke`;
+      unwrapEmpty(
+        confirmToken === undefined
+          ? await t.request('POST', path)
+          : await t.request('POST', path, undefined, { 'X-Confirm-Token': confirmToken }),
+      );
     },
   };
 }

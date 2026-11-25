@@ -67,6 +67,7 @@ export function StatsPage() {
               decade: d.key === 'by_decade',
               missing: t('stats.missing'),
               others: t('stats.others'),
+              normalizeKey: d.key === 'by_format' || d.key === 'by_language',
               decadeLabel: (decade) => t('stats.decade', { decade }),
               keyLabel: (key) => {
                 if (d.key === 'by_format' && FORMAT_CODES.includes(key)) return t(`stats.formatLabel.${key}`);

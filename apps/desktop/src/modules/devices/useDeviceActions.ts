@@ -22,7 +22,7 @@ export function useDeviceActions(rename: ReturnType<typeof useDevices>['rename']
   const confirmRevoke = async (device: DeviceOut) => {
     setError(null);
     try {
-      const outcome = await confirm.run(() => revoke.mutateAsync(device.id));
+      const outcome = await confirm.run((confirmToken) => revoke.mutateAsync({ id: device.id, confirmToken }));
       if (outcome.cancelled) return;
       setDialog(null);
       // Revoking this very device ends the session here.

@@ -114,6 +114,17 @@ describe('card status', () => {
     }
   });
 
+  it('keeps the cover link from styling the placeholder initial', async () => {
+    const css = readFileSync(join(__dirname, 'LoanCard.module.css'), 'utf8');
+    const rule = /\.cover\s*{([^}]*)}/.exec(css)?.[1] ?? '';
+    expect(rule).toMatch(/text-decoration:\s*none/);
+    expect(rule).toMatch(/color:\s*inherit/);
+    expect(css).toMatch(/\.cover:focus-visible\s*{[^}]*outline:/);
+    renderLoans(store());
+    const link = await screen.findByRole('link', { name: 'Apri la scheda di Libro 1' });
+    expect(link.className).toContain('cover');
+  });
+
   it('tints the whole border by status and veils only the overdue background', () => {
     const css = readFileSync(join(__dirname, 'LoanCard.module.css'), 'utf8');
     const rule = (status: string) => new RegExp(`\\[data-status='${status}'\\]\\s*{([^}]*)}`).exec(css)?.[1] ?? '';
