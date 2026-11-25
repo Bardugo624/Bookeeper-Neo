@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { BookOut } from '@bookeeper/api';
 import { Button, EmptyState } from '@bookeeper/ui/base';
-import { PillTabs, type PillTabItem } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
 import { usePermission } from '../../kit';
 import { ManageTagsDialog } from '../tags';
@@ -10,11 +9,14 @@ import { BookDrawer } from './BookDrawer';
 import { BookGrid, GridSkeleton } from './BookGrid';
 import { BookTable, TableSkeleton } from './BookTable';
 import { BooksHeader } from './BooksHeader';
+import { FilterBar } from './FilterBar';
+import { NoResults } from './NoResults';
 import { SelectionBar } from './SelectionBar';
 import { useSelection } from './useSelection';
-import type { Filter } from './listParams';
 import { useListParams } from './listParams';
+import { useActiveFilters } from './useActiveFilters';
 import { useBookList, useEndReached, useOnLoanCount } from './useBookList';
+import { useNewBookParam } from './useNewBookParam';
 import styles from './BooksPage.module.css';
 
 export function BooksPage() {
@@ -24,7 +26,9 @@ export function BooksPage() {
   const onLoan = useOnLoanCount();
   const more = query.hasNextPage && !query.isFetchingNextPage && !query.isFetchNextPageError;
   const sentinel = useEndReached(() => void query.fetchNextPage(), more, items.length);
-  const canWrite = usePermission().can('write');
+  const permission = usePermission();
+  const canWrite = permission.can('write');
+  const active = useActiveFilters(params.filters);
   const [adding, setAdding] = useState(false);
   const [managingTags, setManagingTags] = useState(false);
   const firstBook = useFirstBook(() => setAdding(true));
@@ -47,21 +51,15 @@ export function BooksPage() {
     return () => document.removeEventListener('keydown', onKey);
   }, [selecting, selectAll]);
   const picking = selecting ? selection : undefined;
-  const filtered = params.q.trim() !== '' || params.filter !== 'all' || params.tag !== null;
-
-  const filters: PillTabItem[] = [
-    { id: 'all', label: t('books.filters.all') },
-    { id: 'to_read', label: t('books.filters.to_read') },
-    { id: 'reading', label: t('books.filters.reading') },
-    { id: 'read', label: t('books.filters.read') },
-    { id: 'loan', label: t('books.filters.loan') },
-    { id: 'unshelved', label: t('books.filters.unshelved') },
-  ];
+  const filtered = params.q.trim() !== '' || active.length > 0;
+  const noResults = filtered && !query.isPending && !query.isError && items.length === 0;
 
   const openAdd = () => {
     session.current = { empty: !query.isPending && !query.isError && items.length === 0 && !filtered, first: null };
     setAdding(true);
   };
+
+  useNewBookParam(openAdd, canWrite, permission.role !== null);
 
   // The celebration comes when the panel closes, if the library went from 0 to 1 or more during its session.
   const closeAdd = () => {
@@ -89,11 +87,12 @@ export function BooksPage() {
     );
   } else if (items.length === 0) {
     body = filtered ? (
-      <EmptyState
-        icon="search"
-        title={t('books.noResults.title')}
-        text={t('books.noResults.text')}
-        action={<Button onClick={params.reset}>{t('books.noResults.reset')}</Button>}
+      <NoResults
+        items={[
+          ...(params.q.trim() ? [{ id: 'q', label: t('books.active.q', { q: params.q.trim() }), remove: () => params.setQuery('') }] : []),
+          ...active.map((a) => ({ id: a.id, label: a.label, remove: () => params.setFilters(a.without) })),
+        ]}
+        onReset={params.reset}
       />
     ) : canWrite ? (
       <FirstBookHint onAdd={openAdd} />
@@ -137,12 +136,7 @@ export function BooksPage() {
             : undefined
         }
       />
-      <PillTabs
-        items={filters}
-        value={params.filter}
-        onChange={(id) => params.setFilter(id as Filter)}
-        label={t('books.filters.label')}
-      />
+      <FilterBar params={params} active={active} hideActive={noResults} />
       {body}
       {selecting ? (
         <SelectionBar

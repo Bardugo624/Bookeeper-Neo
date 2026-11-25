@@ -1,6 +1,6 @@
 import { act } from '@testing-library/react';
 import { vi } from 'vitest';
-import type { BookOut, RawResponse } from '@bookeeper/api';
+import type { BookFacets, BookOut, RawResponse } from '@bookeeper/api';
 import { renderApp } from '../../app/testing';
 import { fakeConnection, fakePlatform, type FakePlatform } from '../../platform/testing';
 import { ME, ok } from '../../session/fixtures';
@@ -23,6 +23,39 @@ export function book(i: number, over: Partial<BookOut> = {}): BookOut {
 
 export const makeDb = (n: number): BookOut[] => Array.from({ length: n }, (_, i) => book(i + 1));
 
+/** Facets of a small library: two rooms, two shelves, two tags. */
+export const FACETS: BookFacets = {
+  genres: [
+    { value: 'Giallo', count: 4 },
+    { value: 'Fantasy', count: 2 },
+  ],
+  languages: [
+    { value: 'it', count: 5 },
+    { value: 'en', count: 1 },
+  ],
+  formats: [{ value: 'paperback', count: 5 }],
+  years: { min: 1950, max: 2020 },
+  tags: [
+    { id: 't1', name: 'Preferiti', color: '#888888', count: 3 },
+    { id: 't2', name: 'Regalo', color: '#777777', count: 1 },
+  ],
+  rooms: [
+    { id: 'r1', name: 'Studio', count: 3 },
+    { id: 'r2', name: 'Camera', count: 2 },
+  ],
+  shelves: [
+    { id: 's1', name: 'Salotto', count: 2 },
+    { id: 's2', name: 'Libreria', count: 3 },
+  ],
+  reading: { to_read: 1, reading: 2, read: 3, abandoned: 0, none: 4 },
+};
+
+/** Shelves of `FACETS`: Salotto is in Camera, Libreria in Studio. */
+export const FACET_SHELVES = [
+  { id: 's1', name: 'Salotto', color: '#888', room_id: 'r2', room: { id: 'r2', name: 'Camera' } },
+  { id: 's2', name: 'Libreria', color: '#888', room_id: 'r1', room: { id: 'r1', name: 'Studio' } },
+];
+
 const notFound = { status: 404, body: { error_code: 'not_found', message: 'x' } };
 
 export interface Library {
@@ -30,6 +63,10 @@ export interface Library {
   cover?: { bytes: Uint8Array; etag: string };
   fail?: { on: boolean };
   role?: 'owner' | 'member' | 'guest';
+  /** Answer of `GET /books/facets`. */
+  facets?: BookFacets;
+  /** Answer of `GET /shelves`; one shelf by default. */
+  shelves?: unknown[];
   /** Answers first; return undefined to fall through to the in-memory library. */
   extra?: (r: { method: string; path: string; body?: unknown }) => { status: number; body: unknown } | undefined;
   /** Raw (binary) requests that reached the transport, e.g. cover uploads. */
@@ -45,7 +82,8 @@ export function libraryHandler(lib: Library) {
     const p = url.pathname;
     const q = url.searchParams;
     if (p === '/api/v1/me') return ok({ ...ME, user: { ...ME.user, role: lib.role ?? 'owner' } });
-    if (p === '/api/v1/shelves') return ok({ items: [{ id: 's1', name: 'Salotto', color: '#888' }] });
+    if (p === '/api/v1/shelves') return ok({ items: lib.shelves ?? [{ id: 's1', name: 'Salotto', color: '#888' }] });
+    if (p === '/api/v1/books/facets') return ok(lib.facets ?? FACETS);
     if (p === '/api/v1/books') {
       if (lib.fail?.on) return { status: 500, body: { error_code: 'internal', message: 'x' } };
       let rows = lib.books;

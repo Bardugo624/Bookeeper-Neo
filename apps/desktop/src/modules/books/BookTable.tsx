@@ -14,7 +14,7 @@ import styles from './BookTable.module.css';
 const SORTABLE: Array<{ key: SortKey | null; id: 'title' | 'author' | 'year' | 'placement' | 'reading' | 'tags' | 'status' }> = [
   { key: 'title', id: 'title' },
   { key: 'author', id: 'author' },
-  { key: 'year', id: 'year' },
+  { key: 'published_year', id: 'year' },
   { key: null, id: 'placement' },
   { key: null, id: 'reading' },
   { key: null, id: 'tags' },
