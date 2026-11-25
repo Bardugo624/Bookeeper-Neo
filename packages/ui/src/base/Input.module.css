@@ -1,0 +1,31 @@
+.control {
+    width: 100%;
+    height: 38px;
+    padding: 0 12px;
+    border: 1px solid var(--bk-border-strong);
+    border-radius: 8px;
+    background: var(--bk-surface);
+    color: var(--bk-text-strong);
+    font-size: 14px;
+}
+
+.control::placeholder {
+    color: var(--bk-text-faint);
+}
+
+.control:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.control[aria-invalid='true'] {
+    border-color: var(--bk-danger);
+}
+
+.multiline {
+    height: auto;
+    min-height: 88px;
+    padding: 10px 12px;
+    line-height: 1.45;
+    resize: vertical;
+}

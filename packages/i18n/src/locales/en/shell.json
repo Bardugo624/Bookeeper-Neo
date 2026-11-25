@@ -1,0 +1,47 @@
+{
+  "sidebar": { "label": "Main navigation" },
+  "window": {
+    "minimize": "Minimize",
+    "maximize": "Maximize",
+    "restore": "Restore",
+    "close": "Close"
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light theme",
+    "dark": "Dark theme",
+    "system": "System theme"
+  },
+  "library": {
+    "unknown": "Library"
+  },
+  "signOut": "Sign out",
+  "role": {
+    "owner": "Owner",
+    "admin": "Administrator",
+    "member": "Member",
+    "guest": "Guest"
+  },
+  "loading": "Loading",
+  "empty": {
+    "title": "Nothing here yet",
+    "text": "This version has no sections to show."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "text": "The requested address does not exist."
+  },
+  "error": {
+    "title": "Something went wrong",
+    "text": "Try again. If the problem continues, restart Bookeeper.",
+    "retry": "Try again"
+  },
+  "errors": {
+    "generic": "Something went wrong. Try again.",
+    "network": "The library cannot be reached.",
+    "unauthorized": "Your session has expired. Sign in again."
+  },
+  "welcome": {
+    "text": "Getting ready for first launch."
+  }
+}

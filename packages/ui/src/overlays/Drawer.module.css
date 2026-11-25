@@ -1,0 +1,20 @@
+.drawer {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(420px, 100vw);
+    border-radius: var(--bk-radius-lg) 0 0 var(--bk-radius-lg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .drawer[data-state='open'] {
+        animation: drawer-in var(--bk-dur-slow) var(--bk-ease);
+    }
+
+    @keyframes drawer-in {
+        from {
+            opacity: 0;
+            transform: translateX(24px);
+        }
+    }
+}

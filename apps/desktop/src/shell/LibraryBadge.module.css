@@ -1,0 +1,53 @@
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--bk-radius-sm);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.badge:hover {
+  background: var(--bk-inset);
+}
+
+.avatar {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--bk-primary-100);
+  color: var(--bk-primary-700);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bk-text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sub {
+  font-size: 11px;
+  color: var(--bk-text-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

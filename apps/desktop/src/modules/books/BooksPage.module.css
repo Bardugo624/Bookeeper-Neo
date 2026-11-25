@@ -1,0 +1,23 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 20px;
+  padding-top: 16px;
+}
+
+.page > :nth-child(2) {
+  align-self: flex-start;
+}
+
+.sentinel {
+  height: 1px;
+}
+
+.moreError {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px 0;
+}

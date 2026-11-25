@@ -1,0 +1,25 @@
+.skeleton {
+    background: var(--bk-inset);
+    border-radius: 8px;
+}
+
+.line {
+    height: 12px;
+    border-radius: 6px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .skeleton {
+        animation: pulse 1400ms var(--bk-ease) infinite alternate;
+    }
+
+    @keyframes pulse {
+        from {
+            opacity: 1;
+        }
+
+        to {
+            opacity: 0.55;
+        }
+    }
+}

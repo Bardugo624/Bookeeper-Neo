@@ -1,0 +1,22 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+  background: var(--bk-bg);
+}
+
+.brand {
+  margin: 0;
+  font-family: var(--bk-font-serif);
+  font-weight: 600;
+  font-size: 38px;
+  color: var(--bk-text-strong);
+}
+
+.text {
+  margin: 0;
+  font-size: 14px;
+  color: var(--bk-text-muted);
+}
