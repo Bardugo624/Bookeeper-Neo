@@ -1,0 +1,85 @@
+/* The status tints the whole border (never one side) and, when overdue, the background. */
+.card {
+  --loan-tone: var(--bk-primary-500);
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 14px 16px;
+  list-style: none;
+  border: 1px solid var(--bk-border);
+  border-radius: 12px;
+  background: var(--bk-surface);
+}
+
+.card[data-status='active'] {
+  border-color: color-mix(in srgb, var(--bk-primary-500) 45%, var(--bk-border));
+}
+
+.card[data-status='overdue'] {
+  border-color: color-mix(in srgb, var(--bk-danger) 60%, var(--bk-border));
+  background: linear-gradient(var(--bk-danger-bg), var(--bk-danger-bg)), var(--bk-surface);
+}
+
+.card[data-status='returned'] {
+  border-color: var(--bk-border);
+}
+
+.cover {
+  flex: none;
+  border-radius: 4px;
+}
+
+.cover:focus-visible {
+  outline: 2px solid var(--bk-primary-400);
+  outline-offset: 2px;
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bk-text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.authors,
+.dates,
+.notes {
+  margin: 0;
+  font-size: 12px;
+  color: var(--bk-text-faint);
+}
+
+.borrower {
+  margin: 4px 0 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--bk-text-strong);
+}
+
+.notes {
+  font-style: italic;
+}
+
+.actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
