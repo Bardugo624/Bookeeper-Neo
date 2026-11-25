@@ -5,6 +5,10 @@
   "delete": "Delete",
   "edit": "Edit",
   "close": "Close",
+  "file": {
+    "choose": "Choose a file",
+    "none": "No file chosen"
+  },
   "retry": "Try again",
   "confirm": "Confirm",
   "required": "Required field",

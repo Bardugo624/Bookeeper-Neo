@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { Button, Skeleton } from '@bookeeper/ui/base';
 import { BookCover, CLOTH_TONES } from '@bookeeper/ui/book';
 import { useT } from '../../app';
+import { FilePicker } from '../../kit';
 import { COVER_MAX_BYTES, COVER_TYPES, coverFileProblem, type CoverFileProblem } from './coverFile';
 import type { CoverPlan } from './useBookWrites';
 import type { CoverStatus } from './useCover';
@@ -78,7 +79,6 @@ function ColorSwatches({ value, onChange }: { value: string | null; onChange(col
 /** Preview and choice of the cover: the lookup's, a file, none. */
 export function CoverPicker({ title, author, storedSrc, storedStatus = 'none', candidates, plan, onPlan, color, onColor }: CoverPickerProps) {
   const t = useT();
-  const input = useRef<HTMLInputElement>(null);
   const [problem, setProblem] = useState<CoverFileProblem | null>(null);
   const filePreview = useFilePreview(plan.kind === 'file' ? plan.file : undefined);
   const offered = candidates[0];
@@ -92,7 +92,7 @@ export function CoverPicker({ title, author, storedSrc, storedStatus = 'none', c
   const storedFailed = plan.kind === 'keep' && !storedSrc && storedStatus === 'failed';
   const canUseOffered = offered !== undefined && plan.kind !== 'lookup';
 
-  const choose = (file: File | undefined) => {
+  const choose = (file: File | null) => {
     if (!file) return;
     const found = coverFileProblem(file);
     setProblem(found);
@@ -113,9 +113,14 @@ export function CoverPicker({ title, author, storedSrc, storedStatus = 'none', c
               </Button>
             </div>
           ) : null}
-          <Button variant="secondary" size="sm" onClick={() => input.current?.click()}>
-            {t('books.cover.upload')}
-          </Button>
+          <FilePicker
+            size="sm"
+            label={t('books.cover.upload')}
+            inputLabel={t('books.cover.file')}
+            accept={COVER_TYPES.join(',')}
+            fileName={plan.kind === 'file' ? plan.file.name : undefined}
+            onPick={choose}
+          />
           {shown || storedFailed ? (
             <Button variant="ghost" size="sm" onClick={() => onPlan({ kind: 'remove' })}>
               {t('books.cover.remove')}
@@ -131,18 +136,6 @@ export function CoverPicker({ title, author, storedSrc, storedStatus = 'none', c
           ) : (
             <ColorSwatches value={color} onChange={onColor} />
           )}
-          <input
-            ref={input}
-            type="file"
-            accept={COVER_TYPES.join(',')}
-            aria-label={t('books.cover.file')}
-            className={styles.hidden}
-            tabIndex={-1}
-            onChange={(e) => {
-              choose(e.target.files?.[0]);
-              e.target.value = '';
-            }}
-          />
           {problem ? (
             <p role="alert" className={styles.error}>
               {problem === 'type'

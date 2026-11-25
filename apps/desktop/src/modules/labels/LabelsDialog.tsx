@@ -14,7 +14,7 @@ export interface LabelsDialogProps {
 /** "Labels": the sheet the core prints, a preview of the boxes in use, and "Create the PDF". */
 export function LabelsDialog({ bookIds, open, onClose }: LabelsDialogProps) {
   const t = useT();
-  const pdf = useLabelsPdf(bookIds, onClose);
+  const pdf = useLabelsPdf(bookIds, onClose, open);
   const count = bookIds.length;
   return (
     <Dialog

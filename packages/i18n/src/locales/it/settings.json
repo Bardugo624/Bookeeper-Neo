@@ -88,7 +88,7 @@
     },
     "phone": {
       "title": "Il telefono ha bisogno di un indirizzo sicuro",
-      "text": "Per collegare un telefono la libreria deve essere raggiungibile con un indirizzo sicuro. Quando lo avrai impostato sul server, qui comparirà il bottone per aggiungere un telefono.",
+      "text": "Per collegare un telefono la libreria deve essere raggiungibile con un indirizzo sicuro. Imposta l'indirizzo sul server, poi aggiungi il telefono dalla pagina Dispositivi.",
       "readyTitle": "Il telefono può collegarsi",
       "readyText": "La libreria ha un indirizzo sicuro: puoi aggiungere un telefono dalla pagina Dispositivi."
     }

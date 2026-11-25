@@ -88,7 +88,7 @@
     },
     "phone": {
       "title": "The phone needs a secure address",
-      "text": "To connect a phone the library must be reachable at a secure address. Once you have set one on the server, the button to add a phone will appear here.",
+      "text": "To connect a phone the library must be reachable at a secure address. Set the address on the server, then add the phone from the Devices page.",
       "readyTitle": "A phone can connect",
       "readyText": "The library has a secure address: you can add a phone from the Devices page."
     }

@@ -40,6 +40,11 @@ export function errorsToCsv(errors: readonly ImportRowError[]): string {
   return `${lines.join('\r\n')}\r\n`;
 }
 
+/** Bytes of the JSON body `POST /import` receives for this text: what the server's limit applies to. */
+export function importBodyBytes(format: ImportFormat, content: string): number {
+  return new TextEncoder().encode(JSON.stringify({ format, content, dry_run: false })).length;
+}
+
 /** jsdom's `File` has no `text()`/`arrayBuffer()`, so read through `FileReader`. */
 export function readFileText(file: File): Promise<string> {
   return new Promise((resolve, reject) => {

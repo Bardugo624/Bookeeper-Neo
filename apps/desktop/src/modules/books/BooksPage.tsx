@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import type { BookOut } from '@bookeeper/api';
 import { Button, EmptyState } from '@bookeeper/ui/base';
 import { PillTabs, type PillTabItem } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
@@ -26,7 +27,7 @@ export function BooksPage() {
   const [adding, setAdding] = useState(false);
   const firstBook = useFirstBook(() => setAdding(true));
   // Whether the panel was opened on an empty library: the list is already refreshed when a save ends.
-  const openedEmpty = useRef(false);
+  const session = useRef<{ empty: boolean; first: BookOut | null }>({ empty: false, first: null });
   const selection = useSelection(items.map((b) => b.id));
   const selecting = canWrite && selection.active;
   const { selectAll } = selection;
@@ -53,8 +54,16 @@ export function BooksPage() {
   ];
 
   const openAdd = () => {
-    openedEmpty.current = !query.isPending && !query.isError && items.length === 0 && !filtered;
+    session.current = { empty: !query.isPending && !query.isError && items.length === 0 && !filtered, first: null };
     setAdding(true);
+  };
+
+  // The celebration comes when the panel closes, if the library went from 0 to 1 or more during its session.
+  const closeAdd = () => {
+    const { empty, first } = session.current;
+    session.current = { empty: false, first: null };
+    setAdding(false);
+    if (empty && first) firstBook.celebrate(first);
   };
 
   let body;
@@ -132,11 +141,10 @@ export function BooksPage() {
       {selecting ? <SelectionBar selected={selection.selected} onDone={selection.stop} /> : null}
       <BookDrawer
         open={adding}
-        onClose={() => setAdding(false)}
-        onCreated={(created, another) => {
-          const first = openedEmpty.current;
-          openedEmpty.current = false;
-          if (first && !another) firstBook.celebrate(created);
+        onClose={closeAdd}
+        onCreated={(created) => {
+          // The first book saved in this session of the panel, even when "Save and add another" kept it open.
+          if (session.current.empty && !session.current.first) session.current.first = created;
         }}
       />
       {firstBook.element}
