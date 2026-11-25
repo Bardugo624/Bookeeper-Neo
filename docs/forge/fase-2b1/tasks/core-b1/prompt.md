@@ -10,7 +10,7 @@ Oggi `cover_color` è solo in lettura (lo imposta il caricamento della copertina
 
 - `CreateBook` e `PatchBook` accettano `cover_color`: stringa `#rrggbb` (sei cifre esadecimali, salvata in minuscolo) oppure `null` per toglierlo. Altro formato: 422 `validation`.
 - In `PatchBook` il campo assente non cambia nulla; `null` lo azzera (stessa convenzione degli altri campi annullabili del file).
-- Caricare o recuperare una copertina continua a sovrascrivere `cover_color` come oggi. Rimuovere la copertina non lo tocca.
+- Caricare o recuperare una copertina continua a sovrascrivere `cover_color` come oggi. Rimuovere la copertina lo azzera, come oggi: `covers.rs` e i suoi test NON si modificano.
 
 ## 2. Spostamento atomico
 

@@ -238,3 +238,12 @@
 2026-11-25T04:13:32Z	bookeeper-fase-2b	books-edit	dwarf	sonnet	-	trap	jsdom s file blob has no arraybuffer so read picked files with filereader or an upload test silently sends nothing	jsdom's `File`/`Blob` has no `arrayBuffer()`, so read picked files with `FileReader` or an upload test silently sends nothing [apps/desktop/src/modules/books/coverFile.ts]	490	1
 2026-11-25T04:13:32Z	bookeeper-fase-2b	books-edit	dwarf	sonnet	-	trap	in user event tests a held shift only reaches clicks made through the same userevent setup instance not the bare	in user-event tests a held `{Shift>}` only reaches clicks made through the same `userEvent.setup()` instance, not the bare… [apps/desktop/src/modules/books/BookActions.test.tsx]	490	1
 2026-11-25T04:16:27Z	bookeeper-fase-2b	books-edit	qa	opus	PASS	-	-	-	170
+2026-11-25T04:34:44Z	bookeeper-fase-2b1	ui-b1	dwarf	sonnet	-	-	-	-	37
+2026-11-25T04:35:21Z	bookeeper-fase-2b1	ui-b1	qa	opus	PASS	-	-	-	32
+2026-11-25T04:39:13Z	bookeeper-fase-2b1	core-b1	dwarf	sonnet	-	-	-	-	306
+2026-11-25T04:40:02Z	bookeeper-fase-2b1	session-b1	dwarf	sonnet	-	trap	cargo test clippy on bookeeper desktop takes over 2 minutes cold so run it in the background and wait for the exit	`cargo test`/`clippy` on bookeeper-desktop takes over 2 minutes cold, so run it in the background and wait for the exit [apps/desktop/src-tauri/Cargo.toml]	276	1
+2026-11-25T04:42:57Z	bookeeper-fase-2b1	core-b1	qa	opus	FAIL	-	-	-	217
+2026-11-25T04:43:55Z	bookeeper-fase-2b1	session-b1	qa	opus	PASS	-	-	-	226
+2026-11-25T04:45:37Z	bookeeper-fase-2b1	modules-b1a	dwarf	sonnet	-	trap	fake timers that include settimeout break testing library findby waitfor in desktop tests so fake only	fake timers that include `setTimeout` break testing-library `findBy*`/`waitFor` in desktop tests, so fake only… [apps/desktop/src/modules/devices/devices.test.tsx]	144	1
+2026-11-25T04:45:37Z	bookeeper-fase-2b1	modules-b1a	dwarf	sonnet	-	trap	the toast provider renders empty role alert live regions so findbyrole alert matches even with no error shown	the toast provider renders empty `role="alert"` live regions, so `findByRole('alert')` matches even with no error shown [packages/ui/src/overlays/Toast.tsx]	144	1
+2026-11-25T04:46:35Z	bookeeper-fase-2b1	modules-b1a	qa	opus	PASS	-	-	-	53
