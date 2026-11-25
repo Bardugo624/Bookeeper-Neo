@@ -110,12 +110,22 @@ async fn save_file(
     filters: Option<Vec<files::FileFilter>>,
 ) -> Result<files::SaveOutcome, String> {
     use tauri_plugin_dialog::DialogExt;
+    static SAVE_LOCK: files::SaveLock = files::SaveLock::new();
+    let Some(_permit) = SAVE_LOCK.try_acquire() else {
+        return Ok(files::SaveOutcome {
+            saved: false,
+            path: None,
+        });
+    };
     // Reject bad data before bothering the user with a window.
     let bytes = files::decode_base64(&bytes_base64)?;
     let mut dialog = app
         .dialog()
         .file()
         .set_file_name(files::sanitize_name(&suggested_name));
+    if let Some(main) = app.get_webview_window("main") {
+        dialog = dialog.set_parent(&main);
+    }
     for f in filters.unwrap_or_default() {
         let (name, exts) = files::filter_parts(&f);
         let refs: Vec<&str> = exts.iter().map(String::as_str).collect();
