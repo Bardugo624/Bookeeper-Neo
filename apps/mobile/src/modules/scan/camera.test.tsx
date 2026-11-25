@@ -75,6 +75,14 @@ describe('camera lifecycle', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(platform.fake.calls.some((c) => c.path.includes(ISBN13))).toBe(false);
   });
+
+  it('gives the same notice for a QR code', async () => {
+    const { platform } = scanPlatform();
+    renderScan(platform);
+    await screen.findByText('Inquadra il codice a barre sul retro del libro');
+    act(() => platform.scanner.emit({ text: 'https://example.com', format: 'qr_code' }));
+    expect(await screen.findByText('Questo codice non è un ISBN')).toBeInTheDocument();
+  });
 });
 
 describe('no camera', () => {
@@ -98,6 +106,22 @@ describe('no camera', () => {
     await user.type(field, '978-0-306-40615-7{Enter}');
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
     expect(platform.fake.calls.some((c) => c.path.includes(`q=${ISBN13}`))).toBe(true);
+  });
+
+  it('asks for the camera again on retry, once the permission is back', async () => {
+    const user = userEvent.setup();
+    const { platform } = scanPlatform();
+    const ok = platform.camera.open;
+    platform.camera.open = vi.fn(async () => {
+      throw denied;
+    });
+    renderScan(platform);
+    await screen.findByText('Fotocamera non consentita');
+    platform.camera.open = ok;
+    await user.click(screen.getByRole('button', { name: 'Riprova' }));
+    expect(await screen.findByText('Inquadra il codice a barre sul retro del libro')).toBeInTheDocument();
+    expect(ok).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('Fotocamera non consentita')).toBeNull();
   });
 
   it('tells a missing camera from a denied one', async () => {

@@ -20,11 +20,11 @@ export function ScanPage() {
 
   return (
     <Screen title={t('mscan.title')}>
+      {/* The video stays mounted while blocked, so a retry still has an element to attach to. */}
+      <CameraView camera={camera} notice={flow.notice} setVideo={setVideo} hidden={blocked} />
       {blocked ? (
         <BlockedState reason={camera.status as 'denied' | 'unavailable'} onRetry={camera.retry} onManual={flow.submitManual} />
-      ) : (
-        <CameraView camera={camera} notice={flow.notice} setVideo={setVideo} />
-      )}
+      ) : null}
       {added > 0 ? (
         <p className={styles.counter} role="status">
           {t('mscan.added', { count: added })}

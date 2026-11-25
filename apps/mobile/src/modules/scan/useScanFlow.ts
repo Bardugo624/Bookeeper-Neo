@@ -36,7 +36,7 @@ export function useScanFlow() {
       if (code.kind === 'isbn') {
         vibrate();
         take(code.isbn);
-      } else if (code.kind === 'other') {
+      } else {
         setNotice(true);
         clearTimeout(timer.current);
         timer.current = setTimeout(() => setNotice(false), NOTICE_MS);

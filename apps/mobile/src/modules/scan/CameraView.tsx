@@ -9,13 +9,14 @@ export interface CameraViewProps {
   camera: Camera;
   notice: boolean;
   setVideo: (el: HTMLVideoElement | null) => void;
+  hidden?: boolean;
 }
 
 /** Full-bleed preview with an aiming frame, the torch and camera switch, and the discreet notice. */
-export function CameraView({ camera, notice, setVideo }: CameraViewProps) {
+export function CameraView({ camera, notice, setVideo, hidden }: CameraViewProps) {
   const t = useT();
   return (
-    <div className={styles.stage}>
+    <div className={styles.stage} hidden={hidden}>
       <video ref={setVideo} className={styles.video} playsInline muted autoPlay aria-label={t('mscan.camera.label')} />
       <div className={styles.frame} aria-hidden="true" />
       {camera.status === 'starting' ? (
