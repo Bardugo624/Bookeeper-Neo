@@ -4,6 +4,7 @@
      overwritten. Facts only, one per line. -->
 
 ## Verify
+- cargo test --offline -p bookeeper-desktop && cargo clippy --offline -p bookeeper-desktop --all-targets -- -D warnings [apps/desktop/src-tauri/Cargo.toml]
 - cargo zigbuild --release --locked -p bookeeper-server --target x86_64-unknown-linux-musl (needs `pip install ziglang`, `cargo install --locked… [.github/workflows/release.yml]
 - npm ci --offline && npm run gen -w @bookeeper/api && npm test -w @bookeeper/api [packages/api/package.json]
 - zip 2 `ZipWriter::raw_copy_file_rename` lets a test build a >1 GB-decompressed hostile archive cheaply by copying one compressed entry [crates/bookeeper-core/tests/backup_api.rs]
@@ -11,6 +12,10 @@
 - UPDATE_OPENAPI=1 cargo test -p bookeeper-core --test openapi -- --include-ignored && npm run gen -w @bookeeper/api && npm test -w @bookeeper/api [packages/api/openapi.json]
 
 ## Known traps
+- `GET /api/v1/health` includes a `time` field rounded to the second, so comparing two health bodies byte for byte gives a flaky test [crates/bookeeper-core/src/api/health.rs]
+- bookeeper-desktop has no `tests/dispatch.rs`; its dispatch tests are unit tests in src/dispatch.rs, run with `cargo test -p… [apps/desktop/src-tauri/src/dispatch.rs]
+- `npm ci --offline` is needed in a fresh worktree before any `npm test`/`tsc`, or vitest is "not found" [package.json]
+- apps/mobile typechecks `packages/i18n/src` sources directly, so ambient `.d.ts` files there must be pulled in with `/// <reference path>` [packages/i18n/src/index.ts]
 - bookeeper-server writes its tracing logs to stdout, so a test that waits for a fixed number of stdout lines depends on RUST_LOG and can hang [crates/bookeeper-server/src/main.rs]
 - utoipa 5 leaves `Option<T>` fields out of `required`; use `#[schema(required = true)]` to list a nullable field as required [crates/bookeeper-core/src/api/server.rs]
 - clap `global = true` on flattened Config args lets server flags work before or after a subcommand; setup-code/fingerprint keep their own… [crates/bookeeper-server/src/config.rs]
@@ -24,9 +29,4 @@
 - `cargo fmt -p <crate>` reformats files owned by other tasks; restore them with `git show HEAD:<path> > <path>` or run `rustfmt` only on… [crates/bookeeper-core/src/lookup/mod.rs]
 - running `cargo fmt -p bookeeper-core` reformats other tasks' files (lookup/*, tests/lookup_*), so format only your own files with… [crates/bookeeper-core/src/lookup/mod.rs]
 - The books list/search route is `GET /api/v1/books?q=`; there is no `/books/search` route and it returns 404 [crates/bookeeper-core/src/api/books_search.rs]
-- printpdf 0.7 stamps creation date and a document id, so PDFs built with it are not byte-deterministic; labels.rs writes raw PDF instead [crates/bookeeper-core/src/labels.rs]
-- tests/plumbing_c.rs `stub_lookup_returns_none` calls real provider endpoints (google 429 offline) and fails without network [crates/bookeeper-core/tests/plumbing_c.rs]
-- the bookeeper-server binary builds its router through `build_with_db` in main.rs, not lib.rs `build()`; changing only `build()` does not… [crates/bookeeper-server/src/main.rs]
-- the `uuid` dependency only enables the `v7` feature, so use `Uuid::now_v7()`, not `new_v4()` [crates/bookeeper-core/Cargo.toml]
-- tests/skeleton_b.rs asserted 404 on routes that later tasks implement; it breaks whenever one of them lands [crates/bookeeper-core/tests/skeleton_b.rs]
 

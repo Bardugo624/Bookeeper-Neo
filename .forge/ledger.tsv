@@ -161,3 +161,26 @@
 2026-11-25T00:06:08Z	bookeeper-fase-1e	server-e	qa	opus	PASS	-	-	-	152
 2026-11-25T00:23:12Z	bookeeper-fase-1f	config-f	dwarf	sonnet	-	-	-	-	132
 2026-11-25T00:25:28Z	bookeeper-fase-1f	config-f	qa	opus	PASS	-	-	-	132
+2026-11-25T01:09:03Z	bookeeper-fase-2a	i18n-ns	dwarf	sonnet	-	trap	npm ci offline is needed in a fresh worktree before any npm test tsc or vitest is not found	`npm ci --offline` is needed in a fresh worktree before any `npm test`/`tsc`, or vitest is "not found" [package.json]	79	1
+2026-11-25T01:09:03Z	bookeeper-fase-2a	i18n-ns	dwarf	sonnet	-	trap	apps mobile typechecks packages i18n src sources directly so ambient d ts files there must be pulled in with reference path	apps/mobile typechecks `packages/i18n/src` sources directly, so ambient `.d.ts` files there must be pulled in with `/// <reference path>` [packages/i18n/src/index.ts]	79	1
+2026-11-25T01:10:12Z	bookeeper-fase-2a	i18n-ns	qa	opus	PASS	trap	a hand written interface importmeta glob clashes with vite client s readonly glob ts2300 only skiplibcheck true hides it	a hand-written `interface ImportMeta { glob(...) }` clashes with vite/client's `readonly glob` (TS2300); only `skipLibCheck: true` hides it [packages/i18n/src/glob.d.ts]	65	1
+2026-11-25T01:10:48Z	bookeeper-fase-2a	ui-base	dwarf	sonnet	-	-	-	-	184
+2026-11-25T01:12:51Z	bookeeper-fase-2a	ui-base	qa	opus	FAIL	-	-	-	117
+2026-11-25T01:13:27Z	bookeeper-fase-2a	ui-base	dwarf	sonnet	-	-	-	-	32
+2026-11-25T01:14:24Z	bookeeper-fase-2a	ui-base	qa	opus	PASS	-	-	-	51
+2026-11-25T01:15:20Z	bookeeper-fase-2a	desktop-session	dwarf	sonnet	-	-	-	-	304
+2026-11-25T01:18:41Z	bookeeper-fase-2a	ui-overlays	dwarf	sonnet	-	trap	radix dialog without a trigger does not return focus to the opener on close its oncloseautofocus calls preventdefault so restore it	Radix Dialog without a Trigger does not return focus to the opener on close (its onCloseAutoFocus calls preventDefault), so restore it… [packages/ui/src/overlays/Dialog.tsx]	253	1
+2026-11-25T01:18:41Z	bookeeper-fase-2a	ui-overlays	dwarf	sonnet	-	trap	npm test w bookeeper ui jsdom tests of radix select tooltip need pointer capture scrollintoview and resizeobserver stubs which	`npm test -w @bookeeper/ui` jsdom tests of Radix Select/Tooltip need pointer-capture, scrollIntoView and ResizeObserver stubs, which… [packages/ui/src/overlays/polyfills.ts]	253	1
+2026-11-25T01:18:52Z	bookeeper-fase-2a	desktop-session	qa	opus	PASS	-	-	-	205
+2026-11-25T01:20:52Z	bookeeper-fase-2a	ui-overlays	qa	opus	PASS	trap	vitest for bookeeper ui must run from packages ui or npm test w bookeeper ui running npx vitest run packages ui from the repo root	vitest for @bookeeper/ui must run from packages/ui (or `npm test -w @bookeeper/ui`); running `npx vitest run packages/ui/...` from the repo root… [packages/ui/vitest.config.ts]	126	1
+2026-11-25T01:22:52Z	bookeeper-fase-2a	ui-book	dwarf	sonnet	-	-	-	-	116
+2026-11-25T01:24:21Z	bookeeper-fase-2a	ui-book	qa	opus	PASS	-	-	-	82
+2026-11-25T01:27:31Z	bookeeper-fase-2a	desktop-remote	dwarf	sonnet	-	trap	axum server from tcp rustls panics with a blocking std listener call set nonblocking true first	axum-server `from_tcp_rustls` panics with a blocking std listener; call `set_nonblocking(true)` first [apps/desktop/src-tauri/tests/remote.rs]	516	1
+2026-11-25T01:27:31Z	bookeeper-fase-2a	desktop-remote	dwarf	sonnet	-	verify	cargo test offline p bookeeper desktop cargo clippy offline p bookeeper desktop all targets d warnings	cargo test --offline -p bookeeper-desktop && cargo clippy --offline -p bookeeper-desktop --all-targets -- -D warnings [apps/desktop/src-tauri/Cargo.toml]	516	1
+2026-11-25T01:29:34Z	bookeeper-fase-2a	app-foundation	dwarf	sonnet	-	-	-	-	305
+2026-11-25T01:32:03Z	bookeeper-fase-2a	app-foundation	qa	opus	FAIL	finding	the core returns 401 with codes other than an expired token invalid credentials on auth password and auth confirm	the core returns 401 with codes other than an expired token (`invalid_credentials` on /auth/password and /auth/confirm,… [crates/bookeeper-core/src/api/confirm.rs]	143	1
+2026-11-25T01:32:47Z	bookeeper-fase-2a	app-foundation	dwarf	sonnet	-	-	-	-	39
+2026-11-25T01:33:40Z	bookeeper-fase-2a	desktop-remote	qa	opus	FAIL	trap	bookeeper desktop has no tests dispatch rs its dispatch tests are unit tests in src dispatch rs run with cargo test p	bookeeper-desktop has no `tests/dispatch.rs`; its dispatch tests are unit tests in src/dispatch.rs, run with `cargo test -p… [apps/desktop/src-tauri/src/dispatch.rs]	358	1
+2026-11-25T01:34:11Z	bookeeper-fase-2a	app-foundation	qa	opus	PASS	-	-	-	79
+2026-11-25T01:34:21Z	bookeeper-fase-2a	desktop-remote	dwarf	sonnet	-	-	-	-	38
+2026-11-25T01:39:01Z	bookeeper-fase-2a	desktop-remote	qa	opus	FAIL	trap	get api v1 health includes a time field rounded to the second so comparing two health bodies byte for byte gives a flaky test	`GET /api/v1/health` includes a `time` field rounded to the second, so comparing two health bodies byte for byte gives a flaky test [crates/bookeeper-core/src/api/health.rs]	276	1
