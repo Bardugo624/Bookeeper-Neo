@@ -1,7 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { createTauriTransport } from './transport';
-import { NETWORK_PROBE, type Connection, type Connections, type Found, type Platform, type ProbeOut, type SaveFileRequest, type SaveFileResult } from './types';
+import { NETWORK_PROBE, type Connection, type Connections, type Found, type Platform, type ProbeOut, type SaveFileRequest, type SaveFileResult, type SharingStatus } from './types';
 
 function toBase64(bytes: Uint8Array): string {
   let bin = '';
@@ -34,6 +34,10 @@ export function tauriPlatform(): Platform {
       } catch {
         return [];
       }
+    },
+    sharing: {
+      status: () => invoke<SharingStatus>('sharing_status'),
+      set: (enabled, port) => invoke<SharingStatus>('sharing_set', { enabled, port: port ?? null }),
     },
     window: {
       minimize: () => win.minimize(),
