@@ -1,0 +1,76 @@
+name: VPS deploy
+
+# Builds the server image on the runner, loads it on the VPS and runs
+# ops/vps/deploy/deploy.sh there. Needs the repository secret VPS_SSH_KEY.
+
+on:
+  push:
+    branches: [claude/funny-bell-g5wrux]
+    paths:
+      - "ops/vps/deploy/**"
+      - ".github/workflows/vps-deploy.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vps-ops
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      VPS_HOST: 82.165.185.245
+      VPS_USER: root
+      VPS_PORT: "22"
+      VPS_HOST_KEY: "SHA256:aT+GlEdo8ocxbB3WUGXnDAo7j7dotW8LepYZELK2Uj8"
+    steps:
+      - uses: actions/checkout@v4
+      - name: SSH setup
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          if [ -z "$VPS_SSH_KEY" ]; then
+            echo "::error::Repository secret VPS_SSH_KEY is not set"
+            exit 1
+          fi
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          if printf '%s' "$VPS_SSH_KEY" | grep -q 'BEGIN'; then
+            printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_vps
+          else
+            printf '%s' "$VPS_SSH_KEY" | tr -d ' \r\n' | base64 -d > ~/.ssh/id_vps
+          fi
+          chmod 600 ~/.ssh/id_vps
+          ssh-keyscan -p "$VPS_PORT" -t ed25519 "$VPS_HOST" > ~/.ssh/known_hosts 2>/dev/null
+          if ! ssh-keygen -lf ~/.ssh/known_hosts | grep -qF "$VPS_HOST_KEY"; then
+            echo "::error::The host key of the VPS is not the expected one"
+            exit 1
+          fi
+          cat > ~/.ssh/config <<CFG
+          Host vps
+            HostName $VPS_HOST
+            User $VPS_USER
+            Port $VPS_PORT
+            IdentityFile ~/.ssh/id_vps
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            ConnectTimeout 15
+          CFG
+          chmod 600 ~/.ssh/config
+          ssh vps true
+      - name: Build the image
+        run: docker build -t bookeeper-server:deploy .
+      - name: Load the image on the VPS
+        run: docker save bookeeper-server:deploy | gzip | ssh vps 'gunzip | docker load'
+      - name: Deploy
+        run: |
+          ssh vps 'mkdir -p /opt/bookeeper'
+          scp ops/vps/deploy/docker-compose.yml ops/vps/deploy/bookeeper.caddy ops/vps/deploy/deploy.sh vps:/opt/bookeeper/
+          ssh vps 'bash /opt/bookeeper/deploy.sh'
+      - name: Remove the key
+        if: always()
+        run: rm -f ~/.ssh/id_vps

@@ -9,7 +9,7 @@ on:
   push:
     branches: [claude/funny-bell-g5wrux]
     paths:
-      - "ops/vps/**"
+      - "ops/vps/run.sh"
       - ".github/workflows/vps-ops.yml"
   workflow_dispatch:
 
