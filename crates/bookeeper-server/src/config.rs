@@ -252,7 +252,14 @@ fn is_public_url(url: &str) -> bool {
             None => (authority, None),
         }
     };
-    if !(host.parse::<std::net::Ipv4Addr>().is_ok() || is_dns_name(host)) {
+    let last = host.rsplit('.').next().unwrap_or("");
+    let numeric_last = !last.is_empty() && last.bytes().all(|b| b.is_ascii_digit());
+    let host_ok = if numeric_last {
+        host.parse::<std::net::Ipv4Addr>().is_ok()
+    } else {
+        is_dns_name(host)
+    };
+    if !host_ok {
         return false;
     }
     port.is_none_or(valid_port)
