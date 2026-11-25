@@ -16,6 +16,8 @@ Leggi prima `docs/forge/fase-4b/CONTRATTO.md`, `docs/forge/fase-4a/CONTRATTO.md`
 
 Testi nello spazio dei nomi `palette`.
 
+5. **Libri**: il campo di ricerca dei Libri mostra il tasto `/` al posto di `Ctrl K` (`modules/books/SearchField.tsx`, chiavi `books.search.hint` e `hintMac` nelle due lingue) e il test `BooksPage.test.tsx` che premeva `Ctrl K` per il fuoco ora preme `/`. Sono le uniche modifiche al modulo Libri: le task `reading-ui` e `tags-ui` sono già unite, non toccare altro.
+
 ## Test
 
 - Apertura con `Ctrl K` e `Cmd K`; chiusura con Esc; il fuoco torna dov'era.
@@ -32,4 +34,4 @@ Testi nello spazio dei nomi `palette`.
 - `npm test -w @bookeeper/i18n` e `npm test -w @bookeeper/ui` passano (chiavi nelle due lingue, nessuna collisione di nomi di file).
 - `npm run build -w @bookeeper/desktop` passa.
 - Nessun componente supera 250 righe. Nessun testo dell'interfaccia scritto nei componenti. Nessuna chiamata al client dentro un componente.
-- Cambiano solo: file sotto `apps/desktop/src/modules/palette/`, `apps/desktop/src/app/`, `apps/desktop/src/shell/`, i due file i18n `palette.json`.
+- Cambiano solo: file sotto `apps/desktop/src/modules/palette/`, `apps/desktop/src/app/`, `apps/desktop/src/shell/`, i due file i18n `palette.json`; nel modulo Libri solo `SearchField.tsx`, `BooksPage.test.tsx` e le due chiavi in `books.json`.

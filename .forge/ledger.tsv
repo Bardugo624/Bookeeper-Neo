@@ -395,3 +395,4 @@
 2026-11-25T23:17:44Z	bookeeper-fase-4b	tags-ui	dwarf	sonnet	-	trap	a test module registered with renderapp needs a nav entry and a route other than or the shell renders an empty main	a test module registered with `renderApp` needs a `nav` entry and a route other than `/`, or the shell renders an empty `<main>` [apps/desktop/src/app/testing.tsx]	576	1
 2026-11-25T23:20:04Z	bookeeper-fase-4b	tags-ui	qa	opus	FAIL	trap	radix dialog drawer close on escape from a document capture listener so a combobox inside one must intercept escape with a	Radix Dialog/Drawer close on Escape from a document capture listener, so a combobox inside one must intercept Escape with a… [apps/desktop/src/modules/loans/BorrowerInput.tsx]	135	1
 2026-11-25T23:20:52Z	bookeeper-fase-4b	tags-ui	dwarf	sonnet	-	-	-	-	44
+2026-11-25T23:21:58Z	bookeeper-fase-4b	tags-ui	qa	opus	PASS	-	-	-	59
