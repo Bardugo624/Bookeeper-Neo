@@ -69,7 +69,9 @@ export interface SharingStatus {
   addresses: string[];
   fingerprint: string | null;
   phrase: string | null;
-  error: 'port_in_use' | 'password_required' | 'tls' | 'mdns' | null;
+  error: 'port_in_use' | 'port_not_allowed' | 'bind_failed' | 'password_required' | 'tls' | 'mdns' | null;
+  /** The port of the last failed port change, when the shell knows it. */
+  attempted_port?: number;
 }
 
 export interface SharingControls {

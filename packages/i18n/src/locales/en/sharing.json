@@ -16,6 +16,8 @@
   },
   "errors": {
     "portInUse": "Port {port} is already used by another program. Pick another port and try again.",
+    "portNotAllowed": "Port {port} is reserved by the system. Pick one from 1024 up and try again.",
+    "bindFailed": "Could not open port {port}. Pick another port and try again.",
     "tls": "Could not prepare the security certificate. Sharing is off.",
     "mdns": "Sharing works, but this computer is not visible to others: on the other computers type the address by hand."
   },

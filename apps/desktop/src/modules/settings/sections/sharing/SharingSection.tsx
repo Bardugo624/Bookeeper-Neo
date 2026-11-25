@@ -9,6 +9,12 @@ import { PORT_MAX, PORT_MIN, parsePort, phraseWords } from './sharingModel';
 import { useSharing } from './useSharing';
 import styles from './SharingSection.module.css';
 
+const PORT_ERRORS = {
+  port_in_use: 'sharing.errors.portInUse',
+  port_not_allowed: 'sharing.errors.portNotAllowed',
+  bind_failed: 'sharing.errors.bindFailed',
+} as const;
+
 export function SharingSection() {
   const t = useT();
   const { me } = useSettingsSession();
@@ -81,9 +87,9 @@ export function SharingSection() {
             {t('sharing.failed')}
           </p>
         ) : null}
-        {status.error === 'port_in_use' ? (
+        {status.error === 'port_in_use' || status.error === 'port_not_allowed' || status.error === 'bind_failed' ? (
           <p className={styles.error} role="alert">
-            {t('sharing.errors.portInUse', { port: attempt?.port ?? status.port })}
+            {t(PORT_ERRORS[status.error], { port: status.attempted_port ?? attempt?.port ?? status.port })}
           </p>
         ) : null}
         {status.error === 'tls' ? (
