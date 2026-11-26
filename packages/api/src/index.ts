@@ -18,9 +18,11 @@ export type {
   RefreshOut,
   MeOut,
   PairingCode,
+  InspectRequest,
+  CodeInfo,
   DeviceList,
 } from './client';
-export type { BookOut, CreateBook, PatchBook, BookList, BatchDeleted, NextProgressive, Placement, ListBooksParams, BookFacets } from './resources/books';
+export type { BookOut, CreateBook, PatchBook, BookList, BatchDeleted, NextProgressive, Placement, ListBooksParams, BookFacets, Reader, ReaderList, IsbnIndex, IsbnEntry } from './resources/books';
 export type { ShelfOut, ShelfBook, ShelfList, ShelfBookList, NewShelf, ShelfPatch, PlaceIn, BatchAssignOut } from './resources/shelves';
 export type { LoanOut, LoanList, CreateLoan, PatchLoan, ReturnLoan, ListLoansParams, BorrowerList } from './resources/loans';
 export type { WishOut, WishList, CreateWish, PatchWish } from './resources/wishlist';
@@ -35,3 +37,5 @@ export type { ReadingOut, PutReading, ReadingList, ReadingSummary, ListReadingPa
 export type { TagOut, TagList, TagSummary, CreateTag, PatchTag } from './resources/tags';
 export type { RoomOut, RoomList, RoomSummary, CreateRoom, PatchRoom } from './resources/rooms';
 export type { AuditOut, AuditList, AuditActions, ListAuditParams } from './resources/audit';
+export type { PersonOut, PeopleList, PatchPerson } from './resources/users';
+export type { NewInvite, InviteCreated, InviteOut, InviteList, InviteRole } from './resources/invites';
