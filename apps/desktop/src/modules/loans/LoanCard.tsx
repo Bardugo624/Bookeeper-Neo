@@ -96,15 +96,7 @@ export function LoanCard({ loan, actions, busy = false, onBorrower, extra }: Loa
           <Button size="sm" variant="ghost" icon="pencil" disabled={busy} onClick={() => actions.edit(loan)}>
             {t('common.edit')}
           </Button>
-          <span className={styles.divider} aria-hidden="true" />
-          <Button
-            size="sm"
-            variant="ghost"
-            tone="danger"
-            icon="trash"
-            disabled={busy}
-            onClick={() => actions.remove(loan)}
-          >
+          <Button size="sm" variant="ghost" icon="trash" disabled={busy} onClick={() => actions.remove(loan)}>
             {t('common.delete')}
           </Button>
         </div>
