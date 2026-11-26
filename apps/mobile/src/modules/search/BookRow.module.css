@@ -16,7 +16,7 @@
 }
 
 .row:focus-visible {
-  outline: 2px solid var(--bk-primary-400);
+  outline: 2px solid var(--bk-focus);
   outline-offset: -2px;
   border-radius: var(--bk-radius-sm);
 }

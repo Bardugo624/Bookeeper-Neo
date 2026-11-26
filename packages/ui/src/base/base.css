@@ -27,6 +27,9 @@ body {
     color: var(--bk-text);
     background: var(--bk-bg);
     -webkit-font-smoothing: antialiased;
+    caret-color: var(--bk-accent-control);
+    scrollbar-color: var(--bk-border-strong) transparent;
+    accent-color: var(--bk-accent-control);
 }
 
 button,
@@ -43,6 +46,6 @@ select {
 }
 
 ::selection {
-    background: var(--bk-primary-200);
-    color: var(--bk-neutral-900);
+    background: var(--bk-accent-surface-strong);
+    color: var(--bk-on-accent-surface);
 }

@@ -72,6 +72,10 @@ describe('app stylesheets', () => {
     expect(findLiteralColor(read(file))).toBeNull();
   });
 
+  it.each(modules.map((f) => [f.slice(srcDir.length), f] as const))('%s uses no raw palette steps', (_n, file) => {
+    expect(read(file)).not.toMatch(/var\(\s*--bk-(primary|neutral)-\d+/);
+  });
+
   it.each(modules.map((f) => [f.slice(srcDir.length), f] as const))('%s uses only existing tokens', (_n, file) => {
     // A token with a fallback (`var(--x, fallback)`) may be missing; one without may not.
     const used = [...read(file).matchAll(/var\(\s*(--[\w-]+)\s*\)/g)].map((m) => m[1]!);
@@ -91,7 +95,7 @@ describe('look of the run 4B fixes', () => {
   it('styles the audit links like text links: thin underline, accent on hover and focus', () => {
     const sheet = css('modules/settings/sections/audit/AuditSection.module.css');
     expect(sheet).toMatch(/\.link\s*\{[^}]*color: var\(--bk-text\)[^}]*text-decoration-thickness: 1px/);
-    expect(sheet).toMatch(/\.link:hover,\s*\.link:focus-visible\s*\{[^}]*color: var\(--bk-primary-600\)/);
+    expect(sheet).toMatch(/\.link:hover,\s*\.link:focus-visible\s*\{[^}]*color: var\(--bk-accent-text\)/);
   });
 
   it('sizes the year select to its content and wraps below 560px', () => {

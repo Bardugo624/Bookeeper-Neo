@@ -6,8 +6,8 @@
 }
 
 .where {
-  border-color: var(--bk-primary-200);
-  background: var(--bk-primary-50);
+  border-color: var(--bk-accent-surface-strong);
+  background: var(--bk-accent-surface);
 }
 
 .heading {
@@ -73,7 +73,7 @@
   margin-top: 12px;
   padding: 0 18px;
   border-radius: var(--bk-radius-sm);
-  background: var(--bk-primary-600);
+  background: var(--bk-primary-fill);
   color: var(--bk-on-primary);
   font-size: 16px;
   font-weight: 600;
@@ -82,7 +82,7 @@
 }
 
 .whereButton:focus-visible {
-  outline: 2px solid var(--bk-primary-400);
+  outline: 2px solid var(--bk-focus);
   outline-offset: 2px;
 }
 
@@ -114,13 +114,13 @@
   min-height: 44px;
   min-width: 44px;
   margin: 6px 0 0 12px;
-  color: var(--bk-primary-600);
+  color: var(--bk-accent-text);
   font-size: 16px;
   font-weight: 600;
   touch-action: manipulation;
 }
 
 .unitLink:focus-visible {
-  outline: 2px solid var(--bk-primary-400);
+  outline: 2px solid var(--bk-focus);
   outline-offset: 2px;
 }

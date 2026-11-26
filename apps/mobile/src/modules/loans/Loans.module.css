@@ -27,8 +27,8 @@
 
 .scope.on,
 .choice.on {
-  border-color: var(--bk-primary-600);
-  background: var(--bk-primary-50);
+  border-color: var(--bk-accent-control);
+  background: var(--bk-accent-surface);
   color: var(--bk-text-strong);
 }
 
@@ -163,8 +163,8 @@
 
 .primary {
   width: 100%;
-  border-color: var(--bk-primary-600);
-  background: var(--bk-primary-600);
+  border-color: var(--bk-primary-fill);
+  background: var(--bk-primary-fill);
   color: var(--bk-on-primary);
 }
 

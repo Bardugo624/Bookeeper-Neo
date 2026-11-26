@@ -10,7 +10,7 @@
 /* The tag color only tints the background and the dot: the text always uses a text token. */
 .chip {
   /* Set inline from the palette; this is only the fallback. */
-  --tag-color: var(--bk-neutral-500);
+  --tag-color: var(--bk-text-faint);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -31,7 +31,7 @@ a.chip:hover {
 }
 
 .chip:focus-visible {
-  outline: 2px solid var(--bk-primary-400);
+  outline: 2px solid var(--bk-focus);
   outline-offset: 2px;
 }
 

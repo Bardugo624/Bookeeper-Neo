@@ -19,17 +19,17 @@
   align-items: center;
   gap: 6px;
   padding: 3px 8px 3px 10px;
-  border: 1px solid var(--bk-primary-200);
+  border: 1px solid var(--bk-accent-surface-strong);
   border-radius: 999px;
-  background: var(--bk-primary-50);
-  color: var(--bk-primary-800);
+  background: var(--bk-accent-surface);
+  color: var(--bk-on-accent-surface);
   font: inherit;
   font-size: 12px;
   cursor: pointer;
 }
 
 .chip:hover {
-  background: var(--bk-primary-100);
+  background: var(--bk-accent-surface-strong);
 }
 
 .chip:focus-visible {

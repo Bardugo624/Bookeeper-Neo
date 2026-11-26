@@ -58,12 +58,12 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: var(--bk-primary-700);
+  color: var(--bk-accent-text);
   border-radius: var(--bk-radius-sm);
 }
 
 .link:focus-visible {
-  outline: 2px solid var(--bk-primary-400);
+  outline: 2px solid var(--bk-focus);
   outline-offset: 2px;
 }
 

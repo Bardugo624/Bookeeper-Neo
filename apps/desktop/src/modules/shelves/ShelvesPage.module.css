@@ -42,7 +42,7 @@
   justify-content: center;
   height: 38px;
   border-radius: var(--bk-radius-sm);
-  background: var(--bk-primary-500);
+  background: var(--bk-accent-control);
   color: var(--bk-on-primary);
   font-size: 13px;
   font-weight: 500;
@@ -50,7 +50,7 @@
 }
 
 .menuLink:focus-visible {
-  outline: 2px solid var(--bk-primary-400);
+  outline: 2px solid var(--bk-focus);
   outline-offset: 2px;
 }
 
@@ -95,7 +95,7 @@
 }
 
 .groups [data-drop-over] {
-  outline: 2px solid var(--bk-primary-400);
+  outline: 2px solid var(--bk-focus);
   outline-offset: 2px;
 }
 

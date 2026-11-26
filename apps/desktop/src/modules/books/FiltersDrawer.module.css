@@ -80,9 +80,9 @@
 }
 
 .toggle[aria-pressed='true'] {
-  border-color: var(--bk-primary-500);
-  background: var(--bk-primary-50);
-  color: var(--bk-primary-800);
+  border-color: var(--bk-accent-control);
+  background: var(--bk-accent-surface);
+  color: var(--bk-on-accent-surface);
 }
 
 .toggle:focus-visible {

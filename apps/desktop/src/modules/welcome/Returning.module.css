@@ -3,7 +3,7 @@
   flex-direction: column;
   gap: 14px;
   padding: 20px 18px;
-  border: 1.5px solid var(--bk-primary-500);
+  border: 1.5px solid var(--bk-accent-control);
   border-radius: var(--bk-radius);
   background: var(--bk-surface);
   box-shadow: var(--bk-shadow-2);
