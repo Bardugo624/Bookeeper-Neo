@@ -1,0 +1,17 @@
+.where {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bk-surface);
+  color: var(--bk-text);
+  box-shadow: var(--bk-shadow-1);
+  text-decoration: none;
+}
+
+.where:focus-visible {
+  outline: 2px solid var(--bk-primary-400);
+  outline-offset: 2px;
+}

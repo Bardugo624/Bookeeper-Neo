@@ -6,6 +6,7 @@ import { TagChips } from '../tags';
 import { authorsOf, detailPath, type FromList } from './format';
 import type { ListParams, SortKey } from './listParams';
 import { SelectionCheckbox } from './SelectionCheckbox';
+import { WhereLink } from './WhereLink';
 import { ReadingCell } from './ReadingCell';
 import { useShelfNames } from './useBook';
 import type { Selection } from './useSelection';
@@ -94,7 +95,12 @@ export function BookTable({ books, params, loadingMore, selection }: BookTablePr
             </td>
             <td>{authorsOf(b)}</td>
             <td>{b.published_year ?? ''}</td>
-            <td>{place(b)}</td>
+            <td>
+              <span className={styles.place}>
+                {place(b)}
+                <WhereLink book={b} />
+              </span>
+            </td>
             <td>
               <ReadingCell reading={b.reading} />
             </td>

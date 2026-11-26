@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { BookOut, ShelfOut } from '@bookeeper/api';
 import type { SlotDrop, SpineBook } from '@bookeeper/ui/shelf';
 import { useT } from '../../app';
@@ -7,6 +7,7 @@ import { createBody, patchBody, roomIdOf, type ShelfValues } from './formModel';
 import { NEW_ROOM, groupByRoom } from './roomModel';
 import { useRoomList, useRoomWrites } from './useRooms';
 import { usePlacement } from './usePlacement';
+import { useWhere } from './useWhere';
 import { useShelfBooks, useShelfList, useUnshelved } from './useShelves';
 import { useDebounced } from './useDebounced';
 import { useShelfWrites } from './useShelfWrites';
@@ -38,6 +39,8 @@ export function useShelvesView() {
   const books = useShelfBooks(shelf?.id);
   const [search, setSearch] = useState('');
   const unshelved = useUnshelved(useDebounced(search));
+  const where = useWhere(params.values.book, shelf, books.data?.items, (unit) => params.set({ unit }));
+  const doneWhere = useCallback(() => params.set({ book: '' }), [params]);
   const placement = usePlacement();
   const writes = useShelfWrites();
   const roomWrites = useRoomWrites();
@@ -147,5 +150,7 @@ export function useShelvesView() {
     setDialog: openDialog,
     spine,
     setSpine,
+    where,
+    doneWhere,
   };
 }

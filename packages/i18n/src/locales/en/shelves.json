@@ -173,5 +173,13 @@
       "title": "No cabinets in this room",
       "text": "The room has no cabinets, or it no longer exists."
     }
+  },
+  "where": {
+    "at": "{shelf} · shelf {row} · place {slot}",
+    "titled": "“{title}” · {shelf} · shelf {row} · place {slot}",
+    "unit": "Unit",
+    "none": "“{title}” · Not on any shelf",
+    "place": "Place in…",
+    "done": "Done"
   }
 }

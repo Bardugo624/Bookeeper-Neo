@@ -122,6 +122,13 @@ export function shelvesPlatform(w: World): FakePlatform {
         const items = w.books.filter((b) => !w.spots[b.id] && b.title.toLowerCase().includes(text));
         return ok({ items, total: items.length });
       }
+      const one = /^\/api\/v1\/books\/([^/]+)$/.exec(p!);
+      if (one && r.method === 'GET') {
+        const found = w.books.find((b) => b.id === one[1]);
+        if (!found) return err(404, 'not_found');
+        const s = w.spots[found.id];
+        return ok(s ? { ...found, placement: { shelf_id: s.shelf, row_index: s.row, slot_index: s.slot } } : found);
+      }
       let m = /^\/api\/v1\/shelves\/([^/]+)(\/books)?$/.exec(p!);
       if (m) {
         const found = w.shelves.find((s) => s.id === m![1]);

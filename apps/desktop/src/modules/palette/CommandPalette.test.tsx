@@ -120,7 +120,7 @@ describe('where is it', () => {
     await openPalette();
     await userEvent.keyboard("dov'è dune");
     const option = await screen.findByRole('option', { name: /Dune/ });
-    expect(option).toHaveTextContent('Libreria del salotto · ripiano 2');
+    expect(option).toHaveTextContent('Libreria del salotto · ripiano 2 · posto 1');
     await userEvent.keyboard('{Enter}');
     expect(router.state.location.pathname).toBe('/shelves');
     expect(router.state.location.search).toBe('?unit=s1&book=b1');

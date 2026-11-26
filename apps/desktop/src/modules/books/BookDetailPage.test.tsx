@@ -49,8 +49,7 @@ describe('detail', () => {
     }
     expect(screen.queryByText('ISBN-10')).toBeNull();
     const where = screen.getByRole('region', { name: 'Dove si trova' });
-    expect(await within(where).findByText('Salotto')).toBeInTheDocument();
-    expect(within(where).getByText('Ripiano 3')).toBeInTheDocument();
+    expect(await within(where).findByText('Salotto · ripiano 3 · posto 5')).toBeInTheDocument();
     expect(within(screen.getByRole('region', { name: 'Prestiti' })).getByText('In prestito')).toBeInTheDocument();
   });
 
