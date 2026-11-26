@@ -36,7 +36,7 @@ export function WishlistPage() {
       </div>
     );
   } else if (list.isError) {
-    body = <ErrorState message={apiErrorMessage(t, list.error)} onRetry={() => void list.refetch()} />;
+    body = <ErrorState message={`${t('mwishlist.loadError')} ${apiErrorMessage(t, list.error)}`} onRetry={() => void list.refetch()} />;
   } else if (items.length === 0) {
     body = (
       <EmptyState

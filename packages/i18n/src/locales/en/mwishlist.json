@@ -4,6 +4,8 @@
   "loading": "Loading the wishlist",
   "scope": { "label": "Which list", "mine": "Mine", "family": "Family" },
   "family": { "me": "You" },
+  "loadError": "Could not load the wishlist.",
+  "errors": { "convert": "The book was not added to the library.", "delete": "The wish was not deleted.", "save": "The wish was not saved." },
   "empty": {
     "mine": { "title": "Your wishlist is empty", "text": "Add the books you would like to own." },
     "family": { "title": "No wishes in the family", "text": "When someone adds a book to the wishlist, it shows up here." }

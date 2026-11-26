@@ -22,13 +22,13 @@ export function WishSheet({ wish, onClose }: { wish: WishOut; onClose: () => voi
   const convert = useConvertWish();
   const busy = update.isPending || remove.isPending || convert.isPending;
 
-  const run = async (work: () => Promise<unknown>) => {
+  const run = async (work: () => Promise<unknown>, failed: string) => {
     if (busy) return;
     setError(null);
     try {
       await work();
     } catch (e) {
-      setError(apiErrorMessage(t, e));
+      setError(`${failed} ${apiErrorMessage(t, e)}`);
     }
   };
 
@@ -37,12 +37,12 @@ export function WishSheet({ wish, onClose }: { wish: WishOut; onClose: () => voi
       const book = await convert.mutateAsync(wish.id);
       onClose();
       void navigate(`/books/${encodeURIComponent(book.id)}`);
-    });
+    }, t('mwishlist.errors.convert'));
   const doDelete = () =>
     run(async () => {
       await remove.mutateAsync(wish.id);
       onClose();
-    });
+    }, t('mwishlist.errors.delete'));
 
   const goTo = (next: Step) => {
     setError(null);

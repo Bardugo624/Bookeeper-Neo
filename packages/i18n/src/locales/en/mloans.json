@@ -10,6 +10,7 @@
     "label": "Loans",
     "loading": "Loading loans",
     "loadError": "Could not read the loans.",
+    "moreError": "Could not load more loans.",
     "more": "Show more"
   },
   "empty": {
@@ -23,7 +24,6 @@
     }
   },
   "row": {
-    "name": "{title}, {person}",
     "due": "due {date}",
     "noDue": "no due date",
     "returnedOn": "returned on {date}",
@@ -35,12 +35,14 @@
     "returnLabel": "Return “{title}”"
   },
   "return": {
+    "failed": "The loan was not closed.",
     "title": "Return the book?",
     "text": "“{title}” comes home: the loan to {person} ends today.",
     "confirm": "Return",
     "cancel": "Cancel"
   },
   "lend": {
+    "failed": "The loan was not saved.",
     "title": "Lend the book",
     "book": "“{title}”",
     "person": "Who is borrowing it",

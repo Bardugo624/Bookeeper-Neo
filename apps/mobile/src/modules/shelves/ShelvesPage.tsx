@@ -8,7 +8,7 @@ import styles from './Shelves.module.css';
 function Body() {
   const t = useT();
   const list = useShelfList();
-  if (list.isError) return <ErrorState message={apiErrorMessage(t, list.error)} onRetry={() => void list.refetch()} />;
+  if (list.isError) return <ErrorState message={`${t('mshelves.loadError')} ${apiErrorMessage(t, list.error)}`} onRetry={() => void list.refetch()} />;
   if (!list.data) {
     return (
       <div role="status" aria-label={t('mobile.loading')} className={styles.page}>
