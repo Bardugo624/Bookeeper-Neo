@@ -3,7 +3,7 @@ import type { BookOut, CreateWish, PatchWish, WishList } from '@bookeeper/api';
 import { useClient, useSession } from '../../session';
 
 /** Wishlist queries and writes. Components never touch the client. */
-export function useWishlist(scope: 'mine' | 'family' = 'mine') {
+export function useWishlist(scope: 'mine' | 'family' = 'mine', enabled = true) {
   const client = useClient();
   const connectionId = useSession((s) => s.connection?.id);
   const meId = useSession((s) => s.me?.user.id);
@@ -12,7 +12,7 @@ export function useWishlist(scope: 'mine' | 'family' = 'mine') {
   const listKey = [...key, 'list'] as const;
   const scopedKey = [...listKey, scope] as const;
 
-  const query = useQuery({ queryKey: scopedKey, retry: false, queryFn: () => client.listWishlist(scope === 'family' ? { scope } : undefined) });
+  const query = useQuery({ queryKey: scopedKey, retry: false, enabled, queryFn: () => client.listWishlist(scope === 'family' ? { scope } : undefined) });
   const refresh = () => qc.invalidateQueries({ queryKey: key });
 
   const create = useMutation({

@@ -7,9 +7,9 @@ import styles from './WishCard.module.css';
 
 export interface WishCardProps {
   wish: WishOut;
-  /** Write actions, or null for a read-only role. */
   /** Level of the title, one below the heading of its group. */
   titleLevel?: 'h2' | 'h3';
+  /** Write actions, or null for a read-only role. */
   actions: { onEdit(): void; onDelete(): void; onConvert(): void; converting: boolean; locked: boolean } | null;
 }
 

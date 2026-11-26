@@ -12,7 +12,7 @@ export type Dialog = { kind: 'form'; wish?: WishOut } | { kind: 'delete'; wish: 
 /** Dialog state and the write actions of the list, with one place for the error banner. */
 export function useWishActions() {
   const t = useT();
-  const { create, update, remove, convert } = useWishlist();
+  const { create, update, remove, convert } = useWishlist('mine', false);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [error, setError] = useState<string | null>(null);
   const toast = useToast();

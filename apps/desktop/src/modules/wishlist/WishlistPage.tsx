@@ -69,7 +69,7 @@ export function WishlistPage() {
         icon="search"
         title={t('wishlist.noResults.title')}
         text={t('wishlist.noResults.text')}
-        action={<Button onClick={params.reset}>{t('wishlist.noResults.reset')}</Button>}
+        action={<Button onClick={() => params.set({ priority: 'all', sort: 'priority' })}>{t('wishlist.noResults.reset')}</Button>}
       />
     );
   } else {
