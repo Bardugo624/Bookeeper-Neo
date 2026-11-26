@@ -38,6 +38,8 @@ describe('ErrorState', () => {
   it('names an expired session', () => {
     setup(new ApiError(401, 'unauthorized', 'no'), () => undefined);
     expect(screen.getByRole('heading', { name: 'La sessione è scaduta' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Esci' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Riprova' })).not.toBeInTheDocument();
   });
 
   it('sends the user away instead of retrying when access is refused', async () => {

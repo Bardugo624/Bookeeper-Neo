@@ -111,7 +111,8 @@
     "setupClosed": "Su questo server esiste già una libreria.",
     "network": "Non riesco a raggiungere la libreria. Controlla la connessione e riprova.",
     "libraryChoice": "Questo account è in più librerie. Entra da «Unisciti» con email e password e scegli la libreria.",
-    "generic": "Non è stato possibile completare l'operazione. Riprova; se succede ancora, controlla che il server sia acceso."
+    "generic": "Non è stato possibile completare l'operazione. Riprova; se succede ancora, controlla che il server sia acceso.",
+    "genericLocal": "Non è stato possibile completare l'operazione su questo computer. Riprova; se succede ancora, chiudi e riapri Bookeeper."
   },
   "roles": {
     "owner": "Proprietario",

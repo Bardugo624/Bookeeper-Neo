@@ -41,13 +41,14 @@
     "text": "This page did not load. Try again; if it keeps happening, close and reopen Bookeeper.",
     "retry": "Try again",
     "home": "Go to books",
+    "signOut": "Sign out",
     "network": {
       "title": "The library is not responding",
       "text": "Check your connection and try again. If the library is on a server, make sure it is running."
     },
     "unauthorized": {
       "title": "Your session has expired",
-      "text": "Sign out and sign in again, then try again."
+      "text": "Sign out and sign in again to continue."
     },
     "forbidden": {
       "title": "You cannot open this page",

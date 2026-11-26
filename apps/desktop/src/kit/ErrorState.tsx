@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router';
 import { ApiError } from '@bookeeper/api';
 import { Button, EmptyState } from '@bookeeper/ui/base';
 import { useT } from '../app/i18n';
+import { useSession } from '../session';
 
 export interface ErrorStateProps {
   /** What was thrown; an `ApiError` tells what happened, anything else gets the generic text. */
@@ -28,6 +29,7 @@ function kindOf(error: unknown): Kind {
 export function ErrorState({ error, onRetry }: ErrorStateProps) {
   const t = useT();
   const navigate = useNavigate();
+  const signOut = useSession((s) => s.signOut);
   const kind = kindOf(error);
   const prefix = kind === 'generic' ? 'shell.error' : `shell.error.${kind}`;
   // A missing page or a refused one does not get better by retrying: send the user back to the books.
@@ -38,7 +40,12 @@ export function ErrorState({ error, onRetry }: ErrorStateProps) {
       title={t(`${prefix}.title`)}
       text={t(`${prefix}.text`)}
       action={
-        leaves ? (
+        kind === 'unauthorized' ? (
+          // Trying again would be refused again: the way forward is to sign in anew.
+          <Button variant="secondary" icon="logout" onClick={() => void signOut()}>
+            {t('shell.error.signOut')}
+          </Button>
+        ) : leaves ? (
           <Button variant="secondary" onClick={() => navigate('/books')}>
             {t('shell.error.home')}
           </Button>

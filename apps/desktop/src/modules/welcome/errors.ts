@@ -21,8 +21,10 @@ const TEXT_OF: Record<string, string> = {
 };
 
 /** Turns a failed request into the message to show, and where. */
-export function apiErrors(e: unknown, t: Translate): Errors {
-  if (!(e instanceof ApiError)) return { form: t('welcome.errors.generic') };
+export function apiErrors(e: unknown, t: Translate, opts: { local?: boolean } = {}): Errors {
+  // On this computer there is no server to check: the unknown-error text must not mention one.
+  const generic = t(opts.local ? 'welcome.errors.genericLocal' : 'welcome.errors.generic');
+  if (!(e instanceof ApiError)) return { form: generic };
   if (e.code === 'rate_limited') {
     return {
       form:
@@ -33,7 +35,7 @@ export function apiErrors(e: unknown, t: Translate): Errors {
   }
   if (e.status === 0 || e.code === 'network') return { form: t('welcome.errors.network') };
   const key = TEXT_OF[e.code];
-  if (!key) return { form: t('welcome.errors.generic') };
+  if (!key) return { form: generic };
   return { [FIELD_OF[e.code] ?? 'form']: t(key) };
 }
 

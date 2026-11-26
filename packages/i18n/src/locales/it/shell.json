@@ -41,13 +41,14 @@
     "text": "Questa pagina non si è caricata. Riprova; se succede ancora, chiudi e riapri Bookeeper.",
     "retry": "Riprova",
     "home": "Vai ai libri",
+    "signOut": "Esci",
     "network": {
       "title": "La libreria non risponde",
       "text": "Controlla la connessione e riprova. Se la libreria è su un server, verifica che sia acceso."
     },
     "unauthorized": {
       "title": "La sessione è scaduta",
-      "text": "Esci e accedi di nuovo, poi riprova."
+      "text": "Esci e accedi di nuovo per continuare."
     },
     "forbidden": {
       "title": "Non hai accesso a questa pagina",
