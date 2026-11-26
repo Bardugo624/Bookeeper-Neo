@@ -457,3 +457,13 @@
 2026-11-26T02:33:56Z	bookeeper-fase-5a	d-move	qa	opus	PASS	-	-	-	160
 2026-11-26T02:45:45Z	bookeeper-fase-5a	guards-5a	dwarf	sonnet	-	-	-	-	46
 2026-11-26T02:46:16Z	bookeeper-fase-5a	guards-5a	qa	opus	PASS	-	-	-	25
+2026-11-26T03:10:37Z	bookeeper-fase-5a1	p3-5a-ui	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npx vitest run or npm run typecheck works in packages ui	a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` or `npm run typecheck` works in packages/ui [packages/ui/package.json]	85	1
+2026-11-26T03:11:53Z	bookeeper-fase-5a1	p3-5a-core	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npm run gen w bookeeper api works	a fresh worktree needs `npm ci --offline` at the root before `npm run gen -w @bookeeper/api` works [packages/api/package.json]	162	1
+2026-11-26T03:12:23Z	bookeeper-fase-5a1	p3-5a-ui	qa	opus	FAIL	trap	vitest refuses test files outside packages ui to run a throwaway repro copy packages ui into the scratchpad and symlink the root node modules	vitest refuses test files outside packages/ui; to run a throwaway repro, copy packages/ui into the scratchpad and symlink the root node_modules… [packages/ui/vitest.config.ts]	98	1
+2026-11-26T03:13:05Z	bookeeper-fase-5a1	p3-5a-ui	dwarf	sonnet	-	-	-	-	36
+2026-11-26T03:13:34Z	bookeeper-fase-5a1	p3-5a-ui	qa	opus	PASS	-	-	-	23
+2026-11-26T03:14:05Z	bookeeper-fase-5a1	p3-5a-core	qa	opus	PASS	-	-	-	126
+2026-11-26T03:15:22Z	bookeeper-fase-5a1	p3-5a-mobile	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npx vitest run works in apps mobile	a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/mobile [apps/mobile/package.json]	69	1
+2026-11-26T03:15:58Z	bookeeper-fase-5a1	p3-5a-desktop	dwarf	sonnet	-	-	-	-	137
+2026-11-26T03:16:07Z	bookeeper-fase-5a1	p3-5a-mobile	qa	opus	PASS	-	-	-	38
+2026-11-26T03:18:04Z	bookeeper-fase-5a1	p3-5a-desktop	qa	opus	PASS	-	-	-	119

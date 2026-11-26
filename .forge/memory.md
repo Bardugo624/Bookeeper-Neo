@@ -14,18 +14,19 @@
 - UPDATE_OPENAPI=1 cargo test -p bookeeper-core --test openapi -- --include-ignored && npm run gen -w @bookeeper/api && npm test -w @bookeeper/api [packages/api/openapi.json]
 
 ## Known traps
+- a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/mobile [apps/mobile/package.json]
 - a rejected optimistic write can restore the cache in the same batch as the optimistic render, so an effect keyed on the saved value… [apps/mobile/src/modules/reading/NoteField.tsx]
 - a fresh worktree has no node_modules; run `npm ci --offline` at the root, then `npx vitest run <path>` from apps/desktop [apps/desktop/package.json]
+- vitest refuses test files outside packages/ui; to run a throwaway repro, copy packages/ui into the scratchpad and symlink the root node_modules… [packages/ui/vitest.config.ts]
+- a fresh worktree needs `npm ci --offline` at the root before `npm run gen -w @bookeeper/api` works [packages/api/package.json]
+- a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` or `npm run typecheck` works in packages/ui [packages/ui/package.json]
 - PUT placement `spine_width` is three-state (absent keeps, `null` clears, 1–3 sets) via `present`; the desktop shelves testkit fake… [crates/bookeeper-core/src/api/shelves.rs]
 - the mobile barcode scanner (native detector and ZXing) reports the same code on every frame while it is in view, so any de-duplication of… [apps/mobile/src/platform/scanner.ts]
 - PUT placement upserts `spine_width` with COALESCE, so sending `null` keeps the stored width; the desktop shelves testkit fake does the… [crates/bookeeper-core/src/api/shelves.rs]
-- a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/mobile [apps/mobile/package.json]
+- to test a timer-driven drag with fake timers, call `vi.useFakeTimers()` only right before the drag event and… [apps/desktop/src/modules/shelves/MoveBetween.test.tsx]
 - `npm test -w @bookeeper/desktop` first needs `npm ci --offline` at the root in a fresh worktree, or tsc cannot find vite/vitest types [apps/desktop/package.json]
 - `Db` is one `Arc<Mutex<Connection>>`, so every `run` closure is serialised in-process and a concurrency test on the API cannot catch a… [crates/bookeeper-core/src/db/mod.rs]
 - `ApiError::validation(..).into()` inside a `run` closure is fine, but outside it (before `run`) clippy `-D warnings` flags it as a… [crates/bookeeper-core/src/api/shelves.rs]
 - `HTMLElement.prototype.scrollIntoView` is stubbed by `packages/ui/src/overlays/polyfills`, so tests must mock it on… [packages/ui/src/overlays/polyfills.ts]
 - in this sandbox the docker CLI exists but no daemon runs, and the x86_64-unknown-linux-musl rustup target is installed without x86_64-linux-musl-gcc, so a… [Dockerfile.release]
-- the reading/audit desktop files have no Prettier config in the repo; format with `npx prettier --no-config --single-quote --print-width… [apps/desktop/src/modules/tags/testkit.tsx]
-- turning an i18n string into a `{one, other}` plural makes any caller that doesn't pass a numeric `count` render the raw key; grep every `t('<key>'`… [packages/i18n/src/index.ts]
-- the books testkit `extra` handler is synchronous; to delay a response in a test, wrap the handler with `platform.handle(...)` and… [apps/desktop/src/modules/reading/testkit.tsx]
 
