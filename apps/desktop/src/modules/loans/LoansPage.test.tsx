@@ -1,6 +1,6 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { DAY, book, loan, loanListCalls, renderLoans, type Store } from './testkit';
@@ -69,6 +69,20 @@ describe('filters', () => {
     await user.click(screen.getByRole('button', { name: 'Mostra tutti' }));
     await screen.findByText('Libro 1');
     expect(router.state.location.search).toBe('?filter=all');
+  });
+});
+
+describe('borrower without a filter', () => {
+  it('shows all their loans, and keeps "active" when it is picked', async () => {
+    const user = userEvent.setup();
+    const { platform, router } = renderLoans(store({ loans: [loan(1, { borrower_name: 'Anna' }), loan(3, { borrower_name: 'Anna', returned_at: 1_700_100_000 })] }), '/loans?borrower=Anna');
+    await screen.findByText('Libro 3');
+    expect(cards()).toHaveLength(2);
+    expect(screen.getByRole('tab', { name: 'Tutti' })).toHaveAttribute('aria-selected', 'true');
+    expect(loanListCalls(platform).filter((p) => p.get('limit') === '50').every((p) => p.get('status') === 'all')).toBe(true);
+    await user.click(screen.getByRole('tab', { name: 'In corso' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?borrower=Anna&filter=active'));
+    expect(screen.getByRole('tab', { name: 'In corso' })).toHaveAttribute('aria-selected', 'true');
   });
 });
 

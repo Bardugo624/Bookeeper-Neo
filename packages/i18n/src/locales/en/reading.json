@@ -19,6 +19,7 @@
   },
   "ring": {
     "label": "{status}, {percent}%",
+    "percent": "{percent}%",
     "none": "No reading status"
   },
   "menu": {

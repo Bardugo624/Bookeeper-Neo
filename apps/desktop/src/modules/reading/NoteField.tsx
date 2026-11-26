@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { ReadingOut } from '@bookeeper/api';
 import { Textarea } from '@bookeeper/ui/base';
 import { useT } from '../../app';
@@ -14,10 +14,17 @@ export function NoteField({ reading }: { reading: ReadingOut }) {
   const set = useSetReading(reading.book_id);
   const saved = reading.note ?? '';
   const [text, setText] = useState(saved);
-  useEffect(() => setText(saved), [saved]);
+  // The note as it was before our own write: a refusal puts it back, and what was typed must stay in the field then.
+  const before = useRef<string | null>(null);
+  useEffect(() => {
+    if (before.current !== null && saved === before.current) return;
+    setText(saved);
+  }, [saved]);
 
   const onBlur = () => {
-    if (text === saved) return;
+    // Only spaces is the same as no note.
+    if (text.trim() === saved.trim()) return;
+    before.current = saved;
     set.mutate(bodyFrom(reading, { note: text.trim() === '' ? null : text }));
   };
   const error = fieldError(t, set.error);
@@ -33,6 +40,7 @@ export function NoteField({ reading }: { reading: ReadingOut }) {
         maxLength={NOTE_MAX}
         placeholder={t('reading.note.placeholder')}
         onChange={(e) => {
+          before.current = null;
           setText(e.target.value);
           set.reset();
         }}

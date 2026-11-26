@@ -39,7 +39,11 @@ export function useSetReading(bookId: string, pageCount?: number | null) {
   const connectionId = useSession((s) => s.connection?.id);
   const refresh = useRefreshReading();
   const key = ['reading', connectionId, bookId];
+  const mutationKey = ['reading-set', connectionId, bookId];
+  // This write is still counted while its own callbacks run: more than one means a newer write is on its way.
+  const superseded = () => queryClient.isMutating({ mutationKey }) > 1;
   return useMutation<ReadingOut, unknown, PutReading, Context>({
+    mutationKey,
     mutationFn: (body) => client.setReading(bookId, body),
     onMutate: async (body) => {
       await queryClient.cancelQueries({ queryKey: key });
@@ -47,11 +51,14 @@ export function useSetReading(bookId: string, pageCount?: number | null) {
       queryClient.setQueryData<ReadingOut | null>(key, optimisticReading(bookId, body, pageCount));
       return { previous };
     },
-    onSuccess: (saved) => queryClient.setQueryData<ReadingOut | null>(key, saved),
-    onError: (_error, _body, context) => {
-      if (context) queryClient.setQueryData<ReadingOut | null>(key, context.previous ?? null);
+    // The answer of a write that a newer one has passed must not undo what the screen shows already.
+    onSuccess: (saved) => {
+      if (!superseded()) queryClient.setQueryData<ReadingOut | null>(key, saved);
     },
-    onSettled: refresh,
+    onError: (_error, _body, context) => {
+      if (context && !superseded()) queryClient.setQueryData<ReadingOut | null>(key, context.previous ?? null);
+    },
+    onSettled: () => (superseded() ? undefined : refresh()),
   });
 }
 

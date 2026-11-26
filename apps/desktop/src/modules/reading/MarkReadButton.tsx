@@ -12,9 +12,10 @@ export function MarkReadButton({ book }: { book: BookOut }) {
   const t = useT();
   const locale = useLocale();
   const toast = useToast();
-  const { data: reading, isPending } = useReading(book.id);
+  const { data: reading, isPending, isError } = useReading(book.id);
   const set = useSetReading(book.id, book.page_count);
-  if (isPending) return null;
+  // Without the state at hand a tap would write over the rating and the note.
+  if (isPending || isError) return null;
   if (reading?.status === 'read') {
     const at = reading.finished_at ?? reading.updated_at;
     return <p className={styles.readOn}>{t('reading.markRead.doneOn', { date: formatDate(locale, at) })}</p>;

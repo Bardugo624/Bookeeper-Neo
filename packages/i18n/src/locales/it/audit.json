@@ -34,7 +34,10 @@
   "error": "Non è stato possibile caricare il registro.",
   "forbidden": "Solo il proprietario e gli amministratori possono vedere il registro.",
   "retry": "Riprova",
-  "total": "{count} voci",
+  "total": {
+    "one": "{count} voce",
+    "other": "{count} voci"
+  },
   "export": {
     "button": "Scarica CSV",
     "busy": "Preparo il file…",
@@ -165,5 +168,47 @@
       "revoke": "Ha revocato un dispositivo"
     }
   },
-  "loading": "Caricamento…"
+  "loading": "Caricamento…",
+  "whatUntitled": {
+    "book": {
+      "create": "Ha aggiunto un libro",
+      "update": "Ha modificato un libro",
+      "cover": "Ha cambiato la copertina di un libro",
+      "cover_delete": "Ha tolto la copertina di un libro",
+      "tags": "Ha cambiato i tag di un libro"
+    },
+    "reading": {
+      "set": "Ha impostato lo stato di lettura di un libro: {status}",
+      "delete": "Ha tolto lo stato di lettura di un libro"
+    },
+    "shelf": {
+      "place": "Ha collocato un libro su uno scaffale",
+      "unplace": "Ha tolto un libro dallo scaffale"
+    },
+    "wishlist": {
+      "create": "Ha aggiunto un desiderio alla lista dei desideri",
+      "convert": "Ha trasformato un desiderio in un libro"
+    }
+  },
+  "whatGone": {
+    "book": {
+      "create": "Ha aggiunto un libro non più presente",
+      "update": "Ha modificato un libro non più presente",
+      "cover": "Ha cambiato la copertina di un libro non più presente",
+      "cover_delete": "Ha tolto la copertina di un libro non più presente",
+      "tags": "Ha cambiato i tag di un libro non più presente"
+    },
+    "reading": {
+      "set": "Ha impostato lo stato di lettura di un libro non più presente: {status}",
+      "delete": "Ha tolto lo stato di lettura di un libro non più presente"
+    },
+    "shelf": {
+      "place": "Ha collocato un libro non più presente su uno scaffale",
+      "unplace": "Ha tolto dallo scaffale un libro non più presente"
+    },
+    "wishlist": {
+      "create": "Ha aggiunto un desiderio alla lista dei desideri",
+      "convert": "Ha trasformato un desiderio in un libro non più presente"
+    }
+  }
 }
