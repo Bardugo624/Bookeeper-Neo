@@ -47,6 +47,8 @@ pub struct ListBooksQuery {
     pub reading: Option<String>,
     /// Books placed on a shelf of this room.
     pub room_id: Option<String>,
+    /// Books of this owner: a person id, `me` or `none` (no owner).
+    pub owner_id: Option<String>,
     /// Lowest `published_year`, inclusive.
     pub year_from: Option<i64>,
     /// Highest `published_year`, inclusive.
@@ -207,6 +209,15 @@ fn build_filter(
             "sb.shelf_id IN (SELECT s.id FROM shelves s WHERE s.room_id = ?{n})"
         ));
     }
+    match q.owner_id.as_deref() {
+        None => {}
+        Some("none") => f.conds.push("b.owner_user_id IS NULL".to_string()),
+        Some(v) => {
+            let id = if v == "me" { user_id } else { v };
+            let n = f.bind(Value::Text(id.to_string()));
+            f.conds.push(format!("b.owner_user_id = ?{n}"));
+        }
+    }
     for id in tag_ids {
         let n = f.bind(Value::Text(id.clone()));
         f.conds.push(format!(
@@ -290,6 +301,7 @@ fn order_by(sort: Option<&str>, desc: bool, searching: bool) -> ApiResult<String
         ("reading" = Option<String>, Query, description = "Caller's state: to_read, reading, read, abandoned, or none for books without a state"),
         ("tag_id" = Option<Vec<String>>, Query, description = "Repeatable, at most 10: the book has all the given tags"),
         ("room_id" = Option<String>, Query, description = "Books placed on a shelf of this room"),
+        ("owner_id" = Option<String>, Query, description = "Books of this owner: a person id, me, or none for books without an owner"),
         ("year_from" = Option<i64>, Query, description = "published_year >= value; must not exceed year_to"),
         ("year_to" = Option<i64>, Query, description = "published_year <= value"),
         ("acquired_from" = Option<i64>, Query, description = "acquired_at >= value (unix seconds); must not exceed acquired_to"),
