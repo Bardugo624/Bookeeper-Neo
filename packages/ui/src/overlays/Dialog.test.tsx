@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import './polyfills';
 import { Dialog } from './Dialog';
 import { Menu } from './Menu';
@@ -102,4 +102,98 @@ it('falls back to the previous focusable element when the opener is not focusabl
   await user.keyboard('{Escape}');
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   expect(screen.getByRole('button', { name: 'Second' })).toHaveFocus();
+});
+
+describe('motion', () => {
+  const realAnimate = Object.getOwnPropertyDescriptor(Element.prototype, 'animate');
+  const realRO = globalThis.ResizeObserver;
+  const realMM = window.matchMedia;
+  let animate: ReturnType<typeof vi.fn>;
+  let roCallback: (() => void) | null;
+  let height: number;
+
+  function setup(reduce = false) {
+    animate = vi.fn(() => ({ cancel: vi.fn(), addEventListener: vi.fn() }));
+    Element.prototype.animate = animate as never;
+    window.matchMedia = ((q: string) => ({ matches: reduce && q.includes('reduce'), media: q, addEventListener() {}, removeEventListener() {} })) as never;
+    roCallback = null;
+    globalThis.ResizeObserver = class {
+      constructor(cb: () => void) {
+        roCallback = cb;
+      }
+      observe() {}
+      disconnect() {}
+      unobserve() {}
+    } as never;
+    height = 200;
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, get: () => height });
+  }
+
+  afterEach(() => {
+    if (realAnimate) Object.defineProperty(Element.prototype, 'animate', realAnimate);
+    else delete (Element.prototype as { animate?: unknown }).animate;
+    globalThis.ResizeObserver = realRO;
+    window.matchMedia = realMM;
+    delete (HTMLElement.prototype as { offsetHeight?: unknown }).offsetHeight;
+  });
+
+  const base = { onOpenChange: () => {}, title: 'T', closeLabel: 'Close' };
+
+  it('size="wide" adds the wide class, default does not', () => {
+    const { rerender } = render(<Dialog {...base} open size="wide" />);
+    const wide = screen.getByRole('dialog').className;
+    rerender(<Dialog {...base} open />);
+    expect(wide).not.toBe(screen.getByRole('dialog').className);
+    expect(wide).toMatch(/wide/);
+    expect(screen.getByRole('dialog').className).not.toMatch(/wide/);
+  });
+
+  it('animates the height from the old to the new value', () => {
+    setup();
+    render(<Dialog {...base} open />);
+    height = 320;
+    roCallback?.();
+    expect(animate).toHaveBeenCalledTimes(1);
+    const frames = animate.mock.calls[0][0] as Array<{ height: string }>;
+    expect([frames[0].height, frames[1].height]).toEqual(['200px', '320px']);
+  });
+
+  it('does not animate the height with reduced motion', () => {
+    setup(true);
+    render(<Dialog {...base} open />);
+    height = 320;
+    roCallback?.();
+    expect(animate).not.toHaveBeenCalled();
+  });
+
+  it('is born from the origin button, but not without origin or with reduced motion', () => {
+    setup();
+    const button = document.createElement('button');
+    document.body.appendChild(button);
+    const { unmount } = render(<Dialog {...base} open origin={button} />);
+    expect(animate).toHaveBeenCalledTimes(1);
+    const frames = animate.mock.calls[0][0] as Array<{ opacity: number }>;
+    expect(frames[0].opacity).toBe(0);
+    unmount();
+    animate.mockClear();
+    render(<Dialog {...base} open />);
+    expect(animate).not.toHaveBeenCalled();
+    cleanup();
+    setup(true);
+    render(<Dialog {...base} open origin={button} />);
+    expect(animate).not.toHaveBeenCalled();
+  });
+
+  it('works without ResizeObserver and animate', async () => {
+    delete (Element.prototype as { animate?: unknown }).animate;
+    // @ts-expect-error simulating jsdom
+    delete globalThis.ResizeObserver;
+    const user = userEvent.setup();
+    render(<Harness />);
+    const opener = screen.getByRole('button', { name: 'Open' });
+    await user.click(opener);
+    await screen.findByRole('dialog');
+    await user.keyboard('{Escape}');
+    await waitFor(() => expect(opener).toHaveFocus());
+  });
 });

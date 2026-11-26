@@ -81,7 +81,10 @@ approvati qui sotto). Regole:
 - Solo `transform` e `opacity`. Eccezioni, tutte nel codice: il
   riempimento di `ProgressRing` (`stroke-dashoffset`), l'ombra di
   `BookCover` al passaggio (`box-shadow`) e il colore delle etichette di
-  `PillTabs` (`color`). Le barre (`FillBar`) animano con `scaleX`, origin left.
+  `PillTabs` (`color`), e la crescita del `Dialog`: l'altezza del
+  pannello anima (Web Animations, `--bk-dur-slow` `--bk-ease`, centrato)
+  quando il contenuto cambia, e la larghezza passa tra `default` e `wide`
+  (unica deroga per altezza e larghezza). Le barre (`FillBar`) animano con `scaleX`, origin left.
 - Entrance condivisa `bk-rise` (fade + alza 6px); lo stagger si fa con `--i`.
   Il default è visibile: l'animazione parte da `from{}`.
 - Uscite più brevi delle entrate.

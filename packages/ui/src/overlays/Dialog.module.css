@@ -28,6 +28,10 @@
     border-radius: var(--bk-radius-lg);
 }
 
+.wide {
+    width: min(760px, calc(100vw - 32px));
+}
+
 .header {
     display: flex;
     align-items: flex-start;
@@ -70,6 +74,10 @@
 @media (prefers-reduced-motion: no-preference) {
     .overlay[data-state='open'] {
         animation: overlay-in var(--bk-dur-slow) var(--bk-ease);
+    }
+
+    .dialog {
+        transition: width var(--bk-dur-slow) var(--bk-ease);
     }
 
     .dialog[data-state='open'] {
