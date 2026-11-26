@@ -39,7 +39,7 @@ describe('TagRow color while saving', () => {
     expect(document.activeElement).toBe(before);
   });
 
-  it('marks the delete button as dangerous', async () => {
+  it('keeps the delete button neutral (the red is in the confirmation)', async () => {
     const platform = fakePlatform({
       connections: { active: 'c1', items: [fakeConnection()] },
       handler: (r) => (r.path === '/api/v1/me' ? ok(ME) : { status: 404, body: { error_code: 'not_found', message: 'x' } }),
@@ -50,6 +50,6 @@ describe('TagRow color while saving', () => {
       modules: [{ id: 'harness', nav: { labelKey: 'tags.title', icon: 'book', to: '/harness', group: 'main', order: 1 }, routes: [{ path: '/harness', element: <ul>{row}</ul> }] }],
       route: '/harness',
     });
-    expect((await screen.findByRole('button', { name: /Elimina/ })).className).toMatch(/toneDanger/);
+    expect((await screen.findByRole('button', { name: /Elimina/ })).className).not.toMatch(/toneDanger/);
   });
 });
