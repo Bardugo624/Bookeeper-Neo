@@ -181,8 +181,8 @@ pub async fn facets(State(state): State<AppState>, who: AuthUser) -> ApiResult<J
             let tags = conn
                 .prepare(
                     "SELECT t.id, t.name, t.color, COUNT(*) AS n FROM tags t \
-                     JOIN book_tags bt ON bt.tag_id = t.id \
-                     JOIN books b ON b.id = bt.book_id AND b.library_id = t.library_id \
+                     CROSS JOIN book_tags bt ON bt.tag_id = t.id \
+                     CROSS JOIN books b ON b.id = bt.book_id AND b.library_id = t.library_id \
                      WHERE t.library_id = ?1 GROUP BY t.id ORDER BY n DESC, t.name, t.id",
                 )?
                 .query_map(params![lib], |r| {
