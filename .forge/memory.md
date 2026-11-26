@@ -4,6 +4,7 @@
      overwritten. Facts only, one per line. -->
 
 ## Verify
+- a throwaway mobile vitest can run from outside the repo with a `.mts` config that spreads `apps/mobile/vite.config` and sets `root` to apps/mobile and… [apps/mobile/vite.config.ts]
 - copy package.json, package-lock.json and the apps/*/package.json and packages/*/package.json files to a scratch dir and run `npm install --package-lock-only… [package-lock.json]
 - cargo test --offline -p bookeeper-core --test reading_api --test books_api --test db --test backup_api --test openapi_errors [crates/bookeeper-core/Cargo.toml]
 - npm install && npm run typecheck -w @bookeeper/mobile && npm test -w @bookeeper/mobile && npm run build -w @bookeeper/mobile && cargo test --offline -p… [apps/mobile/package.json]
@@ -27,6 +28,4 @@
 - `npm install --package-lock-only --offline` dopo aver tolto un workspace lascia le sue voci come `"extraneous": true` in package-lock.json; vanno tolte a mano [package-lock.json]
 - a fresh worktree needs `npm ci --offline` at the root before `npm run typecheck -w @bookeeper/mobile` or `npx vitest run` works [apps/mobile/package.json]
 - back-navigation "direct entry" must use `window.history.state.idx` (survives `replace`), not `location.key === 'default'`; memory… [apps/mobile/src/modules/search/useCanGoBack.ts]
-- running the desktop loans/books/shelves vitest suites together can fail a timing-sensitive test such as ShelfForm.test.tsx… [apps/desktop/src/modules/shelves/ShelfForm.test.tsx]
-- a book-card back link that must keep role "link" should be a `Link` whose onClick calls `navigate(-1)` when `location.key !==… [apps/mobile/src/modules/search/BookDetailPage.tsx]
 

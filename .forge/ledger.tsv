@@ -558,3 +558,5 @@
 2026-11-26T15:25:28Z	bookeeper-fase-7a	design-docs	dwarf	sonnet	-	-	-	-	61
 2026-11-26T15:25:56Z	bookeeper-fase-7a	docs-user	qa	opus	PASS	-	-	-	40
 2026-11-26T15:26:26Z	bookeeper-fase-7a	design-docs	qa	opus	PASS	-	-	-	52
+2026-11-26T15:33:10Z	bookeeper-fase-7a	perf-mobile	dwarf	opus	-	-	-	-	94
+2026-11-26T15:35:36Z	bookeeper-fase-7a	perf-mobile	qa	opus	FAIL	verify	a throwaway mobile vitest can run from outside the repo with a mts config that spreads apps mobile vite config and sets root to apps mobile and	a throwaway mobile vitest can run from outside the repo with a `.mts` config that spreads `apps/mobile/vite.config` and sets `root` to apps/mobile and… [apps/mobile/vite.config.ts]	140	1
