@@ -1,6 +1,7 @@
 import { useT } from '../../app';
 import { ConfirmDialog } from '../../kit';
 import { LoanFormDialog } from './LoanFormDialog';
+import { borrowerLabel } from './loanStatus';
 import { ReturnDialog } from './ReturnDialog';
 import type { LoanDialog } from './useLoanDialogs';
 import type { LoanOut } from '@bookeeper/api';
@@ -29,7 +30,7 @@ export function LoanDialogs({ dialog, deleting, onClose, onConfirmDelete }: Loan
           tone="danger"
           busy={deleting}
           title={t('loans.delete.title')}
-          description={t('loans.delete.description', { title: dialog.loan.book_title, name: dialog.loan.borrower_name })}
+          description={t('loans.delete.description', { title: dialog.loan.book_title, name: borrowerLabel(dialog.loan) })}
           confirmLabel={t('common.delete')}
           onConfirm={() => onConfirmDelete(dialog.loan)}
           onCancel={onClose}

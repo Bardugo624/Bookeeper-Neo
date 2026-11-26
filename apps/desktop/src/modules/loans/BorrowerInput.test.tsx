@@ -68,3 +68,63 @@ describe('borrower suggestions', () => {
     expect(input).toHaveAttribute('aria-expanded', 'false');
   });
 });
+
+describe('people suggestions', () => {
+  const withPeople = (): Store => ({
+    ...store(),
+    loans: [loan(1, { borrower_name: 'Marta' }), loan(2, { borrower_name: 'Mario' }), loan(3, { borrower_name: 'Luca' })],
+    people: [
+      { id: 'u1', display_name: 'Anna', is_me: true },
+      { id: 'u2', display_name: 'Marta' },
+    ],
+  });
+  const open = async (s: Store) => {
+    const user = userEvent.setup();
+    const r = renderLoans(s, '/loans?new=1');
+    const input = await screen.findByRole('combobox', { name: 'A chi' });
+    return { user, input, ...r };
+  };
+
+  it('lists people first (me as "Tu"), then names, without repeating a person', async () => {
+    const { user, input } = await open(withPeople());
+    await user.click(input);
+    await waitFor(() =>
+      expect(screen.getAllByRole('option').map((o) => o.textContent?.trim())).toEqual(['Tu', 'Marta', 'Mario', 'Luca']),
+    );
+  });
+
+  const lendDune = async (user: ReturnType<typeof userEvent.setup>) => {
+    await user.type(screen.getByRole('searchbox'), 'Dune');
+    await user.click(await screen.findByRole('button', { name: /Dune/ }));
+  };
+
+  it('choosing a person sends borrower_user_id and no name', async () => {
+    const s = withPeople();
+    s.books = [book(5, { title: 'Dune' })];
+    const { user, input, platform } = await open(s);
+    await lendDune(user);
+    await user.click(input);
+    await user.click(await screen.findByRole('option', { name: 'Marta' }));
+    expect(input).toHaveValue('Marta');
+    await user.click(screen.getByRole('button', { name: 'Presta' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    const post = platform.calls.find((c) => c.method === 'POST')!;
+    expect(post.body).toMatchObject({ book_id: 'b5', borrower_user_id: 'u2' });
+    expect(post.body).not.toHaveProperty('borrower_name');
+  });
+
+  it('typing after choosing a person drops the link and sends the free name', async () => {
+    const s = withPeople();
+    s.books = [book(5, { title: 'Dune' })];
+    const { user, input, platform } = await open(s);
+    await lendDune(user);
+    await user.click(input);
+    await user.click(await screen.findByRole('option', { name: 'Marta' }));
+    await user.type(input, 'a');
+    await user.click(screen.getByRole('button', { name: 'Presta' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    const post = platform.calls.find((c) => c.method === 'POST')!;
+    expect(post.body).toMatchObject({ borrower_name: 'Martaa' });
+    expect(post.body).not.toHaveProperty('borrower_user_id');
+  });
+});

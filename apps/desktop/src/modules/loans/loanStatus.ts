@@ -25,3 +25,8 @@ export function authorsOf(loan: Pick<LoanOut, 'book_authors'>): string {
 export function bookPath(bookId: string): string {
   return `/books/${encodeURIComponent(bookId)}`;
 }
+
+/** The person's current name when the loan is to a member of the library, else the name written on it. */
+export function borrowerLabel(loan: Pick<LoanOut, 'borrower' | 'borrower_name'>): string {
+  return loan.borrower?.display_name ?? loan.borrower_name;
+}

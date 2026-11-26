@@ -13,10 +13,10 @@ export function useLoansKey(): readonly ['loans', string | undefined] {
 
 /** Loans for a filter (and optionally one book), in pages; the next page comes with `fetchNextPage`. */
 /** With `loadAll` the remaining pages are fetched one after the other (history, per-person view). */
-export function useLoanList(filter: LoanFilter, book: string, loadAll = false) {
+export function useLoanList(filter: LoanFilter, book: string, loadAll = false, mine = false) {
   const client = useClient();
   const key = useLoansKey();
-  const params = { status: filter, book_id: book || undefined };
+  const params = { status: filter, book_id: book || undefined, borrower_user_id: mine ? 'me' : undefined };
   const query = useInfiniteQuery({
     queryKey: [...key, 'list', params],
     initialPageParam: 0,
@@ -49,4 +49,16 @@ function useCount(status: 'active' | 'overdue', book: string): number | undefine
 /** Open and overdue totals for the header line. */
 export function useLoanCounts(book: string): { active: number | undefined; overdue: number | undefined } {
   return { active: useCount('active', book), overdue: useCount('overdue', book) };
+}
+
+/** Whether any loan, open or closed, was made to who is looking: the "Lent to me" tab exists only then. */
+export function useHasLoansToMe(): boolean {
+  const client = useClient();
+  const key = useLoansKey();
+  const { data } = useQuery({
+    queryKey: [...key, 'count', 'mine'],
+    retry: false,
+    queryFn: () => client.listLoans({ status: 'all', borrower_user_id: 'me', limit: 1 }),
+  });
+  return (data?.total ?? 0) > 0;
 }
