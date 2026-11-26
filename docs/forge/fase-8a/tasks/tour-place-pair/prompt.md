@@ -11,13 +11,13 @@ Aggiungi al percorso `firstBook` i passi 2 e 3, e il finale. Setup di Impeccable
 - Fuori dagli Scaffali il riflettore è su `nav.shelves`.
 - Negli Scaffali senza mobili è su «Nuovo mobile» (ancora `shelves.new`): «Crea il mobile dove tieni i libri: un nome e quanti ripiani». Se un mobile c'è già (lo ha creato qualcun altro), questo momento si salta.
 - Creato il mobile (segnale `shelf-created`, mandato quando il salvataggio di un mobile nuovo riesce), il riflettore scivola sul libro nell'elenco dei non collocati (ancora `shelves.unplaced`) e la scheda dice di trascinarlo su un ripiano, o di usare «Colloca».
-- Si completa con il segnale `book-placed`, mandato quando un libro viene collocato con successo, a trascinamento o con «Colloca».{{SHELVES}}
+- Si completa con il segnale `book-placed`, mandato quando un libro viene collocato con successo, a trascinamento o con «Colloca». Dove: «Nuovo mobile» in `ShelvesPage.tsx` (e «Crea il primo mobile» dello stato vuoto); il salvataggio in `useShelvesView.ts` `save`, riuscito dopo `create.mutateAsync`; le collocazioni in `useShelvesView.ts`: `drop` (oggi ignora il risultato di `placement.placeAt`: usalo), `dropOnTab` e `placeAtEnd`. L'elenco dei non collocati è `UnshelvedList` con le righe `UnshelvedRow` (trascinabili, e il bottone «Colloca»).
 
 ## Passo 3: «Portalo in tasca»
 
 - Esiste solo se si può abbinare un telefono (libreria su un server con HTTPS valido, come decide già il modulo dei dispositivi per mostrare «Aggiungi un telefono»). Altrimenti il percorso finisce al passo 2: l'avanzamento mostra 2 passi.
 - Fuori dai Dispositivi il riflettore è su `nav.devices`; poi su «Aggiungi un telefono» (ancora `devices.addPhone`); con il QR aperto, sul QR (`devices.qr`): «Inquadralo con la fotocamera del telefono».
-- Si completa con il segnale `device-paired`, quando l'app vede il nuovo telefono abbinato.{{DEVICES}}
+- Si completa con il segnale `device-paired`, quando l'app vede il nuovo telefono abbinato. Dove: «Aggiungi un telefono» in `DevicesPage.tsx` (c'è solo se il telefono si può abbinare), il QR in `PairDialog`. L'app vede il nuovo dispositivo in `useArrivalWatch` (`usePairingFlow.ts`): manda il segnale lì quando arriva un dispositivo di tipo `mobile`. `PairDialog` è un dialogo modale: la scheda del tour sta dentro il dialogo, come prevede `tour-core`. Per sapere se il telefono si può abbinare c'è `useServerInfo` esportato da `modules/devices`.
 
 ## Finale
 
@@ -39,4 +39,4 @@ Nel namespace `tour` (italiano e inglese): titoli e testi dei passi 2 e 3 nei lo
 - `npm run typecheck -w @bookeeper/desktop` passa; `npx vitest run src/modules/tour src/modules/shelves src/modules/devices` (da `apps/desktop`) passa; `npm test -w @bookeeper/i18n` passa.
 - Nessun componente oltre 250 righe; nessun testo nei componenti; nessun colore letterale.
 - `.claude/skills/impeccable/scripts/impeccable detect --json` sui file cambiati non trova nulla.
-- Cambiano solo i file dichiarati della task.
+- Cambiano solo file sotto `apps/desktop/src/modules/tour/`, `shelves/`, `devices/` e `tour.json` (it, en).

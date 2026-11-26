@@ -11,12 +11,13 @@ Le persone nuove che entrano in una libreria **già piena**, e gli **ospiti** (c
 Parte dove `tour-start` oggi lascia il segno «persona nuova» senza far partire nulla: persona nuova che non può scrivere, o libreria con libri. Il segno si cancella.
 
 1. **«Trova un libro»**: riflettore su «Cerca e comandi» nella barra (ancora `nav.search`): «Scrivi un titolo o un autore». Si completa con il segnale `book-opened`, quando si apre la pagina di un libro (dalla ricerca, dalla palette o dall'elenco).
-2. **«Dov'è?»**: nella pagina del libro, riflettore su «Dov'è?» (ancora `book.where`): «Ti mostra il mobile e il ripiano». Si completa con il segnale `where-shown`, quando la posizione viene mostrata. Se il libro non è collocato, la scheda lo dice e il passo si completa lo stesso.
-3. **«Segna cosa leggi»**: solo se la persona può segnare il proprio stato di lettura (come già decide il modulo `reading`); riflettore sul blocco della lettura (ancora `book.reading`). Si completa con il segnale `reading-changed`. Per chi non può, il percorso ha 2 passi.{{EXPLORE}}
+2. **«Dove si trova»**: nella pagina del libro, riflettore sul riquadro «Dove si trova» con «Mostra sullo scaffale» (ancora `book.where`, in `modules/books/DetailAside.tsx`): «Ti porta al mobile e al ripiano». Si completa con il segnale `where-shown`, quando gli Scaffali mostrano il libro (`useWhere`, modulo `shelves`, con `?book=`). Se il libro non è collocato, la scheda lo dice e il passo si completa lo stesso.
+3. **«Segna cosa leggi»**: riflettore sul blocco della lettura della pagina del libro (ancora `book.reading`: `ReadingCard` in `DetailAside.tsx`, e il bottone «Segna come letto» in `BookDetailPage.tsx`). Funziona per ogni ruolo, ospiti compresi. Si completa con il segnale `reading-changed`, quando lo stato di lettura cambia con successo (modulo `reading`).
+- `book-opened` parte quando si apre la pagina di un libro (`BookDetailPage.tsx`). L'ancora `nav.search` sulla barra c'è già (`tour-start`).
 
 ## «Rivedi il tutorial»
 
-Nelle Impostazioni, nella sezione della libreria o del dispositivo, un'azione «Rivedi il tutorial» (bottone secondario, con una riga che spiega cosa fa). Riparte dal primo passo con il percorso adatto adesso: `firstBook` se la persona può scrivere e la libreria è vuota, altrimenti `explore`. Funziona anche dopo «Salta il tutorial».{{SETTINGS}}
+Nelle Impostazioni, nella sezione della libreria o del dispositivo, un'azione «Rivedi il tutorial» (bottone secondario, con una riga che spiega cosa fa). Riparte dal primo passo con il percorso adatto adesso: `firstBook` se la persona può scrivere e la libreria è vuota, altrimenti `explore`. Funziona anche dopo «Salta il tutorial». La sezione è «La tua libreria» (`modules/settings/sections/library/LibrarySection.tsx`).
 
 ## Testi
 
@@ -26,12 +27,11 @@ Nel namespace `tour` (italiano e inglese): titoli e testi dei passi di `explore`
 
 - Persona nuova in una libreria con libri, o ospite: parte `explore` e il segno sparisce.
 - I tre passi seguono i loro bersagli e si completano con `book-opened`, `where-shown`, `reading-changed`; i segnali partono dalle azioni reali; il libro non collocato completa il passo 2.
-- Senza il permesso per la lettura il percorso ha 2 passi.
 - «Rivedi il tutorial» riparte dal primo passo con il percorso giusto, anche dopo «Salta il tutorial».
 
 ## Acceptance criteria
 
-- `npm run typecheck -w @bookeeper/desktop` passa; `npx vitest run src/modules/tour src/modules/settings src/modules/books src/modules/reading src/modules/palette` (da `apps/desktop`) passa; `npm test -w @bookeeper/i18n` passa.
+- `npm run typecheck -w @bookeeper/desktop` passa; `npx vitest run src/modules/tour src/modules/settings src/modules/books src/modules/reading src/modules/shelves` (da `apps/desktop`) passa; `npm test -w @bookeeper/i18n` passa.
 - Nessun componente oltre 250 righe; nessun testo nei componenti; nessun colore letterale.
 - `.claude/skills/impeccable/scripts/impeccable detect --json` sui file cambiati non trova nulla.
-- Cambiano solo i file dichiarati della task.
+- Cambiano solo file sotto `apps/desktop/src/modules/tour/`, `settings/`, `books/`, `reading/`, `shelves/` e i file i18n `tour.json` e `settings.json` (it, en).

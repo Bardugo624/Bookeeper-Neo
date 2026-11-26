@@ -14,18 +14,19 @@ Setup di Impeccable da `apps/desktop` con `--target src/modules/tour`; leggi `re
 - Stati: `idle`, `running` (passo n), `paused` (passo n), `done`, `skipped`. Avanti solo con il segnale del passo; «Lo faccio dopo» mette in pausa; «Salta il tutorial» chiude per sempre.
 - Si ricorda per connessione in `localStorage` (`bookeeper.tour.<connectionId>`: percorso, passo, stato) dentro `try/catch`. Un flag `bookeeper.tour.pending.<connectionId>` dice «questa persona è nuova»: le task successive lo scrivono e lo leggono con le funzioni che esporti qui.
 
-## L'API (`TourProvider.tsx`, `index.ts`)
+## L'API (`store.ts`, `routes.tsx`, `index.ts`)
 
-- `TourProvider` va montato una volta alla radice dell'app, dentro la sessione e il router, dove già stanno gli altri provider globali: montalo tu.
-- `useTour()` dà: `start(percorso)`, `pause()`, `resume()`, `skip()`, `signal(nome, dati?)`, lo stato e il passo corrente.
-- `tourAnchor(id)` (o un hook equivalente) dà le prop da mettere su un elemento perché il tour lo trovi (per esempio `data-tour="books.add"`).
-- `signal` può essere chiamato da qualunque modulo in qualunque momento: se il tour non aspetta quel segnale non succede nulla.
+- Lo stato sta in uno store come quello della sessione (`apps/desktop/src/session/store.ts`): NON in un provider alla radice, perché `app/AppProviders.tsx` sta fuori dal router.
+- Il riflettore e la scheda si registrano come `overlay` del modulo in `modules/tour/routes.tsx` (`AppModule.overlay`, `app/types.ts`), come fa la palette (`modules/palette/routes.tsx`): i moduli si raccolgono da soli (`app/modules.ts`).
+- `useTour()` dà: `start(percorso)`, `pause()`, `resume()`, `skip()`, lo stato e il passo corrente. `tourSignal(nome, dati?)` si chiama da qualunque modulo in qualunque momento: se il tour non aspetta quel segnale non succede nulla.
+- `tourAnchor(id)` dà le prop da mettere su un elemento perché il tour lo trovi (per esempio `data-tour="books.add"`).
 
 ## Il riflettore (`Spotlight.tsx`) e la scheda (`CoachCard.tsx`)
 
 - **Riflettore**: uno strato fisso sopra l'app che scurisce tutto tranne un rettangolo arrotondato attorno all'ancora, con un margine; l'ombra è calda (token `--bk-scrim` con trasparenza, come gli altri veli), come una lampada da lettura. Lo strato NON intercetta i clic: il bersaglio e il resto dell'app restano usabili. Un `pointerdown` fuori dal bersaglio e dalla scheda mette il tour in pausa.
 - Quando il passo cambia bersaglio, il rettangolo **scivola** al nuovo posto (al massimo 450 ms, `--bk-ease`). Segue l'ancora se la finestra cambia misura, se la pagina scorre o se l'ancora si sposta (`ResizeObserver` più ascolto di resize e scroll, al massimo una misura per frame). Se l'ancora non c'è (un'altra pagina), il riflettore sparisce e la scheda resta, con il testo del passo.
-- **Scheda**: accanto al bersaglio, dal lato dove c'è spazio, con una freccia. Contiene l'avanzamento come piccoli segnalibri (uno per passo: fatto, corrente, da fare; non solo per colore), il titolo in serif, una o due frasi, e le azioni «Lo faccio dopo» e «Salta il tutorial». È un dialogo NON modale (`role="dialog"`, nome dal titolo); il cambio di passo è annunciato in una regione `aria-live="polite"`. Esc mette in pausa. Il fuoco resta dov'è: la scheda non lo ruba al bersaglio.
+- **Scheda**: accanto al bersaglio, dal lato dove c'è spazio, con una freccia. Contiene l'avanzamento come piccoli segnalibri (uno per passo: fatto, corrente, da fare; non solo per colore), il titolo in serif, una o due frasi, e le azioni «Lo faccio dopo» e «Salta il tutorial». È una regione (`role="region"`, nome dal titolo), NON un `dialog` (vedi il contratto); il cambio di passo è annunciato in `aria-live="polite"`. Esc mette in pausa. Il fuoco resta dov'è: la scheda non lo ruba al bersaglio.
+- **Dentro un dialogo.** Se l'ancora sta in un dialogo modale aperto (Radix), la scheda si disegna dentro quel dialogo (portale nel suo contenuto): resta cliccabile e un clic su di lei non chiude il dialogo. Il riflettore resta fuori: non riceve clic.
 - Con il movimento ridotto il rettangolo salta al nuovo posto senza scivolare.
 
 ## «Primi passi» (`FirstStepsPill.tsx`)
@@ -34,11 +35,12 @@ Componente piccolo per la barra laterale (lo monta `tour-start`): visibile quand
 
 ## Testi
 
-Namespace nuovo `tour` in `packages/i18n` (italiano e inglese), registrato come gli altri: le azioni (Lo faccio dopo, Salta il tutorial, Riprendi, Non mostrare più), «Primi passi», l'avanzamento («Passo {n} di {total}»), l'annuncio del passo.
+Namespace nuovo `tour`: basta creare `packages/i18n/src/locales/it/tour.json` e `en/tour.json` (`packages/i18n/src/index.ts` li carica da solo; `i18n.test.ts` vuole le stesse chiavi nelle due lingue). Dentro: le azioni (Lo faccio dopo, Salta il tutorial, Riprendi, Non mostrare più), «Primi passi», l'avanzamento («Passo {n} di {total}»), l'annuncio del passo.
 
 ## Test
 
 `tour.test.tsx` (e altri file accanto ai componenti, se serve), con un percorso di prova definito nel test:
+- jsdom non ha `matchMedia` né `ResizeObserver`: simulali nei test.
 - `start` illumina l'ancora del primo passo; il segnale giusto passa al successivo, uno sbagliato non fa nulla; l'ultimo porta a `done`;
 - «Lo faccio dopo», Esc e un clic fuori mettono in pausa; «Primi passi» riprende dal passo giusto; «Non mostrare più» e «Salta il tutorial» portano a `skipped` e non torna più;
 - stato e passo sopravvivono a un nuovo montaggio (stessa connessione) e sono separati per connessione; senza `localStorage` nulla si rompe;
@@ -50,4 +52,4 @@ Namespace nuovo `tour` in `packages/i18n` (italiano e inglese), registrato come 
 - `npm run typecheck -w @bookeeper/desktop` passa; `npx vitest run src/modules/tour` (da `apps/desktop`) passa; `npm test -w @bookeeper/i18n` passa.
 - Ogni componente sotto le 250 righe; nessun testo nei componenti; nessun colore letterale (solo token semantici).
 - `.claude/skills/impeccable/scripts/impeccable detect --json` sui file cambiati non trova nulla.
-- Cambiano solo `apps/desktop/src/modules/tour/` (nuovo), i file `tour.json` (it, en) e la registrazione del namespace in `packages/i18n`, e il file della radice dell'app dove monti il provider{{ROOT}}.
+- Cambiano solo `apps/desktop/src/modules/tour/` (nuovo), i file `tour.json` (it, en).

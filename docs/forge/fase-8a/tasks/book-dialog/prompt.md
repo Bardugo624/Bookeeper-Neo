@@ -10,7 +10,7 @@ Oggi «Nuovo libro» e «Modifica libro» sono un pannello laterale alto quanto 
 
 Setup di Impeccable da `apps/desktop` con `--target src/modules/books/BookDrawer.tsx`; leggi `reference/layout.md`, `reference/animate.md` e `reference/craft-floor.md`. È rifinitura: campi, testi, validazioni, salvataggio, «Salva e aggiungi un altro», avvisi di ricerca e di duplicato, copertina e tag restano come sono.
 
-1. **Contenitore.** `BookDrawer` diventa `BookDialog` (file, componente ed export di `books/index.ts`) e usa il `Dialog` del kit al posto del `Drawer`. Aggiorna chi lo importa{{IMPORTERS}}.
+1. **Contenitore.** `BookDrawer` diventa `BookDialog` (file, componente ed export di `books/index.ts`) e usa il `Dialog` del kit al posto del `Drawer`. Aggiorna chi lo importa: `BooksPage.tsx` (Nuovo libro) e `DetailToolbar.tsx` (Modifica libro). La palette e il tasto `n` aprono `/books?new=1`, che `BooksPage` gestisce con `useNewBookParam`: quel percorso resta com'è. Aggiorna `writeKit.ts` (`openNewBook`) e i test che cercano il pannello: in `books` `AddBook`, `ActiveFilters`, `BookTags`, `BookActions`, `BookCover`; e `modules/onboarding/onboarding.test.tsx`. «Aggiungi il primo libro» sta in `modules/onboarding/FirstBookHint.tsx`: passa il suo bottone come `origin`.
 2. **Tre momenti, un pop-up che cresce.**
    - **ISBN** (`size="default"`): titolo «Nuovo libro», campo ISBN con il suo suggerimento, «Cerca» e «Inserisci a mano». Il pop-up abbraccia il contenuto: niente spazio vuoto.
    - **Scheda** (`size="wide"`), dopo la ricerca o con «Inserisci a mano»: il pop-up si allarga e mostra il libro come una scheda. A sinistra la copertina (con la sua scelta); a destra gli essenziali (titolo, sottotitolo, autori, editore, anno), con sopra l'avviso della ricerca o del duplicato. Sotto, i tag. I gruppi «Edizione», «Raccolta» e «Note» diventano righe che si aprono: chiusi se vuoti, aperti se la ricerca li ha riempiti. Aprirne uno allarga ancora il pop-up. In fondo le azioni di oggi (Annulla, Salva e aggiungi un altro, Salva).
@@ -36,4 +36,4 @@ Aggiorna i test che parlano del pannello e aggiungine dove serve:
 - `npm test -w @bookeeper/i18n` passa se aggiungi testi (italiano e inglese).
 - Nessun componente oltre 250 righe; nessun testo nei componenti; nessun colore letterale.
 - `.claude/skills/impeccable/scripts/impeccable detect --json` sui file cambiati non trova nulla.
-- Cambiano solo i file dichiarati della task.
+- Cambiano solo file sotto `apps/desktop/src/modules/books/`, `modules/onboarding/FirstBookHint.tsx` e `onboarding.test.tsx`, e `books.json` (it, en).
