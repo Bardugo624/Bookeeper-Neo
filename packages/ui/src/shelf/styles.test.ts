@@ -42,3 +42,8 @@ it('keeps literal colors out of every other source file', () => {
     expect(readFileSync(new URL(f, dir), 'utf8'), f).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(/i);
   }
 });
+
+it('has an explicit rule for reduced motion on the pulled spine', () => {
+  const css = strip(readFileSync(new URL('Shelf.module.css', dir), 'utf8'));
+  expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\)[\s\S]*data-pulled/);
+});

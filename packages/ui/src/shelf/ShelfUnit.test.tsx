@@ -2,7 +2,7 @@ import { createEvent, fireEvent, render, screen, within } from '@testing-library
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import '../overlays/polyfills';
-import { ShelfUnit, SHELF_COLORS, spineHeight, spineWidth, type ShelfAnnounce, type ShelfRow } from './index';
+import { positionLabel, ShelfUnit, SHELF_COLORS, spineHeight, spineWidth, type ShelfAnnounce, type ShelfRow } from './index';
 
 const rows: ShelfRow[] = [
   {
@@ -200,5 +200,59 @@ describe('ShelfUnit read-only and defaults', () => {
   it('is not draggable without onSlotDrop', () => {
     render(<ShelfUnit color={SHELF_COLORS[0]!} rows={rows} />);
     expect(screen.getAllByRole('button')[0]!.getAttribute('draggable')).toBe('false');
+  });
+});
+
+describe('pulledId', () => {
+  const pulled = () => screen.queryAllByRole('button').filter((b) => b.getAttribute('data-pulled') === 'true');
+
+  it('marks one spine, moves the mark and removes it', () => {
+    const { rerender } = setup({ pulledId: 'b' });
+    expect(pulled().map((b) => b.getAttribute('data-spine-id'))).toEqual(['b']);
+    const again = (id?: string) =>
+      rerender(<ShelfUnit color={SHELF_COLORS[0]!} rows={rows} onSlotDrop={() => {}} pulledId={id} />);
+    again('d');
+    expect(pulled().map((b) => b.getAttribute('data-spine-id'))).toEqual(['d']);
+    again(undefined);
+    expect(pulled()).toHaveLength(0);
+  });
+
+  it('is independent of selectedId', () => {
+    setup({ pulledId: 'a', selectedId: 'c' });
+    expect(pulled().map((b) => b.getAttribute('data-spine-id'))).toEqual(['a']);
+    expect(screen.getByRole('button', { name: 'Ubik' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Dune, Herbert' })).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('scrolls the pulled spine into view when it changes', () => {
+    const spy = vi.fn();
+    HTMLElement.prototype.scrollIntoView = spy;
+    const { rerender } = setup({ pulledId: 'a' });
+    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ block: 'nearest' }));
+    spy.mockClear();
+    rerender(<ShelfUnit color={SHELF_COLORS[0]!} rows={rows} pulledId="d" />);
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('read-only use', () => {
+  it('has no draggable spine and ignores drops without onSlotDrop', () => {
+    render(<ShelfUnit color={SHELF_COLORS[0]!} rows={rows} pulledId="a" />);
+    screen.getAllByRole('button').forEach((b) => expect(b.getAttribute('draggable')).toBe('false'));
+    const strip = layOut('Ripiano 1');
+    const dt = new FakeDataTransfer();
+    dt.setData('application/x-bookeeper-book', 'd');
+    const over = createEvent.dragOver(strip, { dataTransfer: dt });
+    fireEvent(strip, over);
+    expect(over.defaultPrevented).toBe(false);
+    const drop = createEvent.drop(strip, { dataTransfer: dt });
+    fireEvent(strip, drop);
+    expect(drop.defaultPrevented).toBe(false);
+  });
+});
+
+describe('positionLabel', () => {
+  it('counts from 1 and writes no text', () => {
+    expect(positionLabel({ row: 2, slot: 11 })).toEqual({ row: 3, slot: 12 });
   });
 });
