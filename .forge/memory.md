@@ -16,6 +16,11 @@
 ## Known traps
 - a rejected optimistic write can restore the cache in the same batch as the optimistic render, so an effect keyed on the saved value… [apps/mobile/src/modules/reading/NoteField.tsx]
 - a fresh worktree has no node_modules; run `npm ci --offline` at the root, then `npx vitest run <path>` from apps/desktop [apps/desktop/package.json]
+- `npm test -w @bookeeper/desktop` first needs `npm ci --offline` at the root in a fresh worktree, or tsc cannot find vite/vitest types [apps/desktop/package.json]
+- `Db` is one `Arc<Mutex<Connection>>`, so every `run` closure is serialised in-process and a concurrency test on the API cannot catch a… [crates/bookeeper-core/src/db/mod.rs]
+- `ApiError::validation(..).into()` inside a `run` closure is fine, but outside it (before `run`) clippy `-D warnings` flags it as a… [crates/bookeeper-core/src/api/shelves.rs]
+- `HTMLElement.prototype.scrollIntoView` is stubbed by `packages/ui/src/overlays/polyfills`, so tests must mock it on… [packages/ui/src/overlays/polyfills.ts]
+- in this sandbox the docker CLI exists but no daemon runs, and the x86_64-unknown-linux-musl rustup target is installed without x86_64-linux-musl-gcc, so a… [Dockerfile.release]
 - the reading/audit desktop files have no Prettier config in the repo; format with `npx prettier --no-config --single-quote --print-width… [apps/desktop/src/modules/tags/testkit.tsx]
 - turning an i18n string into a `{one, other}` plural makes any caller that doesn't pass a numeric `count` render the raw key; grep every `t('<key>'`… [packages/i18n/src/index.ts]
 - the books testkit `extra` handler is synchronous; to delay a response in a test, wrap the handler with `platform.handle(...)` and… [apps/desktop/src/modules/reading/testkit.tsx]
@@ -23,9 +28,4 @@
 - in the books tests, a list that ends up empty swaps the top active-filter chips for the NoResults ones, so a button found before the… [apps/desktop/src/modules/books/testkit.tsx]
 - the books page has two PillTabs tablists (filters and view), so `getAllByRole('tab', {selected:true})` counts the view tab too;… [apps/desktop/src/modules/books/FilterBar.tsx]
 - a new module folder with both `Foo.module.css` and `foo.test.tsx` trips `packages/ui/src/caseCollisions.test.ts`; name the test after a… [packages/ui/src/caseCollisions.test.ts]
-- Radix Dialog/Drawer close on Escape from a document capture listener, so a combobox inside one must intercept Escape with a… [apps/desktop/src/modules/loans/BorrowerInput.tsx]
-- `modules/loans/BorrowerInput.module.css` has a literal `rgb(` color, so `kit/styles.test.ts` fails on it until the loans task fixes it [apps/desktop/src/kit/styles.test.ts]
-- a test module registered with `renderApp` needs a `nav` entry and a route other than `/`, or the shell renders an empty `<main>` [apps/desktop/src/app/testing.tsx]
-- rusqlite scalar functions (`create_scalar_function`) need the `functions` feature in crates/bookeeper-core/Cargo.toml [crates/bookeeper-core/Cargo.toml]
-- `ShelfForm.test.tsx` "validates with the limits of the core and sends the body" can fail on `aria-selected` when the whole… [apps/desktop/src/modules/shelves/ShelfForm.test.tsx]
 
