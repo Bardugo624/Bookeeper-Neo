@@ -14,6 +14,13 @@ const api = {
 };
 
 let scrolled = 0;
+/** Where the page is scrolled: `scrolled` is what the list sees, `scrollY` what the page reports. */
+function stubWindowScroll() {
+  Object.defineProperty(window, 'scrollY', { configurable: true, get: () => scrolled });
+  vi.spyOn(window, 'scrollTo').mockImplementation(((_x: number, y: number) => {
+    scrolled = y;
+  }) as typeof window.scrollTo);
+}
 const rows = () => within(screen.getByRole('list', { name: 'Libri' })).getAllByRole('link');
 const scrollTo = async (y: number) => {
   scrolled = y;
@@ -53,6 +60,7 @@ describe('windowed result list', () => {
 
   it('shows the rows at the scrolled position, and the same ones again when coming back to it', async () => {
     stubLayout();
+    stubWindowScroll();
     const user = userEvent.setup();
     const { router } = renderSearch({ api });
     await screen.findByRole('link', { name: /Libro 1,/ });
@@ -61,7 +69,10 @@ describe('windowed result list', () => {
     expect(screen.queryByRole('link', { name: /Libro 1,/ })).toBeNull();
     await user.click(screen.getByRole('link', { name: /Libro 101,/ }));
     await screen.findByRole('heading', { level: 1, name: /Libro 101/ });
+    // the card opens at the top, as a new page does
+    scrolled = 0;
     await act(() => router.navigate(-1));
+    await waitFor(() => expect(scrolled).toBe(100 * ROW_HEIGHT));
     await screen.findByRole('link', { name: /Libro 101,/ });
     expect(screen.queryByRole('link', { name: /Libro 1,/ })).toBeNull();
   });
