@@ -8,6 +8,8 @@ interface ButtonBaseProps extends ComponentProps<'button'> {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
   size?: 'md' | 'sm';
   icon?: IconName;
+  /** `danger` tints `ghost` and `secondary` red for destructive actions; the solid `danger` variant is unaffected. */
+  tone?: 'danger';
 }
 
 /** `loadingLabel` (already translated by the caller) is required whenever `loading` can be true. */
@@ -21,6 +23,7 @@ export function Button({
   variant = 'secondary',
   size = 'md',
   icon,
+  tone,
   loading = false,
   loadingLabel,
   disabled,
@@ -35,7 +38,7 @@ export function Button({
       type={type}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
-      className={cx(styles.button, styles[variant], styles[size], className)}
+      className={cx(styles.button, styles[variant], styles[size], tone === 'danger' && variant !== 'danger' && styles.toneDanger, className)}
     >
       {loading ? <Spinner label={loadingLabel ?? ''} size={14} /> : icon ? <Icon name={icon} size={size === 'sm' ? 14 : 16} /> : null}
       {children}

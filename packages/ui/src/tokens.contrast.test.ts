@@ -28,6 +28,15 @@ function ratio(a: string, b: string): number {
   return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
 }
 
+/** Composites an `rgb(r g b / a)` color over an opaque hex background. */
+function over(rgba: string, bg: string): string {
+  const m = /^rgb\(\s*(\d+)\s+(\d+)\s+(\d+)\s*\/\s*([\d.]+)\s*\)$/.exec(rgba);
+  if (!m) throw new Error(`not an rgb() with alpha: ${rgba}`);
+  const a = Number(m[4]);
+  const hex = [1, 2, 3].map((i, k) => Math.round(Number(m[i]) * a + parseInt(bg.slice(1 + k * 2, 3 + k * 2), 16) * (1 - a)).toString(16).padStart(2, '0'));
+  return `#${hex.join('')}`;
+}
+
 const SURFACES = ['--bk-bg', '--bk-surface', '--bk-surface-raised', '--bk-chrome', '--bk-inset'];
 const TEXTS = ['--bk-text', '--bk-text-muted', '--bk-text-faint', '--bk-accent-text'];
 const themes = [['light', light], ['dark', dark]] as const;
@@ -51,6 +60,14 @@ describe.each(themes)('contrast, %s theme', (_name, vars) => {
   it('keeps the text on the accent surfaces readable', () => {
     expect(c('--bk-on-accent-surface', '--bk-accent-surface')).toBeGreaterThanOrEqual(4.5);
     expect(c('--bk-on-accent-surface', '--bk-accent-surface-strong')).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('keeps the danger text and icons readable on the surfaces and the tinted hover', () => {
+    for (const s of SURFACES) expect(c('--bk-danger-strong', s), s).toBeGreaterThanOrEqual(4.5);
+    for (const s of SURFACES) {
+      const tinted = over(vars.get('--bk-danger-bg')!, resolve(vars, s));
+      expect(ratio(resolve(vars, '--bk-danger-strong'), tinted), `tinted ${s}`).toBeGreaterThanOrEqual(4.5);
+    }
   });
 
   it('keeps the tooltip text readable on its background', () => {

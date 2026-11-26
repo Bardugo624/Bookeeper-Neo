@@ -73,3 +73,25 @@
         transform: scale(0.98);
     }
 }
+
+.toneDanger.ghost,
+.toneDanger.secondary {
+    color: var(--bk-danger-strong);
+}
+
+.toneDanger.secondary {
+    border-color: var(--bk-danger);
+}
+
+.toneDanger.ghost:hover:not(:disabled),
+.toneDanger.secondary:hover:not(:disabled),
+.toneDanger.ghost:active:not(:disabled),
+.toneDanger.secondary:active:not(:disabled) {
+    background: var(--bk-danger-bg);
+    color: var(--bk-danger-strong);
+}
+
+.toneDanger:focus-visible {
+    outline: 2px solid var(--bk-focus);
+    outline-offset: 2px;
+}

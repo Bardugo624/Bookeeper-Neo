@@ -14,3 +14,10 @@ it('requires a label', () => {
   // @ts-expect-error label is required
   render(<IconButton icon="close" />);
 });
+
+it('adds the danger tone class without changing the accessible name', () => {
+  render(<IconButton icon="close" label="Delete" tone="danger" />);
+  const btn = screen.getByRole('button', { name: 'Delete' });
+  expect(btn.className).toMatch(/toneDanger/);
+  expect(btn).toHaveAttribute('aria-label', 'Delete');
+});
