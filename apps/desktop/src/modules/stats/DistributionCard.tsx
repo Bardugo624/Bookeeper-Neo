@@ -35,7 +35,7 @@ export function DistributionCard({ title, rows }: DistributionCardProps) {
         <tbody>
           {shown.map((r) => (
             <tr key={r.id}>
-              <th scope="row" className={styles.label}>
+              <th scope="row" className={styles.label} title={r.label}>
                 {r.label}
               </th>
               <td className={styles.bar} aria-hidden="true">

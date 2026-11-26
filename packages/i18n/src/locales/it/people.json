@@ -7,7 +7,7 @@
   "loading": "Caricamento delle persone",
   "error": {
     "title": "Impossibile caricare le persone",
-    "text": "Controlla la connessione e riprova."
+    "text": "Non riesco a leggere l’elenco: il server non risponde. Controlla la connessione e riprova; se non cambia, chiedi a chi gestisce il server."
   },
   "you": "Tu",
   "roles": {
@@ -92,6 +92,9 @@
     "empty": "Nessun invito in attesa.",
     "by": "Creato da {name}",
     "expires": "scade il {date}",
-    "revoke": "Revoca"
+    "revoke": "Revoca",
+    "revokeLabel": "Revoca l’invito come {role}",
+    "error": "Non riesco a leggere gli inviti in attesa. Riprova tra poco.",
+    "retry": "Riprova"
   }
 }

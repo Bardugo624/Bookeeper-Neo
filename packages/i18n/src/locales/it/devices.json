@@ -2,7 +2,7 @@
   "title": "Dispositivi",
   "count": { "one": "{count} dispositivo collegato", "other": "{count} dispositivi collegati" },
   "loading": "Caricamento dei dispositivi",
-  "error": { "title": "Impossibile caricare i dispositivi", "text": "Controlla la connessione e riprova." },
+  "error": { "title": "Impossibile caricare i dispositivi", "text": "Non riesco a leggere l’elenco: il server non risponde. Controlla la connessione e riprova; se non cambia, chiedi a chi gestisce il server." },
   "revokedSection": "Revocati ({count})",
   "kind": { "desktop": "Computer", "mobile": "Telefono" },
   "card": {

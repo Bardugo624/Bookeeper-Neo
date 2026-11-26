@@ -58,6 +58,10 @@
   color: var(--bk-text);
 }
 
+.longest a {
+  overflow-wrap: anywhere;
+}
+
 .muted {
   margin: 0;
   font-size: 13px;
