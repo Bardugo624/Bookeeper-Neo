@@ -1,0 +1,48 @@
+{
+  "title": "Lettura",
+  "loading": "Caricamento dello stato di lettura",
+  "error": "Non riesco a leggere lo stato di lettura.",
+  "retry": "Riprova",
+  "invite": "A che punto sei con questo libro?",
+  "pick": {
+    "to_read": "Da leggere",
+    "reading": "Sto leggendo",
+    "read": "Letto"
+  },
+  "status": {
+    "to_read": "Da leggere",
+    "reading": "In lettura",
+    "read": "Letto",
+    "abandoned": "Abbandonato"
+  },
+  "change": "Cambia stato",
+  "sheet": {
+    "title": "Stato di lettura",
+    "clear": "Togli lo stato"
+  },
+  "ring": {
+    "label": "{status}, {percent}%"
+  },
+  "pageOf": "Pagina {page} di {total}",
+  "page": "Pagina {page}",
+  "startedOn": "Iniziato il {date}",
+  "finishedOn": "Finito il {date}",
+  "markRead": "Segna come letto",
+  "field": {
+    "page": {
+      "label": "Pagina corrente",
+      "less": "Una pagina in meno",
+      "more": "Una pagina in più",
+      "of": "di {total}",
+      "invalid": "Scrivi un numero intero, da 0 in su."
+    }
+  },
+  "rating": {
+    "label": "Valutazione",
+    "star": "{count} su 5"
+  },
+  "note": {
+    "label": "Nota",
+    "placeholder": "Cosa ne pensi?"
+  }
+}
