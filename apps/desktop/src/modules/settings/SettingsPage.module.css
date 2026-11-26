@@ -44,6 +44,12 @@
 .active:hover {
   background: var(--bk-accent-surface);
   color: var(--bk-on-accent-surface);
+  font-weight: 600;
+}
+
+.item span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .content {

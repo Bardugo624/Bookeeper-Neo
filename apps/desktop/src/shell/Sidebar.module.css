@@ -66,7 +66,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 32px;
+  min-height: 32px;
   margin: 0 0 12px;
   padding: 0 8px 0 10px;
   border: 1px solid var(--bk-border);
@@ -78,9 +78,20 @@
   cursor: pointer;
 }
 
+.hint {
+  white-space: nowrap;
+}
+
 .hint span {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   text-align: left;
+}
+
+.hint kbd {
+  flex: none;
 }
 
 .hint:hover {

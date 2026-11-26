@@ -39,4 +39,6 @@
 }
 .steps a {
   color: var(--bk-accent-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }

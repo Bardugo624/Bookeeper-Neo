@@ -30,6 +30,7 @@ export function useAuditList(filters: AuditFilters) {
     total: query.data?.pages[0]?.total ?? 0,
     isPending: query.isPending,
     isError: query.isError,
+    error: query.error,
     forbidden: query.error instanceof ApiError && query.error.status === 403,
     hasMore: query.hasNextPage,
     loadingMore: query.isFetchingNextPage,

@@ -48,12 +48,14 @@
 }
 
 .title {
+  overflow-wrap: anywhere;
   font-size: 15px;
   font-weight: 600;
   color: var(--bk-text-strong);
 }
 
 .text {
+  overflow-wrap: anywhere;
   font-size: 13px;
   font-weight: 400;
   color: var(--bk-text-muted);
