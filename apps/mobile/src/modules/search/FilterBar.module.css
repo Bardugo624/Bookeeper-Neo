@@ -32,12 +32,17 @@
 }
 
 .on {
-  border-color: var(--bk-primary-600);
-  background: var(--bk-primary-600);
+  border-color: var(--bk-primary-fill);
+  background: var(--bk-primary-fill);
   color: var(--bk-on-primary);
 }
 
 .chip:focus-visible {
   outline: 2px solid var(--bk-focus);
   outline-offset: 2px;
+}
+
+/* More chips past the right edge: fade it out so the cut-off chip reads as "keeps going". */
+.bar[data-more='true'] {
+  mask-image: linear-gradient(to right, var(--bk-text-strong) calc(100% - 32px), transparent);
 }

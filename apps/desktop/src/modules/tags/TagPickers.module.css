@@ -45,7 +45,7 @@
 
 .remove:focus-visible,
 .swatch:focus-visible {
-  outline: 2px solid var(--bk-primary-400);
+  outline: 2px solid var(--bk-focus);
   outline-offset: 2px;
 }
 
@@ -111,7 +111,7 @@
 }
 
 .swatch {
-  --tag-color: var(--bk-neutral-500);
+  --tag-color: var(--bk-text-faint);
   width: 26px;
   height: 26px;
   padding: 0;

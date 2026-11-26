@@ -75,7 +75,17 @@
     --bk-text: var(--bk-neutral-800);
     --bk-text-strong: var(--bk-neutral-900);
     --bk-text-muted: var(--bk-neutral-600);
-    --bk-text-faint: var(--bk-neutral-500);
+    --bk-text-faint: #6f675d; /* tra neutral-500 e 600: >= 4,5:1 anche sulla barra laterale */
+
+    /* ===== Accento semantico (light) =====
+     * Nei moduli si usano questi, mai i gradini grezzi --bk-primary-N. */
+    --bk-accent-surface: var(--bk-primary-50);
+    --bk-accent-surface-strong: var(--bk-primary-100);
+    --bk-on-accent-surface: var(--bk-primary-800);
+    --bk-accent-text: var(--bk-primary-600);
+    --bk-accent-control: var(--bk-primary-500);
+    --bk-primary-fill: var(--bk-primary-600);
+    --bk-primary-fill-hover: var(--bk-primary-700);
 
     /* ===== Ombre (light, tinte calde) ===== */
     --bk-shadow-1: 0 1px 2px rgb(39 36 31 / 0.05), 0 1px 3px rgb(39 36 31 / 0.05);
@@ -104,6 +114,7 @@
     --bk-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
     --bk-cover-light: #ffffff;
     --bk-cover-shade: #000000;
+    --bk-scrim: var(--bk-neutral-950);
 }
 
 html.dark {
@@ -130,8 +141,16 @@ html.dark {
     --bk-border-strong: var(--bk-neutral-600);
     --bk-text: var(--bk-neutral-100);
     --bk-text-strong: var(--bk-neutral-50);
-    --bk-text-muted: var(--bk-neutral-300);
-    --bk-text-faint: var(--bk-neutral-400);
+    --bk-text-muted: var(--bk-neutral-200);
+    --bk-text-faint: #8f8b83; /* tra neutral-200 e 300: >= 4,5:1 su ogni superficie scura */
+
+    --bk-accent-surface: #1b2b24;
+    --bk-accent-surface-strong: #25392f;
+    --bk-on-accent-surface: var(--bk-primary-100);
+    --bk-accent-text: var(--bk-primary-300);
+    --bk-accent-control: var(--bk-primary-400);
+    --bk-primary-fill: var(--bk-primary-600);
+    --bk-primary-fill-hover: var(--bk-primary-700);
 
     --bk-shadow-1: 0 1px 2px rgb(0 0 0 / 0.3), 0 1px 3px rgb(0 0 0 / 0.25);
     --bk-shadow-2: 0 2px 4px rgb(0 0 0 / 0.25), 0 6px 16px rgb(0 0 0 / 0.35);
@@ -156,6 +175,7 @@ html.dark {
     --bk-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
     --bk-cover-light: #ffffff;
     --bk-cover-shade: #000000;
+    --bk-scrim: var(--bk-neutral-950);
 }
 
 /* ===== Entrance condivise =====

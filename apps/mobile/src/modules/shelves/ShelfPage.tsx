@@ -4,6 +4,7 @@ import { EmptyState, Icon, Skeleton } from '@bookeeper/ui/base';
 import { useT } from '../../app/i18n';
 import { ErrorState, Screen, apiErrorMessage } from '../../kit';
 import { Cabinet, useCanGoBack, useShelf, useShelfBooks } from '../search';
+import { ShelfBookList } from './ShelfBookList';
 import styles from './Shelves.module.css';
 
 function Body({ id }: { id: string }) {
@@ -16,7 +17,7 @@ function Body({ id }: { id: string }) {
     if (failed.error instanceof ApiError && failed.error.status === 404) {
       return <EmptyState icon="library" title={t('mshelves.notFound.title')} text={t('mshelves.notFound.text')} />;
     }
-    return <ErrorState message={apiErrorMessage(t, failed.error)} onRetry={() => { void shelf.refetch(); void books.refetch(); }} />;
+    return <ErrorState message={`${t('mshelves.loadErrorUnit')} ${apiErrorMessage(t, failed.error)}`} onRetry={() => { void shelf.refetch(); void books.refetch(); }} />;
   }
   if (!shelf.data || !books.data) {
     return (
@@ -37,7 +38,7 @@ function Body({ id }: { id: string }) {
         label={t('mshelves.unit', { name })}
         onOpenBook={(bookId) => navigate(`/books/${encodeURIComponent(bookId)}`)}
       />
-      {books.data.length === 0 ? <p className={styles.sub}>{t('mshelves.emptyUnit')}</p> : null}
+      {books.data.length === 0 ? <p className={styles.sub}>{t('mshelves.emptyUnit')}</p> : <ShelfBookList books={books.data} />}
     </div>
   );
 }

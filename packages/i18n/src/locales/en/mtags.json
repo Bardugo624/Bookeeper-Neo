@@ -7,7 +7,7 @@
     "filter": "Filter or create a tag",
     "list": "Library tags",
     "loading": "Loading tags…",
-    "loadError": "Could not read the tags.",
+    "loadError": "Could not read the tags. Check your connection and try again.",
     "retry": "Retry",
     "empty": "No tags.",
     "create": "Create “{name}”",

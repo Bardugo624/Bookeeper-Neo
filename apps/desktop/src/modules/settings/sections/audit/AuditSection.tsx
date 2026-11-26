@@ -1,6 +1,6 @@
 import { Button, Skeleton } from '@bookeeper/ui/base';
-import { useT } from '../../../../app/i18n';
-import { useListParams } from '../../../../kit';
+import { useT, type Translate } from '../../../../app/i18n';
+import { apiErrorMessage, useListParams } from '../../../../kit';
 import { SettingsBlock } from '../../SettingsBlock';
 import { AuditFilters } from './AuditFilters';
 import { AuditTable } from './AuditTable';
@@ -8,6 +8,12 @@ import { AUDIT_PARAMS, CSV_MAX } from './auditModel';
 import { useAuditExport } from './useAuditExport';
 import { useAuditList, useAuditOptions } from './useAuditData';
 import styles from './AuditSection.module.css';
+
+/** One sentence: the reason is added only when it says more than the generic "something went wrong". */
+function auditErrorText(t: Translate, error: unknown): string {
+  const reason = apiErrorMessage(t, error);
+  return reason === t('common.errors.generic') ? t('audit.errorPlain') : t('audit.error', { reason });
+}
 
 export function AuditSection() {
   const t = useT();
@@ -26,7 +32,7 @@ export function AuditSection() {
   } else if (list.isError) {
     body = (
       <div className={styles.error} role="alert">
-        <p>{t('audit.error')}</p>
+        <p>{auditErrorText(t, list.error)}</p>
         <Button variant="ghost" onClick={list.retry}>
           {t('audit.retry')}
         </Button>

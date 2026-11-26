@@ -44,9 +44,12 @@ export function ScheduleBlock({ locked }: { locked: boolean }) {
   return (
     <SettingsBlock title={t('backup.schedule.title')} description={t('backup.schedule.description')}>
       {config.isError ? (
-        <p className={styles.error} role="alert">
-          {apiErrorMessage(t, config.error)}
-        </p>
+        <div className={styles.errorRow} role="alert">
+          <p className={styles.error}>{apiErrorMessage(t, config.error)}</p>
+          <Button variant="ghost" size="sm" onClick={() => void config.refetch()}>
+            {t('common.retry')}
+          </Button>
+        </div>
       ) : (
         <form
           className={styles.row}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { PersonOut } from '@bookeeper/api';
 import { useClient, useSession } from '../../session';
+import { usePeopleList } from '../people';
 import { sameName } from './history';
 
 export const SUGGEST_DELAY_MS = 200;
@@ -9,19 +10,6 @@ export const SUGGEST_DELAY_MS = 200;
 export interface BorrowerSuggestions {
   people: PersonOut[];
   names: string[];
-}
-
-function usePeopleList(enabled: boolean): PersonOut[] {
-  const client = useClient();
-  const connectionId = useSession((s) => s.connection?.id);
-  const { data } = useQuery({
-    queryKey: ['people', connectionId, 'list'],
-    enabled,
-    retry: false,
-    staleTime: 30_000,
-    queryFn: () => client.listUsers(),
-  });
-  return data?.items ?? [];
 }
 
 /**

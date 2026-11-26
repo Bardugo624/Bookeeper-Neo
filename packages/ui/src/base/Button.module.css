@@ -22,12 +22,12 @@
 }
 
 .primary {
-    background: var(--bk-primary-500);
+    background: var(--bk-primary-fill);
     color: var(--bk-on-primary);
 }
 
 .primary:hover:not(:disabled) {
-    background: var(--bk-primary-600);
+    background: var(--bk-primary-fill-hover);
 }
 
 .secondary {

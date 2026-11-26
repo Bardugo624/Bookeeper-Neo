@@ -1,5 +1,5 @@
 {
-  "hint": "Search or run a command",
+  "hint": "Search or run",
   "title": "Command palette",
   "input": "Search or run a command",
   "placeholder": "Search a book, a page or a command",

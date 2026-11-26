@@ -20,9 +20,8 @@
       "other": "{count} libri"
     },
     "onLoan": "In prestito",
-    "rowName": "{title}, {author}",
     "loadingMore": "Carico altri libri…",
-    "moreError": "Non è stato possibile caricare altri libri.",
+    "moreError": "Non ho caricato altri libri. Controlla la connessione e riprova.",
     "moreRetry": "Riprova"
   },
   "empty": {
@@ -42,7 +41,7 @@
       "title": "Dove si trova",
       "shelf": "Mobile",
       "none": "Non collocato",
-      "phrase": "{shelf} · ripiano {row} · posto {slot}",
+      "phrase": "{shelf}\u00a0· ripiano\u00a0{row}\u00a0· posto\u00a0{slot}",
       "button": "Dov'è?",
       "row": "Ripiano {row}",
       "unit": "Apri il mobile"
@@ -144,7 +143,7 @@
     },
     "owner": "Di chi è",
     "ownerNone": "Di tutti",
-    "peopleError": "Non è stato possibile caricare le persone.",
+    "peopleError": "Non ho caricato le persone, quindi non puoi cambiare di chi è il libro. Riprova tra poco.",
     "errors": {
       "required": "Campo obbligatorio",
       "tooLong": "Al massimo {max} caratteri.",

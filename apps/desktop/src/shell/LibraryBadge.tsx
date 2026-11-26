@@ -45,8 +45,12 @@ export function LibraryBadge() {
             {initial}
           </span>
           <span className={styles.text}>
-            <span className={styles.name}>{library}</span>
-            <span className={styles.sub}>{subtitle}</span>
+            <span className={styles.name} title={library}>
+              {library}
+            </span>
+            <span className={styles.sub} title={subtitle}>
+              {subtitle}
+            </span>
           </span>
         </button>
       }

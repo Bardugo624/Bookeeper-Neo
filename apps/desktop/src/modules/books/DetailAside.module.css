@@ -1,10 +1,14 @@
 .aside {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
+  min-width: 0;
 }
 
 .card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   padding: 16px;
   border: 1px solid var(--bk-border);
   border-radius: var(--bk-radius-lg);
@@ -15,7 +19,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 0 0 8px;
+  margin: 0;
   font-size: 12px;
   font-weight: 500;
   color: var(--bk-text-muted);
@@ -23,6 +27,7 @@
 
 .value {
   margin: 0;
+  overflow-wrap: anywhere;
   font-size: 14px;
   font-weight: 500;
   color: var(--bk-text-strong);
@@ -30,25 +35,26 @@
 
 .note {
   margin: 0;
+  overflow-wrap: anywhere;
   font-size: 13px;
   color: var(--bk-text-muted);
 }
 
 .link {
-  display: inline-block;
-  margin-top: 8px;
+  align-self: flex-start;
   font-size: 13px;
   font-weight: 500;
-  color: var(--bk-primary-600);
+  color: var(--bk-accent-text);
 }
 
 .action {
-  margin-top: 10px;
+  margin: 0;
 }
 
 .owner {
   margin: 0;
   padding: 0 4px;
+  overflow-wrap: anywhere;
   font-size: 13px;
   color: var(--bk-text-muted);
 }
@@ -56,7 +62,7 @@
 .readers {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
   margin: 0;
   padding: 0;
   list-style: none;

@@ -79,6 +79,16 @@ describe('shelf page', () => {
     expect(methods.every((m) => m === 'GET')).toBe(true);
   });
 
+  it('lists the books shelf by shelf as 44px-high links, the control the narrow spines are not', async () => {
+    const user = userEvent.setup();
+    const { router } = render('/shelves/s1');
+    const list = await screen.findByRole('region', { name: 'Libri per ripiano' });
+    expect(within(list).getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual(['Ripiano 1', 'Ripiano 2']);
+    expect(within(list).getAllByRole('link').map((a) => a.textContent)).toEqual(['Il nome della rosaEco', 'Dune']);
+    await user.click(within(list).getByRole('link', { name: /Dune/ }));
+    expect(router.state.location.pathname).toBe('/books/b2');
+  });
+
   it('opens the book card from a spine', async () => {
     const user = userEvent.setup();
     const { router } = render('/shelves/s1');

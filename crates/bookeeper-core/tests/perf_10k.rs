@@ -218,6 +218,122 @@ async fn queries_use_an_index_where_the_library_filters_or_sorts() {
             stats::reading_years_sql(),
             vec![text(&user), text(&lib_id)],
         ));
+
+        // `GET /stats` and `GET /stats/reading` keep their SQL inline in `stats.rs`;
+        // these are copies of it, to be kept in step.
+        let one = || vec![text(&lib_id)];
+        let since = || vec![text(&lib_id), Value::Integer(0)];
+        for col in ["format", "language", "genre"] {
+            statements.push((
+                format!("stats count by {col}"),
+                format!(
+                    "SELECT COALESCE(NULLIF(TRIM({col}), ''), '') AS k, COUNT(*) FROM books
+                     WHERE library_id = ?1 GROUP BY k ORDER BY k = '', COUNT(*) DESC, k"
+                ),
+                one(),
+            ));
+        }
+        statements.push((
+            "stats decades".into(),
+            "SELECT (published_year / 10) * 10 AS d, COUNT(*) FROM books
+             WHERE library_id = ?1 AND published_year IS NOT NULL GROUP BY d ORDER BY d"
+                .into(),
+            one(),
+        ));
+        statements.push((
+            "stats authors".into(),
+            "SELECT DISTINCT b.id, TRIM(j.value) AS a
+             FROM books b, json_each(b.authors_json) j
+             WHERE b.library_id = ?1 AND j.type = 'text' AND TRIM(j.value) <> ''"
+                .into(),
+            one(),
+        ));
+        statements.push((
+            "stats additions by month".into(),
+            "SELECT strftime('%Y-%m', created_at, 'unixepoch') AS m, COUNT(*) FROM books
+             WHERE library_id = ?1 AND created_at >= ?2 GROUP BY m"
+                .into(),
+            since(),
+        ));
+        statements.push((
+            "stats lent by month".into(),
+            "SELECT strftime('%Y-%m', lent_at, 'unixepoch') AS m, COUNT(*) FROM loans
+             WHERE library_id = ?1 AND lent_at >= ?2 GROUP BY m"
+                .into(),
+            since(),
+        ));
+        statements.push((
+            "stats returned by month".into(),
+            "SELECT strftime('%Y-%m', returned_at, 'unixepoch') AS m, COUNT(*) FROM loans
+             WHERE library_id = ?1 AND returned_at IS NOT NULL AND returned_at >= ?2 GROUP BY m"
+                .into(),
+            since(),
+        ));
+        statements.push((
+            "stats overview".into(),
+            "SELECT
+               (SELECT COUNT(*) FROM books WHERE library_id = ?1),
+               (SELECT COALESCE(SUM(COALESCE(page_count, 0)), 0) FROM books WHERE library_id = ?1),
+               (SELECT COUNT(*) FROM shelves WHERE library_id = ?1),
+               (SELECT COUNT(*) FROM wishlist WHERE library_id = ?1 AND user_id = ?2),
+               (SELECT COUNT(*) FROM loans WHERE library_id = ?1 AND returned_at IS NULL),
+               (SELECT COUNT(*) FROM loans WHERE library_id = ?1 AND returned_at IS NULL
+                  AND due_at IS NOT NULL AND due_at < ?3),
+               (SELECT COUNT(*) FROM loans WHERE library_id = ?1 AND returned_at IS NOT NULL)"
+                .into(),
+            vec![text(&lib_id), text(&user), Value::Integer(0)],
+        ));
+        statements.push((
+            "stats shelf fill".into(),
+            "SELECT s.id, s.name, s.color, s.rows * s.slots_per_row,
+                    (SELECT COUNT(*) FROM shelf_books sb WHERE sb.shelf_id = s.id)
+             FROM shelves s WHERE s.library_id = ?1 ORDER BY s.label_code"
+                .into(),
+            one(),
+        ));
+        let finished = "r.user_id = ?1 AND b.library_id = ?2 AND r.status = 'read'
+             AND r.finished_at IS NOT NULL
+             AND CAST(strftime('%Y', r.finished_at, 'unixepoch') AS INTEGER) BETWEEN 1900 AND 2200
+             AND strftime('%Y', r.finished_at, 'unixepoch') = ?3";
+        let year_args = || vec![text(&user), text(&lib_id), text("2024")];
+        for (name, select, tail) in [
+            (
+                "stats reading by month",
+                "SELECT CAST(strftime('%m', r.finished_at, 'unixepoch') AS INTEGER), COUNT(*)",
+                "GROUP BY 1",
+            ),
+            (
+                "stats reading totals",
+                "SELECT COUNT(*), COALESCE(SUM(COALESCE(b.page_count, 0)), 0),
+                        COUNT(r.rating), COALESCE(SUM(r.rating), 0)",
+                "",
+            ),
+            (
+                "stats reading genres",
+                "SELECT NULLIF(TRIM(b.genre), '')",
+                "",
+            ),
+            (
+                "stats reading days",
+                "SELECT strftime('%Y-%m-%d', r.finished_at, 'unixepoch') AS d, COUNT(*)",
+                "GROUP BY d ORDER BY d",
+            ),
+            (
+                "stats reading longest",
+                "SELECT b.id, b.title, b.page_count",
+                "AND b.page_count IS NOT NULL AND b.page_count > 0
+                 ORDER BY b.page_count DESC, r.finished_at, b.id LIMIT 1",
+            ),
+        ] {
+            statements.push((
+                name.into(),
+                format!(
+                    "{select} FROM reading r JOIN books b ON b.id = r.book_id
+                     WHERE {finished} {tail}"
+                ),
+                year_args(),
+            ));
+        }
     }
 
     let report = lib

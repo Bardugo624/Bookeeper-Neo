@@ -4,6 +4,8 @@
   "loading": "Carico la wishlist",
   "scope": { "label": "Quale lista", "mine": "La mia", "family": "Famiglia" },
   "family": { "me": "Tu" },
+  "loadError": "Non riesco a leggere la wishlist.",
+  "errors": { "convert": "Il libro non è stato aggiunto alla libreria.", "delete": "La voce non è stata eliminata.", "save": "La voce non è stata salvata." },
   "empty": {
     "mine": { "title": "La tua wishlist è vuota", "text": "Aggiungi i libri che vorresti avere." },
     "family": { "title": "Nessun desiderio in famiglia", "text": "Quando qualcuno aggiunge un libro alla wishlist, lo trovi qui." }

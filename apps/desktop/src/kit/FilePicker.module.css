@@ -10,7 +10,7 @@
 }
 
 .dragging {
-  outline: 1.5px dashed var(--bk-primary-400);
+  outline: 1.5px dashed var(--bk-focus);
   outline-offset: 2px;
 }
 
@@ -24,7 +24,7 @@
 }
 
 .root:has(.input:focus-visible) .button {
-  outline: 2px solid var(--bk-primary-400);
+  outline: 2px solid var(--bk-focus);
   outline-offset: 2px;
 }
 

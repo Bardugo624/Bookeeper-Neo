@@ -70,7 +70,7 @@ export function BookDetailPage() {
   }
 
   const authors = authorsOf(book);
-  const eyebrow = eyebrowOf(book);
+  const facts = eyebrowOf(book);
   const fields = metaFields(book, t);
   return (
     <div className={styles.page}>
@@ -91,10 +91,14 @@ export function BookDetailPage() {
           {canWrite ? <LendButton book={book} /> : null}
         </div>
         <div className={styles.main}>
-          {eyebrow ? <p className={styles.eyebrow}>{eyebrow}</p> : null}
           <h1 className={styles.title}>{book.title}</h1>
           {book.subtitle ? <p className={styles.subtitle}>{book.subtitle}</p> : null}
-          {authors ? <p className={styles.authors}>{authors}</p> : null}
+          {authors || facts ? (
+            <p className={styles.byline}>
+              {authors ? <span className={styles.authors}>{authors}</span> : null}
+              {facts ? <span className={styles.facts}>{facts}</span> : null}
+            </p>
+          ) : null}
           {book.description ? <p className={styles.description}>{book.description}</p> : null}
           {fields.length > 0 ? (
             <dl className={styles.meta}>

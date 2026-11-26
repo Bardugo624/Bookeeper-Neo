@@ -23,6 +23,19 @@ describe('the choice', () => {
     expect(within(screen.getByRole('region', { name: 'Tu' })).getAllByRole('listitem')).toHaveLength(2);
   });
 
+  it('moves through the choice with the arrow keys, one stop in the tab order', async () => {
+    const user = userEvent.setup();
+    renderWishlist(wishPlatform({ mine: [wish()], family: [other()] }));
+    await screen.findByText('Dune');
+    expect(screen.getByRole('radio', { name: 'La mia' })).toHaveAttribute('tabindex', '0');
+    expect(screen.getByRole('radio', { name: 'Famiglia' })).toHaveAttribute('tabindex', '-1');
+    screen.getByRole('radio', { name: 'La mia' }).focus();
+    await user.keyboard('{ArrowRight}');
+    await screen.findByText('Emma');
+    expect(screen.getByRole('radio', { name: 'Famiglia' })).toHaveFocus();
+    expect(screen.getByRole('radio', { name: 'Famiglia' })).toHaveAttribute('aria-checked', 'true');
+  });
+
   it('opens on the family when the address says so', async () => {
     const platform = wishPlatform({ mine: [wish()], family: [other()] });
     renderWishlist(platform, '/wishlist?scope=family');

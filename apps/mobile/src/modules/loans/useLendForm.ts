@@ -33,7 +33,7 @@ export function useLendForm(bookId: string, onDone: () => void) {
       await create.mutateAsync(toCreateBody(bookId, values));
       onDone();
     } catch (e) {
-      setFailure(apiErrorMessage(t, e));
+      setFailure(`${t('mloans.lend.failed')} ${apiErrorMessage(t, e)}`);
     }
   };
 

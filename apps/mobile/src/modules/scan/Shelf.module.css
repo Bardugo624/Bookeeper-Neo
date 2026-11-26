@@ -12,7 +12,7 @@
 }
 
 .back:focus-visible {
-  outline: 2px solid var(--bk-primary-400);
+  outline: 2px solid var(--bk-focus);
 }
 
 .stack,
@@ -73,7 +73,7 @@
 }
 
 .rowButton:focus-visible {
-  outline: 2px solid var(--bk-primary-400);
+  outline: 2px solid var(--bk-focus);
 }
 
 .rowTitle {

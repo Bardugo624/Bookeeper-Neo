@@ -1,12 +1,14 @@
 import { useId } from 'react';
 import { useT } from '../../app/i18n';
 import { PRIORITIES } from './model';
+import { useRadioKeys } from './useRadioKeys';
 import styles from './Wishlist.module.css';
 
 /** Low, medium or high as exclusive buttons, each at least 44px tall. */
 export function PriorityChoice({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   const t = useT();
   const id = useId();
+  const keys = useRadioKeys(PRIORITIES.length, Number(value), (i) => onChange(String(i)));
   return (
     <div className={styles.choice}>
       <span id={id} className={styles.choiceLabel}>
@@ -17,6 +19,7 @@ export function PriorityChoice({ value, onChange }: { value: string; onChange: (
           <button
             key={p}
             type="button"
+            {...keys(i)}
             role="radio"
             aria-checked={String(i) === value}
             className={styles.option}

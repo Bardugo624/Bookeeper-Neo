@@ -1,7 +1,7 @@
 {
   "title": "Reading",
   "loading": "Loading the reading state",
-  "error": "Could not load the reading state.",
+  "error": "Could not load the reading state. Check your connection and try again.",
   "retry": "Retry",
   "invite": "Where are you with this book?",
   "pick": {

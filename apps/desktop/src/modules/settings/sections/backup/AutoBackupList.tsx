@@ -1,3 +1,4 @@
+import { Button } from '@bookeeper/ui/base';
 import { useLocale, useT } from '../../../../app/i18n';
 import { apiErrorMessage } from '../../../../kit';
 import { SettingsBlock } from '../../SettingsBlock';
@@ -15,9 +16,12 @@ export function AutoBackupList() {
   return (
     <SettingsBlock title={t('backup.auto.title')} description={t('backup.auto.description')}>
       {list.isError ? (
-        <p className={styles.error} role="alert">
-          {apiErrorMessage(t, list.error)}
-        </p>
+        <div className={styles.errorRow} role="alert">
+          <p className={styles.error}>{apiErrorMessage(t, list.error)}</p>
+          <Button variant="ghost" size="sm" onClick={() => void list.refetch()}>
+            {t('common.retry')}
+          </Button>
+        </div>
       ) : list.isPending ? (
         <p className={styles.note}>{t('backup.auto.loading')}</p>
       ) : items.length === 0 ? (

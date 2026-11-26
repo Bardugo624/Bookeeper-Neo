@@ -206,7 +206,9 @@ fn debug_never_prints_tokens() {
 
 #[test]
 fn tauri_conf_has_no_decorations() {
-    let path = concat!(env!("CARGO_MANIFEST_DIR"), "/tauri.conf.json");
+    let dir = std::env::var("CARGO_MANIFEST_DIR")
+        .expect("CARGO_MANIFEST_DIR is not set: run the test through `cargo test`");
+    let path = format!("{dir}/tauri.conf.json");
     let v: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
     assert_eq!(

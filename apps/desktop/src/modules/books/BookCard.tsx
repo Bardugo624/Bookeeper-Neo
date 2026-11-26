@@ -26,7 +26,9 @@ export function BookCard({ book, from, selection, index, cell }: BookCardProps) 
   const t = useT();
   const src = useCover(book.id, mayHaveCover(book.cover_color));
   const author = authorsOf(book);
-  const name = author ? t('books.list.cardName', { title: book.title, author }) : book.title;
+  // The name starts with the visible text, in reading order: title, author, then the "On loan" label.
+  const base = author ? t('books.list.cardName', { title: book.title, author }) : book.title;
+  const name = book.on_loan ? t('books.list.cardNameLoan', { name: base, loan: t('books.list.onLoan') }) : base;
   const state: FromList = { list: from };
   return (
     <li className={styles.item} data-index={index} style={cell ? { gridRow: cell.row, gridColumn: cell.column } : undefined}>

@@ -25,8 +25,8 @@
   width: 42px;
   height: 42px;
   border-radius: var(--bk-radius-lg);
-  background: var(--bk-primary-50, var(--bk-surface-muted, transparent));
-  color: var(--bk-primary-700);
+  background: var(--bk-accent-surface);
+  color: var(--bk-on-accent-surface);
 }
 
 .body {
@@ -57,8 +57,9 @@
   flex-wrap: wrap;
   gap: 2px 14px;
   margin: 0;
-  font-size: 12px;
-  color: var(--bk-text-faint);
+  font-size: 13px;
+  color: var(--bk-text-muted);
+  overflow-wrap: anywhere;
 }
 
 .actions {

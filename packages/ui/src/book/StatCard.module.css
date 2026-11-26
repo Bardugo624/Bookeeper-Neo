@@ -22,7 +22,7 @@
 }
 
 .primary svg {
-    color: var(--bk-primary-500);
+    color: var(--bk-accent-text);
 }
 
 .ok svg {

@@ -5,7 +5,7 @@
 }
 
 .open {
-  border: 1.5px solid var(--bk-primary-500);
+  border: 1.5px solid var(--bk-accent-control);
   box-shadow: var(--bk-shadow-2);
 }
 
@@ -35,8 +35,8 @@
   display: grid;
   place-items: center;
   border-radius: var(--bk-radius-sm);
-  background: var(--bk-primary-50);
-  color: var(--bk-primary-600);
+  background: var(--bk-accent-surface);
+  color: var(--bk-on-accent-surface);
 }
 
 .titles {
@@ -48,12 +48,14 @@
 }
 
 .title {
+  overflow-wrap: anywhere;
   font-size: 15px;
   font-weight: 600;
   color: var(--bk-text-strong);
 }
 
 .text {
+  overflow-wrap: anywhere;
   font-size: 13px;
   font-weight: 400;
   color: var(--bk-text-muted);

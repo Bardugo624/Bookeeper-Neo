@@ -98,6 +98,10 @@ describe('app stylesheets', () => {
     expect(findLiteralColor(read(file))).toBeNull();
   });
 
+  it.each(named)('%s uses no raw palette steps', (_n, file) => {
+    expect(read(file)).not.toMatch(/var\(\s*--bk-(primary|neutral)-\d+/);
+  });
+
   it.each(named)('%s uses only existing tokens', (_n, file) => {
     // A token with a fallback (`var(--x, fallback)`) may be missing; one without may not.
     const used = [...read(file).matchAll(/var\(\s*(--[\w-]+)\s*\)/g)].map((m) => m[1]!);

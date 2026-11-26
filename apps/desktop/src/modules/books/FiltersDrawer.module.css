@@ -7,7 +7,7 @@
 .groups {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 20px;
 }
 
 .group {
@@ -20,14 +20,23 @@
   min-inline-size: 0;
 }
 
+.group + .group {
+  padding-top: 20px;
+  border-top: 1px solid var(--bk-border);
+}
+
 .legend {
+  float: left;
+  width: 100%;
   padding: 0;
-  margin-bottom: 4px;
-  font-size: 12px;
+  margin-bottom: 2px;
+  font-size: 14px;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--bk-text-muted);
+  color: var(--bk-text-strong);
+}
+
+.legend + * {
+  clear: both;
 }
 
 .field {
@@ -39,7 +48,7 @@
 
 .label {
   font-size: 13px;
-  color: var(--bk-text);
+  color: var(--bk-text-muted);
 }
 
 .pair {
@@ -69,7 +78,8 @@
 }
 
 .toggle {
-  padding: 4px 10px;
+  min-height: 28px;
+  padding: 4px 12px;
   border: 1px solid var(--bk-border-strong);
   border-radius: 999px;
   background: var(--bk-surface);
@@ -79,10 +89,15 @@
   cursor: pointer;
 }
 
+.toggle:hover {
+  background: var(--bk-accent-surface);
+}
+
 .toggle[aria-pressed='true'] {
-  border-color: var(--bk-primary-500);
-  background: var(--bk-primary-50);
-  color: var(--bk-primary-800);
+  border-color: var(--bk-accent-control);
+  background: var(--bk-accent-surface-strong);
+  color: var(--bk-on-accent-surface);
+  font-weight: 500;
 }
 
 .toggle:focus-visible {
@@ -93,7 +108,9 @@
 .check {
   display: flex;
   align-items: center;
+  min-height: 24px;
   gap: 8px;
+  accent-color: var(--bk-accent-control);
   font-size: 13px;
   color: var(--bk-text);
 }
