@@ -5,7 +5,7 @@ import { NotificationsSection } from './NotificationsSection';
 export const section: SettingsSection = {
   id: 'notifications',
   labelKey: 'notifications.section',
-  icon: 'alert',
+  icon: 'bell',
   order: 35,
   element: <NotificationsSection />,
   // Only where the platform can show system notifications.

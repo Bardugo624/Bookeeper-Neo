@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Button } from '@bookeeper/ui/base';
 import { Dialog } from '@bookeeper/ui/overlays';
 import type { InviteCreated, InviteRole } from '@bookeeper/api';
-import { useT } from '../../app';
-import { FormDialog, apiErrorMessage, useFormState } from '../../kit';
+import { useLocale, useT } from '../../app';
+import { FormDialog, apiErrorMessage, formatDate, useFormState } from '../../kit';
 import { CodeBlock, QrCode, pairingAddress, useCountdown } from '../devices';
 import { INVITE_DAYS, DEFAULT_INVITE_DAYS, DEFAULT_INVITE_ROLE, type InviteDays } from './model';
 import { RadioGroup } from './RadioGroup';
@@ -25,6 +25,7 @@ interface Values {
 /** Mounted only while open: first the choices, then the code (and the QR when a phone can use it). */
 export function InviteDialog({ roles, phoneUrl, create, onClose }: InviteDialogProps) {
   const t = useT();
+  const locale = useLocale();
   const [invite, setInvite] = useState<InviteCreated | null>(null);
   const form = useFormState<Values>({ role: roles.includes(DEFAULT_INVITE_ROLE) ? DEFAULT_INVITE_ROLE : roles[0]!, days: DEFAULT_INVITE_DAYS }, () => ({}));
   const remaining = useCountdown(invite?.expires_at ?? null);
@@ -60,9 +61,10 @@ export function InviteDialog({ roles, phoneUrl, create, onClose }: InviteDialogP
             code={invite.code}
             remaining={remaining}
             regenerating={form.submitting}
+            expiresText={t('people.invite.expiresOn', { date: formatDate(locale, invite.expires_at) })}
             onRegenerate={() => void submit()}
           />
-          <p className={styles.how}>{t('people.invite.how')}</p>
+          <p className={styles.how}>{t(phoneUrl ? 'people.invite.how' : 'people.invite.howNoQr')}</p>
         </div>
       </Dialog>
     );

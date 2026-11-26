@@ -83,6 +83,8 @@
     },
     "codeTitle": "Invitation as {role}",
     "qrLabel": "QR code to join from a phone",
+    "expiresOn": "Expires on {date}",
+    "howNoQr": "On the computer: Join, then the code. To join from a phone you need a server with an HTTPS address.",
     "how": "On the computer: Join, then the code. On the phone: scan the QR."
   },
   "pending": {

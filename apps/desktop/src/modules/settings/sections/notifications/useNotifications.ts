@@ -6,6 +6,8 @@ export interface NotificationsState {
   enabled: boolean;
   /** `null` until the system has answered. */
   permission: NotificationPermission | null;
+  /** False while the system permission is still being read: the switch must stay off-limits. */
+  ready: boolean;
   toggle(on: boolean): void;
 }
 
@@ -25,11 +27,12 @@ export function useNotifications(): NotificationsState {
 
   const toggle = useCallback(
     (on: boolean) => {
+      if (controls && permission === null) return;
       setEnabled(on);
       if (on && controls && permission === 'prompt') void controls.request().then(setPermission);
     },
     [controls, permission, setEnabled],
   );
 
-  return { enabled, permission, toggle };
+  return { enabled, permission, ready: !controls || permission !== null, toggle };
 }

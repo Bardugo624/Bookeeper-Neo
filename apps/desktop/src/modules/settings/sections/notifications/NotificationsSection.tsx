@@ -5,14 +5,19 @@ import { useNotifications } from './useNotifications';
 
 export function NotificationsSection() {
   const t = useT();
-  const { enabled, permission, toggle } = useNotifications();
+  const { enabled, permission, ready, toggle } = useNotifications();
 
   return (
     <SettingsBlock title={t('notifications.title')} description={t('notifications.description')}>
       <label className={styles.toggle}>
-        <input type="checkbox" role="switch" checked={enabled} onChange={(e) => toggle(e.target.checked)} />
+        <input type="checkbox" role="switch" checked={enabled} disabled={!ready} aria-busy={!ready} onChange={(e) => toggle(e.target.checked)} />
         <span>{t('notifications.overdue')}</span>
       </label>
+      {!ready ? (
+        <p className={styles.note} role="status">
+          {t('notifications.checking')}
+        </p>
+      ) : null}
       {permission === 'denied' ? (
         <p className={styles.note} role="note">
           {t('notifications.denied')}

@@ -89,7 +89,7 @@ describe('people sentences', () => {
     expect(screen.getByText('Ha rimosso «Dario» dalla libreria')).toBeInTheDocument();
     expect(screen.getByText('«Elena» è entrato nella libreria come membro')).toBeInTheDocument();
     expect(screen.getByText('Ha passato la libreria a un’altra persona')).toBeInTheDocument();
-    expect(screen.getByText('Ha creato un invito come amministratore')).toBeInTheDocument();
+    expect(screen.getByText('Ha creato un invito come Admin')).toBeInTheDocument();
     expect(screen.getByText('Ha revocato un invito')).toBeInTheDocument();
   });
 });
@@ -175,7 +175,7 @@ describe('states', () => {
     expect(await screen.findByText('Nessuna voce')).toBeInTheDocument();
     empty.unmount();
     renderAudit({ status: 403 });
-    expect(await screen.findByText('Solo il proprietario e gli amministratori possono vedere il registro.')).toBeInTheDocument();
+    expect(await screen.findByText('Solo il proprietario e gli Admin possono vedere il registro.')).toBeInTheDocument();
   });
 });
 

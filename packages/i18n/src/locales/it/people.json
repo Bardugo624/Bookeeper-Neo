@@ -67,7 +67,7 @@
     "intro": "Il proprietario della libreria può essere una persona sola.",
     "effects": {
       "1": "{name} diventa il proprietario della libreria.",
-      "2": "Tu diventi amministratore."
+      "2": "Tu diventi Admin."
     },
     "confirm": "Rendi {name} proprietario"
   },
@@ -83,7 +83,9 @@
     },
     "codeTitle": "Invito come {role}",
     "qrLabel": "Codice QR per unirsi dal telefono",
-    "how": "Sul computer: Unisciti, poi il codice. Sul telefono: inquadra il QR."
+    "expiresOn": "Scade il {date}",
+    "how": "Sul computer: Unisciti, poi il codice. Sul telefono: inquadra il QR.",
+    "howNoQr": "Sul computer: Unisciti, poi il codice. Per entrare dal telefono serve un server con un indirizzo HTTPS."
   },
   "pending": {
     "title": "Inviti in attesa",
