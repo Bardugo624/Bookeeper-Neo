@@ -153,5 +153,9 @@
       "other": "da {count} giorni"
     },
     "more": "e altri {count}"
+  },
+  "danger": {
+    "title": "Zona pericolosa",
+    "consequence": "Il prestito viene eliminato dallo storico. Non si può annullare."
   }
 }

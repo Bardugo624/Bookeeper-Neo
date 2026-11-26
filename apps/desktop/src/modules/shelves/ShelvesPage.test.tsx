@@ -284,6 +284,7 @@ describe('without write permission', () => {
     expect(screen.queryByRole('button', { name: 'Nuovo mobile' })).toBeNull();
     expect(screen.queryByRole('button', { name: /^Modifica/ })).toBeNull();
     expect(screen.queryByRole('button', { name: /^Elimina/ })).toBeNull();
+    expect(screen.queryByRole('region', { name: 'Zona pericolosa' })).toBeNull();
     expect(screen.queryByRole('button', { name: /Colloca/ })).toBeNull();
     expect(screen.getByRole('button', { name: 'Libro b1, Autore b1' })).toHaveAttribute('draggable', 'false');
     expect(screen.getByText('Libro u1').closest('li')).toHaveAttribute('draggable', 'false');

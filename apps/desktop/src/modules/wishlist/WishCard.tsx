@@ -57,7 +57,7 @@ export function WishCard({ wish, actions, titleLevel: Title = 'h2' }: WishCardPr
             {t('wishlist.convert.button')}
           </Button>
           <IconButton icon="pencil" size="sm" label={t('wishlist.card.edit', { title: wish.title })} onClick={actions.onEdit} />
-          <IconButton icon="trash" size="sm" label={t('wishlist.card.delete', { title: wish.title })} onClick={actions.onDelete} />
+          <IconButton icon="trash" size="sm" tone="danger" label={t('wishlist.card.delete', { title: wish.title })} onClick={actions.onDelete} />
         </div>
       ) : null}
     </li>

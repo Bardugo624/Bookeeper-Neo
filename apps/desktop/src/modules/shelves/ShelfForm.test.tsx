@@ -89,6 +89,16 @@ describe('edit cabinet', () => {
 });
 
 describe('delete cabinet', () => {
+  it('keeps the delete action in the danger zone at the bottom of the panel', async () => {
+    renderShelves(world({ shelves: [shelf(1, { name: 'Salotto' })] }));
+    const panel = await screen.findByRole('complementary', { name: 'Dettagli di Salotto' });
+    const zone = within(panel).getByRole('region', { name: 'Zona pericolosa' });
+    expect(zone).toHaveTextContent('restano in biblioteca');
+    expect(within(zone).getByRole('button', { name: 'Elimina Salotto' })).toBeInTheDocument();
+    expect(within(panel).getByRole('button', { name: 'Modifica Salotto' })).toBeInTheDocument();
+    expect(panel.lastElementChild).toBe(zone);
+  });
+
   it('asks first and says the placed books stay, unplaced', async () => {
     const w = world({ shelves: [shelf(1, { name: 'Salotto' }), shelf(2, { name: 'Studio' })] });
     const { platform } = renderShelves(w);
