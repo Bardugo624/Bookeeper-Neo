@@ -111,7 +111,11 @@ describe('motion', () => {
   const realMM = window.matchMedia;
   const realOH = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight');
   let animate: ReturnType<typeof vi.fn>;
-  let roCallback: (() => void) | null;
+  let roCallback: ((entries: Array<{ target: Element }>) => void) | null;
+  let observed: Element[];
+  /** A ResizeObserver report from the content blocks (not the panel). */
+  const contentResize = () => roCallback?.(observed.filter((el) => el.getAttribute('role') !== 'dialog').map((target) => ({ target })));
+  const panelResize = () => roCallback?.([{ target: screen.getByRole('dialog') }]);
   let height: number;
 
   function setup(reduce = false) {
@@ -119,11 +123,14 @@ describe('motion', () => {
     Element.prototype.animate = animate as never;
     window.matchMedia = ((q: string) => ({ matches: reduce && q.includes('reduce'), media: q, addEventListener() {}, removeEventListener() {} })) as never;
     roCallback = null;
+    observed = [];
     globalThis.ResizeObserver = class {
-      constructor(cb: () => void) {
+      constructor(cb: (entries: Array<{ target: Element }>) => void) {
         roCallback = cb;
       }
-      observe() {}
+      observe(el: Element) {
+        observed.push(el);
+      }
       disconnect() {}
       unobserve() {}
     } as never;
@@ -155,7 +162,7 @@ describe('motion', () => {
     setup();
     render(<Dialog {...base} open />);
     height = 320;
-    roCallback?.();
+    contentResize();
     expect(animate).toHaveBeenCalledTimes(1);
     const frames = animate.mock.calls[0][0] as Array<{ height: string }>;
     expect([frames[0].height, frames[1].height]).toEqual(['200px', '320px']);
@@ -169,17 +176,66 @@ describe('motion', () => {
       </Dialog>,
     );
     height = 320;
-    roCallback?.();
+    contentResize();
     height = 250; // visible (animated) height; once cancelled the panel is at its natural height
     animate.mockImplementationOnce(() => ({ cancel: vi.fn(), addEventListener: vi.fn() }));
     const first = animate.mock.results[0].value as { cancel: ReturnType<typeof vi.fn> };
     first.cancel.mockImplementation(() => {
       height = 400;
     });
-    roCallback?.();
+    contentResize();
     expect(animate).toHaveBeenCalledTimes(2);
     const frames = animate.mock.calls[1][0] as Array<{ height: string }>;
     expect([frames[0].height, frames[1].height]).toEqual(['250px', '400px']);
+  });
+
+  it('resyncs the height when only the panel resizes, so the next animation starts from it', () => {
+    setup();
+    render(
+      <Dialog {...base} open>
+        x
+      </Dialog>,
+    );
+    height = 800; // the window grew and lifted the max-height cap: no content change
+    panelResize();
+    expect(animate).not.toHaveBeenCalled();
+    height = 820;
+    contentResize();
+    const frames = animate.mock.calls[0][0] as Array<{ height: string }>;
+    expect([frames[0].height, frames[1].height]).toEqual(['800px', '820px']);
+  });
+
+  it('ignores the panel reports caused by its own animation and resyncs when it ends', () => {
+    setup();
+    const listeners: Record<string, () => void> = {};
+    animate.mockImplementationOnce(() => ({
+      cancel: vi.fn(),
+      addEventListener: (type: string, fn: () => void) => {
+        listeners[type] = fn;
+      },
+    }));
+    render(
+      <Dialog {...base} open>
+        x
+      </Dialog>,
+    );
+    height = 320;
+    contentResize();
+    height = 260; // mid-animation
+    panelResize();
+    height = 330;
+    listeners.finish?.();
+    height = 360;
+    contentResize();
+    const frames = animate.mock.calls[1][0] as Array<{ height: string }>;
+    expect([frames[0].height, frames[1].height]).toEqual(['330px', '360px']);
+  });
+
+  it('watches a footer that appears after opening', async () => {
+    setup();
+    const { rerender } = render(<Dialog {...base} open />);
+    rerender(<Dialog {...base} open footer={<button>Ok</button>} />);
+    await waitFor(() => expect(observed.some((el) => el.tagName === 'FOOTER')).toBe(true));
   });
 
   it('does not move a Drawer', () => {
@@ -188,7 +244,7 @@ describe('motion', () => {
     document.body.appendChild(button);
     render(<Drawer {...base} open origin={button} />);
     height = 320;
-    roCallback?.();
+    contentResize();
     expect(animate).not.toHaveBeenCalled();
   });
 
@@ -196,7 +252,7 @@ describe('motion', () => {
     setup(true);
     render(<Dialog {...base} open />);
     height = 320;
-    roCallback?.();
+    contentResize();
     expect(animate).not.toHaveBeenCalled();
   });
 

@@ -52,14 +52,20 @@ export function useDialogMotion(origin: HTMLElement | null | undefined, enabled 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [panel]);
 
-  // The height follows the content, centred (the panel is centred with `translate`). The observed
-  // elements are the content blocks, not the panel: they do not resize while the panel animates.
+  // The height follows the content, centred (the panel is centred with `translate`). The content
+  // blocks tell a real change of content; the panel itself is watched too, so a height change with
+  // no content change (the `max-height` cap moving with the window) only resyncs the stored height.
   useEffect(() => {
     if (!enabled || !panel || typeof ResizeObserver === 'undefined') return;
     let last = panel.offsetHeight;
     let running: Animation | null = null;
-    const observer = new ResizeObserver(() => {
-      // Mid-animation the visible height is the animated one: start from there, from the new target.
+    const observer = new ResizeObserver((entries) => {
+      if (entries.every((entry) => entry.target === panel)) {
+        // Only the panel moved: its own animation (ignored) or the window cap (resync, no motion).
+        if (!running) last = panel.offsetHeight;
+        return;
+      }
+      // Mid-animation the visible height is the animated one: start from there, to the new target.
       const prev = running ? panel.offsetHeight : last;
       if (running) {
         const old = running;
@@ -78,15 +84,32 @@ export function useDialogMotion(origin: HTMLElement | null | undefined, enabled 
         { duration, easing },
       );
       running = anim;
-      const done = () => {
+      anim.addEventListener('finish', () => {
+        if (running !== anim) return;
+        running = null;
+        last = panel.offsetHeight;
+      });
+      anim.addEventListener('cancel', () => {
         if (running === anim) running = null;
-      };
-      anim.addEventListener('finish', done);
-      anim.addEventListener('cancel', done);
+      });
     });
-    panel.querySelectorAll('header, footer, [data-dialog-content]').forEach((el) => observer.observe(el));
+    const watched = new Set<Element>();
+    const watch = () => {
+      panel.querySelectorAll(':scope > header, :scope > footer, [data-dialog-content]').forEach((el) => {
+        if (watched.has(el)) return;
+        watched.add(el);
+        observer.observe(el);
+      });
+    };
+    observer.observe(panel);
+    watch();
+    // A body or footer that appears after opening is watched as it arrives: its first report
+    // animates from the height before it.
+    const mutations = typeof MutationObserver === 'undefined' ? null : new MutationObserver(watch);
+    mutations?.observe(panel, { childList: true });
     return () => {
       observer.disconnect();
+      mutations?.disconnect();
       running?.cancel();
     };
   }, [panel, enabled]);
