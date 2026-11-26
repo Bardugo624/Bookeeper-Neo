@@ -65,7 +65,7 @@ export const useTourStore = create<TourStore>((set, get) => {
 
     bind(connectionId) {
       if (get().connectionId === connectionId && connectionId !== null) return;
-      set({ connectionId, wandered: false, ...(connectionId ? loadTour(connectionId) : EMPTY_SNAPSHOT) });
+      set({ connectionId, wandered: false, note: null, seen: [], ...(connectionId ? loadTour(connectionId) : EMPTY_SNAPSHOT) });
     },
 
     start(path, options) {

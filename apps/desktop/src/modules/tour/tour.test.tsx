@@ -4,7 +4,7 @@ import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useTourStore, registerTourPath, resetTourForTest, tourSignal, useTour } from './store';
-import { loadTour, isTourPending, setTourPending, clearTourPending } from './storage';
+import { loadTour, saveTour, isTourPending, setTourPending, clearTourPending } from './storage';
 import { clicks, flush, installBrowser, PATH, renderTour } from './testkit';
 
 const state = () => useTourStore.getState();
@@ -153,6 +153,19 @@ describe('memory', () => {
     expect(loadTour('c2').status).toBe('idle');
   });
 
+  it('forgets the note and the seen signals when the connection changes, and rereads the new one', () => {
+    saveTour('c2', { pathId: 'test', step: 2, status: 'paused' });
+    useTourStore.setState({ connectionId: null });
+    state().bind('c1');
+    act(() => state().setNote({ titleKey: 'tour.dismiss', textKey: 'tour.card.step' }));
+    useTourStore.setState({ seen: ['x'] });
+    state().bind('c2');
+    expect(state().note).toBeNull();
+    expect(state().seen).toEqual([]);
+    expect(state().step).toBe(2);
+    expect(state().status).toBe('paused');
+  });
+
   it('reads and writes the "new person" flag per connection', () => {
     expect(isTourPending('c1')).toBe(false);
     setTourPending('c1');
@@ -229,6 +242,25 @@ describe('card', () => {
     // pressing elsewhere inside the same dialog is use, not leaving
     await userEvent.click(within(dialog).getByRole('heading', { name: 'Finestra' }));
     expect(state().status).toBe('running');
+  });
+
+  it('sits beside the dialog panel, not over it, and stays clickable', async () => {
+    await START();
+    act(() => tourSignal('one-done'));
+    act(() => tourSignal('two-done', 'ok'));
+    await userEvent.click(screen.getByRole('button', { name: 'tre' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Finestra' });
+    act(() => state().start(
+      { id: 'in', steps: [{ id: 'd', titleKey: 'tour.dismiss', textKey: 'tour.card.step', params: { n: 1, total: 1 }, target: 'in-dialog', signal: 'x' }] },
+      { replay: true },
+    ));
+    await flush();
+    const card = within(dialog).getByRole('region', { name: 'Non mostrare più' });
+    // The panel is simulated at x 100..180 (origin 100): the card starts right of its edge.
+    expect(card.getAttribute('data-side')).toBe('right');
+    expect(parseFloat(card.style.left) + 100).toBeGreaterThanOrEqual(180);
+    await userEvent.click(within(card).getByRole('heading'));
+    expect(screen.getByRole('dialog', { name: 'Finestra' })).toBeInTheDocument();
   });
 });
 
