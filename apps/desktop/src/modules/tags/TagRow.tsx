@@ -87,7 +87,7 @@ export function TagRow({ tag, canWrite, onDelete }: TagRowProps) {
             {t('common.save')}
           </Button>
         ) : null}
-        <IconButton icon="trash" label={t('tags.manage.delete', { name: tag.name })} onClick={() => onDelete(tag)} />
+        <IconButton icon="trash" tone="danger" label={t('tags.manage.delete', { name: tag.name })} onClick={() => onDelete(tag)} />
       </div>
       <div className={styles.rowBottom}>
         <TagColorPicker

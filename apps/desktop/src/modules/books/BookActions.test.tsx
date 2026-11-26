@@ -64,14 +64,38 @@ describe('book page', () => {
     const { platform, router } = renderWithWrites({ books: [stored()] }, {
       'DELETE /api/v1/books/b1': () => ({ status: 204, body: undefined }),
     }, '/books/b1');
-    await userEvent.click(await screen.findByRole('button', { name: 'Altro' }));
-    await userEvent.click(await screen.findByRole('menuitem', { name: 'Elimina' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Elimina libro' }));
     const dialog = await screen.findByRole('dialog', { name: 'Eliminare «Dune»?' });
+    expect(dialog.className).toMatch(/danger/);
     expect(sent(platform, 'DELETE', '/api/v1/books/b1')).toHaveLength(0);
     await userEvent.click(within(dialog).getByRole('button', { name: 'Elimina' }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/books'));
     expect(await screen.findByText('«Dune» eliminato')).toBeInTheDocument();
     expect(sent(platform, 'DELETE', '/api/v1/books/b1')).toHaveLength(1);
+  });
+});
+
+describe('danger zone', () => {
+  it('keeps Elimina out of the "Altro" menu and puts it in the zone at the foot of the page', async () => {
+    renderWithWrites({ books: [stored()] }, {}, '/books/b1');
+    const zone = await screen.findByRole('region', { name: 'Zona pericolosa' });
+    expect(within(zone).getByRole('button', { name: 'Elimina libro' })).toBeInTheDocument();
+    expect(zone).toHaveTextContent('i prestiti');
+    await userEvent.click(screen.getByRole('button', { name: 'Altro' }));
+    expect(await screen.findByRole('menuitem', { name: /etichett/i })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Elimina' })).not.toBeInTheDocument();
+  });
+
+  it('selection delete is apart and its confirmation is dangerous', async () => {
+    renderWithWrites({ books: makeDb(3) });
+    await screen.findByRole('link', { name: 'Libro 1 Autore 1' });
+    await userEvent.click(screen.getByRole('button', { name: 'Seleziona' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Seleziona «Libro 1»' }));
+    const del = screen.getByRole('button', { name: 'Elimina' });
+    expect(del.className).toMatch(/danger/);
+    expect(del.parentElement?.className).toMatch(/apart/);
+    await userEvent.click(del);
+    expect((await screen.findByRole('dialog', { name: 'Eliminare 1 libro?' })).className).toMatch(/danger/);
   });
 });
 

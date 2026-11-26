@@ -238,7 +238,7 @@
   },
   "delete": {
     "title": "Eliminare «{title}»?",
-    "text": "Il libro sarà eliminato con la sua copertina. L'operazione non si può annullare."
+    "text": "Insieme al libro spariscono la copertina, il posto sullo scaffale, i prestiti, gli stati di lettura e i tag assegnati. L'operazione non si può annullare."
   },
   "toast": {
     "created": "«{title}» aggiunto",
@@ -349,5 +349,12 @@
   "owner": {
     "everyone": "Di tutti",
     "me": "Tu"
+  },
+  "danger": {
+    "title": "Zona pericolosa",
+    "delete": {
+      "title": "Elimina libro",
+      "consequence": "Elimina il libro con la copertina, il posto sullo scaffale, i prestiti, gli stati di lettura e i tag assegnati. Non si può annullare."
+    }
   }
 }
