@@ -21,7 +21,8 @@ function EditForm({ book }: { book: BookOut }) {
   const meId = useSession((s) => s.me?.user.id);
   const people = usePeople();
   const back = { pathname: `/books/${encodeURIComponent(book.id)}` };
-  const form = useEditForm(book, () => navigate(back, { replace: true, state: location.state }));
+  // Saving pops the edit entry, so "back" from the card goes where the card was opened from.
+  const form = useEditForm(book, () => (location.key === 'default' ? navigate(back, { replace: true, state: location.state }) : navigate(-1)));
   const { blocker } = form;
   return (
     <Screen
