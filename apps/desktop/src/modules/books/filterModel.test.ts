@@ -6,7 +6,7 @@ const parse = (s: string) => parseFilters(new URLSearchParams(s));
 describe('filter model', () => {
   it('reads every parameter of the address', () => {
     const f = parse(
-      'reading=read&tag=a&tag=b&room=r1&shelf=s1&genre=Giallo&language=it&format=ebook&year_from=1990&year_to=2000&acquired_from=2024-01-05&acquired_to=2024-02-10&on_loan=true',
+      'reading=read&tag=a&tag=b&room=r1&shelf=s1&genre=Giallo&language=it&format=ebook&year_from=1990&year_to=2000&acquired_from=2024-01-05&acquired_to=2024-02-10&on_loan=true&owner=me',
     );
     expect(f).toEqual({
       reading: 'read',
@@ -22,6 +22,7 @@ describe('filter model', () => {
       yearTo: 2000,
       acquiredFrom: '2024-01-05',
       acquiredTo: '2024-02-10',
+      owner: 'me',
     });
   });
 
