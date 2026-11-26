@@ -42,5 +42,12 @@
       "required": "Required field",
       "tooLong": "At most {max} characters"
     }
+  },
+  "danger": {
+    "title": "Danger zone",
+    "delete": {
+      "title": "Remove from the wishlist",
+      "consequence": "The book leaves the wishlist. This can't be undone."
+    }
   }
 }

@@ -194,5 +194,12 @@
     "gone": "Questo libro non c'è più",
     "error": "Impossibile trovare il libro",
     "done": "Fatto"
+  },
+  "danger": {
+    "title": "Zona pericolosa",
+    "delete": {
+      "title": "Elimina il mobile",
+      "consequence": "I libri collocati restano in biblioteca, ma risultano non collocati. Non si può annullare."
+    }
   }
 }

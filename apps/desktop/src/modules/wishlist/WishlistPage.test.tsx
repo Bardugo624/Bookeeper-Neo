@@ -125,6 +125,25 @@ describe('add and edit', () => {
 });
 
 describe('delete', () => {
+  it('marks the card trash as dangerous', async () => {
+    renderWishlist({ items: [wish(1, { title: 'Rosso' })] });
+    expect((await screen.findByRole('button', { name: 'Elimina Rosso' })).className).toContain('toneDanger');
+  });
+
+  it('puts delete in a danger zone of the edit dialog only', async () => {
+    const { platform } = renderWishlist({ items: [wish(1, { title: 'Dal modulo' })] });
+    await userEvent.click(await screen.findByRole('button', { name: 'Aggiungi' }));
+    expect(within(await screen.findByRole('dialog')).queryByRole('region', { name: 'Zona pericolosa' })).toBeNull();
+    await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Annulla' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Modifica Dal modulo' }));
+    const zone = within(await screen.findByRole('dialog')).getByRole('region', { name: 'Zona pericolosa' });
+    await userEvent.click(within(zone).getByRole('button', { name: 'Elimina' }));
+    const confirm = await screen.findByRole('dialog', { name: 'Eliminare dalla wishlist?' });
+    await userEvent.click(within(confirm).getByRole('button', { name: 'Elimina' }));
+    await waitFor(() => expect(screen.queryByText('Dal modulo')).toBeNull());
+    expect(platform.calls.filter((c) => c.method === 'DELETE').map((c) => c.path)).toEqual(['/api/v1/wishlist/w1']);
+  });
+
   it('asks first and names the item', async () => {
     const { platform } = renderWishlist({ items: [wish(1, { title: 'Da togliere' }), wish(2)] });
     await userEvent.click(await screen.findByRole('button', { name: 'Elimina Da togliere' }));

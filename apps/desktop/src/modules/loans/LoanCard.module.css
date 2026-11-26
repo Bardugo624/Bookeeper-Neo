@@ -110,3 +110,11 @@
   outline-offset: 2px;
   border-radius: 2px;
 }
+
+/* Delete sits apart from the everyday actions, behind a divider. */
+.divider {
+  align-self: stretch;
+  width: 1px;
+  margin-inline: 8px;
+  background: var(--bk-danger);
+}

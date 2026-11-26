@@ -102,7 +102,7 @@ export function WishlistPage() {
       ) : null}
       {body}
       {dialog?.kind === 'form' ? (
-        <WishFormDialog key={dialog.wish?.id ?? 'new'} wish={dialog.wish} save={(v) => a.save(dialog.wish, v)} onClose={() => a.setDialog(null)} />
+        <WishFormDialog key={dialog.wish?.id ?? 'new'} wish={dialog.wish} save={(v) => a.save(dialog.wish, v)} onDelete={dialog.wish ? () => a.setDialog({ kind: 'delete', wish: dialog.wish! }) : undefined} onClose={() => a.setDialog(null)} />
       ) : null}
       <ConfirmDialog
         open={dialog?.kind === 'delete'}

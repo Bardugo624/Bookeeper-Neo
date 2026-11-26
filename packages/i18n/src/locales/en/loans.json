@@ -153,5 +153,9 @@
       "other": "for {count} days"
     },
     "more": "and {count} more"
+  },
+  "danger": {
+    "title": "Danger zone",
+    "consequence": "The loan is removed from the history. This can't be undone."
   }
 }

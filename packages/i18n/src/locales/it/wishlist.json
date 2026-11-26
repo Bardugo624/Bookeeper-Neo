@@ -42,5 +42,12 @@
       "required": "Campo obbligatorio",
       "tooLong": "Al massimo {max} caratteri"
     }
+  },
+  "danger": {
+    "title": "Zona pericolosa",
+    "delete": {
+      "title": "Elimina dalla wishlist",
+      "consequence": "Il libro esce dalla wishlist. Non si può annullare."
+    }
   }
 }
