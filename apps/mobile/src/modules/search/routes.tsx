@@ -12,5 +12,5 @@ export const module: MobileModule = {
     { path: '/books/:id/edit', element: <BookEditPage /> },
     { path: '/books/:id/where', element: <WherePage /> },
   ],
-  tab: { labelKey: 'msearch.tab', icon: 'search', to: '/search', order: 10, also: ['/books'] },
+  tab: { labelKey: 'msearch.tab', icon: 'search', to: '/search', order: 10, also: ['/books', '/shelves'] },
 };

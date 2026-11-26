@@ -20,7 +20,7 @@ export function BorrowerChoice({ form }: { form: Form }) {
           {choices.people.map((p) => (
               <li key={p.id}>
                 <button type="button" aria-pressed={values.userId === p.id} className={cx(styles.choice, values.userId === p.id && styles.on)} onClick={() => form.pickPerson(p.id)}>
-                  <Icon name="library" size={16} />
+                  <Icon name="user" size={16} />
                   <span className={styles.name}>{p.is_me ? t('mloans.lend.me', { name: p.display_name }) : p.display_name}</span>
                 </button>
               </li>

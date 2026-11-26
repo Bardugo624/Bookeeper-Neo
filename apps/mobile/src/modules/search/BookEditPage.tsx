@@ -5,6 +5,7 @@ import { EmptyState, Icon, Skeleton } from '@bookeeper/ui/base';
 import { useT } from '../../app/i18n';
 import { ErrorState, Screen, BottomSheet, apiErrorMessage } from '../../kit';
 import { useSession } from '../../session';
+import { useCanGoBack } from './useCanGoBack';
 import { canEditBooks } from './editModel';
 import { EditFields } from './EditFields';
 import { usePeople } from './useBookEdit';
@@ -18,16 +19,18 @@ function EditForm({ book }: { book: BookOut }) {
   const t = useT();
   const navigate = useNavigate();
   const location = useLocation();
+  const canGoBack = useCanGoBack();
   const meId = useSession((s) => s.me?.user.id);
   const people = usePeople();
   const back = { pathname: `/books/${encodeURIComponent(book.id)}` };
-  const form = useEditForm(book, () => navigate(back, { replace: true, state: location.state }));
+  // Saving pops the edit entry, so "back" from the card goes where the card was opened from.
+  const form = useEditForm(book, () => (canGoBack ? navigate(-1) : navigate(back, { replace: true, state: location.state })));
   const { blocker } = form;
   return (
     <Screen
       title={t('msearch.edit.title')}
       leading={
-        <button type="button" className={styles.back} aria-label={t('msearch.edit.back')} onClick={() => (location.key === 'default' ? navigate(back, { replace: true, state: location.state }) : navigate(-1))}>
+        <button type="button" className={styles.back} aria-label={t('msearch.edit.back')} onClick={() => (canGoBack ? navigate(-1) : navigate(back, { replace: true, state: location.state }))}>
           <Icon name="chevron-left" size={22} />
         </button>
       }

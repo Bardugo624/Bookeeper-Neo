@@ -215,4 +215,12 @@ describe('loans to members', () => {
     expect(await screen.findByText('Libro 3')).toBeInTheDocument();
     expect(screen.queryByText('Libro 1')).toBeNull();
   });
+
+  it('reads a loan to the caller as "A te", never "A Tu"', async () => {
+    const mine = loan(3, { borrower_user_id: 'u1', borrower: { id: 'u1', display_name: 'Anna' } });
+    renderLoans(store({ people, loans: [mine] }));
+    expect(await screen.findByText('Libro 3')).toBeInTheDocument();
+    expect(screen.getByText('A te')).toBeInTheDocument();
+    expect(within(screen.getByRole('list', { name: 'Prestiti' })).queryByText(/Anna|\bTu\b/)).toBeNull();
+  });
 });

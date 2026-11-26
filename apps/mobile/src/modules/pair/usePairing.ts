@@ -20,6 +20,8 @@ export interface Pairing {
   submit(rawCode: string, rawName: string): Promise<void>;
   /** Redeems the invitation inspected by `submit`, with the person's own name. */
   join(rawDisplayName: string, deviceName: string): Promise<void>;
+  /** Leaves the invitation step, back to the code form. */
+  leaveInvite(): void;
 }
 
 /** The pairing requests shared by the link page and the typed-code page. */
@@ -76,14 +78,11 @@ export function usePairing(): Pairing {
       const code = normalizeCode(rawCode);
       const name = rawName.trim();
       if (!code) return setError(t('mpair.errors.codeEmpty'));
+      if (!name) return setError(t('mpair.errors.nameEmpty'));
       await run(async () => {
         const info = await client.inspectPairingCode({ code });
         if (info.kind === 'invite') {
           setInvite({ code, info });
-          return false;
-        }
-        if (!name) {
-          setError(t('mpair.errors.nameEmpty'));
           return false;
         }
         return redeem({ code, device_name: name, device_kind: 'mobile' });
@@ -109,5 +108,11 @@ export function usePairing(): Pairing {
     [invite, redeem, run, t],
   );
 
-  return { loading, error, invite: invite?.info ?? null, submit, join };
+  const leaveInvite = useCallback(() => {
+    if (running.current) return;
+    setInvite(null);
+    setError(null);
+  }, []);
+
+  return { loading, error, invite: invite?.info ?? null, submit, join, leaveInvite };
 }

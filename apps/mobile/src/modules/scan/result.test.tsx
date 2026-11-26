@@ -22,7 +22,7 @@ describe('already in the library', () => {
     read(platform);
     const dialog = await sheet();
     expect(await within(dialog).findByText('È nella tua libreria')).toBeInTheDocument();
-    expect(await within(dialog).findByText('Si trova in: Salotto, ripiano 2')).toBeInTheDocument();
+    expect(await within(dialog).findByText('Salotto · ripiano 2 · posto 1')).toBeInTheDocument();
     expect(platform.fake.calls.some((c) => c.path.includes('/lookup/'))).toBe(false);
     await user.click(within(dialog).getByRole('button', { name: 'Apri la scheda' }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/books/b1'));

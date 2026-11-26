@@ -86,7 +86,8 @@ export function useIsbnLookup(isbn: Isbn | null) {
   let data: Lookup | undefined = remote.data;
   if (!data && entry) data = { kind: 'local', entry };
   else if (!data && !online && local.data) data = { kind: 'offline', syncedAt: local.data.syncedAt };
-  const waiting = !data && (local.isPending || (online && remote.isPending));
+  else if (!data && !online && isbn !== null && libraryId === undefined) data = { kind: 'offline', syncedAt: null };
+  const waiting = !data && ((libraryId !== undefined && local.isPending) || (online && remote.isPending));
   const error = !data && !waiting && remote.isError ? remote.error : null;
   return {
     data,

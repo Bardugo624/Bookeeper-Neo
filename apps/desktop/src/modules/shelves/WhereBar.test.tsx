@@ -85,4 +85,18 @@ describe('where is it', () => {
     expect(router.state.location.search).toContain('unit=s2');
     expect(screen.queryByText(/Nessun mobile in questa stanza/)).toBeNull();
   });
+
+  it('lifts a room filter that has no cabinet when the book is not on a shelf', async () => {
+    const w = world({ rooms: [room('r1', 'Salotto'), room('r3', 'Cantina')], shelves: [shelf(1, { room_id: 'r1' }), shelf(2, { room_id: 'r1' })] });
+    const { router } = renderShelves(w, '/shelves?room=r3&book=u1');
+    expect(await screen.findByText('«Libro u1» · Non è su nessuno scaffale')).toBeInTheDocument();
+    expect(router.state.location.search).not.toContain('room=');
+  });
+
+  it('lifts a room filter that has no cabinet when the book no longer exists', async () => {
+    const w = world({ rooms: [room('r1', 'Salotto'), room('r3', 'Cantina')], shelves: [shelf(1, { room_id: 'r1' }), shelf(2, { room_id: 'r1' })] });
+    const { router } = renderShelves(w, '/shelves?room=r3&book=zz');
+    expect(await screen.findByText("Questo libro non c'è più")).toBeInTheDocument();
+    expect(router.state.location.search).not.toContain('room=');
+  });
 });

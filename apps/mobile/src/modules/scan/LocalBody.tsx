@@ -10,6 +10,7 @@ export function LocalBody({ entry }: { entry: IndexEntry }) {
       authors={entry.authors}
       shelf={entry.shelf?.name ?? ''}
       rowIndex={entry.row_index ?? null}
+      slotIndex={entry.slot_index ?? null}
     />
   );
 }

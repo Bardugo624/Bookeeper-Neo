@@ -27,6 +27,11 @@ export function bookPath(bookId: string): string {
 }
 
 /** The person's current name when the loan is to a member of the library, else the name written on it. */
-export function borrowerLabel(loan: Pick<LoanOut, 'borrower' | 'borrower_name'>): string {
+export function borrowerLabel(
+  loan: Pick<LoanOut, 'borrower' | 'borrower_name'>,
+  /** When given, a loan to the caller reads as this label ("You"). */
+  you?: { meId: string | undefined; label: string },
+): string {
+  if (you?.meId && loan.borrower?.id === you.meId) return you.label;
   return loan.borrower?.display_name ?? loan.borrower_name;
 }

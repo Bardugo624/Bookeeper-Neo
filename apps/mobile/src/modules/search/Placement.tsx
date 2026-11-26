@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router';
 import { Icon, Tag } from '@bookeeper/ui/base';
 import { useT } from '../../app/i18n';
 import { LoanActions } from '../loans';
+import { placementPhrase } from './placementPhrase';
 import { useShelfNames } from './useBook';
 import styles from './Blocks.module.css';
 
@@ -22,11 +23,7 @@ export function WhereBlock({ book }: { book: BookOut }) {
       {placement ? (
         <>
           <p className={styles.big}>
-            {t('msearch.detail.where.phrase', {
-              shelf: name ?? t('msearch.detail.where.shelf'),
-              row: placement.row_index + 1,
-              slot: placement.slot_index + 1,
-            })}
+            {placementPhrase(t, { shelf: name, row: placement.row_index, slot: placement.slot_index })}
           </p>
           <Link to={`/books/${encodeURIComponent(book.id)}/where`} state={location.state} className={styles.whereButton}>
             {t('msearch.detail.where.button')}

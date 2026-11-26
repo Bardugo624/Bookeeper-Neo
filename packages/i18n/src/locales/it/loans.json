@@ -98,7 +98,8 @@
       "notesLong": "Al massimo {max} caratteri."
     },
     "borrowerSuggestions": "Nomi già usati",
-    "me": "Tu"
+    "me": "Tu",
+    "meObject": "te"
   },
   "return": {
     "title": "Segna come restituito",

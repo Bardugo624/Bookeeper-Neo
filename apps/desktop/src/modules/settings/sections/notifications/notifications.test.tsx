@@ -60,6 +60,7 @@ describe('notifications section', () => {
     const user = userEvent.setup();
     const platform = renderSettings({ permission: 'prompt', answer: 'granted' });
     const toggle = await screen.findByRole('switch', { name: 'Avvisami dei prestiti scaduti' });
+    await waitFor(() => expect(toggle).toBeEnabled());
     await user.click(toggle); // off
     await user.click(toggle); // on again
     await waitFor(() => expect(platform.notificationsFake.requests).toBe(1));
@@ -70,6 +71,7 @@ describe('notifications section', () => {
     const user = userEvent.setup();
     const platform = renderSettings({ permission: 'granted' });
     const toggle = await screen.findByRole('switch', { name: 'Avvisami dei prestiti scaduti' });
+    await waitFor(() => expect(toggle).toBeEnabled());
     await user.click(toggle);
     await user.click(toggle);
     expect(platform.notificationsFake.requests).toBe(0);

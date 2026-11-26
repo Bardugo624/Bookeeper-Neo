@@ -182,7 +182,7 @@ describe('writes', () => {
     await open('Bruno');
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Rendi proprietario' }));
     const dialog = screen.getByRole('dialog');
-    expect(within(dialog).getByText('Tu diventi amministratore.')).toBeInTheDocument();
+    expect(within(dialog).getByText('Tu diventi Admin.')).toBeInTheDocument();
     await userEvent.click(within(dialog).getByRole('button', { name: 'Rendi Bruno proprietario' }));
     await waitFor(() => expect(useSession.getState().me?.user.role).toBe('admin'));
     expect(platform.calls.find((c) => c.path === '/api/v1/users/u2/owner')?.method).toBe('POST');
@@ -220,7 +220,8 @@ describe('invitations', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Crea l’invito' }));
     expect(await screen.findByText('ABCD 2345')).toBeInTheDocument();
     expect(platform.calls.find((c) => c.method === 'POST' && c.path === '/api/v1/invites')?.body).toEqual({ role: 'guest', expires_in_days: 30 });
-    expect(screen.getByText('Sul computer: Unisciti, poi il codice. Sul telefono: inquadra il QR.')).toBeInTheDocument();
+    expect(screen.getByText('Sul computer: Unisciti, poi il codice. Per entrare dal telefono serve un server con un indirizzo HTTPS.')).toBeInTheDocument();
+    expect(screen.getByText(/^Scade il /)).toBeInTheDocument();
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
   });
 

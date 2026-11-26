@@ -22,7 +22,7 @@ describe('known to the phone', () => {
     read(platform);
     const dialog = await screen.findByRole('dialog');
     expect(await within(dialog).findByText('È nella tua libreria')).toBeInTheDocument();
-    expect(within(dialog).getByText('Si trova in: Salotto, ripiano 2')).toBeInTheDocument();
+    expect(within(dialog).getByText('Salotto · ripiano 2 · posto 1')).toBeInTheDocument();
     expect(within(dialog).getByText('Dune')).toBeInTheDocument();
     expect(lookups(platform)).toHaveLength(0);
   });
@@ -33,7 +33,7 @@ describe('known to the phone', () => {
     });
     read(platform);
     const dialog = await screen.findByRole('dialog');
-    expect(await within(dialog).findByText('Si trova in: Salotto, ripiano 3')).toBeInTheDocument();
+    expect(await within(dialog).findByText('Salotto · ripiano 3 · posto 1')).toBeInTheDocument();
     expect(within(dialog).getByText('Dune (server)')).toBeInTheDocument();
   });
 
@@ -41,7 +41,7 @@ describe('known to the phone', () => {
     const platform = await start({ extra: (c) => (c.path.startsWith('/api/v1/books?') ? { status: 500, body: null } : undefined) });
     read(platform);
     const dialog = await screen.findByRole('dialog');
-    expect(await within(dialog).findByText('Si trova in: Salotto, ripiano 2')).toBeInTheDocument();
+    expect(await within(dialog).findByText('Salotto · ripiano 2 · posto 1')).toBeInTheDocument();
     expect(within(dialog).queryByRole('alert')).toBeNull();
   });
 });
@@ -86,5 +86,16 @@ describe('cold start without a network', () => {
     read(platform);
     const dialog = await screen.findByRole('dialog');
     expect(await within(dialog).findByText('È nella tua libreria')).toBeInTheDocument();
+  });
+
+  it('says no list was downloaded when the library id was never saved', async () => {
+    const { platform } = scanPlatform(
+      { extra: (c) => (c.path === '/api/v1/me' ? { status: 503, body: { error_code: 'x', message: 'x' } } : undefined) },
+      { online: false },
+    );
+    renderScan(platform, '/scan', memoryIndex());
+    await screen.findByText('Inquadra il codice a barre sul retro del libro');
+    read(platform);
+    expect(await screen.findByText("Non ho ancora scaricato l'elenco dei libri della libreria.")).toBeInTheDocument();
   });
 });
