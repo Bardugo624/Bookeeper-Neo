@@ -20,7 +20,7 @@ Applica la regola della zona pericolosa a libri e tag. Setup di Impeccable da `a
 
 ## Acceptance criteria
 
-- `npm run typecheck -w @bookeeper/desktop` passa; `npx vitest run src/modules/books src/modules/tags` (da `apps/desktop`) passa; `npm test -w @bookeeper/i18n` passa.
+- `npm run typecheck -w @bookeeper/desktop` passa; `npx vitest run src/kit/styles.test.ts` (da `apps/desktop`) passa: i fogli di stile usano solo token esistenti; `npx vitest run src/modules/books src/modules/tags` (da `apps/desktop`) passa; `npm test -w @bookeeper/i18n` passa.
 - Nessun componente oltre 250 righe; nessun testo nei componenti; nessun colore letterale.
 - `.claude/skills/impeccable/scripts/impeccable detect --json` sui file cambiati non trova nulla.
 - Cambiano solo file sotto `apps/desktop/src/modules/books/`, `tags/`, e `books.json`, `tags.json` (it, en).

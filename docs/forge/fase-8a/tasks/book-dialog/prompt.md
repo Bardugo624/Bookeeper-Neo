@@ -32,7 +32,7 @@ Aggiorna i test che parlano del pannello e aggiungine dove serve:
 
 ## Acceptance criteria
 
-- `npm run typecheck -w @bookeeper/desktop` passa; `npx vitest run src/modules/books` (da `apps/desktop`) passa, insieme ai test dei moduli che importano il pop-up.
+- `npm run typecheck -w @bookeeper/desktop` passa; `npx vitest run src/kit/styles.test.ts` (da `apps/desktop`) passa: i fogli di stile usano solo token esistenti; `npx vitest run src/modules/books` (da `apps/desktop`) passa, insieme ai test dei moduli che importano il pop-up.
 - `npm test -w @bookeeper/i18n` passa se aggiungi testi (italiano e inglese).
 - Nessun componente oltre 250 righe; nessun testo nei componenti; nessun colore letterale.
 - `.claude/skills/impeccable/scripts/impeccable detect --json` sui file cambiati non trova nulla.

@@ -31,7 +31,7 @@ Nel namespace `tour` (italiano e inglese): titoli e testi dei passi di `explore`
 
 ## Acceptance criteria
 
-- `npm run typecheck -w @bookeeper/desktop` passa; `npx vitest run src/modules/tour src/modules/settings src/modules/books src/modules/reading src/modules/shelves` (da `apps/desktop`) passa; `npm test -w @bookeeper/i18n` passa.
+- `npm run typecheck -w @bookeeper/desktop` passa; `npx vitest run src/kit/styles.test.ts` (da `apps/desktop`) passa: i fogli di stile usano solo token esistenti; `npx vitest run src/modules/tour src/modules/settings src/modules/books src/modules/reading src/modules/shelves` (da `apps/desktop`) passa; `npm test -w @bookeeper/i18n` passa.
 - Nessun componente oltre 250 righe; nessun testo nei componenti; nessun colore letterale.
 - `.claude/skills/impeccable/scripts/impeccable detect --json` sui file cambiati non trova nulla.
 - Cambiano solo file sotto `apps/desktop/src/modules/tour/`, `settings/`, `books/`, `reading/`, `shelves/` e i file i18n `tour.json` e `settings.json` (it, en).

@@ -20,7 +20,7 @@ Applica la regola della zona pericolosa a scaffali, prestiti e wishlist. Setup d
 
 ## Acceptance criteria
 
-- `npm run typecheck -w @bookeeper/desktop` passa; `npx vitest run src/modules/shelves src/modules/loans src/modules/wishlist` (da `apps/desktop`) passa; `npm test -w @bookeeper/i18n` passa.
+- `npm run typecheck -w @bookeeper/desktop` passa; `npx vitest run src/kit/styles.test.ts` (da `apps/desktop`) passa: i fogli di stile usano solo token esistenti; `npx vitest run src/modules/shelves src/modules/loans src/modules/wishlist` (da `apps/desktop`) passa; `npm test -w @bookeeper/i18n` passa.
 - Nessun componente oltre 250 righe; nessun testo nei componenti; nessun colore letterale.
 - `.claude/skills/impeccable/scripts/impeccable detect --json` sui file cambiati non trova nulla.
 - Cambiano solo file sotto `apps/desktop/src/modules/shelves/`, `loans/`, `wishlist/`, e `shelves.json`, `loans.json`, `wishlist.json` (it, en).

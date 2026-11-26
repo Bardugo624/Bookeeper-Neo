@@ -37,7 +37,7 @@ Nel namespace `tour` (italiano e inglese): titolo e testo del passo 1 nei suoi t
 
 ## Acceptance criteria
 
-- `npm run typecheck -w @bookeeper/desktop` passa; `npx vitest run src/modules/tour src/modules/welcome src/modules/books src/modules/onboarding src/shell` (da `apps/desktop`) passa; `npm test -w @bookeeper/i18n` passa.
+- `npm run typecheck -w @bookeeper/desktop` passa; `npx vitest run src/kit/styles.test.ts` (da `apps/desktop`) passa: i fogli di stile usano solo token esistenti; `npx vitest run src/modules/tour src/modules/welcome src/modules/books src/modules/onboarding src/shell` (da `apps/desktop`) passa; `npm test -w @bookeeper/i18n` passa.
 - Nessun componente oltre 250 righe; nessun testo nei componenti; nessun colore letterale.
 - `.claude/skills/impeccable/scripts/impeccable detect --json` sui file cambiati non trova nulla.
 - Cambiano solo file sotto `apps/desktop/src/modules/tour/`, `welcome/`, `books/`, `onboarding/`, `apps/desktop/src/shell/Sidebar.tsx` (con il suo CSS e il suo test) e `tour.json` (it, en).

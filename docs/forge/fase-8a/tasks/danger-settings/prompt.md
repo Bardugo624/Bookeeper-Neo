@@ -19,7 +19,7 @@ Applica la regola della zona pericolosa alle impostazioni. Setup di Impeccable d
 
 ## Acceptance criteria
 
-- `npm run typecheck -w @bookeeper/desktop` passa; `npx vitest run src/modules/settings` (da `apps/desktop`) passa; `npm test -w @bookeeper/i18n` passa.
+- `npm run typecheck -w @bookeeper/desktop` passa; `npx vitest run src/kit/styles.test.ts` (da `apps/desktop`) passa: i fogli di stile usano solo token esistenti; `npx vitest run src/modules/settings` (da `apps/desktop`) passa; `npm test -w @bookeeper/i18n` passa.
 - Nessun componente oltre 250 righe; nessun testo nei componenti; nessun colore letterale.
 - `.claude/skills/impeccable/scripts/impeccable detect --json` sui file cambiati non trova nulla.
 - Cambiano solo file sotto `apps/desktop/src/modules/settings/sections/backup/`, `sections/account/`, `sections/sharing/`, i test delle impostazioni in `apps/desktop/src/modules/settings/` che le riguardano, e `settings.json`, `sharing.json` (it, en).

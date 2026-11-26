@@ -20,7 +20,7 @@ Applica la regola della zona pericolosa alla PWA (`apps/mobile`). Setup di Impec
 
 ## Acceptance criteria
 
-- `npm run typecheck -w @bookeeper/mobile` passa; `npx vitest run src/modules/account src/modules/wishlist src/modules/reading` (da `apps/mobile`) passa; `npm test -w @bookeeper/i18n` passa.
+- `npm run typecheck -w @bookeeper/mobile` passa; `npx vitest run src/styles.test.ts` (da `apps/mobile`) passa; `npx vitest run src/modules/account src/modules/wishlist src/modules/reading` (da `apps/mobile`) passa; `npm test -w @bookeeper/i18n` passa.
 - Nessun componente oltre 250 righe; nessun testo nei componenti; nessun colore letterale.
 - `.claude/skills/impeccable/scripts/impeccable detect --json` sui file cambiati non trova nulla.
 - Cambiano solo file sotto `apps/mobile/src/modules/account/`, `wishlist/`, `reading/`, e i file i18n `maccount`, `mwishlist`, `mreading` (it, en).

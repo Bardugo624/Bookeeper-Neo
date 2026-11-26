@@ -27,7 +27,7 @@ Con `getBoundingClientRect` ed `Element.prototype.animate` simulati, come i test
 
 ## Acceptance criteria
 
-- `npm run typecheck -w @bookeeper/desktop` passa; `npx vitest run src/modules/books` (da `apps/desktop`) passa.
+- `npm run typecheck -w @bookeeper/desktop` passa; `npx vitest run src/kit/styles.test.ts` (da `apps/desktop`) passa: i fogli di stile usano solo token esistenti; `npx vitest run src/modules/books` (da `apps/desktop`) passa.
 - Nessun componente oltre 250 righe (la logica del volo sta in un hook, per esempio `useCoverFlight.ts`); nessun colore letterale.
 - `.claude/skills/impeccable/scripts/impeccable detect --json` sui file cambiati non trova nulla.
 - Cambiano solo file sotto `apps/desktop/src/modules/books/`.
