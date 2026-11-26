@@ -58,7 +58,19 @@ export function LoansPage() {
       />
     );
   } else if (items.length === 0) {
-    body = <EmptyState icon="loans" title={t(mine ? 'loans.empty.mine.title' : `loans.empty.${filter}.title`)} text={t(mine ? 'loans.empty.mine.text' : `loans.empty.${filter}.text`)} />;
+    const key = mine ? 'mine' : filter;
+    // Every empty list says what it is for and offers the next step: lend a book, or look where the loans are.
+    const next =
+      key === 'active' || key === 'all' ? (
+        writable ? (
+          <Button variant="primary" icon="plus" onClick={() => dialogs.open({ kind: 'new' })}>
+            {t('loans.new.button')}
+          </Button>
+        ) : undefined
+      ) : (
+        <Button onClick={() => params.pickFilter('active')}>{t(`loans.empty.${key}.action`)}</Button>
+      );
+    body = <EmptyState icon="loans" title={t(`loans.empty.${key}.title`)} text={t(`loans.empty.${key}.text`)} action={next} />;
   } else {
     const actions = writable ? dialogs.actions : undefined;
     body = (

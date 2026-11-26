@@ -34,7 +34,7 @@
     "due": "scadenza {date}",
     "noDue": "senza scadenza",
     "returnedOn": "restituito il {date}",
-    "byBorrower": "Mostra i prestiti di {name}"
+    "byBorrower": "A {name}: mostra i suoi prestiti"
   },
   "actions": {
     "return": "Segna come restituito",
@@ -47,24 +47,27 @@
     },
     "overdue": {
       "title": "Nessun prestito in ritardo",
-      "text": "Tutti i prestiti aperti sono entro la scadenza."
+      "text": "Tutti i prestiti aperti sono entro la scadenza. Se uno scade, compare qui.",
+      "action": "Vedi i prestiti in corso"
     },
     "returned": {
       "title": "Nessun prestito restituito",
-      "text": "I prestiti conclusi compaiono qui."
+      "text": "Quando segni un prestito come restituito, lo ritrovi qui con la sua durata.",
+      "action": "Vedi i prestiti in corso"
     },
     "all": {
       "title": "Nessun prestito",
-      "text": "Non hai ancora prestato nessun libro."
+      "text": "Non hai ancora prestato nessun libro. Quando lo fai, il prestito compare qui."
     },
     "mine": {
       "title": "Nessun prestito a te",
-      "text": "I libri prestati a te compaiono qui."
+      "text": "I libri che ti prestano compaiono qui.",
+      "action": "Vedi i prestiti in corso"
     }
   },
   "error": {
     "title": "Non riesco a caricare i prestiti",
-    "text": "Controlla la connessione e riprova."
+    "text": "Non sono riuscito a leggere i prestiti dal server. Controlla la connessione e riprova."
   },
   "new": {
     "button": "Nuovo prestito",
