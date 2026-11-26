@@ -6,7 +6,7 @@ import { Menu, useToast } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
 import { ConfirmDialog, apiErrorMessage } from '../../kit';
 import { LabelsDialog } from '../labels';
-import { BookDrawer } from './BookDrawer';
+import { BookDialog } from './BookDialog';
 import { useBookWrites } from './useBookWrites';
 import styles from './DetailToolbar.module.css';
 
@@ -17,6 +17,8 @@ export function DetailToolbar({ book, listPath }: { book: BookOut; listPath: To 
   const navigate = useNavigate();
   const { remove } = useBookWrites();
   const [editing, setEditing] = useState(false);
+  // The "Edit" button: the dialog grows from it and gives the focus back.
+  const [origin, setOrigin] = useState<HTMLElement | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [labelling, setLabelling] = useState(false);
 
@@ -36,7 +38,10 @@ export function DetailToolbar({ book, listPath }: { book: BookOut; listPath: To 
 
   return (
     <div className={styles.toolbar}>
-      <Button variant="secondary" icon="pencil" onClick={() => setEditing(true)}>
+      <Button variant="secondary" icon="pencil" onClick={(e) => {
+          setOrigin(e.currentTarget);
+          setEditing(true);
+        }}>
         {t('common.edit')}
       </Button>
       <Menu
@@ -46,7 +51,7 @@ export function DetailToolbar({ book, listPath }: { book: BookOut; listPath: To 
           { id: 'delete', label: t('common.delete'), icon: 'trash', danger: true, onSelect: () => setConfirming(true) },
         ]}
       />
-      <BookDrawer open={editing} book={book} onClose={() => setEditing(false)} />
+      <BookDialog open={editing} book={book} origin={origin} onClose={() => setEditing(false)} />
       <LabelsDialog bookIds={[book.id]} open={labelling} onClose={() => setLabelling(false)} />
       <ConfirmDialog
         open={confirming}

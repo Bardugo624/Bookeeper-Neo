@@ -10,7 +10,7 @@ export interface BooksHeaderProps {
   total: number | undefined;
   onLoan: number | undefined;
   /** Write actions ("Add", "Select"); absent for roles that cannot write. */
-  actions?: { selecting: boolean; onAdd(): void; onToggleSelect(): void; onManageTags(): void };
+  actions?: { selecting: boolean; onAdd(origin: HTMLElement): void; onToggleSelect(): void; onManageTags(): void };
 }
 
 export function BooksHeader({ params, total, onLoan, actions }: BooksHeaderProps) {
@@ -44,7 +44,7 @@ export function BooksHeader({ params, total, onLoan, actions }: BooksHeaderProps
             <Button variant="secondary" aria-pressed={actions.selecting} onClick={actions.onToggleSelect}>
               {t('books.selection.toggle')}
             </Button>
-            <Button variant="primary" icon="plus" onClick={actions.onAdd}>
+            <Button variant="primary" icon="plus" onClick={(e) => actions.onAdd(e.currentTarget)}>
               {t('books.new.button')}
             </Button>
             <Menu

@@ -1,24 +1,20 @@
 import { useId, useState } from 'react';
 import type { BookOut } from '@bookeeper/api';
 import { Button } from '@bookeeper/ui/base';
-import { Drawer, useToast } from '@bookeeper/ui/overlays';
+import { Dialog, useToast } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
-import { apiErrorMessage } from '../../kit';
-import { TagPicker } from '../tags';
-import { BookFormFields } from './BookFormFields';
-import { CoverPicker } from './CoverPicker';
+import { BookSheet } from './BookSheet';
 import { IsbnStep } from './IsbnStep';
-import { ExistingNotice, LookupNotice } from './LookupNotice';
-import { authorsOf } from './format';
 import type { SaveResult } from './useBookWrites';
 import { useBookEditor } from './useBookEditor';
 import { mayHaveCover, useCoverState } from './useCover';
-import styles from './BookForm.module.css';
 
-export interface BookDrawerProps {
+export interface BookDialogProps {
   open: boolean;
   /** The book being edited; absent for "New book". */
   book?: BookOut;
+  /** The button that opened the dialog: it grows from there and gets the focus back. Absent from the palette. */
+  origin?: HTMLElement | null;
   onClose(): void;
   /** Runs after a successful save of an existing book. */
   onSaved?(book: BookOut): void;
@@ -26,15 +22,15 @@ export interface BookDrawerProps {
   onCreated?(book: BookOut, another: boolean): void;
 }
 
-/** "New book" (ISBN step, then form) or "Edit book" (form). Mounted only while open. */
-export function BookDrawer(props: BookDrawerProps) {
+/** "New book" (ISBN step, then the book sheet) or "Edit book" (form). Mounted only while open. */
+export function BookDialog(props: BookDialogProps) {
   const [round, setRound] = useState(0);
   if (!props.open) return null;
-  // A new `key` empties the panel for "Save and add another".
+  // A new `key` empties the dialog for "Save and add another".
   return <BookEditor key={round} {...props} onAnother={() => setRound((n) => n + 1)} />;
 }
 
-function BookEditor({ book, onClose, onSaved, onCreated, onAnother }: BookDrawerProps & { onAnother(): void }) {
+function BookEditor({ book, origin, onClose, onSaved, onCreated, onAnother }: BookDialogProps & { onAnother(): void }) {
   const t = useT();
   const toast = useToast();
   const formId = useId();
@@ -61,20 +57,23 @@ function BookEditor({ book, onClose, onSaved, onCreated, onAnother }: BookDrawer
     else onClose();
   };
   const editor = useBookEditor(book, done, Boolean(stored) || storedStatus === 'failed');
-  const { form } = editor;
   const title = book ? t('books.edit.title') : t('books.new.title');
 
+  const sheet = step === 'form';
+
   return (
-    <Drawer
+    <Dialog
       open
       onOpenChange={(next) => {
         if (!next && !editor.saving) onClose();
       }}
       title={title}
       closeLabel={t('common.close')}
+      size={sheet ? 'wide' : 'default'}
+      origin={origin}
       footer={
-        step === 'form' ? (
-          <div className={styles.actions}>
+        sheet ? (
+          <>
             <Button variant="ghost" disabled={editor.saving} onClick={onClose}>
               {t('common.cancel')}
             </Button>
@@ -86,41 +85,20 @@ function BookEditor({ book, onClose, onSaved, onCreated, onAnother }: BookDrawer
             <Button type="submit" form={formId} variant="primary" loading={editor.saving} loadingLabel={t('common.saving')}>
               {t('common.save')}
             </Button>
-          </div>
+          </>
         ) : undefined
       }
     >
-      {step === 'isbn' ? (
+      {sheet ? (
+        <BookSheet id={formId} editor={editor} storedSrc={stored} storedStatus={storedStatus} editing={Boolean(book)} />
+      ) : (
         <IsbnStep
           onDone={(result) => {
             editor.start(result);
             setStep('form');
           }}
         />
-      ) : (
-        <form id={formId} className={styles.form} onSubmit={editor.save(false)} noValidate>
-          {form.submitError ? (
-            <p role="alert" className={styles.error}>
-              {apiErrorMessage(t, form.submitError)}
-            </p>
-          ) : null}
-          <LookupNotice outcome={editor.outcome} />
-          <ExistingNotice existing={editor.duplicate} />
-          <BookFormFields form={form} />
-          <TagPicker value={editor.tagIds} onChange={editor.setTagIds} disabled={editor.saving} />
-          <CoverPicker
-            title={form.values.title}
-            author={authorsOf(form.values) || undefined}
-            storedSrc={stored}
-            storedStatus={storedStatus}
-            candidates={editor.candidates}
-            plan={editor.plan}
-            onPlan={editor.setPlan}
-            color={editor.color}
-            onColor={editor.setColor}
-          />
-        </form>
       )}
-    </Drawer>
+    </Dialog>
   );
 }
