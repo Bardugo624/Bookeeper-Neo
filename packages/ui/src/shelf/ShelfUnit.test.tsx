@@ -233,6 +233,19 @@ describe('pulledId', () => {
     rerender(<ShelfUnit color={SHELF_COLORS[0]!} rows={rows} pulledId="d" />);
     expect(spy).toHaveBeenCalledTimes(1);
   });
+
+  it('scrolls when the pulled spine appears late, and not on a reload of the same books', () => {
+    const spy = vi.fn();
+    HTMLElement.prototype.scrollIntoView = spy;
+    const empty: ShelfRow[] = [{ id: 'r1', label: 'Ripiano 1', capacity: 10, books: [] }];
+    const ui = (r: ShelfRow[]) => <ShelfUnit color={SHELF_COLORS[0]!} rows={r} pulledId="a" />;
+    const { rerender } = render(ui(empty));
+    expect(spy).not.toHaveBeenCalled();
+    rerender(ui(rows));
+    expect(spy).toHaveBeenCalledTimes(1);
+    rerender(ui(rows.map((r) => ({ ...r, books: [...r.books] }))));
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('read-only use', () => {
