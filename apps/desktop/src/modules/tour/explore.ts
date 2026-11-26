@@ -23,6 +23,8 @@ const WHERE_STEP: TourStep = {
   target: ({ has }) => (has('book.where') ? 'book.where' : 'nav.search'),
   variants: { 'nav.search': keys('whereBack') },
   signal: 'where-shown',
+  // Through the palette's «dov'è …» the press happens outside the box, before the shelves answer.
+  whilePaused: true,
 };
 
 /** «Segna cosa leggi»: the reading block of the book's page; away from the page, the way to a book. */
@@ -32,6 +34,8 @@ const READING_STEP: TourStep = {
   target: ({ has }) => (has('book.reading') ? 'book.reading' : 'nav.search'),
   variants: { 'nav.search': keys('readingBack') },
   signal: 'reading-changed',
+  // «Segna come letto» under the cover sits outside the reading block.
+  whilePaused: true,
 };
 
 export const EXPLORE_ID = 'explore';

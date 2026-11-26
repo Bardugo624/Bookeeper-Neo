@@ -82,4 +82,33 @@ describe('explore', () => {
     act(() => tourSignal('book-opened'));
     await waitFor(() => lampOn('nav.search'));
   });
+
+  it('a book on no shelf completes «Dove si trova» by itself, and the reading step comes next', async () => {
+    show({ books: [book(1, { placement: null })] });
+    await userEvent.click(await screen.findByRole('link', { name: 'Libro 1 Autore 1' }));
+    await screen.findByRole('heading', { level: 1, name: 'Libro 1' });
+    await waitFor(() => expect(state().step).toBe(2));
+    await waitFor(() => lampOn('book.reading'));
+  });
+
+  it('«Segna come letto» under the cover completes the reading step even though the press pauses the tour', async () => {
+    show();
+    await userEvent.click(await screen.findByRole('link', { name: 'Libro 1 Autore 1' }));
+    await screen.findByRole('heading', { level: 1, name: 'Libro 1' });
+    act(() => tourSignal('where-shown'));
+    await waitFor(() => lampOn('book.reading'));
+    await userEvent.click(await screen.findByRole('button', { name: 'Segna come letto' }));
+    await waitFor(() => expect(state().status).toBe('done'));
+  });
+
+  it('where-shown also counts when the tour was paused by a press outside the box', async () => {
+    show();
+    await userEvent.click(await screen.findByRole('link', { name: 'Libro 1 Autore 1' }));
+    await screen.findByRole('heading', { level: 1, name: 'Libro 1' });
+    await waitFor(() => lampOn('book.where'));
+    act(() => state().pause());
+    act(() => tourSignal('where-shown'));
+    await waitFor(() => expect(state().step).toBe(2));
+    expect(state().status).toBe('running');
+  });
 });
