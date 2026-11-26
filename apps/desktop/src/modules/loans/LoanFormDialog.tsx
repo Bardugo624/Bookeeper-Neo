@@ -60,7 +60,14 @@ export function LoanFormDialog({ mode, onClose }: LoanFormDialogProps) {
     >
       {!editing && !fixedBook ? <BookPicker value={picked} error={errors.book_id} onChange={choose} /> : null}
       <Field label={t('loans.form.borrower')} error={errors.borrower_name}>
-        <BorrowerInput value={values.borrower_name} onChange={(name) => form.setValue('borrower_name', name)} />
+        <BorrowerInput
+          value={values.borrower_name}
+          personId={values.borrower_user_id}
+          onChange={(name, id) => {
+            form.setValue('borrower_name', name);
+            form.setValue('borrower_user_id', id);
+          }}
+        />
       </Field>
       <div className={styles.dates}>
         <Field label={t('loans.form.lentAt')} error={errors.lent_at}>

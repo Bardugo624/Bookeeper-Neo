@@ -11,6 +11,9 @@ import { normalizeCode } from './normalize';
 import { module as pairModule } from './routes';
 
 const REDEEM = '/api/v1/pairing/redeem';
+const INSPECT = '/api/v1/pairing/inspect';
+const DEVICE_CODE = { kind: 'device', library_name: 'Biblioteca Verdi', user_display_name: 'Anna', expires_at: 9999999999 };
+const INVITE_CODE = { kind: 'invite', library_name: 'Casa Rossi', role: 'member', expires_at: 9999999999 };
 const AUTH = {
   library: { id: 'l9', name: 'Biblioteca Verdi' },
   user: ME.user,
@@ -23,9 +26,13 @@ const search: MobileModule = {
 };
 const apiError = (status: number, code: string) => ({ status, body: { error_code: code, message: 'x' } });
 
-function platformWith(redeem: Handler = () => ok(AUTH)): FakePlatform {
-  return fakePlatform({ handler: (c) => (c.path === REDEEM ? redeem(c) : c.path === '/api/v1/me' ? ok(ME) : apiError(404, 'not_found')) });
+function platformWith(redeem: Handler = () => ok(AUTH), inspect: Handler = () => ok(DEVICE_CODE)): FakePlatform {
+  return fakePlatform({
+    handler: (c) =>
+      c.path === REDEEM ? redeem(c) : c.path === INSPECT ? inspect(c) : c.path === '/api/v1/me' ? ok(ME) : apiError(404, 'not_found'),
+  });
 }
+const inspects = (p: FakePlatform) => p.fake.calls.filter((c) => c.path === INSPECT);
 const redeems = (p: FakePlatform) => p.fake.calls.filter((c) => c.path === REDEEM);
 const open = (p: FakePlatform, route: string) => renderMobile({ platform: p, modules: [pairModule, search], route });
 
@@ -86,6 +93,73 @@ describe('from a QR link', () => {
     // The code is still there: a second tap tries again.
     await userEvent.click(screen.getByRole('button', { name: 'Collega' }));
     await waitFor(() => expect(redeems(p)).toHaveLength(2));
+  });
+});
+
+describe('invitation', () => {
+  const invitePlatform = (redeem: Handler = () => ok(AUTH)) => platformWith(redeem, () => ok(INVITE_CODE));
+
+  it('from the link: asks for the name, refuses an empty one, then joins', async () => {
+    const p = invitePlatform();
+    const { router } = open(p, '/pair?code=ABCD2345');
+    await userEvent.click(await screen.findByRole('button', { name: 'Collega' }));
+    expect(await screen.findByText('Sei stato invitato in «Casa Rossi» come Membro.')).toBeInTheDocument();
+    expect(redeems(p)).toHaveLength(0);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Entra' }));
+    expect(await screen.findByText('Scrivi il tuo nome.')).toBeInTheDocument();
+    await userEvent.type(screen.getByRole('textbox', { name: 'Il tuo nome' }), '   ');
+    await userEvent.click(screen.getByRole('button', { name: 'Entra' }));
+    expect(redeems(p)).toHaveLength(0);
+
+    await userEvent.type(screen.getByRole('textbox', { name: 'Il tuo nome' }), ' Anna ');
+    await userEvent.click(screen.getByRole('button', { name: 'Entra' }));
+    expect(await screen.findByText('Cerca qui')).toBeInTheDocument();
+    expect(redeems(p)).toHaveLength(1);
+    expect(redeems(p)[0]!.body).toEqual({ code: 'ABCD2345', device_name: 'iPhone · Safari', device_kind: 'mobile', display_name: 'Anna' });
+    expect(router.state.location.search).toBe('');
+    expect(JSON.parse(p.storage.get(SESSION_KEY)!)).toMatchObject({ access_token: 'new-access' });
+  });
+
+  it('from the typed code: same step, same request', async () => {
+    const p = invitePlatform();
+    open(p, '/pair/code');
+    await userEvent.type(await screen.findByLabelText('Codice di abbinamento'), 'abcd-2345');
+    await userEvent.click(screen.getByRole('button', { name: 'Collega' }));
+    expect(await screen.findByText(/Sei stato invitato in «Casa Rossi» come Membro/)).toBeInTheDocument();
+    await userEvent.type(screen.getByRole('textbox', { name: 'Il tuo nome' }), 'Marco');
+    await userEvent.click(screen.getByRole('button', { name: 'Entra' }));
+    expect(await screen.findByText('Cerca qui')).toBeInTheDocument();
+    expect(redeems(p)[0]!.body).toMatchObject({ code: 'ABCD2345', display_name: 'Marco', device_kind: 'mobile' });
+  });
+
+  it('keeps the step and shows the message when the invitation was used meanwhile', async () => {
+    const p = invitePlatform(() => apiError(401, 'pairing_code_invalid'));
+    open(p, '/pair?code=ABCD2345');
+    await userEvent.click(await screen.findByRole('button', { name: 'Collega' }));
+    await userEvent.type(await screen.findByRole('textbox', { name: 'Il tuo nome' }), 'Anna');
+    await userEvent.click(screen.getByRole('button', { name: 'Entra' }));
+    expect(await screen.findByText(/scaduto/)).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Il tuo nome' })).toHaveValue('Anna');
+  });
+});
+
+describe('device code', () => {
+  it('is inspected and redeemed with one tap, no extra step', async () => {
+    const p = platformWith();
+    open(p, '/pair?code=ABCD2345');
+    await userEvent.click(await screen.findByRole('button', { name: 'Collega' }));
+    expect(await screen.findByText('Cerca qui')).toBeInTheDocument();
+    expect(inspects(p)).toHaveLength(1);
+    expect(redeems(p)[0]!.body).not.toHaveProperty('display_name');
+  });
+
+  it('shows an invalid code from inspect without redeeming', async () => {
+    const p = platformWith(undefined, () => apiError(401, 'pairing_code_invalid'));
+    open(p, '/pair?code=ABCD2345');
+    await userEvent.click(await screen.findByRole('button', { name: 'Collega' }));
+    expect(await screen.findByText(/scaduto/)).toBeInTheDocument();
+    expect(redeems(p)).toHaveLength(0);
   });
 });
 
@@ -188,6 +262,8 @@ describe('texts', () => {
     'intro.title', 'intro.text', 'intro.stepsLabel', 'intro.step1', 'intro.step2', 'intro.step3', 'intro.haveCode',
     'code.title', 'code.text', 'code.label', 'code.hint', 'code.placeholder', 'code.action', 'code.busy', 'code.back',
     'already.title', 'already.text', 'already.textUnknown', 'already.keep', 'already.again',
+    'invite.title', 'invite.text', 'invite.label', 'invite.hint', 'invite.action', 'invite.busy',
+    'roles.owner', 'roles.admin', 'roles.member', 'roles.guest', 'errors.displayEmpty',
     'errors.codeEmpty', 'errors.nameEmpty', 'errors.invalid', 'errors.network',
   ];
   it.each(LOCALES.flatMap((l) => keys.map((k) => [l, k] as const)))('%s has mpair.%s', (locale, key) => {

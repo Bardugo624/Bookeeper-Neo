@@ -4,6 +4,7 @@ import { Button, Field, Input } from '@bookeeper/ui/base';
 import { useT } from '../../app/i18n';
 import { Screen } from '../../kit';
 import { usePlatform } from '../../platform';
+import { InviteStep } from './InviteStep';
 import { NAME_MAX, usePairing } from './usePairing';
 import styles from './Pair.module.css';
 
@@ -15,12 +16,16 @@ export function CodePage() {
   const formId = useId();
   const [code, setCode] = useState('');
   const [name, setName] = useState(() => platform.deviceName());
-  const { loading, error, submit } = usePairing();
+  const { loading, error, invite, submit, join } = usePairing();
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
     void submit(code, name);
   };
+
+  if (invite) {
+    return <InviteStep info={invite} loading={loading} error={error} onJoin={(n) => void join(n, name)} />;
+  }
 
   return (
     <Screen

@@ -103,6 +103,15 @@ export interface UpdateControls {
   onProgress(cb: (p: UpdateProgress) => void): () => void;
 }
 
+export type NotificationPermission = 'granted' | 'denied' | 'prompt';
+
+export interface NotificationControls {
+  permission(): Promise<NotificationPermission>;
+  /** Asks the system; resolves to the answer (`prompt` counts as `denied`). */
+  request(): Promise<'granted' | 'denied'>;
+  send(n: { title: string; body: string }): Promise<void>;
+}
+
 export interface Platform {
   kind: 'tauri' | 'browser';
   transport(connectionId?: string): Transport;
@@ -123,6 +132,8 @@ export interface Platform {
   sharing: SharingControls | null;
   /** `null` where the app cannot update itself (browser). */
   updates: UpdateControls | null;
+  /** `null` where the app cannot show system notifications. */
+  notifications: NotificationControls | null;
 }
 
 export const NETWORK_PROBE: ProbeOut = {

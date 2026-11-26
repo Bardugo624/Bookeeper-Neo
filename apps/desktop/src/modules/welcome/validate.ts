@@ -5,6 +5,7 @@ import type { Errors } from './errors';
 export const PASSWORD_MIN = 8;
 export const PASSWORD_MAX = 256;
 export const NAME_MAX = 80;
+export const INVITE_NAME_MAX = 60;
 
 const length = (v: string) => [...v].length;
 
@@ -15,6 +16,12 @@ export function requiredError(v: string, t: Translate): string | undefined {
 export function nameError(v: string, t: Translate): string | undefined {
   if (v.trim() === '') return t('welcome.errors.required');
   return length(v.trim()) > NAME_MAX ? t('welcome.errors.tooLong', { max: NAME_MAX }) : undefined;
+}
+
+/** The name of a person who joins with an invitation: 1 to 60 characters, like the core. */
+export function inviteNameError(v: string, t: Translate): string | undefined {
+  if (v.trim() === '') return t('welcome.errors.required');
+  return length(v.trim()) > INVITE_NAME_MAX ? t('welcome.errors.tooLong', { max: INVITE_NAME_MAX }) : undefined;
 }
 
 export function emailError(v: string, t: Translate): string | undefined {

@@ -7,7 +7,10 @@ import { useT, type Translate } from '../../app/i18n';
 import { ErrorState, Screen, apiErrorMessage } from '../../kit';
 import { ReadingBlock } from '../reading';
 import { TagsBlock } from '../tags';
+import { useSession } from '../../session';
 import { Description } from './Description';
+import { canEditBooks } from './editModel';
+import { OwnerLine, ReadersBlock } from './People';
 import { LoanBlock, WhereBlock } from './Placement';
 import type { FromList } from './searchState';
 import { mayHaveCover, useCover } from './useCover';
@@ -41,10 +44,12 @@ function Detail({ book }: { book: BookOut }) {
         <h2 className={styles.title}>{book.title}</h2>
         {book.subtitle ? <p className={styles.subtitle}>{book.subtitle}</p> : null}
         {book.authors.length > 0 ? <p className={styles.authors}>{book.authors.join(', ')}</p> : null}
+        <OwnerLine book={book} />
       </div>
       <WhereBlock book={book} />
       <LoanBlock book={book} />
       <ReadingBlock book={book} />
+      <ReadersBlock bookId={book.id} />
       <TagsBlock book={book} />
       {description ? (
         <section className={blocks.block} aria-labelledby="desc-title">
@@ -94,6 +99,7 @@ export function BookDetailPage() {
   const location = useLocation();
   const from = (location.state as FromList | null)?.list ?? '';
   const book = useBook(id);
+  const canEdit = useSession((s) => canEditBooks(s.me?.user.role));
 
   let body;
   if (book.data) body = <Detail book={book.data} />;
@@ -106,6 +112,13 @@ export function BookDetailPage() {
   return (
     <Screen
       title={book.data?.title ?? t('msearch.title')}
+      actions={
+        book.data && canEdit ? (
+          <Link to={`/books/${encodeURIComponent(id)}/edit`} state={location.state} className={styles.edit}>
+            {t('msearch.detail.edit')}
+          </Link>
+        ) : undefined
+      }
       leading={
         <Link to={{ pathname: '/search', search: from }} className={styles.back} aria-label={t('msearch.detail.back')}>
           <Icon name="chevron-left" size={22} />

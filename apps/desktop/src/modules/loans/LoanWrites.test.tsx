@@ -162,6 +162,29 @@ describe('return, reopen, edit, delete', () => {
     await screen.findByText('A Giulia');
   });
 
+  it('changes the person of a loan, and a free name takes the link off', async () => {
+    const user = userEvent.setup();
+    const s = store({
+      people: [{ id: 'u2', display_name: 'Marta' }],
+      loans: [loan(1, { borrower_name: 'Luca' })],
+    });
+    const { platform } = renderLoans(s);
+    await user.click(await screen.findByRole('button', { name: 'Modifica' }));
+    const name = within(dialog()).getByLabelText('A chi');
+    await user.clear(name);
+    await user.click(await screen.findByRole('option', { name: 'Marta' }));
+    await user.click(within(dialog()).getByRole('button', { name: 'Salva' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(writes(platform)[0]!.body).toMatchObject({ borrower_user_id: 'u2' });
+    expect(writes(platform)[0]!.body).not.toHaveProperty('borrower_name');
+    await user.click(await screen.findByRole('button', { name: 'Modifica' }));
+    const again = within(dialog()).getByLabelText('A chi');
+    await user.type(again, 'x');
+    await user.click(within(dialog()).getByRole('button', { name: 'Salva' }));
+    await waitFor(() => expect(writes(platform)).toHaveLength(2));
+    expect(writes(platform)[1]!.body).toMatchObject({ borrower_name: 'Martax', borrower_user_id: null });
+  });
+
   it('asks for confirmation before deleting and names the loan', async () => {
     const user = userEvent.setup();
     const { platform } = renderLoans(store());

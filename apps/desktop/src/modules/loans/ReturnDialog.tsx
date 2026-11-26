@@ -4,6 +4,7 @@ import { Field, Input } from '@bookeeper/ui/base';
 import { useT } from '../../app';
 import { FormDialog, apiErrorMessage, toDateInputValue, toUnixSeconds, useFormState } from '../../kit';
 import { todayInput } from './loanForm';
+import { borrowerLabel } from './loanStatus';
 import { useLoanMutations } from './useLoanMutations';
 
 export interface ReturnDialogProps {
@@ -33,7 +34,7 @@ export function ReturnDialog({ loan, onClose }: ReturnDialogProps) {
     <FormDialog
       open
       title={t('loans.return.title')}
-      description={t('loans.return.description', { title: loan.book_title, name: loan.borrower_name })}
+      description={t('loans.return.description', { title: loan.book_title, name: borrowerLabel(loan) })}
       error={form.submitError ? apiErrorMessage(t, form.submitError) : null}
       busy={form.submitting}
       submitLabel={t('loans.return.submit')}

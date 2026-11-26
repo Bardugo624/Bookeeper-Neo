@@ -20,6 +20,8 @@ export function useWhere(
   shelf: ShelfOut | undefined,
   onUnit: ShelfBook[] | undefined,
   moveTo: (unit: string) => void,
+  /** True when the list is loaded and no unit is open (a filter that shows none), so the book is looked up anyway. */
+  noUnit = false,
 ): WhereState {
   const client = useClient();
   const keys = useKeys();
@@ -27,12 +29,12 @@ export function useWhere(
   // Only asked for when the open unit does not hold the book.
   const away = useQuery({
     queryKey: [...keys.shelves, 'where', bookId],
-    enabled: Boolean(bookId) && onUnit !== undefined && !here,
+    enabled: Boolean(bookId) && (onUnit !== undefined || noUnit) && !here,
     retry: false,
     queryFn: () => client.getBook(bookId),
   });
   const placement = away.data?.placement ?? null;
-  const elsewhere = placement && shelf && placement.shelf_id !== shelf.id ? placement.shelf_id : null;
+  const elsewhere = placement && placement.shelf_id !== shelf?.id ? placement.shelf_id : null;
   const go = useRef(moveTo);
   go.current = moveTo;
   useEffect(() => {

@@ -44,7 +44,8 @@
       "none": "Not shelved",
       "phrase": "{shelf} · shelf {row} · slot {slot}",
       "button": "Where is it?",
-      "row": "Shelf {row}"
+      "row": "Shelf {row}",
+      "unit": "Open the furniture"
     },
     "loan": {
       "title": "Loan",
@@ -77,6 +78,17 @@
       "back": "Back to the book",
       "missing": "It is not on any shelf",
       "missingText": "This book is not shelved, or it has been moved."
+    },
+    "you": "You",
+    "owner": "Owner: {name}",
+    "edit": "Edit",
+    "readers": {
+      "title": "Who is reading it",
+      "reading": "{name} · is reading",
+      "to_read": "{name} · to read",
+      "read": "{name} · has read it",
+      "readOn": "{name} · read it in {date}",
+      "abandoned": "{name} · gave up on it"
     }
   },
   "reading": {
@@ -106,5 +118,47 @@
     "tag": "Tag: {name}",
     "room": "Room: {name}",
     "remove": "Remove the filter {label}"
-  }
+  },
+  "edit": {
+    "title": "Edit book",
+    "back": "Back to the book",
+    "save": "Save",
+    "saving": "Saving…",
+    "subtitle": "Subtitle",
+    "authors": "Authors",
+    "authorN": "Author {n}",
+    "addAuthor": "Add author",
+    "removeAuthor": "Remove author {n}",
+    "publisher": "Publisher",
+    "year": "Year",
+    "pages": "Pages",
+    "language": "Language",
+    "genre": "Genre",
+    "format": "Format",
+    "formatNone": "Not set",
+    "formats": {
+      "hardcover": "Hardcover",
+      "paperback": "Paperback",
+      "ebook": "E-book",
+      "audiobook": "Audiobook"
+    },
+    "owner": "Whose it is",
+    "ownerNone": "Everyone’s",
+    "peopleError": "The people could not be loaded.",
+    "errors": {
+      "required": "Required field",
+      "tooLong": "At most {max} characters.",
+      "tooMany": "At most {max} authors.",
+      "range": "A number from {min} to {max}.",
+      "invalid": "This value is not valid."
+    },
+    "leave": {
+      "title": "Leave without saving?",
+      "text": "The changes to this book will be lost.",
+      "stay": "Keep editing",
+      "discard": "Leave without saving"
+    },
+    "titleField": "Title"
+  },
+  "shelves": "Shelves"
 }

@@ -1,5 +1,5 @@
 import { createFetchTransport, type ServerInfo, type SetupStatus } from '@bookeeper/api';
-import { NETWORK_PROBE, type Connection, type Connections, type Platform, type ProbeOut } from './types';
+import { NETWORK_PROBE, type Connection, type Connections, type NotificationControls, type Platform, type ProbeOut } from './types';
 
 const KEY = 'bookeeper.connections';
 const EMPTY: Connections = { active: null, items: [] };
@@ -30,6 +30,26 @@ async function getJson<T>(url: string): Promise<T | null> {
   const res = await fetch(url);
   if (!res.ok) return null;
   return (await res.json()) as T;
+}
+
+/** The browser's `Notification`, or `null` where there is none. Read at call time, so a test can add or remove it. */
+function browserNotifications(): NotificationControls | null {
+  if (typeof Notification === 'undefined') return null;
+  return {
+    async permission() {
+      return Notification.permission === 'default' ? 'prompt' : Notification.permission;
+    },
+    async request() {
+      try {
+        return (await Notification.requestPermission()) === 'granted' ? 'granted' : 'denied';
+      } catch {
+        return 'denied';
+      }
+    },
+    async send({ title, body }) {
+      new Notification(title, { body });
+    },
+  };
 }
 
 /** Development and visual testing only: used when `__TAURI_INTERNALS__` is missing. */
@@ -74,6 +94,7 @@ export function browserPlatform(baseUrl: string): Platform {
     discover: async () => [],
     sharing: null,
     updates: null,
+    notifications: browserNotifications(),
     window: null,
     async deviceName() {
       return 'Browser';

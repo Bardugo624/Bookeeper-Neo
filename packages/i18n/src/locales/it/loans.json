@@ -9,7 +9,8 @@
     "active": "In corso",
     "overdue": "In ritardo",
     "returned": "Restituiti",
-    "all": "Tutti"
+    "all": "Tutti",
+    "mine": "Prestati a me"
   },
   "bookFilter": {
     "text": "Solo i prestiti di un libro.",
@@ -55,6 +56,10 @@
     "all": {
       "title": "Nessun prestito",
       "text": "Non hai ancora prestato nessun libro."
+    },
+    "mine": {
+      "title": "Nessun prestito a te",
+      "text": "I libri prestati a te compaiono qui."
     }
   },
   "error": {
@@ -92,7 +97,8 @@
       "lentAfterReturn": "La data del prestito non può essere dopo la restituzione.",
       "notesLong": "Al massimo {max} caratteri."
     },
-    "borrowerSuggestions": "Nomi già usati"
+    "borrowerSuggestions": "Nomi già usati",
+    "me": "Tu"
   },
   "return": {
     "title": "Segna come restituito",
@@ -128,5 +134,18 @@
     "search": "Cerca per persona o titolo",
     "noMatch": "Nessun prestito corrisponde alla ricerca.",
     "monthList": "Prestiti restituiti, {month}"
+  },
+  "badge": {
+    "one": "{count} prestito scaduto",
+    "other": "{count} prestiti scaduti"
+  },
+  "notify": {
+    "title": "Prestiti scaduti",
+    "line": "«{title}» · {name} · {since}",
+    "since": {
+      "one": "da {count} giorno",
+      "other": "da {count} giorni"
+    },
+    "more": "e altri {count}"
   }
 }

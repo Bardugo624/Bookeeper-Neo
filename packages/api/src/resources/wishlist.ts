@@ -1,15 +1,16 @@
-import { P, S, enc, unwrap, unwrapEmpty, type Transport } from './util';
+import { P, S, enc, qs, unwrap, unwrapEmpty, type Transport } from './util';
 import type { BookOut } from './books';
 
 export type WishOut = S['WishOut'];
 export type WishList = S['WishList'];
 export type CreateWish = S['CreateWish'];
 export type PatchWish = S['PatchWish'];
+export type ListWishParams = S['ListWishQuery'];
 
 export function wishlistApi(t: Transport) {
   return {
-    async listWishlist() {
-      return unwrap<WishList>(await t.request('GET', `${P}/wishlist`));
+    async listWishlist(params?: ListWishParams) {
+      return unwrap<WishList>(await t.request('GET', `${P}/wishlist${qs(params)}`));
     },
     async createWish(body: CreateWish) {
       return unwrap<WishOut>(await t.request('POST', `${P}/wishlist`, body));

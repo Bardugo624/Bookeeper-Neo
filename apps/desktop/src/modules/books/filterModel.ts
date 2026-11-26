@@ -48,6 +48,8 @@ export interface Filters {
   yearTo: number | null;
   acquiredFrom: string | null;
   acquiredTo: string | null;
+  /** A person id, `me` or `none` (a book of everyone). */
+  owner: string | null;
 }
 
 export const NO_FILTERS: Filters = {
@@ -64,6 +66,7 @@ export const NO_FILTERS: Filters = {
   yearTo: null,
   acquiredFrom: null,
   acquiredTo: null,
+  owner: null,
 };
 
 /** Values of `format` the API accepts. */
@@ -108,6 +111,7 @@ const KEYS = [
   'year_to',
   'acquired_from',
   'acquired_to',
+  'owner',
 ] as const;
 
 const text = (p: URLSearchParams, key: string): string | null => p.get(key)?.trim() || null;
@@ -137,6 +141,7 @@ export function parseFilters(p: URLSearchParams): Filters {
     yearTo: year(p.get('year_to')),
     acquiredFrom: validDate(p.get('acquired_from')),
     acquiredTo: validDate(p.get('acquired_to')),
+    owner: text(p, 'owner'),
   });
 }
 
@@ -160,6 +165,7 @@ export function writeFilters(p: URLSearchParams, f: Filters): void {
   set('year_to', f.yearTo);
   set('acquired_from', f.acquiredFrom);
   set('acquired_to', f.acquiredTo);
+  set('owner', f.owner);
 }
 
 /** Unix seconds of the start of a local calendar day, `shift` days away. */
@@ -186,6 +192,7 @@ export function toApiFilters(raw: Filters): ListBooksParams {
     acquired_from: f.acquiredFrom ? localDay(f.acquiredFrom) : undefined,
     // The whole last day counts.
     acquired_to: f.acquiredTo ? localDay(f.acquiredTo, 1) - 1 : undefined,
+    owner_id: f.owner ?? undefined,
   };
 }
 

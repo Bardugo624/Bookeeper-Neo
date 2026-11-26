@@ -73,4 +73,16 @@ describe('where is it', () => {
     expect(router.state.location.search).not.toContain('room=');
     expect(router.state.location.search).toContain('unit=s2');
   });
+
+  it('wins over a room filter that shows no cabinet at all', async () => {
+    const w = world({
+      rooms: [room('r1', 'Salotto'), room('r3', 'Cantina')],
+      shelves: [shelf(1, { room_id: 'r1' }), shelf(2, { room_id: 'r1' })],
+    });
+    const { router } = renderShelves(w, '/shelves?room=r3&unit=s2&book=c1');
+    expect(await screen.findByText('«Libro c1» · Mobile 2 · ripiano 1 · posto 4')).toBeInTheDocument();
+    expect(router.state.location.search).not.toContain('room=');
+    expect(router.state.location.search).toContain('unit=s2');
+    expect(screen.queryByText(/Nessun mobile in questa stanza/)).toBeNull();
+  });
 });

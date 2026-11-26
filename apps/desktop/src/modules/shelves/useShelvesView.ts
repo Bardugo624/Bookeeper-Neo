@@ -47,6 +47,7 @@ export function useShelvesView() {
   const where = useWhere(params.values.book, shelf, books.data?.items, (unit) =>
     // "Where is it?" wins over the room filter: a filter that hides the unit is lifted.
     params.set({ unit, ...(roomId && !shelves.some((s) => s.id === unit) ? { room: '' } : {}) }),
+    !shelf && !list.isPending && !list.isError,
   );
   const doneWhere = useCallback(() => params.set({ book: '' }), [params]);
   const placement = usePlacement();

@@ -1,0 +1,34 @@
+{
+  "tab": "Wishlist",
+  "title": "Wishlist",
+  "loading": "Loading the wishlist",
+  "scope": { "label": "Which list", "mine": "Mine", "family": "Family" },
+  "family": { "me": "You" },
+  "empty": {
+    "mine": { "title": "Your wishlist is empty", "text": "Add the books you would like to own." },
+    "family": { "title": "No wishes in the family", "text": "When someone adds a book to the wishlist, it shows up here." }
+  },
+  "priority": { "low": "Low", "medium": "Medium", "high": "High" },
+  "add": { "button": "Add", "title": "Add to the wishlist", "submit": "Add to the wishlist" },
+  "edit": { "button": "Edit", "title": "Edit the item", "submit": "Save" },
+  "delete": {
+    "button": "Delete",
+    "text": "“{title}” will be removed from the wishlist. This cannot be undone.",
+    "confirm": "Yes, delete",
+    "cancel": "Cancel",
+    "working": "Deleting…"
+  },
+  "convert": { "button": "I have it: add it to the library", "working": "Adding…" },
+  "form": {
+    "title": "Title",
+    "authors": "Authors",
+    "authorsHint": "Separated by commas",
+    "isbn": "ISBN",
+    "priority": "Priority",
+    "saving": "Saving…",
+    "errors": {
+      "required": "Required field",
+      "tooLong": "At most {max} characters"
+    }
+  }
+}

@@ -6,6 +6,7 @@ import { formatDate } from '../../kit';
 import { useActiveLoan } from '../loans';
 import { ReadingCard } from '../reading';
 import { wherePhrase } from '../shelves';
+import { OwnerLine, ReadersBlock } from './DetailPeople';
 import { DetailTags } from './DetailTags';
 import { useShelfNames } from './useBook';
 import styles from './DetailAside.module.css';
@@ -30,7 +31,9 @@ export function DetailAside({ book }: { book: BookOut }) {
   const shelfName = placement ? shelves.get(placement.shelf_id) : undefined;
   return (
     <aside className={styles.aside}>
+      <OwnerLine book={book} />
       <ReadingCard book={book} />
+      <ReadersBlock bookId={book.id} />
       <DetailTags book={book} />
       <section className={styles.card} aria-labelledby="book-where">
         <h2 id="book-where" className={styles.heading}>

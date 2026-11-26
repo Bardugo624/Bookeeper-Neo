@@ -60,3 +60,25 @@
   font-size: 13px;
   color: var(--bk-text-faint);
 }
+
+.shelves {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 12px;
+  border-radius: var(--bk-radius-sm);
+  color: var(--bk-text-strong);
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  touch-action: manipulation;
+}
+
+.shelves:focus-visible {
+  outline: 2px solid var(--bk-primary-400);
+  outline-offset: -2px;
+}

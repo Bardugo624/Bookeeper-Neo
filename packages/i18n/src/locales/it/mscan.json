@@ -44,7 +44,8 @@
       "title": "Libro trovato",
       "readOnly": "Non puoi aggiungere libri a questa libreria.",
       "add": "Aggiungi alla libreria",
-      "adding": "Aggiungo…"
+      "adding": "Aggiungo…",
+      "wish": "Aggiungi alla wishlist"
     },
     "added": {
       "tag": "Aggiunto",
@@ -63,7 +64,13 @@
       "retry": "Riprova",
       "addFailed": "Il libro non è stato aggiunto."
     },
-    "close": "Chiudi"
+    "close": "Chiudi",
+    "offline": {
+      "title": "Non risulta nella tua libreria",
+      "text": "Questo ISBN non è nella copia della libreria che hai sul telefono. Senza rete non posso cercarlo altrove.",
+      "updated": "Dati aggiornati alle {time}",
+      "never": "Non ho ancora scaricato l'elenco dei libri della libreria."
+    }
   },
   "shelf": {
     "enter": "Riempi un ripiano",

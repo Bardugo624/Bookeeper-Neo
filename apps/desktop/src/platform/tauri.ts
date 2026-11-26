@@ -1,8 +1,9 @@
 import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { listen } from '@tauri-apps/api/event';
+import { isPermissionGranted, requestPermission, sendNotification } from '@tauri-apps/plugin-notification';
 import { createTauriTransport } from './transport';
-import { NETWORK_PROBE, type Connection, type Connections, type Found, type Platform, type ProbeOut, type SaveFileRequest, type SaveFileResult, type SharingStatus, type UpdateControls, type UpdateErrorCode, type UpdateProgress, type UpdateState } from './types';
+import { NETWORK_PROBE, type Connection, type Connections, type Found, type NotificationControls, type Platform, type ProbeOut, type SaveFileRequest, type SaveFileResult, type SharingStatus, type UpdateControls, type UpdateErrorCode, type UpdateProgress, type UpdateState } from './types';
 
 function toBase64(bytes: Uint8Array): string {
   let bin = '';
@@ -42,6 +43,28 @@ const tauriUpdates: UpdateControls = {
   },
 };
 
+const tauriNotifications: NotificationControls = {
+  async permission() {
+    try {
+      // The plugin only says granted or not; the browser-style `Notification` tells `denied` from `prompt`.
+      if (await isPermissionGranted()) return 'granted';
+      return typeof Notification === 'undefined' || Notification.permission !== 'denied' ? 'prompt' : 'denied';
+    } catch {
+      return 'denied';
+    }
+  },
+  async request() {
+    try {
+      return (await requestPermission()) === 'granted' ? 'granted' : 'denied';
+    } catch {
+      return 'denied';
+    }
+  },
+  async send({ title, body }) {
+    sendNotification({ title, body });
+  },
+};
+
 /** Commands that ship with a later task are called by name; a missing one is a handled error. */
 export function tauriPlatform(): Platform {
   const win = getCurrentWindow();
@@ -73,6 +96,7 @@ export function tauriPlatform(): Platform {
       set: (enabled, port) => invoke<SharingStatus>('sharing_set', { enabled, port: port ?? null }),
     },
     updates: tauriUpdates,
+    notifications: tauriNotifications,
     window: {
       minimize: () => win.minimize(),
       toggleMaximize: () => win.toggleMaximize(),

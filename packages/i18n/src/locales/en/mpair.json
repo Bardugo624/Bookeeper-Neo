@@ -39,6 +39,21 @@
     "codeEmpty": "Type the code shown on the computer.",
     "nameEmpty": "Give this phone a name.",
     "invalid": "The code is wrong or has expired. Generate a new one on the computer (Devices → Add a phone) and try again.",
-    "network": "Can't reach Bookeeper. Check the phone's connection and try again."
+    "network": "Can't reach Bookeeper. Check the phone's connection and try again.",
+    "displayEmpty": "Enter your name."
+  },
+  "invite": {
+    "title": "You're invited",
+    "text": "You've been invited to “{library}” as {role}.",
+    "label": "Your name",
+    "hint": "This is the name the others in the library will see.",
+    "action": "Join",
+    "busy": "Joining…"
+  },
+  "roles": {
+    "owner": "Owner",
+    "admin": "Admin",
+    "member": "Member",
+    "guest": "Guest"
   }
 }

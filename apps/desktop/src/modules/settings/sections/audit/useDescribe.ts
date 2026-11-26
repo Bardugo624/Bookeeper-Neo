@@ -18,6 +18,7 @@ export function useDescribe() {
       const known = title ?? p.title;
       const vars: Record<string, string | number> = { ...p.vars, title: known ?? '' };
       if (typeof vars.status === 'string' && vars.status) vars.status = t(`audit.readingStatus.${vars.status}`);
+      if (typeof vars.role === 'string' && vars.role) vars.role = t(`audit.roles.${vars.role}`);
       // The automatic backup has no person behind it.
       if (e.action === 'library.backup' && (e.detail as { automatic?: boolean } | null)?.automatic) return t('audit.what.library.backupAuto');
       // No title to show: a sentence without one while the book loads, a dedicated one when it is gone.

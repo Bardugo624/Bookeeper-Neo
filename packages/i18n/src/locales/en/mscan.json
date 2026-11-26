@@ -44,7 +44,8 @@
       "title": "Book found",
       "readOnly": "You cannot add books to this library.",
       "add": "Add to the library",
-      "adding": "Adding…"
+      "adding": "Adding…",
+      "wish": "Add to the wishlist"
     },
     "added": {
       "tag": "Added",
@@ -63,7 +64,13 @@
       "retry": "Try again",
       "addFailed": "The book was not added."
     },
-    "close": "Close"
+    "close": "Close",
+    "offline": {
+      "title": "Not in your library",
+      "text": "This ISBN is not in the copy of the library kept on this phone. Without a network I cannot look further.",
+      "updated": "Data updated at {time}",
+      "never": "The list of the library's books has not been downloaded yet."
+    }
   },
   "shelf": {
     "enter": "Fill a shelf",

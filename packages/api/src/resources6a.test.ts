@@ -14,6 +14,15 @@ const rec = (status = 200, body: unknown = {}, extra: Record<string, unknown> = 
 const B = '/api/v1';
 
 describe('phase 6a routes', () => {
+  it('listWishlist scope', async () => {
+    const { c, calls } = rec();
+    await c.listWishlist();
+    await c.listWishlist({ scope: 'family' });
+    expect(calls).toEqual([
+      ['GET', `${B}/wishlist`, undefined],
+      ['GET', `${B}/wishlist?scope=family`, undefined],
+    ]);
+  });
   it('users', async () => {
     const { c, calls } = rec();
     await c.listUsers();

@@ -14,6 +14,17 @@ function items(modules: AppModule[], group: NavItem['group']): NavItem[] {
     .sort((a, b) => a.order - b.order);
 }
 
+function NavBadge({ use, labelKey }: { use: () => number | null; labelKey: string }) {
+  const t = useT();
+  const count = use();
+  if (!count || count <= 0) return null;
+  return (
+    <span className={styles.badge} role="img" aria-label={t(labelKey, { count })}>
+      {count}
+    </span>
+  );
+}
+
 function NavGroup({ list }: { list: NavItem[] }) {
   const t = useT();
   return (
@@ -21,7 +32,8 @@ function NavGroup({ list }: { list: NavItem[] }) {
       {list.map((n) => (
         <NavLink key={n.to} to={n.to} className={({ isActive }) => cx(styles.item, isActive && styles.active)}>
           <Icon name={n.icon} size={17} />
-          <span>{t(n.labelKey)}</span>
+          <span className={styles.label}>{t(n.labelKey)}</span>
+          {n.useBadge && n.badgeLabelKey ? <NavBadge use={n.useBadge} labelKey={n.badgeLabelKey} /> : null}
         </NavLink>
       ))}
     </>

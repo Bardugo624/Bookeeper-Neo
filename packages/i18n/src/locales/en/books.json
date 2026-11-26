@@ -104,7 +104,16 @@
       "retry": "Try again"
     },
     "lend": "Lend",
-    "more": "More"
+    "more": "More",
+    "owner": "Owner: {name}",
+    "readers": {
+      "title": "Who is reading it",
+      "reading": "{name} · is reading",
+      "to_read": "{name} · to read",
+      "read": "{name} · has read it",
+      "readOn": "{name} · read it in {date}",
+      "abandoned": "{name} · gave up on it"
+    }
   },
   "new": {
     "button": "Add",
@@ -164,7 +173,8 @@
       "price": "An amount like 12.50.",
       "date": "Invalid date.",
       "progressiveTaken": "Another book already uses this number."
-    }
+    },
+    "owner": "Whose is it"
   },
   "cover": {
     "title": "Cover",
@@ -256,7 +266,8 @@
       "both": "Acquired {from} to {to}",
       "from": "Acquired from {from}",
       "to": "Acquired up to {to}"
-    }
+    },
+    "owner": "Owner: {name}"
   },
   "facets": {
     "reading": {
@@ -299,7 +310,10 @@
     "yearTo": "Year to",
     "acquired": "Purchase date",
     "acquiredFrom": "Acquired from",
-    "acquiredTo": "Acquired to"
+    "acquiredTo": "Acquired to",
+    "owner": "Whose is it",
+    "ownerMe": "Mine",
+    "ownerNone": "Everyone’s"
   },
   "sort": {
     "button": "Sort by: {name}",
@@ -328,5 +342,9 @@
     "rename": "Rename {name}",
     "delete": "Delete {name}",
     "saved": "View “{name}” saved"
+  },
+  "owner": {
+    "everyone": "Everyone",
+    "me": "You"
   }
 }

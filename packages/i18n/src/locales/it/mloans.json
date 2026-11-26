@@ -1,0 +1,73 @@
+{
+  "tab": "Prestiti",
+  "title": "Prestiti",
+  "filters": {
+    "label": "Quali prestiti",
+    "active": "In corso",
+    "returned": "Restituiti"
+  },
+  "list": {
+    "label": "Prestiti",
+    "loading": "Caricamento dei prestiti",
+    "loadError": "Non riesco a leggere i prestiti.",
+    "more": "Mostra altri"
+  },
+  "empty": {
+    "active": {
+      "title": "Nessun prestito in corso",
+      "text": "I libri che presti compaiono qui finché non tornano a casa."
+    },
+    "returned": {
+      "title": "Nessun prestito restituito",
+      "text": "I prestiti conclusi compaiono qui."
+    }
+  },
+  "row": {
+    "name": "{title}, {person}",
+    "due": "scadenza {date}",
+    "noDue": "senza scadenza",
+    "returnedOn": "restituito il {date}",
+    "overdue": {
+      "one": "scaduto da {count} giorno",
+      "other": "scaduto da {count} giorni"
+    },
+    "return": "Restituisci",
+    "returnLabel": "Restituisci «{title}»"
+  },
+  "return": {
+    "title": "Restituire il libro?",
+    "text": "«{title}» torna a casa: il prestito a {person} si chiude oggi.",
+    "confirm": "Restituisci",
+    "cancel": "Annulla"
+  },
+  "lend": {
+    "title": "Presta il libro",
+    "book": "«{title}»",
+    "person": "A chi lo presti",
+    "people": "Persone della libreria",
+    "names": "Nomi usati di recente",
+    "me": "{name} (tu)",
+    "or": "Oppure scrivi un nome",
+    "name": "Nome",
+    "namePlaceholder": "Nome di chi lo prende",
+    "due": "Scadenza",
+    "dueHint": "Facoltativa",
+    "notes": "Nota",
+    "notesHint": "Facoltativa",
+    "save": "Presta",
+    "cancel": "Annulla",
+    "errors": {
+      "borrower": "Scegli una persona o scrivi un nome.",
+      "borrowerLong": "Il nome può avere al massimo {max} caratteri.",
+      "dueInvalid": "Indica una data valida.",
+      "duePast": "La scadenza non può essere nel passato.",
+      "notesLong": "La nota può avere al massimo {max} caratteri."
+    }
+  },
+  "block": {
+    "lend": "Presta",
+    "return": "Restituisci",
+    "to": "In prestito a {person}",
+    "loadError": "Non riesco a sapere a chi è prestato."
+  }
+}

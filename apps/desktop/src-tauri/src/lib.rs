@@ -204,7 +204,9 @@ async fn update_install(app: tauri::AppHandle, channel: String) -> Result<(), St
 
 pub fn run() {
     let mut context = tauri::generate_context!();
-    let mut builder = tauri::Builder::default().plugin(tauri_plugin_dialog::init());
+    let mut builder = tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_notification::init());
     // The updater plugin reads its key from the configuration: hand it the one baked in at
     // build time, so `tauri.conf.json` needs no entry. Without a key it is not loaded at all.
     if let Some(key) = updates::pubkey() {

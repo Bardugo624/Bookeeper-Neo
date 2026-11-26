@@ -1,4 +1,5 @@
 import { useLocale, useT } from '../../app';
+import { useSession } from '../../session';
 import { formatDate, toUnixSeconds } from '../../kit';
 import type { Filters } from './filterModel';
 import { useFacets, useShelfRooms } from './useFacets';
@@ -16,6 +17,7 @@ export function useActiveFilters(f: Filters): ActiveFilter[] {
   const locale = useLocale();
   const facets = useFacets().data;
   const shelves = useShelfRooms();
+  const meId = useSession((s) => s.me?.user.id);
   const day = (d: string) => {
     const s = toUnixSeconds(d);
     return s === null ? d : formatDate(locale, s, 'medium');
@@ -43,6 +45,15 @@ export function useActiveFilters(f: Filters): ActiveFilter[] {
   if (f.format) {
     const known = t(`books.detail.formats.${f.format}`);
     add('format', t('books.active.format', { name: known.startsWith('books.') ? f.format : known }), { format: null });
+  }
+  if (f.owner) {
+    const mine = f.owner === 'me' || f.owner === meId;
+    const name = mine
+      ? t('books.panel.ownerMe')
+      : f.owner === 'none'
+        ? t('books.panel.ownerNone')
+        : (facets?.owners.find((x) => x.id === f.owner)?.display_name ?? f.owner);
+    add('owner', t('books.active.owner', { name }), { owner: null });
   }
   if (f.yearFrom !== null || f.yearTo !== null) {
     add('years', range('years', f.yearFrom === null ? null : String(f.yearFrom), f.yearTo === null ? null : String(f.yearTo)), {
