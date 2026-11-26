@@ -1,0 +1,6 @@
+// What other modules may use from `tour`.
+export { module } from './routes';
+export { FirstStepsPill } from './FirstStepsPill';
+export { tourAnchor, tourSignal, registerTourPath, useTour, type TourApi } from './store';
+export { setTourPending, isTourPending, clearTourPending } from './storage';
+export { MAX_STEPS, type TourContext, type TourPath, type TourStatus, type TourStep } from './model';
