@@ -42,7 +42,7 @@
 
 .danger,
 .danger[data-highlighted] {
-    color: var(--bk-danger);
+    color: var(--bk-danger-strong);
 }
 
 .danger[data-highlighted] {

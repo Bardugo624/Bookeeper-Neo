@@ -26,3 +26,13 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+.toneDanger {
+    color: var(--bk-danger-strong);
+}
+
+.toneDanger:hover:not(:disabled),
+.toneDanger:active:not(:disabled) {
+    background: var(--bk-danger-bg);
+    color: var(--bk-danger-strong);
+}
