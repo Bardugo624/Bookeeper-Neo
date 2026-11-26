@@ -9,7 +9,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 use utoipa::ToSchema;
 
 use crate::{
-    api::util::{new_id, now_secs, ApiQuery, Page},
+    api::util::{new_id, now_secs, ApiQuery, Page, PersonRef},
     audit,
     auth::{guard::AuthUser, Role},
     error::{ApiError, ApiErrorBody, ApiResult},
@@ -61,6 +61,8 @@ pub struct LoanOut {
     pub book_authors: Vec<String>,
     pub borrower_name: String,
     pub borrower_user_id: Option<String>,
+    /// The person lent to, with their current name; `null` for a free-text borrower.
+    pub borrower: Option<PersonRef>,
     pub lent_at: i64,
     pub due_at: Option<i64>,
     pub returned_at: Option<i64>,
@@ -79,7 +81,10 @@ pub struct LoanList {
 #[derive(Debug, Clone, Deserialize, ToSchema)]
 pub struct CreateLoan {
     pub book_id: String,
-    pub borrower_name: String,
+    /// Required unless `borrower_user_id` is given.
+    pub borrower_name: Option<String>,
+    /// A person of the library; the loan stores their current name.
+    pub borrower_user_id: Option<String>,
     /// Unix seconds; defaults to now.
     pub lent_at: Option<i64>,
     pub due_at: Option<i64>,
@@ -101,6 +106,10 @@ pub struct PatchLoan {
     #[serde(default, deserialize_with = "present")]
     #[schema(value_type = Option<String>)]
     pub borrower_name: Option<Option<String>>,
+    /// A person of the library (the stored name becomes theirs); `null` removes the link.
+    #[serde(default, deserialize_with = "present")]
+    #[schema(value_type = Option<String>)]
+    pub borrower_user_id: Option<Option<String>>,
     #[serde(default, deserialize_with = "present")]
     #[schema(value_type = Option<i64>)]
     pub lent_at: Option<Option<i64>>,
@@ -179,13 +188,16 @@ pub struct ListLoansQuery {
     /// `active` (default), `returned`, `overdue` or `all`.
     pub status: Option<String>,
     pub book_id: Option<String>,
+    /// Loans to this person: an id or `me`.
+    pub borrower_user_id: Option<String>,
     pub limit: Option<i64>,
     pub offset: Option<i64>,
 }
 
 const SELECT_LOAN: &str = "SELECT l.id, l.book_id, b.title, b.authors_json, l.borrower_name, \
-    l.borrower_user_id, l.lent_at, l.due_at, l.returned_at, l.notes \
-    FROM loans l JOIN books b ON b.id = l.book_id";
+    l.borrower_user_id, l.lent_at, l.due_at, l.returned_at, l.notes, bu.id, bu.display_name \
+    FROM loans l JOIN books b ON b.id = l.book_id \
+    LEFT JOIN users bu ON bu.id = l.borrower_user_id AND bu.library_id = l.library_id";
 
 fn map_loan(row: &rusqlite::Row<'_>, now: i64) -> rusqlite::Result<LoanOut> {
     let authors_json: String = row.get(3)?;
@@ -198,6 +210,7 @@ fn map_loan(row: &rusqlite::Row<'_>, now: i64) -> rusqlite::Result<LoanOut> {
         book_authors: serde_json::from_str(&authors_json).unwrap_or_default(),
         borrower_name: row.get(4)?,
         borrower_user_id: row.get(5)?,
+        borrower: PersonRef::from_row(row, 10)?,
         lent_at: row.get(6)?,
         due_at,
         returned_at,
@@ -237,6 +250,20 @@ fn check_name(raw: &str) -> ApiResult<String> {
     Ok(name.to_string())
 }
 
+/// The current display name of a person of the library.
+fn person_name(
+    conn: &Connection,
+    library_id: &str,
+    user_id: &str,
+) -> rusqlite::Result<Option<String>> {
+    conn.query_row(
+        "SELECT display_name FROM users WHERE id = ?1 AND library_id = ?2",
+        params![user_id, library_id],
+        |r| r.get(0),
+    )
+    .optional()
+}
+
 fn check_notes(notes: &Option<String>) -> ApiResult<()> {
     match notes {
         Some(n) if n.chars().count() > 10_000 => Err(ApiError::validation(
@@ -261,6 +288,7 @@ fn check_dates(lent_at: i64, due_at: Option<i64>) -> ApiResult<()> {
     params(
         ("status" = Option<String>, Query, description = "active (default), returned, overdue or all"),
         ("book_id" = Option<String>, Query, description = "Only the loans of this book"),
+        ("borrower_user_id" = Option<String>, Query, description = "Only the loans to this person: an id or me"),
         ("limit" = Option<i64>, Query, description = "1 to 200, default 50"),
         ("offset" = Option<i64>, Query, description = "Default 0"),
     ),
@@ -295,14 +323,19 @@ pub async fn list_loans(
     };
     let cond = cond.to_string();
     let book_id = q.book_id;
+    let borrower = q
+        .borrower_user_id
+        .map(|b| if b == "me" { who.user_id.clone() } else { b });
     let out = state
         .db
         .run(move |conn| {
-            let filter =
-                format!("WHERE l.library_id = ?1 AND (?2 IS NULL OR l.book_id = ?2) AND {cond}");
+            let filter = format!(
+                "WHERE l.library_id = ?1 AND (?2 IS NULL OR l.book_id = ?2) \
+                 AND (?3 IS NULL OR l.borrower_user_id = ?3) AND {cond}"
+            );
             let total: i64 = conn.query_row(
                 &format!("SELECT COUNT(*) FROM loans l {filter}"),
-                params![who.library_id, book_id],
+                params![who.library_id, book_id, borrower],
                 |r| r.get(0),
             )?;
             let sql = format!(
@@ -310,13 +343,14 @@ pub async fn list_loans(
                  CASE WHEN l.returned_at IS NULL THEN l.due_at IS NULL ELSE 0 END, \
                  CASE WHEN l.returned_at IS NULL THEN l.due_at END ASC, \
                  CASE WHEN l.returned_at IS NULL THEN l.lent_at END DESC, \
-                 l.returned_at DESC, l.id DESC LIMIT ?3 OFFSET ?4"
+                 l.returned_at DESC, l.id DESC LIMIT ?4 OFFSET ?5"
             );
             let mut stmt = conn.prepare(&sql)?;
             let items = stmt
-                .query_map(params![who.library_id, book_id, limit, offset], |r| {
-                    map_loan(r, now)
-                })?
+                .query_map(
+                    params![who.library_id, book_id, borrower, limit, offset],
+                    |r| map_loan(r, now),
+                )?
                 .collect::<rusqlite::Result<Vec<_>>>()?;
             Ok(LoanList { items, total })
         })
@@ -335,7 +369,7 @@ pub async fn list_loans(
         (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
         (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
         (status = 403, description = "forbidden: guests cannot write", body = ApiErrorBody),
-        (status = 404, description = "not_found: unknown book", body = ApiErrorBody),
+        (status = 404, description = "not_found: unknown book or borrower_user_id", body = ApiErrorBody),
         (status = 409, description = "book_already_lent", body = ApiErrorBody),
         (status = 422, description = "validation: invalid body", body = ApiErrorBody),
     )
@@ -346,7 +380,15 @@ pub async fn create_loan(
     ApiJson(body): ApiJson<CreateLoan>,
 ) -> ApiResult<(StatusCode, Json<LoanOut>)> {
     who.require(Role::Member)?;
-    let name = check_name(&body.borrower_name)?;
+    let typed = match body.borrower_name.as_deref() {
+        Some(n) => Some(check_name(n)?),
+        None => None,
+    };
+    if typed.is_none() && body.borrower_user_id.is_none() {
+        return Err(ApiError::validation(
+            "borrower_name or borrower_user_id is required",
+        ));
+    }
     check_notes(&body.notes)?;
     let now = now_secs();
     let lent_at = body.lent_at.unwrap_or(now);
@@ -371,15 +413,23 @@ pub async fn create_loan(
             if open {
                 return Ok(Err(already_lent()));
             }
+            let name = match &body.borrower_user_id {
+                Some(u) => match person_name(&tx, &who.library_id, u)? {
+                    Some(n) => n,
+                    None => return Ok(Err(ApiError::not_found())),
+                },
+                None => typed.unwrap_or_default(),
+            };
             let id = new_id();
             let inserted = tx.execute(
                 "INSERT INTO loans (id, library_id, book_id, borrower_name, borrower_user_id, \
-                 lent_at, due_at, returned_at, notes) VALUES (?1, ?2, ?3, ?4, NULL, ?5, ?6, NULL, ?7)",
+                 lent_at, due_at, returned_at, notes) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, NULL, ?8)",
                 params![
                     id,
                     who.library_id,
                     body.book_id,
                     name,
+                    body.borrower_user_id,
                     lent_at,
                     body.due_at,
                     body.notes
@@ -419,7 +469,7 @@ pub async fn create_loan(
         (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
         (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
         (status = 403, description = "forbidden: guests cannot write", body = ApiErrorBody),
-        (status = 404, description = "not_found: unknown loan", body = ApiErrorBody),
+        (status = 404, description = "not_found: unknown loan or borrower_user_id", body = ApiErrorBody),
         (status = 422, description = "validation: invalid body", body = ApiErrorBody),
     )
 )]
@@ -448,6 +498,14 @@ pub async fn patch_loan(
                 },
                 Some(None) => return Ok(Err(ApiError::validation("borrower_name cannot be null"))),
             };
+            let (name, borrower_user_id) = match body.borrower_user_id {
+                None => (name, current.borrower_user_id.clone()),
+                Some(None) => (name, None),
+                Some(Some(u)) => match person_name(&tx, &who.library_id, &u)? {
+                    Some(n) => (n, Some(u)),
+                    None => return Ok(Err(ApiError::not_found())),
+                },
+            };
             let lent_at = match body.lent_at {
                 None => current.lent_at,
                 Some(Some(t)) => t,
@@ -464,9 +522,17 @@ pub async fn patch_loan(
                 )));
             }
             tx.execute(
-                "UPDATE loans SET borrower_name = ?1, lent_at = ?2, due_at = ?3, notes = ?4 \
-                 WHERE id = ?5 AND library_id = ?6",
-                params![name, lent_at, due_at, notes, id, who.library_id],
+                "UPDATE loans SET borrower_name = ?1, borrower_user_id = ?2, lent_at = ?3, \
+                 due_at = ?4, notes = ?5 WHERE id = ?6 AND library_id = ?7",
+                params![
+                    name,
+                    borrower_user_id,
+                    lent_at,
+                    due_at,
+                    notes,
+                    id,
+                    who.library_id
+                ],
             )?;
             audit::record(&tx, &who, "loan.update", "loan", &id, None, now_secs())?;
             let out = fetch(&tx, &who.library_id, &id)?;

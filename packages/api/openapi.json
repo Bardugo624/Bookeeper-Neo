@@ -965,6 +965,15 @@
             }
           },
           {
+            "name": "owner_id",
+            "in": "query",
+            "description": "Books of this owner: a person id, me, or none for books without an owner",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "year_from",
             "in": "query",
             "description": "published_year >= value; must not exceed year_to",
@@ -1137,6 +1146,16 @@
               }
             }
           },
+          "404": {
+            "description": "not_found: owner_user_id is not a person of the library",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
           "409": {
             "description": "progressive_taken",
             "content": {
@@ -1279,6 +1298,63 @@
           },
           "401": {
             "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/books/isbn-index": {
+      "get": {
+        "tags": [
+          "books"
+        ],
+        "summary": "Every book of the library with an ISBN, for the duplicate-purchase check.",
+        "operationId": "isbn_index",
+        "parameters": [
+          {
+            "name": "version",
+            "in": "query",
+            "description": "Version the client already has",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Entries sorted by isbn, then title; empty with `unchanged` when `version` is current",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IsbnIndex"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation: invalid query parameters",
             "content": {
               "application/json": {
                 "schema": {
@@ -1520,7 +1596,7 @@
             }
           },
           "404": {
-            "description": "not_found: unknown book",
+            "description": "not_found: unknown book or owner_user_id",
             "content": {
               "application/json": {
                 "schema": {
@@ -2044,6 +2120,62 @@
           },
           "403": {
             "description": "forbidden: role too low",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: unknown book",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/books/{id}/readers": {
+      "get": {
+        "tags": [
+          "reading"
+        ],
+        "operationId": "list_readers",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Who of the library has a reading state for the book: reading, to_read, read (most recent first), abandoned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReaderList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
             "content": {
               "application/json": {
                 "schema": {
@@ -2759,6 +2891,193 @@
         ]
       }
     },
+    "/api/v1/invites": {
+      "get": {
+        "tags": [
+          "invites"
+        ],
+        "operationId": "list_invites",
+        "responses": {
+          "200": {
+            "description": "Pending invites (not used, not expired), newest first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: admins and the owner only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "invites"
+        ],
+        "operationId": "create_invite",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewInvite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Invite created; the code is shown only here",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteCreated"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad_request: malformed JSON or wrong content type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: admins invite members and guests, the owner also admins",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation: unknown role or expires_in_days outside 1..30",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/invites/{id}": {
+      "delete": {
+        "tags": [
+          "invites"
+        ],
+        "operationId": "revoke_invite",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Invite id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Invite revoked"
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: admins and the owner only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: unknown, used or expired invite",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/labels/pdf": {
       "post": {
         "tags": [
@@ -2861,6 +3180,15 @@
             "name": "book_id",
             "in": "query",
             "description": "Only the loans of this book",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "borrower_user_id",
+            "in": "query",
+            "description": "Only the loans to this person: an id or me",
             "required": false,
             "schema": {
               "type": "string"
@@ -2982,7 +3310,7 @@
             }
           },
           "404": {
-            "description": "not_found: unknown book",
+            "description": "not_found: unknown book or borrower_user_id",
             "content": {
               "application/json": {
                 "schema": {
@@ -3224,7 +3552,7 @@
             }
           },
           "404": {
-            "description": "not_found: unknown loan",
+            "description": "not_found: unknown loan or borrower_user_id",
             "content": {
               "application/json": {
                 "schema": {
@@ -3605,6 +3933,86 @@
         ]
       }
     },
+    "/api/v1/pairing/inspect": {
+      "post": {
+        "tags": [
+          "pairing"
+        ],
+        "operationId": "inspect",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InspectRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "What the code is for; the code is not consumed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CodeInfo"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad_request: malformed JSON or wrong content type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "pairing_code_invalid: code wrong, expired or already used",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation: invalid fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited: too many attempts (Retry-After header)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/pairing/redeem": {
       "post": {
         "tags": [
@@ -3663,7 +4071,7 @@
             }
           },
           "422": {
-            "description": "validation: invalid fields",
+            "description": "validation: invalid fields (an invite needs display_name)",
             "content": {
               "application/json": {
                 "schema": {
@@ -5190,15 +5598,293 @@
         ]
       }
     },
+    "/api/v1/users": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "operationId": "list_users",
+        "responses": {
+          "200": {
+            "description": "Everyone in the library: owner, admins, members, guests; then by name",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PeopleList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/users/{id}": {
+      "delete": {
+        "tags": [
+          "users"
+        ],
+        "operationId": "remove_user",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Person id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Person removed (or left the library)"
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: not allowed to remove this person",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: unknown person",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "users"
+        ],
+        "operationId": "update_user",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Person id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchPerson"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Updated person",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad_request: malformed JSON or wrong content type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: not allowed to manage this person",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: unknown person",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation: invalid name, or role owner or unknown",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/users/{id}/owner": {
+      "post": {
+        "tags": [
+          "users"
+        ],
+        "operationId": "transfer_owner",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Person id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The person is the owner now; the caller is an admin"
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: only the owner can transfer ownership",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: unknown person",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation: the person is the caller",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/wishlist": {
       "get": {
         "tags": [
           "wishlist"
         ],
         "operationId": "list_wishlist",
+        "parameters": [
+          {
+            "name": "scope",
+            "in": "query",
+            "description": "mine (default): the caller's wishes; family: everyone's, the caller's first, then by person name",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "The caller's wishlist",
+            "description": "The wishlist",
             "content": {
               "application/json": {
                 "schema": {
@@ -5209,6 +5895,16 @@
           },
           "401": {
             "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation: invalid scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -6019,6 +6715,17 @@
           "on_loan": {
             "type": "boolean"
           },
+          "owner": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PersonRef",
+                "description": "Who the book belongs to; `null` when nobody."
+              }
+            ]
+          },
           "page_count": {
             "type": [
               "integer",
@@ -6121,6 +6828,51 @@
             "description": "Case-insensitive prefix; empty or absent gives the 10 most recent names."
           }
         }
+      },
+      "CodeInfo": {
+        "type": "object",
+        "required": [
+          "kind",
+          "library_name",
+          "expires_at"
+        ],
+        "properties": {
+          "expires_at": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/CodeKind"
+          },
+          "library_name": {
+            "type": "string"
+          },
+          "role": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Role",
+                "description": "Only for invites."
+              }
+            ]
+          },
+          "user_display_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Only for device codes: the person the device would be added to."
+          }
+        }
+      },
+      "CodeKind": {
+        "type": "string",
+        "enum": [
+          "device",
+          "invite"
+        ]
       },
       "ConfirmOut": {
         "type": "object",
@@ -6267,6 +7019,13 @@
               "null"
             ]
           },
+          "owner_user_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Person of the library the book belongs to."
+          },
           "page_count": {
             "type": [
               "integer",
@@ -6316,15 +7075,25 @@
         "type": "object",
         "description": "Body of `POST /loans`.",
         "required": [
-          "book_id",
-          "borrower_name"
+          "book_id"
         ],
         "properties": {
           "book_id": {
             "type": "string"
           },
           "borrower_name": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Required unless `borrower_user_id` is given."
+          },
+          "borrower_user_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A person of the library; the loan stores their current name."
           },
           "due_at": {
             "type": [
@@ -6422,6 +7191,21 @@
             ]
           },
           "title": {
+            "type": "string"
+          }
+        }
+      },
+      "Creator": {
+        "type": "object",
+        "required": [
+          "id",
+          "display_name"
+        ],
+        "properties": {
+          "display_name": {
+            "type": "string"
+          },
+          "id": {
             "type": "string"
           }
         }
@@ -6717,7 +7501,9 @@
           "tags",
           "rooms",
           "shelves",
-          "reading"
+          "reading",
+          "owners",
+          "owner_none"
         ],
         "properties": {
           "formats": {
@@ -6739,6 +7525,18 @@
               "$ref": "#/components/schemas/ValueCount"
             },
             "description": "Same rules as `genres`."
+          },
+          "owner_none": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Books without an owner."
+          },
+          "owners": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OwnerFacet"
+            },
+            "description": "People who own at least one book, most books first, then by name."
           },
           "reading": {
             "$ref": "#/components/schemas/ReadingFacet"
@@ -6973,6 +7771,168 @@
           }
         }
       },
+      "InspectRequest": {
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "InviteCreated": {
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "role",
+          "expires_at"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Clear-text code; shown only in this response."
+          },
+          "expires_at": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "id": {
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          }
+        }
+      },
+      "InviteList": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InviteOut"
+            }
+          }
+        }
+      },
+      "InviteOut": {
+        "type": "object",
+        "required": [
+          "id",
+          "role",
+          "created_by",
+          "created_at",
+          "expires_at"
+        ],
+        "properties": {
+          "created_at": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "created_by": {
+            "$ref": "#/components/schemas/Creator"
+          },
+          "expires_at": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "id": {
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          }
+        }
+      },
+      "InviteRole": {
+        "type": "string",
+        "enum": [
+          "admin",
+          "member",
+          "guest"
+        ]
+      },
+      "IsbnEntry": {
+        "type": "object",
+        "required": [
+          "isbn",
+          "book_id",
+          "title",
+          "authors"
+        ],
+        "properties": {
+          "authors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "book_id": {
+            "type": "string"
+          },
+          "isbn": {
+            "type": "string",
+            "description": "ISBN-13, digits only."
+          },
+          "row_index": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "shelf": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ShelfRef"
+              }
+            ]
+          },
+          "slot_index": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "IsbnIndex": {
+        "type": "object",
+        "required": [
+          "version",
+          "unchanged",
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IsbnEntry"
+            }
+          },
+          "unchanged": {
+            "type": "boolean",
+            "description": "True when the requested `version` is the current one; `items` is then empty."
+          },
+          "version": {
+            "type": "string",
+            "description": "Opaque fingerprint (SHA-256, hex) of the entries."
+          }
+        }
+      },
       "LabelsRequest": {
         "type": "object",
         "required": [
@@ -7100,6 +8060,13 @@
             ],
             "description": "`asc` or `desc`; default `desc` for `created_at`, `asc` otherwise."
           },
+          "owner_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Books of this owner: a person id, `me` or `none` (no owner)."
+          },
           "q": {
             "type": [
               "string",
@@ -7168,6 +8135,13 @@
               "null"
             ]
           },
+          "borrower_user_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Loans to this person: an id or `me`."
+          },
           "limit": {
             "type": [
               "integer",
@@ -7188,6 +8162,19 @@
               "null"
             ],
             "description": "`active` (default), `returned`, `overdue` or `all`."
+          }
+        }
+      },
+      "ListWishQuery": {
+        "type": "object",
+        "description": "Query of `GET /wishlist`.",
+        "properties": {
+          "scope": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`mine` (default) or `family`."
           }
         }
       },
@@ -7255,6 +8242,17 @@
           },
           "book_title": {
             "type": "string"
+          },
+          "borrower": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PersonRef",
+                "description": "The person lent to, with their current name; `null` for a free-text borrower."
+              }
+            ]
           },
           "borrower_name": {
             "type": "string"
@@ -7495,6 +8493,25 @@
           }
         }
       },
+      "NewInvite": {
+        "type": "object",
+        "required": [
+          "role"
+        ],
+        "properties": {
+          "expires_in_days": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "1 to 30; default 7."
+          },
+          "role": {
+            "$ref": "#/components/schemas/InviteRole"
+          }
+        }
+      },
       "NewShelf": {
         "type": "object",
         "required": [
@@ -7592,6 +8609,26 @@
           "wishlist_count": {
             "type": "integer",
             "format": "int64"
+          }
+        }
+      },
+      "OwnerFacet": {
+        "type": "object",
+        "required": [
+          "id",
+          "display_name",
+          "count"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
           }
         }
       },
@@ -7704,6 +8741,13 @@
               "null"
             ]
           },
+          "owner_user_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Person of the library; `null` removes the owner."
+          },
           "page_count": {
             "type": [
               "integer",
@@ -7768,6 +8812,13 @@
               "null"
             ]
           },
+          "borrower_user_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A person of the library (the stored name becomes theirs); `null` removes the link."
+          },
           "due_at": {
             "type": [
               "integer",
@@ -7787,6 +8838,25 @@
               "string",
               "null"
             ]
+          }
+        }
+      },
+      "PatchPerson": {
+        "type": "object",
+        "properties": {
+          "display_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "1 to 60 characters after trimming."
+          },
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`admin`, `member` or `guest`."
           }
         }
       },
@@ -7860,6 +8930,85 @@
               "string",
               "null"
             ]
+          }
+        }
+      },
+      "PeopleList": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonOut"
+            }
+          }
+        }
+      },
+      "PersonOut": {
+        "type": "object",
+        "required": [
+          "id",
+          "display_name",
+          "role",
+          "is_me",
+          "created_at",
+          "devices"
+        ],
+        "properties": {
+          "created_at": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "devices": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Devices that are not revoked."
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Only for admins and the owner, and only when the person has one."
+          },
+          "id": {
+            "type": "string"
+          },
+          "is_me": {
+            "type": "boolean"
+          },
+          "last_seen": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "The most recent `last_seen` among the person's devices."
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          }
+        }
+      },
+      "PersonRef": {
+        "type": "object",
+        "description": "A person of the library as other records show them.",
+        "required": [
+          "id",
+          "display_name"
+        ],
+        "properties": {
+          "display_name": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
           }
         }
       },
@@ -8023,6 +9172,56 @@
           "count": {
             "type": "integer",
             "format": "int64"
+          }
+        }
+      },
+      "Reader": {
+        "type": "object",
+        "description": "What the family sees of someone's reading: state and dates only. Rating,\nnote and current page stay private to their author.",
+        "required": [
+          "user",
+          "is_me",
+          "status"
+        ],
+        "properties": {
+          "finished_at": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "is_me": {
+            "type": "boolean",
+            "description": "True for the caller."
+          },
+          "started_at": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "status": {
+            "type": "string",
+            "description": "`to_read`, `reading`, `read` or `abandoned`."
+          },
+          "user": {
+            "$ref": "#/components/schemas/PersonRef"
+          }
+        }
+      },
+      "ReaderList": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Reader"
+            }
           }
         }
       },
@@ -8357,6 +9556,13 @@
           },
           "device_name": {
             "type": "string"
+          },
+          "display_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Required (1 to 60 characters) when the code is an invite; ignored for a device code."
           }
         }
       },
@@ -8865,6 +10071,21 @@
           }
         }
       },
+      "ShelfRef": {
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
       "Stats": {
         "type": "object",
         "required": [
@@ -9086,6 +10307,7 @@
         "required": [
           "id",
           "user_id",
+          "user",
           "title",
           "priority",
           "created_at"
@@ -9128,6 +10350,10 @@
           },
           "title": {
             "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/PersonRef",
+            "description": "Whose wish it is."
           },
           "user_id": {
             "type": "string"

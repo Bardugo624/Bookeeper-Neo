@@ -175,7 +175,7 @@ fn a_version_1_database_is_migrated_without_losing_data() {
         (title.as_str(), status.as_str(), rating, page),
         ("Dune", "read", 5, None)
     );
-    assert_eq!(version, 2);
+    assert_eq!(version, 3);
     assert!(db
         .with(|c| c.execute("UPDATE reading SET current_page = -1", []))
         .is_err());
@@ -192,4 +192,59 @@ fn ulower_folds_unicode() {
         .with(|c| c.query_row("SELECT ulower('ÉTICA')", [], |r| r.get(0)))
         .unwrap();
     assert_eq!(v, "ética");
+}
+
+#[test]
+fn migration_0003_applies_to_a_populated_version_2_database() {
+    let dir = std::env::temp_dir().join(format!("bk-db-v2-{}", uuid::Uuid::now_v7()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let path = dir.join("old.db");
+    {
+        let conn = rusqlite::Connection::open(&path).unwrap();
+        conn.execute_batch(include_str!("../src/db/migrations/0001_schema.sql"))
+            .unwrap();
+        conn.execute_batch(include_str!(
+            "../src/db/migrations/0002_reading_progress.sql"
+        ))
+        .unwrap();
+        conn.pragma_update(None, "user_version", 2).unwrap();
+        conn.execute_batch(
+            "INSERT INTO libraries VALUES ('l','Casa',0);
+             INSERT INTO users (id,library_id,display_name,role,created_at) VALUES ('u','l','A','owner',0);
+             INSERT INTO pairing_codes (code_hash,library_id,kind,user_id,created_by,expires_at,created_at)
+               VALUES ('h1','l','device','u','u',99,0);
+             INSERT INTO pairing_codes (code_hash,library_id,kind,role,created_by,expires_at,created_at)
+               VALUES ('h2','l','invite','guest','u',99,0);",
+        )
+        .unwrap();
+    }
+    let db = Db::open(&path).unwrap();
+    // Old rows survive with no id.
+    let (rows, with_id, version): (i64, i64, i64) = db
+        .with(|c| {
+            c.query_row(
+                "SELECT count(*), count(id), (SELECT user_version FROM pragma_user_version)
+                 FROM pairing_codes",
+                [],
+                |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
+            )
+        })
+        .unwrap();
+    assert_eq!((rows, with_id, version), (2, 0, 3));
+    // New rows take an id; the id is unique, a missing one is not.
+    db.with(|c| {
+        c.execute(
+            "UPDATE pairing_codes SET id = 'x' WHERE code_hash = 'h1'",
+            [],
+        )
+    })
+    .unwrap();
+    assert!(db
+        .with(|c| c.execute(
+            "UPDATE pairing_codes SET id = 'x' WHERE code_hash = 'h2'",
+            []
+        ))
+        .is_err());
+    drop(db);
+    std::fs::remove_dir_all(&dir).ok();
 }

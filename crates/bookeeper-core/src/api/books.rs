@@ -11,7 +11,7 @@ use utoipa::ToSchema;
 use crate::{
     api::reading::{attach_reading, ReadingSummary},
     api::tags::{attach_tags, TagSummary},
-    api::util::{new_id, normalize_isbn10, normalize_isbn13, now_secs},
+    api::util::{new_id, normalize_isbn10, normalize_isbn13, now_secs, user_in_library, PersonRef},
     audit,
     auth::{guard::AuthUser, Role},
     error::{ApiError, ApiErrorBody, ApiResult},
@@ -81,6 +81,8 @@ pub struct BookOut {
     pub price_cents: Option<i64>,
     pub notes: Option<String>,
     pub cover_color: Option<String>,
+    /// Who the book belongs to; `null` when nobody.
+    pub owner: Option<PersonRef>,
     pub placement: Option<Placement>,
     pub on_loan: bool,
     /// The caller's own reading state; `null` when there is none.
@@ -114,6 +116,8 @@ pub struct CreateBook {
     pub notes: Option<String>,
     /// Placeholder colour `#rrggbb` (stored lowercase); `null` clears it.
     pub cover_color: Option<String>,
+    /// Person of the library the book belongs to.
+    pub owner_user_id: Option<String>,
 }
 
 /// A creation body that passed validation.
@@ -137,6 +141,7 @@ pub struct NewBook {
     pub price_cents: Option<i64>,
     pub notes: Option<String>,
     pub cover_color: Option<String>,
+    pub owner_user_id: Option<String>,
 }
 
 /// Distinguishes an absent field (`None`) from an explicit `null` (`Some(None)`).
@@ -207,6 +212,10 @@ pub struct PatchBook {
     #[serde(default, deserialize_with = "present")]
     #[schema(value_type = Option<String>)]
     pub cover_color: Option<Option<String>>,
+    /// Person of the library; `null` removes the owner.
+    #[serde(default, deserialize_with = "present")]
+    #[schema(value_type = Option<String>)]
+    pub owner_user_id: Option<Option<String>>,
 }
 
 #[derive(Debug, Deserialize, ToSchema)]
@@ -334,6 +343,7 @@ pub fn validate_new(input: CreateBook) -> ApiResult<NewBook> {
         price_cents: input.price_cents,
         notes: input.notes,
         cover_color,
+        owner_user_id: input.owner_user_id,
     })
 }
 
@@ -342,8 +352,9 @@ pub const SELECT_BOOK: &str = "SELECT b.id, b.isbn_13, b.isbn_10, b.title, b.sub
     b.authors_json, b.publisher, b.published_year, b.language, b.page_count, b.description, \
     b.genre, b.format, b.progressive_number, b.condition, b.acquired_at, b.price_cents, b.notes, \
     b.cover_color, sb.shelf_id, sb.row_index, sb.slot_index, l.id IS NOT NULL, \
-    b.created_at, b.updated_at \
+    b.created_at, b.updated_at, ou.id, ou.display_name \
     FROM books b \
+    LEFT JOIN users ou ON ou.id = b.owner_user_id AND ou.library_id = b.library_id \
     LEFT JOIN shelf_books sb ON sb.book_id = b.id \
     LEFT JOIN loans l ON l.book_id = b.id AND l.returned_at IS NULL";
 
@@ -380,6 +391,7 @@ pub fn map_book(row: &rusqlite::Row<'_>) -> rusqlite::Result<BookOut> {
         price_cents: row.get(16)?,
         notes: row.get(17)?,
         cover_color: row.get(18)?,
+        owner: PersonRef::from_row(row, 25)?,
         placement,
         on_loan: row.get(22)?,
         reading: None,
@@ -482,13 +494,19 @@ pub fn insert_in_tx_unaudited(
             return Ok(Err(taken_error()));
         }
     }
+    if let Some(u) = &book.owner_user_id {
+        if !user_in_library(tx, library_id, u)? {
+            return Ok(Err(ApiError::not_found()));
+        }
+    }
     let id = new_id();
     tx.execute(
         "INSERT INTO books (id, library_id, isbn_13, isbn_10, title, subtitle, authors_json, \
          publisher, published_year, language, page_count, description, genre, format, \
-         progressive_number, condition, acquired_at, price_cents, notes, cover_color, created_at, updated_at) \
+         progressive_number, condition, acquired_at, price_cents, notes, cover_color, \
+         owner_user_id, created_at, updated_at) \
          VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, \
-         ?18, ?19, ?20, ?21, ?21)",
+         ?18, ?19, ?20, ?21, ?22, ?22)",
         params![
             id,
             library_id,
@@ -510,6 +528,7 @@ pub fn insert_in_tx_unaudited(
             book.price_cents,
             book.notes,
             book.cover_color,
+            book.owner_user_id,
             now
         ],
     )?;
@@ -528,6 +547,7 @@ pub fn insert_in_tx_unaudited(
         (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
         (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
         (status = 403, description = "forbidden: guests cannot write", body = ApiErrorBody),
+        (status = 404, description = "not_found: owner_user_id is not a person of the library", body = ApiErrorBody),
         (status = 409, description = "progressive_taken", body = ApiErrorBody),
         (status = 422, description = "validation: invalid body", body = ApiErrorBody),
     )
@@ -620,6 +640,7 @@ fn merge(current: BookOut, p: PatchBook) -> ApiResult<NewBook> {
         price_cents: p.price_cents.flatten(),
         notes: p.notes.clone().flatten(),
         cover_color: p.cover_color.clone().flatten(),
+        owner_user_id: None,
     };
     let v = validate_new(probe)?;
     Ok(NewBook {
@@ -645,6 +666,9 @@ fn merge(current: BookOut, p: PatchBook) -> ApiResult<NewBook> {
         price_cents: p.price_cents.map_or(current.price_cents, |_| v.price_cents),
         notes: p.notes.map_or(current.notes, |_| v.notes),
         cover_color: p.cover_color.map_or(current.cover_color, |_| v.cover_color),
+        owner_user_id: p
+            .owner_user_id
+            .unwrap_or_else(|| current.owner.map(|o| o.id)),
     })
 }
 
@@ -660,7 +684,7 @@ fn merge(current: BookOut, p: PatchBook) -> ApiResult<NewBook> {
         (status = 400, description = "bad_request: malformed JSON or wrong content type", body = ApiErrorBody),
         (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
         (status = 403, description = "forbidden: guests cannot write", body = ApiErrorBody),
-        (status = 404, description = "not_found: unknown book", body = ApiErrorBody),
+        (status = 404, description = "not_found: unknown book or owner_user_id", body = ApiErrorBody),
         (status = 409, description = "progressive_taken", body = ApiErrorBody),
         (status = 422, description = "validation: invalid body", body = ApiErrorBody),
     )
@@ -681,6 +705,7 @@ pub async fn patch_book(
             };
             let old_updated = current.updated_at;
             let progressive_touched = patch.progressive_number.is_some();
+            let owner_touched = patch.owner_user_id.is_some();
             let book = match merge(current, patch) {
                 Ok(b) => b,
                 Err(e) => return Ok(Err(e)),
@@ -690,6 +715,11 @@ pub async fn patch_book(
                     return Ok(Err(taken_error()));
                 }
             }
+            if let Some(u) = book.owner_user_id.as_deref().filter(|_| owner_touched) {
+                if !user_in_library(&tx, &who.library_id, u)? {
+                    return Ok(Err(ApiError::not_found()));
+                }
+            }
             // Never goes back, never runs ahead of the clock.
             let now = now_secs().max(old_updated);
             tx.execute(
@@ -697,7 +727,8 @@ pub async fn patch_book(
                  authors_json = ?5, publisher = ?6, published_year = ?7, language = ?8, \
                  page_count = ?9, description = ?10, genre = ?11, format = ?12, \
                  progressive_number = ?13, condition = ?14, acquired_at = ?15, price_cents = ?16, \
-                 notes = ?17, cover_color = ?18, updated_at = ?19 WHERE id = ?20 AND library_id = ?21",
+                 notes = ?17, cover_color = ?18, owner_user_id = ?19, updated_at = ?20 \
+                 WHERE id = ?21 AND library_id = ?22",
                 params![
                     book.isbn_13,
                     book.isbn_10,
@@ -717,6 +748,7 @@ pub async fn patch_book(
                     book.price_cents,
                     book.notes,
                     book.cover_color,
+                    book.owner_user_id,
                     now,
                     id,
                     who.library_id

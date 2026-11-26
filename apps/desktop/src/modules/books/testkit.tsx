@@ -48,6 +48,8 @@ export const FACETS: BookFacets = {
     { id: 's2', name: 'Libreria', count: 3 },
   ],
   reading: { to_read: 1, reading: 2, read: 3, abandoned: 0, none: 4 },
+  owners: [],
+  owner_none: 0,
 };
 
 /** Shelves of `FACETS`: Salotto is in Camera, Libreria in Studio. */

@@ -232,6 +232,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/books/isbn-index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every book of the library with an ISBN, for the duplicate-purchase check. */
+        get: operations["isbn_index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/books/next-progressive": {
         parameters: {
             query?: never;
@@ -311,6 +328,22 @@ export interface paths {
         put: operations["place_book"];
         post?: never;
         delete: operations["unplace_book"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/books/{id}/readers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_readers"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -445,6 +478,38 @@ export interface paths {
          */
         post: operations["import_books"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/invites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_invites"];
+        put?: never;
+        post: operations["create_invite"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/invites/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["revoke_invite"];
         options?: never;
         head?: never;
         patch?: never;
@@ -594,6 +659,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["create_code"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pairing/inspect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["inspect"];
         delete?: never;
         options?: never;
         head?: never;
@@ -845,6 +926,54 @@ export interface paths {
         patch: operations["patch_tag"];
         trace?: never;
     };
+    "/api/v1/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_users"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["remove_user"];
+        options?: never;
+        head?: never;
+        patch: operations["update_user"];
+        trace?: never;
+    };
+    "/api/v1/users/{id}/owner": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["transfer_owner"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/wishlist": {
         parameters: {
             query?: never;
@@ -1034,6 +1163,7 @@ export interface components {
             language?: string | null;
             notes?: string | null;
             on_loan: boolean;
+            owner?: null | components["schemas"]["PersonRef"];
             /** Format: int64 */
             page_count?: number | null;
             placement?: null | components["schemas"]["Placement"];
@@ -1059,6 +1189,17 @@ export interface components {
             /** @description Case-insensitive prefix; empty or absent gives the 10 most recent names. */
             q?: string | null;
         };
+        CodeInfo: {
+            /** Format: int64 */
+            expires_at: number;
+            kind: components["schemas"]["CodeKind"];
+            library_name: string;
+            role?: null | components["schemas"]["Role"];
+            /** @description Only for device codes: the person the device would be added to. */
+            user_display_name?: string | null;
+        };
+        /** @enum {string} */
+        CodeKind: "device" | "invite";
         ConfirmOut: {
             confirm_token: string;
             /** Format: int64 */
@@ -1095,6 +1236,8 @@ export interface components {
             isbn_13?: string | null;
             language?: string | null;
             notes?: string | null;
+            /** @description Person of the library the book belongs to. */
+            owner_user_id?: string | null;
             /** Format: int64 */
             page_count?: number | null;
             /** Format: int64 */
@@ -1110,7 +1253,10 @@ export interface components {
         /** @description Body of `POST /loans`. */
         CreateLoan: {
             book_id: string;
-            borrower_name: string;
+            /** @description Required unless `borrower_user_id` is given. */
+            borrower_name?: string | null;
+            /** @description A person of the library; the loan stores their current name. */
+            borrower_user_id?: string | null;
             /** Format: int64 */
             due_at?: number | null;
             /**
@@ -1144,6 +1290,10 @@ export interface components {
             priority?: number | null;
             source_url?: string | null;
             title: string;
+        };
+        Creator: {
+            display_name: string;
+            id: string;
         };
         DayCount: {
             /** Format: int64 */
@@ -1226,6 +1376,13 @@ export interface components {
             genres: components["schemas"]["ValueCount"][];
             /** @description Same rules as `genres`. */
             languages: components["schemas"]["ValueCount"][];
+            /**
+             * Format: int64
+             * @description Books without an owner.
+             */
+            owner_none: number;
+            /** @description People who own at least one book, most books first, then by name. */
+            owners: components["schemas"]["OwnerFacet"][];
             reading: components["schemas"]["ReadingFacet"];
             rooms: components["schemas"]["NamedFacet"][];
             shelves: components["schemas"]["NamedFacet"][];
@@ -1293,6 +1450,50 @@ export interface components {
             publisher?: string | null;
             title: string;
         };
+        InspectRequest: {
+            code: string;
+        };
+        InviteCreated: {
+            /** @description Clear-text code; shown only in this response. */
+            code: string;
+            /** Format: int64 */
+            expires_at: number;
+            id: string;
+            role: components["schemas"]["Role"];
+        };
+        InviteList: {
+            items: components["schemas"]["InviteOut"][];
+        };
+        InviteOut: {
+            /** Format: int64 */
+            created_at: number;
+            created_by: components["schemas"]["Creator"];
+            /** Format: int64 */
+            expires_at: number;
+            id: string;
+            role: components["schemas"]["Role"];
+        };
+        /** @enum {string} */
+        InviteRole: "admin" | "member" | "guest";
+        IsbnEntry: {
+            authors: string[];
+            book_id: string;
+            /** @description ISBN-13, digits only. */
+            isbn: string;
+            /** Format: int64 */
+            row_index?: number | null;
+            shelf?: null | components["schemas"]["ShelfRef"];
+            /** Format: int64 */
+            slot_index?: number | null;
+            title: string;
+        };
+        IsbnIndex: {
+            items: components["schemas"]["IsbnEntry"][];
+            /** @description True when the requested `version` is the current one; `items` is then empty. */
+            unchanged: boolean;
+            /** @description Opaque fingerprint (SHA-256, hex) of the entries. */
+            version: string;
+        };
         LabelsRequest: {
             /** @description 1 to 2000 book ids. */
             book_ids: string[];
@@ -1333,6 +1534,8 @@ export interface components {
             on_loan?: string | null;
             /** @description `asc` or `desc`; default `desc` for `created_at`, `asc` otherwise. */
             order?: string | null;
+            /** @description Books of this owner: a person id, `me` or `none` (no owner). */
+            owner_id?: string | null;
             /** @description Full-text search over title, subtitle, authors, description, notes and ISBN. */
             q?: string | null;
             /**
@@ -1363,12 +1566,19 @@ export interface components {
         };
         ListLoansQuery: {
             book_id?: string | null;
+            /** @description Loans to this person: an id or `me`. */
+            borrower_user_id?: string | null;
             /** Format: int64 */
             limit?: number | null;
             /** Format: int64 */
             offset?: number | null;
             /** @description `active` (default), `returned`, `overdue` or `all`. */
             status?: string | null;
+        };
+        /** @description Query of `GET /wishlist`. */
+        ListWishQuery: {
+            /** @description `mine` (default) or `family`. */
+            scope?: string | null;
         };
         LoanList: {
             items: components["schemas"]["LoanOut"][];
@@ -1387,6 +1597,7 @@ export interface components {
             book_authors: string[];
             book_id: string;
             book_title: string;
+            borrower?: null | components["schemas"]["PersonRef"];
             borrower_name: string;
             borrower_user_id?: string | null;
             /** Format: int64 */
@@ -1449,6 +1660,14 @@ export interface components {
             id: string;
             name: string;
         };
+        NewInvite: {
+            /**
+             * Format: int64
+             * @description 1 to 30; default 7.
+             */
+            expires_in_days?: number | null;
+            role: components["schemas"]["InviteRole"];
+        };
         NewShelf: {
             /** @description Defaults to `sage`. */
             color?: string | null;
@@ -1483,6 +1702,12 @@ export interface components {
             /** Format: int64 */
             wishlist_count: number;
         };
+        OwnerFacet: {
+            /** Format: int64 */
+            count: number;
+            display_name: string;
+            id: string;
+        };
         PairingCode: {
             /** @description Clear-text code; shown only in this response. */
             code: string;
@@ -1511,6 +1736,8 @@ export interface components {
             isbn_13?: string | null;
             language?: string | null;
             notes?: string | null;
+            /** @description Person of the library; `null` removes the owner. */
+            owner_user_id?: string | null;
             /** Format: int64 */
             page_count?: number | null;
             /** Format: int64 */
@@ -1530,11 +1757,19 @@ export interface components {
         PatchLoan: {
             book_id?: string | null;
             borrower_name?: string | null;
+            /** @description A person of the library (the stored name becomes theirs); `null` removes the link. */
+            borrower_user_id?: string | null;
             /** Format: int64 */
             due_at?: number | null;
             /** Format: int64 */
             lent_at?: number | null;
             notes?: string | null;
+        };
+        PatchPerson: {
+            /** @description 1 to 60 characters after trimming. */
+            display_name?: string | null;
+            /** @description `admin`, `member` or `guest`. */
+            role?: string | null;
         };
         /** @description Body of `PATCH /rooms/{id}`: absent = unchanged. */
         PatchRoom: {
@@ -1557,6 +1792,34 @@ export interface components {
             priority?: number | null;
             source_url?: string | null;
             title?: string | null;
+        };
+        PeopleList: {
+            items: components["schemas"]["PersonOut"][];
+        };
+        PersonOut: {
+            /** Format: int64 */
+            created_at: number;
+            /**
+             * Format: int64
+             * @description Devices that are not revoked.
+             */
+            devices: number;
+            display_name: string;
+            /** @description Only for admins and the owner, and only when the person has one. */
+            email?: string | null;
+            id: string;
+            is_me: boolean;
+            /**
+             * Format: int64
+             * @description The most recent `last_seen` among the person's devices.
+             */
+            last_seen?: number | null;
+            role: components["schemas"]["Role"];
+        };
+        /** @description A person of the library as other records show them. */
+        PersonRef: {
+            display_name: string;
+            id: string;
         };
         PlaceIn: {
             /** Format: int64 */
@@ -1624,6 +1887,24 @@ export interface components {
             average?: number | null;
             /** Format: int64 */
             count: number;
+        };
+        /**
+         * @description What the family sees of someone's reading: state and dates only. Rating,
+         *     note and current page stay private to their author.
+         */
+        Reader: {
+            /** Format: int64 */
+            finished_at?: number | null;
+            /** @description True for the caller. */
+            is_me: boolean;
+            /** Format: int64 */
+            started_at?: number | null;
+            /** @description `to_read`, `reading`, `read` or `abandoned`. */
+            status: string;
+            user: components["schemas"]["PersonRef"];
+        };
+        ReaderList: {
+            items: components["schemas"]["Reader"][];
         };
         ReadingBook: {
             authors: string[];
@@ -1724,6 +2005,8 @@ export interface components {
             code: string;
             device_kind: components["schemas"]["DeviceKind"];
             device_name: string;
+            /** @description Required (1 to 60 characters) when the code is an invite; ignored for a device code. */
+            display_name?: string | null;
         };
         RefreshOut: {
             session: components["schemas"]["Session"];
@@ -1883,6 +2166,10 @@ export interface components {
             /** Format: int64 */
             slots_per_row?: number | null;
         };
+        ShelfRef: {
+            id: string;
+            name: string;
+        };
         Stats: {
             additions_by_month: components["schemas"]["MonthCount"][];
             by_decade: components["schemas"]["CountBy"][];
@@ -1951,6 +2238,8 @@ export interface components {
             priority: number;
             source_url?: string | null;
             title: string;
+            /** @description Whose wish it is. */
+            user: components["schemas"]["PersonRef"];
             user_id: string;
         };
         YearRange: {
@@ -2641,6 +2930,8 @@ export interface operations {
                 tag_id?: string[];
                 /** @description Books placed on a shelf of this room */
                 room_id?: string;
+                /** @description Books of this owner: a person id, me, or none for books without an owner */
+                owner_id?: string;
                 /** @description published_year >= value; must not exceed year_to */
                 year_from?: number;
                 /** @description published_year <= value */
@@ -2735,6 +3026,15 @@ export interface operations {
             };
             /** @description forbidden: guests cannot write */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description not_found: owner_user_id is not a person of the library */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2860,6 +3160,47 @@ export interface operations {
             };
             /** @description unauthorized, token_expired or device_revoked */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    isbn_index: {
+        parameters: {
+            query?: {
+                /** @description Version the client already has */
+                version?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Entries sorted by isbn, then title; empty with `unchanged` when `version` is current */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IsbnIndex"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description validation: invalid query parameters */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3048,7 +3389,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description not_found: unknown book */
+            /** @description not_found: unknown book or owner_user_id */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -3455,6 +3796,47 @@ export interface operations {
             };
             /** @description forbidden: role too low */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description not_found: unknown book */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    list_readers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Book id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Who of the library has a reading state for the book: reading, to_read, read (most recent first), abandoned */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReaderList"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4003,6 +4385,161 @@ export interface operations {
             };
         };
     };
+    list_invites: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Pending invites (not used, not expired), newest first */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InviteList"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: admins and the owner only */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    create_invite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NewInvite"];
+            };
+        };
+        responses: {
+            /** @description Invite created; the code is shown only here */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InviteCreated"];
+                };
+            };
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: admins invite members and guests, the owner also admins */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description validation: unknown role or expires_in_days outside 1..30 */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    revoke_invite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Invite id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Invite revoked */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: admins and the owner only */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description not_found: unknown, used or expired invite */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
     labels_pdf: {
         parameters: {
             query?: never;
@@ -4070,6 +4607,8 @@ export interface operations {
                 status?: string;
                 /** @description Only the loans of this book */
                 book_id?: string;
+                /** @description Only the loans to this person: an id or me */
+                borrower_user_id?: string;
                 /** @description 1 to 200, default 50 */
                 limit?: number;
                 /** @description Default 0 */
@@ -4159,7 +4698,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description not_found: unknown book */
+            /** @description not_found: unknown book or borrower_user_id */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -4347,7 +4886,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description not_found: unknown loan */
+            /** @description not_found: unknown loan or borrower_user_id */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -4636,6 +5175,75 @@ export interface operations {
             };
         };
     };
+    inspect: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InspectRequest"];
+            };
+        };
+        responses: {
+            /** @description What the code is for; the code is not consumed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CodeInfo"];
+                };
+            };
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description pairing_code_invalid: code wrong, expired or already used */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description validation: invalid fields */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description rate_limited: too many attempts (Retry-After header) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
     redeem: {
         parameters: {
             query?: never;
@@ -4685,7 +5293,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description validation: invalid fields */
+            /** @description validation: invalid fields (an invite needs display_name) */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -5899,7 +6507,7 @@ export interface operations {
             };
         };
     };
-    list_wishlist: {
+    list_users: {
         parameters: {
             query?: never;
             header?: never;
@@ -5908,7 +6516,225 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description The caller's wishlist */
+            /** @description Everyone in the library: owner, admins, members, guests; then by name */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PeopleList"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    remove_user: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Person id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Person removed (or left the library) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: not allowed to remove this person */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description not_found: unknown person */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    update_user: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Person id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchPerson"];
+            };
+        };
+        responses: {
+            /** @description Updated person */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonOut"];
+                };
+            };
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: not allowed to manage this person */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description not_found: unknown person */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description validation: invalid name, or role owner or unknown */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    transfer_owner: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Person id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The person is the owner now; the caller is an admin */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: only the owner can transfer ownership */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description not_found: unknown person */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description validation: the person is the caller */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    list_wishlist: {
+        parameters: {
+            query?: {
+                /** @description mine (default): the caller's wishes; family: everyone's, the caller's first, then by person name */
+                scope?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The wishlist */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -5919,6 +6745,15 @@ export interface operations {
             };
             /** @description unauthorized, token_expired or device_revoked */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description validation: invalid scope */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -10,7 +10,7 @@ import { module } from './routes';
 import { WishlistPage } from './WishlistPage';
 
 export function wish(i: number, over: Partial<WishOut> = {}): WishOut {
-  return { id: `w${i}`, user_id: 'u1', title: `Desiderio ${i}`, priority: 1, created_at: 1_700_000_000 + i * 86_400, ...over };
+  return { id: `w${i}`, user_id: 'u1', user: { id: 'u1', display_name: 'Anna' }, title: `Desiderio ${i}`, priority: 1, created_at: 1_700_000_000 + i * 86_400, ...over };
 }
 
 export interface Shop {
