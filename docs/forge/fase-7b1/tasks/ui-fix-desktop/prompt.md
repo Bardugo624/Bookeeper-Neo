@@ -1,0 +1,17 @@
+Leggi prima `docs/forge/fase-7b1/CONTRATTO.md`, `docs/forge/fase-7b/CONTRATTO.md`, `docs/forge/fase-7b/AUDIT.md` (sezione "Dopo il run 7B"), `PRODUCT.md` e `DESIGN.md`. Leggi ogni file citato e i suoi test.
+
+# Desktop: rilievi rimasti dopo il giro Impeccable
+
+1. **[P1] Card dei libri** (`apps/desktop/src/modules/books/BookCard.tsx`): `axe` segnala ancora `label-content-name-mismatch` su ogni card (WCAG 2.5.3). Il collegamento ha `aria-label="titolo, autore"`, ma il suo testo visibile comprende anche l'iniziale decorativa della copertina, l'etichetta "In prestito" e l'anello di lettura. Regola: il nome viene dal contenuto. Niente `aria-label` sul collegamento; l'iniziale e ogni testo decorativo della copertina sono `aria-hidden`; l'ordine di lettura resta titolo, autore, "In prestito", stato di lettura. Test: il nome del collegamento, letto con `getByRole('link')`, è uguale al testo che si legge, nel caso semplice, in prestito e in lettura; nessun `aria-label` sul collegamento.
+2. **[P3] Suggerimento della barra laterale** (`palette.json`, chiave `hint`): "Cerca o lancia" è una frase in sospeso. Regola: una frase completa che stia in una riga accanto a `Ctrl K` alla larghezza attuale della barra, per esempio "Cerca e comandi"; in inglese l'equivalente ("Search and commands").
+3. **[P3] Etichetta "In prestito" nella colonna laterale della scheda** (`books/DetailAside.module.css`, circa riga 8): `.card` ora è una colonna flessibile e l'etichetta si allarga a tutta la card. Regola: l'etichetta resta una pillola della sua misura (`align-self: flex-start`).
+4. **[P3] Scaffali per un ospite senza mobili** (`shelves/ShelvesPage.tsx`, circa riga 68): dice "Crea un mobile per dire dove stanno i tuoi libri." ma l'ospite non può crearne e non ha bottoni. Regola: per chi non può scrivere, un testo che descrive lo stato senza invitare a un'azione impossibile, come già fa la wishlist.
+5. **[P3] Prestiti per un ospite** (`loans/LoansPage.tsx`, circa riga 73): il testo di "Tutti" vuoto ("Non hai ancora prestato nessun libro. Quando lo fai, il prestito compare qui.") parla come se l'ospite prestasse libri. Regola come al punto 4, per "In corso" e "Tutti".
+6. **[P3] Errori che incolpano sempre il server** (`people.json`, `devices.json`, `stats.json`, compreso `stats.reading.error.text`, nelle due lingue): "il server non risponde" compare per qualunque errore, anche un 500 o un 403 dove il server ha risposto. Regola: il testo dice la causa vera quando la si conosce (rete assente, permesso negato, errore del server) e altrimenti un testo generale che non attribuisce colpe; usa lo stesso schema di `ErrorState` del kit del desktop.
+7. **[P3] Revoca degli inviti** (`people/InviteList.tsx`, circa riga 34): il nome accessibile del bottone ("Revoca l'invito come Membro") nomina solo il ruolo, quindi due inviti con lo stesso ruolo hanno lo stesso nome, e la frase si legge come "revoca agendo da membro". Regola: il nome dice ruolo e scadenza dell'invito ("Revoca l'invito per un Membro, scade il 3 dic 2026") e comincia con il testo visibile del bottone.
+
+## Acceptance criteria
+
+- `npm run typecheck`, `npm test` e `npm run build` dell'app passano; `npm test -w @bookeeper/i18n` e `npm test -w @bookeeper/ui` passano.
+- `.claude/skills/impeccable/scripts/impeccable detect --json` sui file cambiati non trova nulla.
+- Cambiano solo file sotto `apps/desktop/src/modules/books/`, `shelves/`, `loans/`, `people/`, `devices/`, `stats/`, e i file i18n `palette`, `books`, `shelves`, `loans`, `people`, `devices`, `stats` (it e en).
