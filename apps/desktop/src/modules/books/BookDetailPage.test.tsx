@@ -31,7 +31,12 @@ describe('detail', () => {
   it('shows every field that is present', async () => {
     renderBooks({ books: [full] }, '/books/b1');
     expect(await screen.findByRole('heading', { level: 1, name: 'Il nome della rosa' })).toBeInTheDocument();
-    expect(screen.getByText('NARRATIVA · 1980', { exact: false })).toBeInTheDocument();
+    // The genre and year sit in the byline, after the title, in plain text.
+    const facts = screen.getByText('Narrativa · 1980');
+    expect(facts.textContent).toBe('Narrativa · 1980');
+    const title = screen.getByRole('heading', { level: 1 });
+    expect(title.compareDocumentPosition(facts) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(title.previousElementSibling).toBeNull();
     expect(screen.getByText('Romanzo')).toBeInTheDocument();
     // The 3D cover prints the author too.
     expect(screen.getAllByText('Umberto Eco').length).toBeGreaterThan(0);

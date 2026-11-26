@@ -34,6 +34,7 @@
     "available": "In casa",
     "unplaced": "Non collocato",
     "cardName": "{title}, {author}",
+    "cardNameLoan": "{name}, {loan}",
     "columns": {
       "title": "Titolo",
       "author": "Autore",

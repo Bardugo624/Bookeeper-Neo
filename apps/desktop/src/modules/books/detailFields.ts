@@ -27,7 +27,7 @@ export function metaFields(book: BookOut, t: Translate): MetaField[] {
   });
 }
 
-/** "GENRE · YEAR", with only the parts that exist. */
+/** "Genre · year", with only the parts that exist. */
 export function eyebrowOf(book: BookOut): string {
   return [book.genre?.trim(), book.published_year].filter(Boolean).join(' · ');
 }

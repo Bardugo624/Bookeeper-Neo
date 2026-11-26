@@ -8,7 +8,7 @@
   "card": {
     "title": "Reading",
     "loading": "Loading reading status",
-    "error": "I can't read the reading status.",
+    "error": "I can't read the reading status. Check the connection and try again.",
     "retry": "Try again",
     "invite": "Are you reading it?",
     "toRead": "To read",
