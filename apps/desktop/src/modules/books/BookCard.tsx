@@ -43,21 +43,23 @@ export function BookCard({ book, from, selection, index, cell }: BookCardProps) 
       <Link to={detailPath(book.id)} state={state} className={styles.card}>
         <span className={styles.title}>{book.title}</span>
         {author ? <span className={styles.author}>{author}</span> : null}
-        {book.on_loan ? (
-          <Tag tone="warn" className={styles.loan}>
-            {t('books.list.onLoan')}
-          </Tag>
-        ) : null}
-        {book.reading?.status === 'reading' ? (
-          <span className={styles.ring}>
-            <ReadingRing reading={book.reading} pageCount={book.page_count} size={30} />
-          </span>
-        ) : null}
-        {book.reading?.status === 'read' ? (
-          <span className={styles.done} role="img" aria-label={t('reading.status.read')}>
-            <Icon name="check" size={12} />
-          </span>
-        ) : null}
+        <span className={styles.labels}>
+          {book.on_loan ? (
+            <Tag tone="warn" className={styles.loan}>
+              {t('books.list.onLoan')}
+            </Tag>
+          ) : null}
+          {book.reading?.status === 'reading' ? (
+            <span className={styles.ring}>
+              <ReadingRing reading={book.reading} pageCount={book.page_count} size={30} />
+            </span>
+          ) : null}
+          {book.reading?.status === 'read' ? (
+            <span className={styles.done} role="img" aria-label={t('reading.status.read')}>
+              <Icon name="check" size={12} />
+            </span>
+          ) : null}
+        </span>
         <span className={styles.cover} aria-hidden="true">
           <BookCover title={book.title} author={author || undefined} src={src} color={book.cover_color ?? undefined} lift />
         </span>
