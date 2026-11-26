@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { book, listCalls, renderSearch, type Api } from './testkit';
 
 const tagged = (n: number, ...ids: string[]) =>
@@ -156,6 +156,42 @@ describe('the sheet when the server fails', () => {
     await user.click(await screen.findByRole('button', { name: 'Filtri' }));
     const dialog = await screen.findByRole('dialog');
     expect(await within(dialog).findByRole('button', { name: 'Riprova' })).toBeInTheDocument();
+  });
+});
+
+describe('the sheet with cached data and a failing refresh', () => {
+  it('shows one section per heading, with the warning and "Riprova" under the list, and unique ids', async () => {
+    const user = userEvent.setup();
+    let fail = false;
+    const base = api();
+    renderSearch({
+      api: {
+        ...base,
+        override: (call) =>
+          fail && (call.path.includes('/books/facets') || call.path.includes('/rooms'))
+            ? { status: 500, body: { error_code: 'internal', message: 'x' } }
+            : undefined,
+      },
+    });
+    await user.click(await screen.findByRole('button', { name: 'Filtri' }));
+    let dialog = await screen.findByRole('dialog');
+    await within(dialog).findByText('Giallo');
+    await within(dialog).findByRole('button', { name: 'Salotto' });
+    await user.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    // The cached answers are stale now and the refresh fails.
+    fail = true;
+    const now = Date.now();
+    vi.spyOn(Date, 'now').mockReturnValue(now + 120_000);
+    await user.click(screen.getByRole('button', { name: 'Filtri' }));
+    dialog = await screen.findByRole('dialog');
+    await waitFor(() => expect(within(dialog).getAllByRole('button', { name: 'Riprova' })).toHaveLength(2));
+    expect(within(dialog).getByText('Giallo')).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Salotto' })).toBeInTheDocument();
+    expect(within(dialog).getAllByRole('heading', { name: 'Tag' })).toHaveLength(1);
+    expect(within(dialog).getAllByRole('heading', { name: 'Stanza' })).toHaveLength(1);
+    const ids = [...dialog.querySelectorAll('[id]')].map((e) => e.id);
+    expect(new Set(ids).size).toBe(ids.length);
   });
 });
 

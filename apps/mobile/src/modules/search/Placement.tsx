@@ -1,4 +1,5 @@
 import type { BookOut } from '@bookeeper/api';
+import { Link, useLocation } from 'react-router';
 import { Icon, Tag } from '@bookeeper/ui/base';
 import { useT } from '../../app/i18n';
 import { useShelfNames } from './useBook';
@@ -7,6 +8,7 @@ import styles from './Blocks.module.css';
 /** "Where is it?": the answer a phone is opened for, so it comes first and stands out. */
 export function WhereBlock({ book }: { book: BookOut }) {
   const t = useT();
+  const location = useLocation();
   const placement = book.placement ?? null;
   const shelves = useShelfNames(placement !== null);
   const name = placement ? shelves.get(placement.shelf_id) : undefined;
@@ -17,14 +19,18 @@ export function WhereBlock({ book }: { book: BookOut }) {
         {t('msearch.detail.where.title')}
       </h2>
       {placement ? (
-        <p className={styles.big}>
-          {name ? (
-            <span>
-              <span className={styles.kind}>{t('msearch.detail.where.shelf')}</span> <span>{name}</span>
-            </span>
-          ) : null}
-          <span>{t('msearch.detail.where.row', { row: placement.row_index + 1 })}</span>
-        </p>
+        <>
+          <p className={styles.big}>
+            {t('msearch.detail.where.phrase', {
+              shelf: name ?? t('msearch.detail.where.shelf'),
+              row: placement.row_index + 1,
+              slot: placement.slot_index + 1,
+            })}
+          </p>
+          <Link to={`/books/${encodeURIComponent(book.id)}/where`} state={location.state} className={styles.whereButton}>
+            {t('msearch.detail.where.button')}
+          </Link>
+        </>
       ) : (
         <p className={styles.big}>{t('msearch.detail.where.none')}</p>
       )}

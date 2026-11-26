@@ -21,6 +21,8 @@ export const book = (n: number, over: Partial<BookOut> = {}): BookOut =>
 export interface Api {
   books: BookOut[];
   shelves?: { id: string; name: string }[];
+  /** Books on each piece of furniture, by shelf id; a shelf listed here is drawn as 3 rows of 16 places. */
+  shelfBooks?: Record<string, { book_id: string; title: string; row_index: number; slot_index: number }[]>;
   rooms?: { id: string; name: string }[];
   /** Answer of `GET /books/facets`; absent means an empty library. */
   facets?: { tags?: { id: string; name: string; color: string; count: number }[]; reading?: Partial<Record<string, number>> };
@@ -47,6 +49,18 @@ export function apiHandler(api: Api): Handler {
       return ok({ formats: [], genres: [], languages: [], rooms: [], shelves: [], years: {}, tags: f.tags ?? [], reading });
     }
     if (url.pathname === '/api/v1/shelves') return ok({ items: api.shelves ?? [], total: 0 });
+    const shelfBooks = /^\/api\/v1\/shelves\/([^/]+)\/books$/.exec(url.pathname);
+    if (shelfBooks) {
+      const items = (api.shelfBooks?.[decodeURIComponent(shelfBooks[1]!)] ?? []).map((b) => ({ authors: [], ...b }));
+      return ok({ items });
+    }
+    const shelf = /^\/api\/v1\/shelves\/([^/]+)$/.exec(url.pathname);
+    if (shelf) {
+      const found = (api.shelves ?? []).find((s) => s.id === decodeURIComponent(shelf[1]!));
+      if (!found) return { status: 404, body: { error_code: 'not_found', message: 'x' } };
+      const count = (api.shelfBooks?.[found.id] ?? []).length;
+      return ok({ ...found, color: 'sage', rows: 3, slots_per_row: 16, capacity: 48, book_count: count, label_code: 1, created_at: 1, updated_at: 1 });
+    }
     const one = /^\/api\/v1\/books\/([^/]+)$/.exec(url.pathname);
     if (one) {
       const found = api.books.find((b) => b.id === decodeURIComponent(one[1]!));

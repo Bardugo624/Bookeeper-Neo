@@ -41,8 +41,10 @@
     "where": {
       "title": "Where it is",
       "shelf": "Furniture",
-      "row": "Shelf {row}",
-      "none": "Not shelved"
+      "none": "Not shelved",
+      "phrase": "{shelf} · shelf {row} · slot {slot}",
+      "button": "Where is it?",
+      "row": "Shelf {row}"
     },
     "loan": {
       "title": "Loan",
@@ -68,6 +70,13 @@
     "notFound": {
       "title": "Book not found",
       "text": "This book no longer exists or was removed from the library."
+    },
+    "whereIs": {
+      "title": "Where is it?",
+      "unit": "Cabinet with the book highlighted",
+      "back": "Back to the book",
+      "missing": "It is not on any shelf",
+      "missingText": "This book is not shelved, or it has been moved."
     }
   },
   "reading": {
