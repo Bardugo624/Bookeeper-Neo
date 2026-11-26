@@ -34,7 +34,7 @@ describe('opening and closing', () => {
 
   it('opens from the hint in the sidebar', async () => {
     renderPalette();
-    await userEvent.click(await screen.findByRole('button', { name: /Cerca o lancia un comando/ }));
+    await userEvent.click(await screen.findByRole('button', { name: /Cerca o lancia/ }));
     expect(await box()).toHaveFocus();
   });
 

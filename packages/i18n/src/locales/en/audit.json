@@ -30,7 +30,7 @@
     "title": "No entries",
     "description": "No activity matches the chosen filters."
   },
-  "error": "The log could not be loaded.",
+  "error": "The log could not be loaded. {reason}",
   "forbidden": "Only the owner and admins can see the log.",
   "retry": "Try again",
   "total": {

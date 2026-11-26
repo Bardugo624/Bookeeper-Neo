@@ -30,7 +30,7 @@
     "title": "Nessuna voce",
     "description": "Nessuna attività corrisponde ai filtri scelti."
   },
-  "error": "Non è stato possibile caricare il registro.",
+  "error": "Non è stato possibile caricare il registro. {reason}",
   "forbidden": "Solo il proprietario e gli Admin possono vedere il registro.",
   "retry": "Riprova",
   "total": {

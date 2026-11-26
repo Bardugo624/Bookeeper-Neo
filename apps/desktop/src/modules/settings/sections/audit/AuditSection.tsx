@@ -1,6 +1,6 @@
 import { Button, Skeleton } from '@bookeeper/ui/base';
 import { useT } from '../../../../app/i18n';
-import { useListParams } from '../../../../kit';
+import { apiErrorMessage, useListParams } from '../../../../kit';
 import { SettingsBlock } from '../../SettingsBlock';
 import { AuditFilters } from './AuditFilters';
 import { AuditTable } from './AuditTable';
@@ -26,7 +26,7 @@ export function AuditSection() {
   } else if (list.isError) {
     body = (
       <div className={styles.error} role="alert">
-        <p>{t('audit.error')}</p>
+        <p>{t('audit.error', { reason: apiErrorMessage(t, list.error) })}</p>
         <Button variant="ghost" onClick={list.retry}>
           {t('audit.retry')}
         </Button>
