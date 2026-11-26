@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type Ref } from 'react';
 import { useT } from '../../app';
 import { apiErrorMessage } from '../../kit';
 import { TagPicker } from '../tags';
@@ -19,6 +19,8 @@ export interface BookSheetProps {
   storedStatus: CoverStatus;
   /** Editing a stored book (not creating one). */
   editing: boolean;
+  /** The wrapper of the cover preview, for the flight of a new book. */
+  coverRef?: Ref<HTMLDivElement>;
 }
 
 const GROUP_FIELD_COMPONENT = { edition: EditionFields, collection: CollectionFields, notes: NotesFields } as const;
@@ -55,7 +57,7 @@ function useOpenGroups(editor: UseBookEditor, editing: boolean) {
 }
 
 /** The book as a card: cover on the left, the essentials on the right, tags, then rows that open. */
-export function BookSheet({ id, editor, storedSrc, storedStatus, editing }: BookSheetProps) {
+export function BookSheet({ id, editor, storedSrc, storedStatus, editing, coverRef }: BookSheetProps) {
   const t = useT();
   const { form } = editor;
   const { open, toggle } = useOpenGroups(editor, editing);
@@ -67,6 +69,7 @@ export function BookSheet({ id, editor, storedSrc, storedStatus, editing }: Book
             title={form.values.title}
             author={authorsOf(form.values) || undefined}
             storedSrc={storedSrc}
+            previewRef={coverRef}
             storedStatus={storedStatus}
             candidates={editor.candidates}
             plan={editor.plan}
