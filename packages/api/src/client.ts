@@ -15,6 +15,8 @@ import { readingApi } from './resources/reading';
 import { tagsApi } from './resources/tags';
 import { roomsApi } from './resources/rooms';
 import { auditApi } from './resources/audit';
+import { usersApi } from './resources/users';
+import { invitesApi } from './resources/invites';
 import { serverApi } from './resources/server';
 
 export type Health = components['schemas']['Health'];
@@ -34,6 +36,8 @@ export type PasswordRequest = S['PasswordRequest'];
 export type RedeemRequest = S['RedeemRequest'];
 export type RefreshOut = S['RefreshOut'];
 export type MeOut = S['MeOut'];
+export type InspectRequest = S['InspectRequest'];
+export type CodeInfo = S['CodeInfo'];
 export type PairingCode = S['PairingCode'];
 export type DeviceList = S['DeviceList'];
 
@@ -53,6 +57,8 @@ export function createClient(t: Transport) {
     ...tagsApi(t),
     ...roomsApi(t),
     ...auditApi(t),
+    ...usersApi(t),
+    ...invitesApi(t),
     ...serverApi(t),
     async health() {
       return unwrap<Health>(await t.request('GET', `${P}/health`));
@@ -86,6 +92,10 @@ export function createClient(t: Transport) {
     },
     async redeemPairingCode(body: RedeemRequest) {
       return unwrap<AuthOut>(await t.request('POST', `${P}/pairing/redeem`, body));
+    },
+    /** Needs no session: pass whichever transport the app uses before signing in, as for `redeemPairingCode`. */
+    async inspectPairingCode(body: InspectRequest) {
+      return unwrap<CodeInfo>(await t.request('POST', `${P}/pairing/inspect`, body));
     },
     async listDevices() {
       return unwrap<DeviceList>(await t.request('GET', `${P}/devices`));
