@@ -7867,8 +7867,7 @@
         "type": "object",
         "required": [
           "shelf_id",
-          "row_index",
-          "slot_index"
+          "row_index"
         ],
         "properties": {
           "row_index": {
@@ -7880,11 +7879,15 @@
           },
           "shift": {
             "type": "boolean",
-            "description": "When true, books from `slot_index` onwards slide one slot right up to\nthe first free slot, atomically. Defaults to false."
+            "description": "When true, books from `slot_index` onwards slide one slot right up to\nthe first free slot, atomically. Defaults to false. Requires `slot_index`."
           },
           "slot_index": {
-            "type": "integer",
-            "format": "int64"
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Absent: the book goes to the slot after the last occupied one of the\nrow (0 when empty), or stays put if it is already on that row."
           },
           "spine_width": {
             "type": [

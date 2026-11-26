@@ -168,11 +168,13 @@ pub struct ShelfPatch {
 pub struct PlaceIn {
     pub shelf_id: String,
     pub row_index: i64,
-    pub slot_index: i64,
+    /// Absent: the book goes to the slot after the last occupied one of the
+    /// row (0 when empty), or stays put if it is already on that row.
+    pub slot_index: Option<i64>,
     /// 1–3; absent keeps the current value.
     pub spine_width: Option<i64>,
     /// When true, books from `slot_index` onwards slide one slot right up to
-    /// the first free slot, atomically. Defaults to false.
+    /// the first free slot, atomically. Defaults to false. Requires `slot_index`.
     #[serde(default)]
     pub shift: bool,
 }
@@ -654,16 +656,51 @@ pub async fn place_book(
 ) -> ApiResult<Json<Placement>> {
     user.require(Role::Member)?;
     let spine = check_spine(body.spine_width)?;
+    if body.shift && body.slot_index.is_none() {
+        return Err(ApiError::validation("shift requires slot_index"));
+    }
     let placement = run(&state, move |conn| {
         let tx = conn.transaction()?;
         require_book(&tx, &user.library_id, &id)?;
         let shelf = find_shelf(&tx, &user.library_id, &body.shelf_id)?;
-        if !(0..shelf.rows).contains(&body.row_index)
-            || !(0..shelf.slots_per_row).contains(&body.slot_index)
-        {
+        if !(0..shelf.rows).contains(&body.row_index) {
             return Err(ApiError::validation("Slot is outside the shelf").into());
         }
         let now = now_secs();
+        let slot_index = match body.slot_index {
+            Some(slot) => slot,
+            None => {
+                // Chosen inside the transaction that writes it.
+                let here: Option<i64> = tx
+                    .query_row(
+                        "SELECT slot_index FROM shelf_books \
+                         WHERE book_id = ?1 AND shelf_id = ?2 AND row_index = ?3",
+                        params![id, shelf.id, body.row_index],
+                        |r| r.get(0),
+                    )
+                    .optional()?;
+                if let Some(slot) = here {
+                    return Ok(Placement {
+                        shelf_id: shelf.id,
+                        row_index: body.row_index,
+                        slot_index: slot,
+                    });
+                }
+                let last: Option<i64> = tx.query_row(
+                    "SELECT MAX(slot_index) FROM shelf_books WHERE shelf_id = ?1 AND row_index = ?2",
+                    params![shelf.id, body.row_index],
+                    |r| r.get(0),
+                )?;
+                let next = last.map_or(0, |m| m + 1);
+                if next >= shelf.slots_per_row {
+                    return Err(ApiError::conflict("row_full", "No free slot in this row").into());
+                }
+                next
+            }
+        };
+        if !(0..shelf.slots_per_row).contains(&slot_index) {
+            return Err(ApiError::validation("Slot is outside the shelf").into());
+        }
         if body.shift {
             let old: Option<(String, i64, i64, Option<i64>)> = tx
                 .query_row(
@@ -683,13 +720,13 @@ pub async fn place_book(
                      ORDER BY slot_index",
                 )?;
                 let rows = stmt.query_map(
-                    params![shelf.id, body.row_index, body.slot_index],
+                    params![shelf.id, body.row_index, slot_index],
                     |r| Ok((r.get(0)?, r.get(1)?)),
                 )?;
                 rows.collect::<rusqlite::Result<_>>()?
             };
             // Contiguous run starting at slot_index; the first gap stops it.
-            let mut next = body.slot_index;
+            let mut next = slot_index;
             let mut run_len = 0;
             for (_, slot) in &tail {
                 if *slot != next {
@@ -704,7 +741,7 @@ pub async fn place_book(
             // left into it instead.
             let slide_left = overflow
                 && old.as_ref().is_some_and(|o| {
-                    o.0 == shelf.id && o.1 == body.row_index && o.2 < body.slot_index
+                    o.0 == shelf.id && o.1 == body.row_index && o.2 < slot_index
                 });
             if slide_left {
                 let old_slot = old.as_ref().map_or(0, |o| o.2);
@@ -715,7 +752,7 @@ pub async fn place_book(
                          AND slot_index > ?3 AND slot_index <= ?4 ORDER BY slot_index",
                     )?;
                     let rows = stmt.query_map(
-                        params![shelf.id, body.row_index, old_slot, body.slot_index],
+                        params![shelf.id, body.row_index, old_slot, slot_index],
                         |r| Ok((r.get(0)?, r.get(1)?)),
                     )?;
                     rows.collect::<rusqlite::Result<_>>()?
@@ -743,26 +780,26 @@ pub async fn place_book(
             tx.execute(
                 "INSERT INTO shelf_books (book_id, shelf_id, row_index, slot_index, spine_width, updated_at) \
                  VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-                params![id, shelf.id, body.row_index, body.slot_index, spine.or(old_spine), now],
+                params![id, shelf.id, body.row_index, slot_index, spine.or(old_spine), now],
             )
             .map_err(slot_write)?;
             let detail = serde_json::json!({
                 "shelf_id": shelf.id, "row_index": body.row_index,
-                "slot_index": body.slot_index, "shift": true
+                "slot_index": slot_index, "shift": true
             });
             audit::record(&tx, &user, "shelf.place", "book", &id, Some(&detail), now)?;
             tx.commit()?;
             return Ok(Placement {
                 shelf_id: shelf.id,
                 row_index: body.row_index,
-                slot_index: body.slot_index,
+                slot_index,
             });
         }
         let occupant: Option<String> = tx
             .query_row(
                 "SELECT book_id FROM shelf_books \
                  WHERE shelf_id = ?1 AND row_index = ?2 AND slot_index = ?3",
-                params![shelf.id, body.row_index, body.slot_index],
+                params![shelf.id, body.row_index, slot_index],
                 |r| r.get(0),
             )
             .optional()?;
@@ -776,18 +813,18 @@ pub async fn place_book(
                row_index = excluded.row_index, slot_index = excluded.slot_index, \
                spine_width = COALESCE(excluded.spine_width, shelf_books.spine_width), \
                updated_at = excluded.updated_at",
-            params![id, shelf.id, body.row_index, body.slot_index, spine, now],
+            params![id, shelf.id, body.row_index, slot_index, spine, now],
         )
         .map_err(slot_write)?;
         let detail = serde_json::json!({
-            "shelf_id": shelf.id, "row_index": body.row_index, "slot_index": body.slot_index
+            "shelf_id": shelf.id, "row_index": body.row_index, "slot_index": slot_index
         });
         audit::record(&tx, &user, "shelf.place", "book", &id, Some(&detail), now)?;
         tx.commit()?;
         Ok(Placement {
             shelf_id: shelf.id,
             row_index: body.row_index,
-            slot_index: body.slot_index,
+            slot_index,
         })
     })
     .await?;
