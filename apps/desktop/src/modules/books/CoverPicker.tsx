@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, type Ref } from 'react';
 import { Button, Skeleton } from '@bookeeper/ui/base';
 import { BookCover, CLOTH_TONES } from '@bookeeper/ui/book';
 import { useT } from '../../app';
@@ -19,6 +19,8 @@ export interface CoverPickerProps {
   /** Cover URLs the lookup offered, most authoritative first. */
   candidates: string[];
   plan: CoverPlan;
+  /** The wrapper of the preview: "Save" copies the cover from it. */
+  previewRef?: Ref<HTMLDivElement>;
   onPlan(plan: CoverPlan): void;
   /** Placeholder color chosen (or stored) for the book; null is "Automatic". */
   color: string | null;
@@ -77,7 +79,7 @@ function ColorSwatches({ value, onChange }: { value: string | null; onChange(col
 }
 
 /** Preview and choice of the cover: the lookup's, a file, none. */
-export function CoverPicker({ title, author, storedSrc, storedStatus = 'none', candidates, plan, onPlan, color, onColor }: CoverPickerProps) {
+export function CoverPicker({ title, author, storedSrc, storedStatus = 'none', candidates, plan, onPlan, color, onColor, previewRef }: CoverPickerProps) {
   const t = useT();
   const [problem, setProblem] = useState<CoverFileProblem | null>(null);
   const filePreview = useFilePreview(plan.kind === 'file' ? plan.file : undefined);
@@ -103,7 +105,9 @@ export function CoverPicker({ title, author, storedSrc, storedStatus = 'none', c
     <fieldset className={styles.group}>
       <legend className={styles.legend}>{t('books.cover.title')}</legend>
       <div className={styles.cover}>
-        <BookCover title={title || t('books.cover.untitled')} author={author} src={shown} color={color ?? undefined} width={96} />
+        <div ref={previewRef} className={styles.preview}>
+          <BookCover title={title || t('books.cover.untitled')} author={author} src={shown} color={color ?? undefined} width={96} />
+        </div>
         <div className={styles.coverActions}>
           {canUseOffered ? (
             <div className={styles.offer}>

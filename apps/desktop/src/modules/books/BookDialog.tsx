@@ -7,6 +7,7 @@ import { BookSheet } from './BookSheet';
 import { IsbnStep } from './IsbnStep';
 import type { SaveResult } from './useBookWrites';
 import { useBookEditor } from './useBookEditor';
+import { captureCover, type CoverHandoff } from './useCoverFlight';
 import { mayHaveCover, useCoverState } from './useCover';
 
 export interface BookDialogProps {
@@ -19,7 +20,7 @@ export interface BookDialogProps {
   /** Runs after a successful save of an existing book. */
   onSaved?(book: BookOut): void;
   /** Runs after a successful creation; `another` is true for "Save and add another". */
-  onCreated?(book: BookOut, another: boolean): void;
+  onCreated?(book: BookOut, another: boolean, cover?: CoverHandoff): void;
 }
 
 /** "New book" (ISBN step, then the book sheet) or "Edit book" (form). Mounted only while open. */
@@ -35,6 +36,7 @@ function BookEditor({ book, origin, onClose, onSaved, onCreated }: BookDialogPro
   const [step, setStep] = useState<'isbn' | 'form'>(book ? 'form' : 'isbn');
   const { src: stored, status: storedStatus } = useCoverState(book?.id ?? '', mayHaveCover(book?.cover_color));
 
+  const coverRef = useRef<HTMLDivElement>(null);
   const resetRef = useRef<() => void>(() => {});
   const done = (result: SaveResult | null, another: boolean) => {
     if (result) {
@@ -50,7 +52,7 @@ function BookEditor({ book, origin, onClose, onSaved, onCreated }: BookDialogPro
         tone: result.coverFailed || result.colorFailed || result.tagsFailed ? 'warn' : 'ok',
       });
       if (book) onSaved?.(result.book);
-      else onCreated?.(result.book, another);
+      else onCreated?.(result.book, another, another ? undefined : (captureCover(coverRef.current) ?? undefined));
     }
     if (another) {
       // The same dialog goes back to the ISBN step: remounting it would lose the focus.
@@ -93,7 +95,7 @@ function BookEditor({ book, origin, onClose, onSaved, onCreated }: BookDialogPro
       }
     >
       {sheet ? (
-        <BookSheet id={formId} editor={editor} storedSrc={stored} storedStatus={storedStatus} editing={Boolean(book)} />
+        <BookSheet id={formId} editor={editor} storedSrc={stored} storedStatus={storedStatus} editing={Boolean(book)} coverRef={coverRef} />
       ) : (
         <IsbnStep
           onDone={(result) => {

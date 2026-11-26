@@ -16,6 +16,7 @@ import { useSelection } from './useSelection';
 import { useListParams } from './listParams';
 import { useActiveFilters } from './useActiveFilters';
 import { useBookList, useEndReached, useOnLoanCount } from './useBookList';
+import { useCoverFlight } from './useCoverFlight';
 import { useNewBookParam } from './useNewBookParam';
 import styles from './BooksPage.module.css';
 
@@ -39,6 +40,7 @@ export function BooksPage() {
   });
   // Whether the panel was opened on an empty library: the list is already refreshed when a save ends.
   const session = useRef<{ empty: boolean; first: BookOut | null }>({ empty: false, first: null });
+  const flight = useCoverFlight(items);
   const selection = useSelection(items.map((b) => b.id));
   const selecting = canWrite && selection.active;
   const { selectAll } = selection;
@@ -156,7 +158,8 @@ export function BooksPage() {
         open={adding}
         origin={origin}
         onClose={closeAdd}
-        onCreated={(created) => {
+        onCreated={(created, another, cover) => {
+          if (cover && !another) flight.start(created.id, cover);
           // The first book saved in this session of the panel, even when "Save and add another" kept it open.
           if (session.current.empty && !session.current.first) session.current.first = created;
         }}
