@@ -1,4 +1,5 @@
 import type { BookOut } from '@bookeeper/api';
+import { useEffect } from 'react';
 import { Link } from 'react-router';
 import { Icon, Tag } from '@bookeeper/ui/base';
 import { useLocale, useT } from '../../app';
@@ -6,6 +7,7 @@ import { formatDate } from '../../kit';
 import { useActiveLoan } from '../loans';
 import { ReadingCard } from '../reading';
 import { wherePhrase } from '../shelves';
+import { tourAnchor, tourNote, tourSignal, useTour } from '../tour';
 import { OwnerLine, ReadersBlock } from './DetailPeople';
 import { DetailTags } from './DetailTags';
 import { useShelfNames } from './useBook';
@@ -28,6 +30,14 @@ export function DetailAside({ book }: { book: BookOut }) {
   const t = useT();
   const shelves = useShelfNames();
   const placement = book.placement ?? null;
+  // A book that is on no shelf has nothing to show: the card says so, and the step is done.
+  const asksWhere = useTour().current?.signal === 'where-shown';
+  const unplaced = !placement;
+  useEffect(() => {
+    if (unplaced && asksWhere && tourSignal('where-shown')) {
+      tourNote({ titleKey: 'tour.explore.whereNone.title', textKey: 'tour.explore.whereNone.text' });
+    }
+  }, [unplaced, asksWhere]);
   const shelfName = placement ? shelves.get(placement.shelf_id) : undefined;
   return (
     <aside className={styles.aside}>
@@ -35,7 +45,7 @@ export function DetailAside({ book }: { book: BookOut }) {
       <ReadingCard book={book} />
       <ReadersBlock bookId={book.id} />
       <DetailTags book={book} />
-      <section className={styles.card} aria-labelledby="book-where">
+      <section className={styles.card} aria-labelledby="book-where" {...tourAnchor('book.where')}>
         <h2 id="book-where" className={styles.heading}>
           <Icon name="pin" size={14} />
           {t('books.detail.where.title')}

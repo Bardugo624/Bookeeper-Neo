@@ -43,6 +43,7 @@ export function ConsequencesDialog({ title, intro, consequences, confirmLabel, t
       }}
       title={title}
       description={intro}
+      tone={tone}
       closeLabel={t('common.close')}
       footer={
         <div className={styles.footer}>

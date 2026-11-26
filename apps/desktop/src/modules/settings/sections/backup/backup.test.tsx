@@ -25,6 +25,7 @@ describe('visibility', () => {
     renderBackup({ role: 'admin' });
     await screen.findByRole('button', { name: 'Crea un backup' });
     expect(screen.queryByText('Ripristino')).toBeNull();
+    expect(screen.queryByRole('region', { name: 'Zona pericolosa' })).toBeNull();
   });
 });
 
@@ -111,6 +112,16 @@ async function pickAndOpen() {
 }
 
 describe('restore', () => {
+  it('lives in the danger zone with its consequence, and the confirmation is danger-toned', async () => {
+    renderBackup({});
+    const zone = await screen.findByRole('region', { name: 'Zona pericolosa' });
+    expect(within(zone).getByRole('button', { name: 'Ripristina da file…' })).toBeTruthy();
+    expect(within(zone).getByText(/Non si può annullare/)).toBeTruthy();
+    expect(within(zone).queryByRole('button', { name: 'Crea un backup' })).toBeNull();
+    const dialog = await pickAndOpen();
+    expect(dialog.className).toMatch(/danger/);
+  });
+
   it('enables "Ripristina" only when the library name matches, then asks for the password', async () => {
     const tokens: Array<string | undefined> = [];
     const { platform } = renderBackup({

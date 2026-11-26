@@ -1,6 +1,7 @@
 import { createClient, type AuthOut } from '@bookeeper/api';
 import type { Connection, Platform } from '../../platform';
 import { useSession } from '../../session';
+import { setTourPending } from '../tour';
 
 export type WelcomeClient = ReturnType<typeof createClient>;
 
@@ -58,6 +59,19 @@ export async function authenticate(
     await undo();
     throw e;
   }
+}
+
+/**
+ * The first-access paths (create here, create on a server, join by invitation) mark the connection as a
+ * new person's before signing in, so the app finds the mark when it opens. Pairing a device and email
+ * and password are someone who already exists: they never go through here.
+ */
+export function asNewcomer(connection: Connection, work: (client: WelcomeClient) => Promise<AuthOut | null>) {
+  return async (client: WelcomeClient) => {
+    const auth = await work(client);
+    if (auth) setTourPending(connection.id);
+    return auth;
+  };
 }
 
 // The saved connection has no email, and "Bentornato" needs it to sign in again.

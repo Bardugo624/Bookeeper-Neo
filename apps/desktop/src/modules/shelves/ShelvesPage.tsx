@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router';
 import { Button, EmptyState, Skeleton } from '@bookeeper/ui/base';
 import { useT } from '../../app';
 import { ConfirmDialog, PageHeader } from '../../kit';
+import { tourAnchor } from '../tour';
 import { PlaceDialog } from './PlaceDialog';
 import { RoomsDialog } from './RoomsDialog';
 import { ShelfCabinet } from './ShelfCabinet';
@@ -18,14 +19,14 @@ import styles from './ShelvesPage.module.css';
 export function ShelvesPage() {
   const t = useT();
   const v = useShelvesView();
-  const { shelf, shelves, canWrite, dialog } = v;
+  const { shelf, shelves, all, canWrite, dialog } = v;
   const navigate = useNavigate();
   const unplacedBook = v.where?.kind === 'unplaced' ? v.where.book : null;
   const create = () => v.setDialog({ kind: 'form' });
   const newButton = canWrite ? (
     <>
       <Button onClick={() => v.setDialog({ kind: 'rooms' })}>{t('shelves.rooms.manage')}</Button>
-      <Button variant="primary" icon="plus" onClick={create}>
+      <Button {...(v.list.data && all.length === 0 ? tourAnchor('shelves.new') : {})} variant="primary" icon="plus" onClick={create}>
         {t('shelves.new')}
       </Button>
     </>
@@ -68,7 +69,7 @@ export function ShelvesPage() {
         text={t(canWrite ? 'shelves.empty.text' : 'shelves.empty.textReadOnly')}
         action={
           canWrite ? (
-            <Button variant="primary" icon="plus" onClick={create}>
+            <Button {...tourAnchor('shelves.new')} variant="primary" icon="plus" onClick={create}>
               {t('shelves.empty.create')}
             </Button>
           ) : undefined
@@ -139,7 +140,7 @@ export function ShelvesPage() {
   }
 
   return (
-    <div className={styles.page}>
+    <div className={styles.page} {...tourAnchor('shelves.page')}>
       <PageHeader
         title={t('shelves.title')}
         count={

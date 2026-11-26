@@ -1,0 +1,123 @@
+{
+  "later": "I'll do it later",
+  "skip": "Skip the tutorial",
+  "resume": "Resume",
+  "dismiss": "Don't show again",
+  "pill": {
+    "label": "First steps",
+    "progress": "{n} of {total}",
+    "more": "More actions for First steps"
+  },
+  "card": {
+    "step": "Step {n} of {total}",
+    "progress": "Progress",
+    "announce": "Step {n} of {total}: {title}"
+  },
+  "state": {
+    "done": "done",
+    "current": "current",
+    "todo": "to do"
+  },
+  "gotIt": "Got it",
+  "firstBook": {
+    "nav": {
+      "title": "Add a book you have nearby",
+      "text": "Open Books: your library starts there."
+    },
+    "addFirst": {
+      "title": "Add a book you have nearby",
+      "text": "Press “Add the first book” and pick a book within reach."
+    },
+    "add": {
+      "title": "Add a book you have nearby",
+      "text": "Press “Add” at the top and pick a book within reach."
+    },
+    "isbn": {
+      "title": "Where is the ISBN",
+      "text": "The ISBN is on the back of the book, above the barcode. If you can't find it, you can also “Enter by hand”."
+    },
+    "save": {
+      "title": "Check the details and save",
+      "text": "Take a look at the book's details, then press “Save”."
+    },
+    "landed": {
+      "title": "Your first book",
+      "text": "{title} is the first book in your library."
+    }
+  },
+  "place": {
+    "nav": {
+      "title": "Give it a place",
+      "text": "Open Shelves: that's where the book finds its spot."
+    },
+    "new": {
+      "title": "Give it a place",
+      "text": "Create the unit where you keep your books: a name and how many shelves."
+    },
+    "form": {
+      "title": "Give it a place",
+      "text": "Pick a name and how many shelves the unit has, then save."
+    },
+    "unplaced": {
+      "title": "Give it a place",
+      "text": "Drag the book onto a shelf, or use “Place”."
+    },
+    "confirm": {
+      "title": "Give it a place",
+      "text": "Choose the unit and the shelf, then confirm."
+    }
+  },
+  "phone": {
+    "nav": {
+      "title": "Take it in your pocket",
+      "text": "Open Devices: that's where you connect your phone."
+    },
+    "add": {
+      "title": "Take it in your pocket",
+      "text": "Press “Add a phone” to carry your library with you."
+    },
+    "qr": {
+      "title": "Take it in your pocket",
+      "text": "Point your phone's camera at it."
+    }
+  },
+  "finale": {
+    "title": "Your library is ready",
+    "text": "Your first book has its place. Happy reading."
+  },
+  "explore": {
+    "find": {
+      "title": "Find a book",
+      "text": "Type a title or an author in «Search and commands», then open a book."
+    },
+    "where": {
+      "title": "Where it is",
+      "text": "«Show on the shelf» takes you to the cabinet and the shelf."
+    },
+    "whereBack": {
+      "title": "Where it is",
+      "text": "Search for a book and open it: «Show on the shelf» is there."
+    },
+    "whereNone": {
+      "title": "Where it is",
+      "text": "This book is on no shelf, so there is no place to show. For other books, «Show on the shelf» takes you to the cabinet and the shelf."
+    },
+    "reading": {
+      "title": "Mark what you read",
+      "text": "Say whether a book is to read, in progress or finished: only you see it."
+    },
+    "readingBack": {
+      "title": "Mark what you read",
+      "text": "Search for a book and open it: that's where you mark your progress."
+    }
+  },
+  "exploreFinale": {
+    "title": "Now you can find books",
+    "text": "You search, see where it is and mark what you read. Happy reading."
+  },
+  "replay": {
+    "title": "The tutorial",
+    "description": "Starts again from the first step, with the path that fits your library.",
+    "action": "Replay the tutorial"
+  }
+}

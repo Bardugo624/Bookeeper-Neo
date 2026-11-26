@@ -13,7 +13,9 @@
   "priority": { "low": "Bassa", "medium": "Media", "high": "Alta" },
   "add": { "button": "Aggiungi", "title": "Aggiungi alla wishlist", "submit": "Aggiungi alla wishlist" },
   "edit": { "button": "Modifica", "title": "Modifica la voce", "submit": "Salva" },
+  "danger": { "title": "Zona pericolosa", "delete": "Elimina questa voce", "consequence": "Sparisce dalla wishlist e non si può recuperare." },
   "delete": {
+    "title": "Eliminare questa voce?",
     "button": "Elimina",
     "text": "«{title}» sarà tolto dalla wishlist. Non si può annullare.",
     "confirm": "Sì, elimina",

@@ -188,7 +188,8 @@ describe('return, reopen, edit, delete', () => {
   it('asks for confirmation before deleting and names the loan', async () => {
     const user = userEvent.setup();
     const { platform } = renderLoans(store());
-    await user.click((await screen.findAllByRole('button', { name: 'Elimina' }))[0]!);
+    expect((await screen.findAllByRole('button', { name: 'Elimina' }))[0]!.className).toContain('toneDanger');
+    await user.click(screen.getAllByRole('button', { name: 'Elimina' })[0]!);
     expect(dialog()).toHaveTextContent('Il prestito di «Libro 1» a Persona 1');
     await user.click(within(dialog()).getByRole('button', { name: 'Annulla' }));
     expect(writes(platform)).toHaveLength(0);

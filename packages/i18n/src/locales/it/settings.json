@@ -7,6 +7,11 @@
     "library": "Libreria",
     "about": "Informazioni"
   },
+  "danger": {
+    "title": "Zona pericolosa",
+    "restore": { "title": "Ripristina da file", "consequence": "Sostituisce tutti i dati della libreria (libri, scaffali, prestiti, lista dei desideri e copertine) con quelli del backup. Non si può annullare." },
+    "signOut": { "title": "Esci da questo dispositivo", "consequence": "Per rientrare servono email e password, oppure un nuovo codice di abbinamento." }
+  },
   "empty": { "title": "Nessuna impostazione", "text": "Non ci sono impostazioni disponibili per te." },
   "appearance": {
     "theme": {

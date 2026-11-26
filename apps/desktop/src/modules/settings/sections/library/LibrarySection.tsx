@@ -1,4 +1,5 @@
 import { Button } from '@bookeeper/ui/base';
+import { useReplayTour } from '../../../tour';
 import { useT } from '../../../../app/i18n';
 import { Fact, FactList, SettingsBlock } from '../../SettingsBlock';
 import { useSettingsSession } from '../../useSettingsSession';
@@ -6,6 +7,7 @@ import { useSettingsSession } from '../../useSettingsSession';
 export function LibrarySection() {
   const t = useT();
   const { me, connection, signOut } = useSettingsSession();
+  const replay = useReplayTour();
   const remote = connection?.kind === 'remote';
 
   return (
@@ -22,6 +24,11 @@ export function LibrarySection() {
       <SettingsBlock title={t('settings.library.switch.title')} description={t('settings.library.switch.description')}>
         <Button variant="secondary" icon="logout" onClick={signOut}>
           {t('settings.library.switch.action')}
+        </Button>
+      </SettingsBlock>
+      <SettingsBlock title={t('tour.replay.title')} description={t('tour.replay.description')}>
+        <Button variant="secondary" icon="info" onClick={() => void replay()}>
+          {t('tour.replay.action')}
         </Button>
       </SettingsBlock>
     </>

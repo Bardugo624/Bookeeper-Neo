@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { ApiError } from '@bookeeper/api';
-import { Button } from '@bookeeper/ui/base';
-import { useToast } from '@bookeeper/ui/overlays';
+import { Button, DangerAction, DangerZone } from '@bookeeper/ui/base';
+import { Dialog, useToast } from '@bookeeper/ui/overlays';
 import { useT } from '../../app/i18n';
-import { BottomSheet } from '../../kit';
-import { useClient, useSession } from '../../session';
 import styles from './Account.module.css';
+import { useClient, useSession } from '../../session';
 
 /** Only a request that never reached the server leaves the device registered there. */
 const unreachable = (e: unknown) => !(e instanceof ApiError) || e.code === 'network' || e.status === 0;
@@ -36,32 +35,38 @@ export function LogoutSection() {
   };
 
   return (
-    <section className={styles.card} aria-labelledby="account-logout">
-      <h2 id="account-logout" className={styles.heading}>
-        {t('maccount.logout.title')}
-      </h2>
-      <p className={styles.text}>{t('maccount.logout.text')}</p>
-      <Button variant="danger" onClick={() => setOpen(true)}>
-        {t('maccount.logout.action')}
-      </Button>
-      <BottomSheet
+    <>
+      <DangerZone title={t('maccount.danger.title')} headingLevel="h2">
+        <DangerAction
+          title={t('maccount.logout.title')}
+          consequence={t('maccount.logout.text')}
+          action={
+            <Button variant="danger" className={styles.touch} onClick={() => setOpen(true)}>
+              {t('maccount.logout.action')}
+            </Button>
+          }
+        />
+      </DangerZone>
+      <Dialog
         open={open}
         onOpenChange={(next) => {
           if (!busy) setOpen(next);
         }}
+        tone="danger"
         title={t('maccount.logout.confirmTitle')}
         description={t('maccount.logout.confirmText')}
+        closeLabel={t('mobile.close')}
         footer={
           <>
-            <Button variant="ghost" onClick={() => setOpen(false)} disabled={busy}>
+            <Button variant="ghost" className={styles.touch} onClick={() => setOpen(false)} disabled={busy}>
               {t('maccount.logout.cancel')}
             </Button>
-            <Button variant="danger" onClick={() => void confirm()} loading={busy} loadingLabel={t('maccount.logout.busy')}>
+            <Button variant="danger" className={styles.touch} onClick={() => void confirm()} loading={busy} loadingLabel={t('maccount.logout.busy')}>
               {t('maccount.logout.confirm')}
             </Button>
           </>
         }
       />
-    </section>
+    </>
   );
 }

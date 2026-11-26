@@ -81,6 +81,7 @@ describe('managing rooms', () => {
     expect(await within(dialog).findByText('Bagno')).toBeInTheDocument();
     expect(sends(platform, 'PATCH', '/api/v1/rooms/')).toEqual([{ name: 'Bagno' }]);
 
+    expect(within(dialog).getByRole('button', { name: 'Elimina Cucina' }).className).toContain('toneDanger');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Elimina Cucina' }));
     const confirm = await screen.findByRole('dialog', { name: 'Eliminare la stanza?' });
     expect(within(confirm).getByText(/restano, ma senza stanza/)).toBeInTheDocument();

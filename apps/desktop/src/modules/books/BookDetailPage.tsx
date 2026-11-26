@@ -1,10 +1,13 @@
+import { useEffect } from 'react';
 import { Link, useLocation, useParams } from 'react-router';
 import { ApiError } from '@bookeeper/api';
 import { Button, EmptyState, Icon, Skeleton } from '@bookeeper/ui/base';
 import { Book3D } from '@bookeeper/ui/book';
 import { useT } from '../../app';
 import { usePermission } from '../../kit';
+import { tourSignal } from '../tour';
 import { DetailAside } from './DetailAside';
+import { BookDangerZone } from './BookDangerZone';
 import { DetailToolbar } from './DetailToolbar';
 import { MarkReadButton } from '../reading';
 import { LendButton } from './LendButton';
@@ -22,6 +25,11 @@ export function BookDetailPage() {
   const { data: book, error, isPending, refetch } = useBook(id);
   const canWrite = usePermission().can('write');
   const src = useCover(id, mayHaveCover(book?.cover_color));
+
+  const opened = book?.id;
+  useEffect(() => {
+    if (opened) tourSignal('book-opened');
+  }, [opened]);
 
   const back = (
     <Link to={listPath} className={styles.back}>
@@ -76,7 +84,7 @@ export function BookDetailPage() {
     <div className={styles.page}>
       <div className={styles.bar}>
         {back}
-        {canWrite ? <DetailToolbar book={book} listPath={listPath} /> : null}
+        {canWrite ? <DetailToolbar book={book} /> : null}
       </div>
       <article className={styles.layout}>
         <div className={styles.cover}>
@@ -113,6 +121,7 @@ export function BookDetailPage() {
         </div>
         <DetailAside book={book} />
       </article>
+      {canWrite ? <BookDangerZone book={book} listPath={listPath} /> : null}
     </div>
   );
 }

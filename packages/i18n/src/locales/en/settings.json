@@ -7,6 +7,11 @@
     "library": "Library",
     "about": "About"
   },
+  "danger": {
+    "title": "Danger zone",
+    "restore": { "title": "Restore from file", "consequence": "Replaces all the library's data (books, shelves, loans, wishlist and covers) with the backup's. This cannot be undone." },
+    "signOut": { "title": "Sign out of this device", "consequence": "To get back in you will need your email and password, or a new pairing code." }
+  },
   "empty": { "title": "No settings", "text": "There are no settings available to you." },
   "appearance": {
     "theme": {

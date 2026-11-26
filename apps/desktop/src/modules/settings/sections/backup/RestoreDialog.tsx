@@ -25,6 +25,7 @@ export function RestoreDialog({ libraryName, fileName, onConfirm, onCancel }: Re
       onOpenChange={(next) => {
         if (!next) onCancel();
       }}
+      tone="danger"
       title={t('backup.restore.dialog.title')}
       description={t('backup.restore.dialog.description', { file: fileName })}
       closeLabel={t('common.close')}

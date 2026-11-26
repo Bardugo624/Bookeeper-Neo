@@ -130,9 +130,12 @@ describe('account', () => {
     expect(screen.queryByLabelText('Nuova password')).not.toBeInTheDocument();
   });
 
-  it('signs out of this device', async () => {
+  it('signs out of this device from the danger zone', async () => {
     renderSettings({}, '/settings/account');
-    await userEvent.click(await screen.findByRole('button', { name: 'Esci da questo dispositivo' }));
+    const zone = await screen.findByRole('region', { name: 'Zona pericolosa' });
+    expect(within(zone).getAllByRole('button')).toHaveLength(1);
+    expect(within(zone).getByText(/servono email e password/)).toBeInTheDocument();
+    await userEvent.click(within(zone).getByRole('button', { name: 'Esci da questo dispositivo' }));
     await waitFor(() => expect(useSession.getState().status).toBe('welcome'));
   });
 });

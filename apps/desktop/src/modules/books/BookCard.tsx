@@ -60,7 +60,7 @@ export function BookCard({ book, from, selection, index, cell }: BookCardProps) 
             </span>
           ) : null}
         </span>
-        <span className={styles.cover} aria-hidden="true">
+        <span className={styles.cover} aria-hidden="true" data-book-cover={book.id}>
           <BookCover title={book.title} author={author || undefined} src={src} color={book.cover_color ?? undefined} lift />
         </span>
       </Link>

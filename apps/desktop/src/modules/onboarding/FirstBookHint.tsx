@@ -1,11 +1,12 @@
 import { Link } from 'react-router';
 import { Button, Icon } from '@bookeeper/ui/base';
 import { useT } from '../../app/i18n';
+import { tourAnchor } from '../tour';
 import styles from './FirstBookHint.module.css';
 
 export interface FirstBookHintProps {
-  /** Opens the "New book" panel. */
-  onAdd(): void;
+  /** Opens the "New book" dialog, born from the button that was pressed. */
+  onAdd(origin: HTMLElement): void;
 }
 
 /** The empty library, for those who can write: three steps and "Add the first book". */
@@ -29,7 +30,7 @@ export function FirstBookHint({ onAdd }: FirstBookHintProps) {
           <Link to="/devices">{t('onboarding.hint.steps.devices')}</Link>
         </li>
       </ol>
-      <Button variant="primary" onClick={onAdd}>
+      <Button {...tourAnchor('books.addFirst')} variant="primary" onClick={(e) => onAdd(e.currentTarget)}>
         {t('onboarding.hint.add')}
       </Button>
     </section>

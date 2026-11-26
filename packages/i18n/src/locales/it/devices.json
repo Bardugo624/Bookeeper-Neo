@@ -11,7 +11,8 @@
     "lastSeen": "Ultimo accesso: {when}",
     "neverSeen": "Mai usato",
     "rename": "Rinomina {name}",
-    "revoke": "Revoca {name}"
+    "revoke": "Revoca {name}",
+    "revokeShort": "Revoca"
   },
   "rename": {
     "title": "Rinomina il dispositivo",

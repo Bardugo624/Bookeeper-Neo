@@ -194,5 +194,12 @@
     "gone": "This book no longer exists",
     "error": "Could not find the book",
     "done": "Done"
+  },
+  "danger": {
+    "title": "Danger zone",
+    "delete": {
+      "title": "Delete the cabinet",
+      "consequence": "Placed books stay in the library but become unplaced. This can't be undone."
+    }
   }
 }

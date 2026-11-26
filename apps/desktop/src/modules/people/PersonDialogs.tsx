@@ -70,6 +70,7 @@ export function PersonDialogs({ open, actorRole, actions, onClose }: PersonDialo
           intro={t('people.owner.intro', { name })}
           consequences={[t('people.owner.effects.1', { name }), t('people.owner.effects.2')]}
           confirmLabel={t('people.owner.confirm', { name })}
+          tone="danger"
           run={() => actions.transfer.mutateAsync(person.id)}
           onClose={onClose}
         />

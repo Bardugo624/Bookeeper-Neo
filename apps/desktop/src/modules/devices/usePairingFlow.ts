@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DeviceOut } from '@bookeeper/api';
 import { useToast } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
+import { tourSignal } from '../tour';
 
 export type PairingKind = 'computer' | 'phone';
 
@@ -32,7 +33,9 @@ export function useArrivalWatch(kind: PairingKind | null, devices: readonly Devi
       known.current = new Set(devices.map((d) => d.id));
       return;
     }
-    if (devices.some((d) => !known.current!.has(d.id))) {
+    const arrived = devices.filter((d) => !known.current!.has(d.id));
+    if (arrived.length > 0) {
+      if (arrived.some((d) => d.kind === 'mobile')) tourSignal('device-paired');
       toast.show({ title: t('devices.pair.added'), tone: 'ok' });
       close();
     }

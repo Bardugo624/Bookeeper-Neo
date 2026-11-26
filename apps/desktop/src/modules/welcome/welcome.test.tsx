@@ -7,6 +7,7 @@ import type { ProbeOut } from '../../platform';
 import { renderApp } from '../../app/testing';
 import { ME } from '../../session/fixtures';
 import { useSession } from '../../session';
+import { isTourPending } from '../tour';
 import { module as welcome } from './routes';
 
 type Reply = { status: number; body: unknown; retryAfter?: number };
@@ -97,6 +98,7 @@ describe('Crea qui', () => {
     const saved = p.state.items.find((c) => c.id === p.state.active);
     expect(saved).toMatchObject({ kind: 'local', access_token: 'new-access', refresh_token: 'new-refresh' });
     expect(call?.connectionId).toBe(saved?.id);
+    expect(isTourPending(saved!.id)).toBe(true);
   });
 
   it('keeps the connection when creation starts while the setup check is pending', async () => {
@@ -233,6 +235,8 @@ describe('Unisciti', () => {
     await ready();
     expect(posts(p, '/pairing/redeem')[0]?.body).toEqual({ code: '123456', device_kind: 'desktop', device_name: 'Test device' });
     expect(p.state.items.find((c) => c.id === p.state.active)).toMatchObject({ kind: 'remote', url: 'https://casa.example', fingerprint: null });
+    // A device of someone who already exists is not a new person.
+    expect(isTourPending(p.state.active!)).toBe(false);
   });
 
   it('shows a wrong code next to the field and leaves nothing saved', async () => {
@@ -280,6 +284,7 @@ describe('Unisciti', () => {
     await u.click(joinButton());
     await ready();
     expect(posts(p, '/auth/login')[0]?.body).toMatchObject({ email: 'anna@example.org', password: 'password-lunga', device_kind: 'desktop' });
+    expect(isTourPending(p.state.active!)).toBe(false);
   });
 
   it('lets the user choose when the account has several libraries', async () => {
@@ -394,6 +399,7 @@ describe('Unisciti con un invito', () => {
       display_name: 'Luca',
     });
     expect(p.state.items.find((c) => c.id === p.state.active)).toMatchObject({ kind: 'remote', url: 'https://casa.example' });
+    expect(isTourPending(p.state.active!)).toBe(true);
   });
 
   it('goes back to the code without losing the address', async () => {
@@ -485,6 +491,7 @@ describe('Crea su un server', () => {
       device_kind: 'desktop',
       device_name: 'Test device',
     });
+    expect(isTourPending(p.state.active!)).toBe(true);
   });
 
   it('stays on the card and points to "Unisciti" when the server already has a library', async () => {
@@ -570,6 +577,7 @@ describe('Bentornato', () => {
     const u = user();
     await u.click(await screen.findByRole('button', { name: 'Dimentica questa libreria' }));
     const dialog = await screen.findByRole('dialog', { name: 'Dimenticare questa libreria?' });
+    expect(dialog.className).toMatch(/danger/);
     await u.click(within(dialog).getByRole('button', { name: 'Annulla' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(p.state.items).toHaveLength(1);

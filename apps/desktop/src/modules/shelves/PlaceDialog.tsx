@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { ShelfBook, ShelfOut } from '@bookeeper/api';
 import { Button } from '@bookeeper/ui/base';
+import { tourAnchor } from '../tour';
 import { Dialog } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
 import { SelectField } from './SelectField';
@@ -40,6 +41,7 @@ export function PlaceDialog({ book, shelves, initialShelfId, initialRow = 0, bus
             {t('common.cancel')}
           </Button>
           <Button
+            {...tourAnchor('place.confirm')}
             variant="primary"
             loading={busy}
             loadingLabel={t('common.saving')}

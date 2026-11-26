@@ -81,6 +81,10 @@
   gap: 16px;
 }
 
+.preview {
+  flex: none;
+}
+
 .coverActions {
   display: flex;
   flex-direction: column;

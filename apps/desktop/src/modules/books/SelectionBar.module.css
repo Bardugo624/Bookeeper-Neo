@@ -16,3 +16,11 @@
   font-weight: 500;
   color: var(--bk-text-strong);
 }
+
+/* Delete sits apart from the other actions, behind a rule. */
+.apart {
+  display: inline-flex;
+  margin-inline-start: 4px;
+  padding-inline-start: 16px;
+  border-inline-start: 1px solid var(--bk-border);
+}

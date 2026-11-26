@@ -3,6 +3,7 @@ import type { BookOut } from '@bookeeper/api';
 import { Icon, IconButton } from '@bookeeper/ui/base';
 import { BookCover } from '@bookeeper/ui/book';
 import { useT } from '../../app';
+import { tourAnchor } from '../tour';
 import { BOOK_MIME } from './model';
 import { useThumb } from './useThumb';
 import styles from './UnshelvedList.module.css';
@@ -31,6 +32,7 @@ export function UnshelvedRow({ book, onPlace, index }: UnshelvedRowProps) {
       onDragStart={onPlace ? start : undefined}
       data-book-id={book.id}
       data-index={index}
+      {...(index === 0 ? tourAnchor('shelves.unplaced') : {})}
     >
       {onPlace ? (
         <span className={styles.handle} aria-hidden="true">
