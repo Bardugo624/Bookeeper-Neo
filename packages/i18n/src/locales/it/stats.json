@@ -38,7 +38,7 @@
   },
   "error": {
     "title": "Impossibile caricare le statistiche",
-    "text": "Controlla la connessione e riprova."
+    "text": "Non riesco a calcolare i numeri: il server non risponde. Controlla la connessione e riprova; se non cambia, chiedi a chi gestisce il server."
   },
   "formatLabel": {
     "paperback": "Brossura",
@@ -66,7 +66,7 @@
     "loading": "Caricamento della lettura",
     "error": {
       "title": "Impossibile caricare la lettura",
-      "text": "Controlla la connessione e riprova."
+      "text": "Non riesco a leggere i dati di lettura: il server non risponde. Controlla la connessione e riprova; se non cambia, chiedi a chi gestisce il server."
     },
     "empty": {
       "title": "Nessuna lettura nel {year}",

@@ -82,6 +82,14 @@ export function PeoplePage() {
         </p>
       ) : null}
       {body}
+      {inviter && invites.query.isError ? (
+        <div role="alert" className={styles.inlineError}>
+          <span>{t('people.pending.error')}</span>
+          <Button size="sm" variant="secondary" onClick={() => void invites.query.refetch()}>
+            {t('people.pending.retry')}
+          </Button>
+        </div>
+      ) : null}
       {inviter && invites.query.data ? <InviteList invites={invites.query.data} revoke={(id) => void revoke(id)} busyId={invites.revoke.isPending ? (invites.revoke.variables ?? null) : null} /> : null}
       {inviting ? (
         <InviteDialog roles={assignableRoles(role)} phoneUrl={phoneAddress(server.data)} create={(b) => invites.create.mutateAsync(b)} onClose={() => setInviting(false)} />

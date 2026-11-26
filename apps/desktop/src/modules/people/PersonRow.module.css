@@ -39,4 +39,5 @@
   margin: 0;
   font-size: 13px;
   color: var(--bk-text-muted);
+  overflow-wrap: anywhere;
 }

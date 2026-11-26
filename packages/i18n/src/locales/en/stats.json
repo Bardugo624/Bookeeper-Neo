@@ -38,7 +38,7 @@
   },
   "error": {
     "title": "Could not load statistics",
-    "text": "Check your connection and try again."
+    "text": "The numbers couldn’t be calculated because the server didn’t respond. Check your connection and try again; if it keeps happening, ask whoever runs the server."
   },
   "formatLabel": {
     "paperback": "Paperback",
@@ -66,7 +66,7 @@
     "loading": "Loading reading statistics",
     "error": {
       "title": "Could not load reading statistics",
-      "text": "Check your connection and try again."
+      "text": "The reading data couldn’t be read because the server didn’t respond. Check your connection and try again; if it keeps happening, ask whoever runs the server."
     },
     "empty": {
       "title": "No reading in {year}",
