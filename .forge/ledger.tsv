@@ -601,3 +601,13 @@
 2026-11-26T18:00:42Z	bookeeper-fase-7c	p3-card-hover	qa	opus	PASS	-	-	-	94
 2026-11-26T18:02:01Z	bookeeper-fase-7c	version-200	dwarf	sonnet	-	trap	apps desktop src modules settings settings test tsx asserts the real apps desktop package json version so a version bump	`apps/desktop/src/modules/settings/settings.test.tsx` asserts the real `apps/desktop/package.json` version, so a version bump… [apps/desktop/src/modules/settings/settings.test.tsx]	434	1
 2026-11-26T18:03:36Z	bookeeper-fase-7c	version-200	qa	opus	PASS	trap	committed snapshot is current in the openapi test is ignore d so a plain cargo test test openapi skips the snapshot check pass	`committed_snapshot_is_current` in the openapi test is `#[ignore]`d, so a plain `cargo test --test openapi` skips the snapshot check; pass… [crates/bookeeper-core/tests/openapi.rs]	89	1
+2026-11-26T20:55:33Z	bookeeper-fase-8a	kit-dialog-grow	dwarf	sonnet	-	-	-	-	85
+2026-11-26T20:56:59Z	bookeeper-fase-8a	kit-dialog-grow	qa	opus	FAIL	-	-	-	80
+2026-11-26T20:58:03Z	bookeeper-fase-8a	kit-dialog-grow	dwarf	sonnet	-	-	-	-	58
+2026-11-26T20:59:13Z	bookeeper-fase-8a	tour-core	dwarf	sonnet	-	trap	in a vitest test of usetarget style hooks stubbing raf with vi spyon window requestanimationframe has no effect and a pending	in a vitest test of useTarget-style hooks, stubbing rAF with `vi.spyOn(window, 'requestAnimationFrame')` has no effect and a pending… [apps/desktop/src/modules/tour/useTarget.ts]	305	1
+2026-11-26T20:59:45Z	bookeeper-fase-8a	kit-dialog-grow	qa	opus	FAIL	-	-	-	95
+2026-11-26T21:00:42Z	bookeeper-fase-8a	kit-danger-tones	dwarf	sonnet	-	-	-	-	50
+2026-11-26T21:01:47Z	bookeeper-fase-8a	kit-danger-tones	qa	opus	PASS	-	-	-	60
+2026-11-26T21:01:50Z	bookeeper-fase-8a	tour-core	qa	opus	FAIL	-	-	-	150
+2026-11-26T21:02:26Z	bookeeper-fase-8a	tour-core	dwarf	sonnet	-	-	-	-	30
+2026-11-26T21:03:05Z	bookeeper-fase-8a	tour-core	qa	opus	PASS	-	-	-	32
