@@ -587,3 +587,5 @@
 2026-11-26T16:51:38Z	bookeeper-fase-7b	m-polish-collection	dwarf	sonnet	-	-	-	-	271
 2026-11-26T16:51:49Z	bookeeper-fase-7b	m-polish-search	qa	opus	PASS	trap	resultlist windowing test tsx measures the row height once takes 4 4s against vitest s 5s timeout and times	`ResultList.windowing.test.tsx` "measures the row height once…" takes ~4.4s against vitest's 5s timeout and times… [apps/mobile/src/modules/search/ResultList.windowing.test.tsx]	206	1
 2026-11-26T16:52:29Z	bookeeper-fase-7b	m-polish-collection	qa	opus	PASS	-	-	-	45
+2026-11-26T17:01:40Z	bookeeper-fase-7b	d-polish-frame	dwarf	sonnet	-	-	-	-	68
+2026-11-26T17:02:41Z	bookeeper-fase-7b	d-polish-frame	qa	opus	PASS	-	-	-	55
