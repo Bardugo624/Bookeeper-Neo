@@ -455,3 +455,5 @@
 2026-11-26T02:21:15Z	bookeeper-fase-5a	m-shelfscan	qa	opus	PASS	-	-	-	67
 2026-11-26T02:31:09Z	bookeeper-fase-5a	d-move	dwarf	sonnet	-	trap	put placement spine width is three state absent keeps null clears 1 3 sets via present the desktop shelves testkit fake	PUT placement `spine_width` is three-state (absent keeps, `null` clears, 1–3 sets) via `present`; the desktop shelves testkit fake… [crates/bookeeper-core/src/api/shelves.rs]	206	1
 2026-11-26T02:33:56Z	bookeeper-fase-5a	d-move	qa	opus	PASS	-	-	-	160
+2026-11-26T02:45:45Z	bookeeper-fase-5a	guards-5a	dwarf	sonnet	-	-	-	-	46
+2026-11-26T02:46:16Z	bookeeper-fase-5a	guards-5a	qa	opus	PASS	-	-	-	25
