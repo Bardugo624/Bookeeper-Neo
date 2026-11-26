@@ -18,6 +18,8 @@ export function NoteField({ reading }: { reading: ReadingOut }) {
   const before = useRef<string | null>(null);
   useEffect(() => {
     if (before.current !== null && saved === before.current) return;
+    // A value taken from the server ends the reference: the next one, even an old one, replaces the text too.
+    before.current = null;
     setText(saved);
   }, [saved]);
 
