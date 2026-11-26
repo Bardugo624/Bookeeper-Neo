@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import type { WishOut } from '@bookeeper/api';
-import { Button } from '@bookeeper/ui/base';
+import { Button, DangerAction, DangerZone } from '@bookeeper/ui/base';
+import { Dialog } from '@bookeeper/ui/overlays';
 import { useT } from '../../app/i18n';
 import { BottomSheet, apiErrorMessage } from '../../kit';
 import { patchBody, valuesOf } from './model';
@@ -62,18 +63,6 @@ export function WishSheet({ wish, onClose }: { wish: WishOut; onClose: () => voi
         }}
       />
     );
-  } else if (step === 'delete') {
-    body = (
-      <div className={styles.actions}>
-        <p className={styles.text}>{t('mwishlist.delete.text', { title: wish.title })}</p>
-        <Button variant="danger" onClick={() => void doDelete()} loading={remove.isPending} loadingLabel={t('mwishlist.delete.working')}>
-          {t('mwishlist.delete.confirm')}
-        </Button>
-        <Button variant="secondary" onClick={back} disabled={busy}>
-          {t('mwishlist.delete.cancel')}
-        </Button>
-      </div>
-    );
   } else {
     body = (
       <div className={styles.actions}>
@@ -83,10 +72,47 @@ export function WishSheet({ wish, onClose }: { wish: WishOut; onClose: () => voi
         <Button variant="secondary" icon="pencil" onClick={() => goTo('edit')} disabled={busy}>
           {t('mwishlist.edit.button')}
         </Button>
-        <Button variant="danger" icon="trash" onClick={() => goTo('delete')} disabled={busy}>
-          {t('mwishlist.delete.button')}
-        </Button>
+        <DangerZone title={t('mwishlist.danger.title')}>
+          <DangerAction
+            title={t('mwishlist.danger.delete')}
+            consequence={t('mwishlist.danger.consequence')}
+            action={
+              <Button variant="danger" icon="trash" className={styles.touch} onClick={() => goTo('delete')} disabled={busy}>
+                {t('mwishlist.delete.button')}
+              </Button>
+            }
+          />
+        </DangerZone>
       </div>
+    );
+  }
+
+  if (step === 'delete') {
+    return (
+      <Dialog
+        open
+        tone="danger"
+        onOpenChange={(open) => (open ? undefined : back())}
+        title={t('mwishlist.delete.title')}
+        description={t('mwishlist.delete.text', { title: wish.title })}
+        closeLabel={t('mobile.close')}
+        footer={
+          <>
+            <Button variant="secondary" className={styles.touch} onClick={back} disabled={busy}>
+              {t('mwishlist.delete.cancel')}
+            </Button>
+            <Button variant="danger" className={styles.touch} onClick={() => void doDelete()} loading={remove.isPending} loadingLabel={t('mwishlist.delete.working')}>
+              {t('mwishlist.delete.confirm')}
+            </Button>
+          </>
+        }
+      >
+        {error ? (
+          <p className={styles.error} role="alert">
+            {error}
+          </p>
+        ) : null}
+      </Dialog>
     );
   }
 

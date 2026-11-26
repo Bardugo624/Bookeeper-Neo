@@ -1,4 +1,4 @@
-import { Icon } from '@bookeeper/ui/base';
+import { Divider, Icon } from '@bookeeper/ui/base';
 import { useT } from '../../app/i18n';
 import { BottomSheet } from '../../kit';
 import { READING_STATUSES, type ReadingStatus } from './readingModel';
@@ -30,6 +30,9 @@ export function StatusSheet({ open, onOpenChange, current, onChoose, onClear }: 
             </button>
           </li>
         ))}
+        <li aria-hidden="true">
+          <Divider />
+        </li>
         <li>
           <button type="button" className={`${styles.option} ${styles.danger}`} onClick={done(onClear)}>
             {t('mreading.sheet.clear')}

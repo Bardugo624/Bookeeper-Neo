@@ -98,6 +98,15 @@ describe('writing', () => {
     ]);
   });
 
+  it('keeps "Elimina" in the danger zone of the sheet', async () => {
+    const user = userEvent.setup();
+    renderWishlist(wishPlatform({ mine: [wish()] }));
+    await user.click(await row('Dune'));
+    const zone = within(await screen.findByRole('region', { name: 'Zona pericolosa' }));
+    await user.click(zone.getByRole('button', { name: 'Elimina' }));
+    expect((await screen.findByRole('dialog')).className).toMatch(/danger/);
+  });
+
   it('deletes only after the confirmation', async () => {
     const user = userEvent.setup();
     const platform = wishPlatform({ mine: [wish()] });

@@ -142,3 +142,9 @@
 .addButton {
   min-height: 44px;
 }
+
+/* Kit buttons are 38px tall; phone targets need 44px (doubled selector beats the kit rule). */
+.touch.touch {
+  height: auto;
+  min-height: 44px;
+}
