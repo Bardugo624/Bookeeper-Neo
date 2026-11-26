@@ -133,6 +133,32 @@ approvati qui sotto). Regole:
   l'intero bordo (`color-mix` col token del bordo) e il `Tag` resta
   l'indicatore esplicito.
 
+## Zona pericolosa
+
+Le operazioni pericolose o irreversibili stanno in una **zona pericolosa** con
+contorni evidenti e tinte rosse, in ogni interfaccia, impostazioni comprese.
+Modalità Operate: evidente, non urlata; il rosso dice «attenzione», non «errore».
+
+- **Dove**: in fondo alla superficie (sezione delle impostazioni, pagina di
+  dettaglio, pannello, foglio del telefono).
+- **`DangerZone`** (`base`): `<section>` col nome dal titolo; contorno
+  `1px solid --bk-danger`, fondo `--bk-danger-bg`, raggio `--bk-radius`; icona
+  `alert` e titolo in `--bk-danger-strong`, descrizione facoltativa; livello del
+  titolo a scelta (predefinito `h3`). Il kit non contiene testi.
+- **`DangerAction`**: riga con titolo, conseguenza in una frase e a destra il
+  comando (un `Button variant="danger"` passato da chi la usa). Righe separate
+  da un filetto tinto di rosso; sotto i 480px il comando va sotto il testo, a
+  tutta larghezza.
+- **Menu**: le voci pericolose stanno sempre in fondo, separate da un divisore,
+  in rosso.
+- **Conferme**: un'operazione irreversibile si conferma con `Dialog
+  tone="danger"` (contorno `2px --bk-danger`, icona `alert` prima del titolo) e
+  dice la conseguenza. `ConfirmDialog` con `tone="danger"` lo fa da sé.
+- **Toni `danger`**: `Button` (`ghost`, `secondary`) e `IconButton` hanno
+  `tone="danger"` per i comandi leggeri pericolosi fuori dalla zona.
+- **Quando NON si usa**: solo per ciò che distrugge, revoca, sostituisce o fa
+  perdere l'accesso. Mai per azioni che si annullano senza danno.
+
 ## Decisioni approvate
 
 Una revisione automatica (inclusi i comandi Impeccable del run 7B) NON deve

@@ -1,6 +1,7 @@
 import { useRef, type ReactNode } from 'react';
 import { Dialog as RadixDialog } from 'radix-ui';
 import { useDialogMotion } from './useDialogMotion';
+import { Icon } from '../base/Icon';
 import { IconButton } from '../base/IconButton';
 import { cx } from '../base/cx';
 import styles from './Dialog.module.css';
@@ -20,6 +21,8 @@ export interface DialogProps {
   size?: 'default' | 'wide';
   /** The element that opened the dialog: the panel is born from its centre. */
   origin?: HTMLElement | null;
+  /** `danger`: red outline on the panel and an alert icon before the title. */
+  tone?: 'danger';
 }
 
 interface PanelProps extends Omit<DialogProps, 'size' | 'origin'> {
@@ -71,6 +74,7 @@ export function DialogPanel({
   panelClassName,
   origin,
   motion = false,
+  tone,
 }: PanelProps) {
   const panelRef = useDialogMotion(origin, motion);
   // The dialog is controlled and has no Radix Trigger, so remember who had focus when it opened
@@ -93,13 +97,16 @@ export function DialogPanel({
         {/* Without a description Radix would warn; opting out of aria-describedby is explicit. */}
         <RadixDialog.Content
           ref={panelRef}
-          className={cx(styles.panel, panelClassName)}
+          className={cx(styles.panel, tone === 'danger' && styles.danger, panelClassName)}
           onCloseAutoFocus={restoreFocus}
           {...(description ? {} : { 'aria-describedby': undefined })}
         >
           <header className={styles.header}>
             <div className={styles.heading}>
-              <RadixDialog.Title className={styles.title}>{title}</RadixDialog.Title>
+              <div className={styles.titleRow}>
+                {tone === 'danger' ? <span className={styles.alertIcon}><Icon name="alert" size={20} /></span> : null}
+                <RadixDialog.Title className={styles.title}>{title}</RadixDialog.Title>
+              </div>
               {description ? (
                 <RadixDialog.Description className={styles.description}>{description}</RadixDialog.Description>
               ) : null}

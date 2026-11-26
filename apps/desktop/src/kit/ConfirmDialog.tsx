@@ -23,6 +23,7 @@ export function ConfirmDialog({ open, title, description, confirmLabel, tone, bu
         if (!next && !busy) onCancel();
       }}
       title={title}
+      tone={tone}
       description={description}
       closeLabel={t('common.close')}
       footer={
