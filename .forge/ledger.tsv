@@ -430,3 +430,10 @@
 2026-11-26T00:46:08Z	bookeeper-fase-4c	m-filters	dwarf	sonnet	-	-	-	-	189
 2026-11-26T00:47:24Z	bookeeper-fase-4c	m-filters	qa	opus	PASS	-	-	-	70
 2026-11-26T01:08:45Z	bookeeper-fase-4c1	p3-4c-desktop	dwarf	sonnet	-	trap	the reading audit desktop files have no prettier config in the repo format with npx prettier no config single quote print width	the reading/audit desktop files have no Prettier config in the repo; format with `npx prettier --no-config --single-quote --print-width… [apps/desktop/src/modules/tags/testkit.tsx]	112	1
+2026-11-26T01:09:07Z	bookeeper-fase-4c1	p3-4c-mobile	dwarf	sonnet	-	-	-	-	134
+2026-11-26T01:10:01Z	bookeeper-fase-4c1	p3-4c-mobile	qa	opus	PASS	-	-	-	48
+2026-11-26T01:10:30Z	bookeeper-fase-4c1	p3-4c-desktop	qa	opus	FAIL	-	-	-	99
+2026-11-26T01:10:37Z	bookeeper-fase-4c1	release-docker	dwarf	sonnet	-	-	-	-	31
+2026-11-26T01:11:08Z	bookeeper-fase-4c1	p3-4c-desktop	dwarf	sonnet	-	-	-	-	34
+2026-11-26T01:11:57Z	bookeeper-fase-4c1	release-docker	qa	opus	PASS	trap	in this sandbox the docker cli exists but no daemon runs and the x86 64 unknown linux musl rustup target is installed without x86 64 linux musl gcc so a	in this sandbox the docker CLI exists but no daemon runs, and the x86_64-unknown-linux-musl rustup target is installed without x86_64-linux-musl-gcc, so a… [Dockerfile.release]	74	1
+2026-11-26T01:12:23Z	bookeeper-fase-4c1	p3-4c-desktop	qa	opus	FAIL	finding	an effect keyed on the saved value that resets its reference on every server value also fires on the optimistic write so a failed	an effect keyed on the saved value that resets its reference on every server value also fires on the optimistic write, so a failed… [apps/desktop/src/modules/reading/NoteField.tsx]	68	1
