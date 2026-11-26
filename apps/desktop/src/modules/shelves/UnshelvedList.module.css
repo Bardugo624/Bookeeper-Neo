@@ -117,3 +117,18 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* A windowed list: rows have the height the window counts with, and the gap moves into a margin. */
+.windowed {
+  gap: 0;
+}
+
+.windowed > * {
+  flex-shrink: 0;
+}
+
+.windowed > .row {
+  box-sizing: border-box;
+  height: 60px;
+  margin-bottom: 6px;
+}
