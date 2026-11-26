@@ -92,4 +92,4 @@ Codice non valido, usato o scaduto: `inspect` e `redeem` rispondono come `redeem
 
 ## Client (`client-6a`)
 
-`packages/api` espone: `listUsers`, `updateUser`, `removeUser`, `transferOwnership`, `createInvite`, `listInvites`, `revokeInvite`, `inspectCode`, `listReaders`, `isbnIndex(version?)`, e i campi nuovi nei tipi. `inspectCode` riceve un `Transport` qualunque: le app decidono quale passare, come oggi per il riscatto.
+`packages/api` espone: `listUsers`, `updateUser`, `removeUser`, `transferOwnership`, `createInvite`, `listInvites`, `revokeInvite`, `inspectPairingCode` (nel client, accanto a `redeemPairingCode`), `listReaders`, `isbnIndex(version?)`, e i campi nuovi nei tipi.
