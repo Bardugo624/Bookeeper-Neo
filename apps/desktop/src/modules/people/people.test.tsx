@@ -81,6 +81,7 @@ describe('menu by role', () => {
     const separator = screen.getByRole('separator');
     const remove = screen.getByRole('menuitem', { name: 'Rimuovi' });
     expect(separator.compareDocumentPosition(remove) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(remove.className).toMatch(/danger/);
     await userEvent.keyboard('{Escape}');
     const zone = screen.getByRole('region', { name: 'Zona pericolosa' });
     expect(within(zone).getByRole('button', { name: 'Trasferisci la proprietà' })).toBeInTheDocument();
@@ -159,6 +160,7 @@ describe('writes', () => {
     await open('Dario');
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Rimuovi' }));
     const dialog = screen.getByRole('dialog');
+    expect(dialog.className).toMatch(/danger/);
     expect(within(dialog).getByText('I suoi dispositivi vengono scollegati.')).toBeInTheDocument();
     expect(within(dialog).getByText(/stato di lettura e la sua lista dei desideri vengono cancellati/)).toBeInTheDocument();
     expect(within(dialog).getByText('I libri e i prestiti restano dove sono.')).toBeInTheDocument();
@@ -179,6 +181,7 @@ describe('writes', () => {
   it('leaves the library: removes the caller and ends the session', async () => {
     const { platform } = renderPeople(library('member', [person('u0', 'Zeno', 'owner')]));
     await userEvent.click(await screen.findByRole('button', { name: 'Esci dalla libreria' }));
+    expect(screen.getByRole('dialog').className).toMatch(/danger/);
     await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Esci dalla libreria' }));
     await waitFor(() => expect(useSession.getState().status).toBe('welcome'));
     expect(platform.calls.find((c) => c.method === 'DELETE')?.path).toBe('/api/v1/users/u1');
@@ -193,6 +196,7 @@ describe('writes', () => {
     await userEvent.click(within(screen.getByRole('dialog')).getByRole('radio', { name: 'Bruno' }));
     await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Continua' }));
     const dialog = await screen.findByRole('dialog', { name: 'Rendere Bruno proprietario?' });
+    expect(dialog.className).toMatch(/danger/);
     expect(within(dialog).getByText('Tu diventi Admin.')).toBeInTheDocument();
     await userEvent.click(within(dialog).getByRole('button', { name: 'Rendi Bruno proprietario' }));
     await waitFor(() => expect(useSession.getState().me?.user.role).toBe('admin'));

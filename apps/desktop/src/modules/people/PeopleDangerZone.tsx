@@ -62,7 +62,7 @@ export function PeopleDangerZone({ me, people, onLeave, onTransfer }: PeopleDang
             title={t('people.danger.owner.title')}
             consequence={t('people.danger.owner.consequence')}
             action={
-              <Button variant="secondary" tone="danger" onClick={() => setPicking(true)}>
+              <Button variant="danger" onClick={() => setPicking(true)}>
                 {t('people.danger.owner.title')}
               </Button>
             }
