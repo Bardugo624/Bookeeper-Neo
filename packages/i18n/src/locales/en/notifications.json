@@ -1,0 +1,7 @@
+{
+  "section": "Notifications",
+  "title": "Overdue loans",
+  "description": "Bookeeper can send you a system notification when a loan is overdue.",
+  "overdue": "Notify me about overdue loans",
+  "denied": "Notifications are blocked for Bookeeper. To receive them, turn them back on in your computer's system settings, under Notifications."
+}

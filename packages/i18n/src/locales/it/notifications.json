@@ -1,0 +1,7 @@
+{
+  "section": "Notifiche",
+  "title": "Prestiti scaduti",
+  "description": "Bookeeper può mandarti una notifica di sistema quando un prestito è scaduto.",
+  "overdue": "Avvisami dei prestiti scaduti",
+  "denied": "Le notifiche sono bloccate per Bookeeper. Per riceverle, riabilitale nelle impostazioni di sistema del computer, alla voce Notifiche."
+}

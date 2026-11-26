@@ -9,3 +9,13 @@ it('the fake platform records saveFile calls and returns the configured result',
   expect(await p.saveFile(req)).toEqual({ saved: false });
   expect(p.saved).toEqual([req, req]);
 });
+
+it('fake notifications are null unless asked for and follow the permission flow', async () => {
+  expect(fakePlatform().notifications).toBeNull();
+  const p = fakePlatform({ notifications: { permission: 'prompt', answer: 'denied' } });
+  expect(await p.notifications!.permission()).toBe('prompt');
+  expect(await p.notifications!.request()).toBe('denied');
+  expect(await p.notifications!.permission()).toBe('denied');
+  await p.notifications!.send({ title: 'T', body: 'B' });
+  expect(p.notificationsFake).toMatchObject({ requests: 1, sent: [{ title: 'T', body: 'B' }] });
+});
