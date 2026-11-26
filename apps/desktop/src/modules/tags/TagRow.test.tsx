@@ -38,4 +38,18 @@ describe('TagRow color while saving', () => {
     expect(patches).toBe(1);
     expect(document.activeElement).toBe(before);
   });
+
+  it('marks the delete button as dangerous', async () => {
+    const platform = fakePlatform({
+      connections: { active: 'c1', items: [fakeConnection()] },
+      handler: (r) => (r.path === '/api/v1/me' ? ok(ME) : { status: 404, body: { error_code: 'not_found', message: 'x' } }),
+    });
+    const row = <TagRow tag={tag('t1', 'Fantasy', 'amber')} canWrite onDelete={() => {}} />;
+    renderApp({
+      platform,
+      modules: [{ id: 'harness', nav: { labelKey: 'tags.title', icon: 'book', to: '/harness', group: 'main', order: 1 }, routes: [{ path: '/harness', element: <ul>{row}</ul> }] }],
+      route: '/harness',
+    });
+    expect((await screen.findByRole('button', { name: /Elimina/ })).className).toMatch(/toneDanger/);
+  });
 });

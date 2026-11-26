@@ -238,7 +238,7 @@
   },
   "delete": {
     "title": "Delete “{title}”?",
-    "text": "The book will be deleted with its cover. This cannot be undone."
+    "text": "Deleting the book also removes its cover, its place on the shelf, its loans, reading statuses and assigned tags. This cannot be undone."
   },
   "toast": {
     "created": "“{title}” added",
@@ -349,5 +349,12 @@
   "owner": {
     "everyone": "Everyone",
     "me": "You"
+  },
+  "danger": {
+    "title": "Danger zone",
+    "delete": {
+      "title": "Delete book",
+      "consequence": "Deletes the book with its cover, its place on the shelf, its loans, reading statuses and assigned tags. This cannot be undone."
+    }
   }
 }
