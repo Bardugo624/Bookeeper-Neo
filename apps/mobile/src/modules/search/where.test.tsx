@@ -3,7 +3,12 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { book, renderSearch } from './testkit';
 
-afterEach(() => vi.restoreAllMocks());
+const originalScrollIntoView = HTMLElement.prototype.scrollIntoView;
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  HTMLElement.prototype.scrollIntoView = originalScrollIntoView;
+});
 
 const shelves = [{ id: 's1', name: 'Libreria del salotto' }];
 const placed = { shelf_id: 's1', row_index: 2, slot_index: 11 };
