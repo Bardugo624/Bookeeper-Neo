@@ -479,3 +479,42 @@
 2026-11-26T12:40:10Z	bookeeper-fase-6a	apps-compat-6a	dwarf	sonnet	-	-	-	-	140
 2026-11-26T12:41:14Z	bookeeper-fase-6a	apps-compat-6a	qa	opus	PASS	-	-	-	58
 2026-11-26T13:01:24Z	bookeeper-fase-6b	d-join	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npx vitest run works in apps desktop	a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/desktop [apps/desktop/package.json]	103	1
+2026-11-26T13:02:35Z	bookeeper-fase-6b	d-join	qa	opus	PASS	-	-	-	64
+2026-11-26T13:03:14Z	bookeeper-fase-6b	d-owner-readers	dwarf	sonnet	-	trap	tests that open a radix select in jsdom need haspointercapture setpointercapture releasepointercapture and	tests that open a Radix Select in jsdom need `hasPointerCapture`, `setPointerCapture`, `releasePointerCapture` and… [apps/desktop/src/modules/stats/ReadingTab.test.tsx]	213	1
+2026-11-26T13:04:47Z	bookeeper-fase-6b	d-owner-readers	qa	opus	PASS	-	-	-	87
+2026-11-26T13:05:36Z	bookeeper-fase-6b	p3-6a-client	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npm test w bookeeper api or any typecheck works	a fresh worktree needs `npm ci --offline` at the root before `npm test -w @bookeeper/api` or any typecheck works [packages/api/package.json]	44	1
+2026-11-26T13:06:13Z	bookeeper-fase-6b	p3-6a-client	qa	opus	PASS	-	-	-	32
+2026-11-26T13:08:06Z	bookeeper-fase-6b	d-family-wishlist	dwarf	sonnet	-	-	-	-	108
+2026-11-26T13:09:20Z	bookeeper-fase-6b	d-family-wishlist	qa	opus	FAIL	finding	uselistparams reset resets every key in the schema so a page that adds a mode scope parameter to its schema also resets that mode	`useListParams().reset()` resets every key in the schema, so a page that adds a mode/scope parameter to its schema also resets that mode… [apps/desktop/src/kit/useListParams.ts]	67	1
+2026-11-26T13:09:21Z	bookeeper-fase-6b	d-people	dwarf	sonnet	-	-	-	-	400
+2026-11-26T13:09:54Z	bookeeper-fase-6b	d-family-wishlist	dwarf	sonnet	-	trap	uselistparams reset resets every key in the schema so a page that adds a mode scope parameter to its schema also resets that mode	`useListParams().reset()` resets every key in the schema, so a page that adds a mode/scope parameter to its schema also resets that mode… [apps/desktop/src/kit/useListParams.ts]	29	1
+2026-11-26T13:10:43Z	bookeeper-fase-6b	d-family-wishlist	qa	opus	PASS	-	-	-	42
+2026-11-26T13:11:11Z	bookeeper-fase-6b	d-people	qa	opus	FAIL	-	-	-	103
+2026-11-26T13:12:15Z	bookeeper-fase-6b	d-people	dwarf	sonnet	-	-	-	-	59
+2026-11-26T13:13:24Z	bookeeper-fase-6b	d-people	qa	opus	PASS	-	-	-	62
+2026-11-26T13:13:47Z	bookeeper-fase-6b	d-loans-members	dwarf	sonnet	-	trap	uselistparams set non vede una scrittura fatta prima nello stesso handler per cambiare pi chiavi insieme es mine filter si	`useListParams().set` non vede una scrittura fatta prima nello stesso handler: per cambiare più chiavi insieme (es. `mine` + `filter`) si… [apps/desktop/src/kit/useListParams.ts]	178	1
+2026-11-26T13:15:15Z	bookeeper-fase-6b	d-loans-members	qa	opus	PASS	-	-	-	82
+2026-11-26T13:16:31Z	bookeeper-fase-6b	p3-5a1	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npx vitest run works in apps desktop	a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/desktop [apps/desktop/package.json]	67	1
+2026-11-26T13:17:54Z	bookeeper-fase-6b	p3-5a1	qa	opus	PASS	-	-	-	75
+2026-11-26T13:19:35Z	bookeeper-fase-6b	m-join	dwarf	sonnet	-	-	-	-	91
+2026-11-26T13:19:53Z	bookeeper-fase-6b	d-notify	dwarf	sonnet	-	trap	cargo add needs network access so offline fails for crates missing from the registry cache run it online since the proxy allows	`cargo add` needs network access, so `--offline` fails for crates missing from the registry cache; run it online, since the proxy allows… [apps/desktop/src-tauri/Cargo.toml]	383	1
+2026-11-26T13:20:48Z	bookeeper-fase-6b	m-join	qa	opus	PASS	-	-	-	66
+2026-11-26T13:21:09Z	bookeeper-fase-6b	d-notify	qa	opus	PASS	-	-	-	70
+2026-11-26T13:24:16Z	bookeeper-fase-6b	d-overdue	dwarf	sonnet	-	-	-	-	182
+2026-11-26T13:24:26Z	bookeeper-fase-6b	m-book-edit	dwarf	sonnet	-	-	-	-	213
+2026-11-26T13:25:46Z	bookeeper-fase-6b	d-overdue	qa	opus	PASS	-	-	-	83
+2026-11-26T13:26:19Z	bookeeper-fase-6b	m-book-edit	qa	opus	FAIL	finding	in apps mobile a per book query keyed outside books libraryid is not refreshed by the reading tags mutations which	in apps/mobile a per-book query keyed outside `['books', libraryId, …]` is not refreshed by the reading/tags mutations, which… [apps/mobile/src/modules/reading/useReading.ts]	106	1
+2026-11-26T13:27:06Z	bookeeper-fase-6b	m-book-edit	dwarf	sonnet	-	finding	in apps mobile a per book query keyed outside books libraryid is not refreshed by the reading tags mutations which	in apps/mobile a per-book query keyed outside `['books', libraryId, …]` is not refreshed by the reading/tags mutations, which… [apps/mobile/src/modules/reading/useReading.ts]	42	1
+2026-11-26T13:27:57Z	bookeeper-fase-6b	m-book-edit	qa	opus	PASS	-	-	-	45
+2026-11-26T13:29:43Z	bookeeper-fase-6b	m-wishlist	dwarf	sonnet	-	-	-	-	232
+2026-11-26T13:31:32Z	bookeeper-fase-6b	m-wishlist	qa	opus	PASS	-	-	-	102
+2026-11-26T13:32:26Z	bookeeper-fase-6b	m-loans	dwarf	sonnet	-	trap	in a vitest test kit spreading rendermobile platform after a platform property fails typecheck with ts2783 because the	in a vitest test kit, spreading `...renderMobile({ platform })` after a `platform` property fails typecheck with TS2783 because the… [apps/mobile/src/modules/loans/testkit.tsx]	264	1
+2026-11-26T13:34:22Z	bookeeper-fase-6b	m-loans	qa	opus	FAIL	-	-	-	109
+2026-11-26T13:35:12Z	bookeeper-fase-6b	m-loans	dwarf	sonnet	-	-	-	-	45
+2026-11-26T13:35:47Z	bookeeper-fase-6b	m-isbn-index	dwarf	sonnet	-	-	-	-	250
+2026-11-26T13:36:11Z	bookeeper-fase-6b	m-loans	qa	opus	PASS	-	-	-	51
+2026-11-26T13:37:11Z	bookeeper-fase-6b	m-isbn-index	qa	opus	FAIL	trap	when get me fails at launch with a transient error the session goes to ready with me null and the fake transport never simulates	when `GET /me` fails at launch with a transient error, the session goes to `ready` with `me === null`, and the fake transport never simulates… [apps/mobile/src/session/store.ts]	77	1
+2026-11-26T13:37:58Z	bookeeper-fase-6b	m-isbn-index	dwarf	sonnet	-	trap	when get me fails at launch with a transient error the session goes to ready with me null and the fake transport never simulates	when `GET /me` fails at launch with a transient error, the session goes to `ready` with `me === null`, and the fake transport never simulates… [apps/mobile/src/session/store.ts]	41	1
+2026-11-26T13:38:45Z	bookeeper-fase-6b	m-isbn-index	qa	opus	PASS	-	-	-	40
+2026-11-26T13:38:51Z	bookeeper-fase-6b	m-shelves	dwarf	sonnet	-	-	-	-	155
+2026-11-26T13:40:18Z	bookeeper-fase-6b	m-shelves	qa	opus	PASS	-	-	-	80
