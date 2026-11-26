@@ -219,8 +219,8 @@
       "other": "Delete {count} books?"
     },
     "confirmText": {
-      "one": "The selected book will be deleted with its cover. This cannot be undone.",
-      "other": "The {count} selected books will be deleted with their covers. This cannot be undone."
+      "one": "Deleting the selected book also removes its cover, shelf spot, loans, reading statuses and tags. This cannot be undone.",
+      "other": "Deleting the {count} selected books also removes their covers, shelf spots, loans, reading statuses and tags. This cannot be undone."
     },
     "confirmButton": {
       "one": "Delete {count} book",

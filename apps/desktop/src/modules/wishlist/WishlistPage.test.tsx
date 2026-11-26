@@ -144,6 +144,18 @@ describe('delete', () => {
     expect(platform.calls.filter((c) => c.method === 'DELETE').map((c) => c.path)).toEqual(['/api/v1/wishlist/w1']);
   });
 
+  it('Annulla on the confirmation returns to the form with unsaved edits intact', async () => {
+    renderWishlist({ items: [wish(1, { title: 'Dal modulo' })] });
+    await userEvent.click(await screen.findByRole('button', { name: 'Modifica Dal modulo' }));
+    const title = within(await screen.findByRole('dialog')).getByLabelText(/Titolo/);
+    await userEvent.type(title, ' bis');
+    await userEvent.click(within(screen.getByRole('region', { name: 'Zona pericolosa' })).getByRole('button', { name: 'Elimina' }));
+    const confirm = await screen.findByRole('dialog', { name: 'Eliminare dalla wishlist?' });
+    await userEvent.click(within(confirm).getByRole('button', { name: 'Annulla' }));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Eliminare dalla wishlist?' })).toBeNull());
+    expect(screen.getByLabelText(/Titolo/)).toHaveValue('Dal modulo bis');
+  });
+
   it('asks first and names the item', async () => {
     const { platform } = renderWishlist({ items: [wish(1, { title: 'Da togliere' }), wish(2)] });
     await userEvent.click(await screen.findByRole('button', { name: 'Elimina Da togliere' }));

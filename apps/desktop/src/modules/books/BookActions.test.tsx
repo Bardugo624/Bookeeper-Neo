@@ -95,7 +95,9 @@ describe('danger zone', () => {
     expect(del.className).toMatch(/danger/);
     expect(del.parentElement?.className).toMatch(/apart/);
     await userEvent.click(del);
-    expect((await screen.findByRole('dialog', { name: 'Eliminare 1 libro?' })).className).toMatch(/danger/);
+    const confirm = await screen.findByRole('dialog', { name: 'Eliminare 1 libro?' });
+    expect(confirm.className).toMatch(/danger/);
+    expect(confirm).toHaveTextContent(/posto sullo scaffale, i prestiti, gli stati di lettura e i tag.*non si può annullare/);
   });
 });
 

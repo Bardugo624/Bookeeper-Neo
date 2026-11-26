@@ -103,7 +103,6 @@ export function LoanCard({ loan, actions, busy = false, onBorrower, extra }: Loa
             tone="danger"
             icon="trash"
             disabled={busy}
-            title={t('loans.danger.consequence')}
             onClick={() => actions.remove(loan)}
           >
             {t('common.delete')}
