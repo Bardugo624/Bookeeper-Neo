@@ -3,14 +3,12 @@
   "private": true,
   "version": "0.0.0",
   "workspaces": [
-    "clients/desktop/frontend",
-    "clients/mobile-web",
     "apps/*",
     "packages/*"
   ],
   "scripts": {
-    "build:mobile": "npm run build --workspace=clients/mobile-web",
-    "dev:mobile": "npm run dev --workspace=clients/mobile-web",
+    "build:mobile": "npm run build --workspace=apps/mobile",
+    "dev:mobile": "npm run dev --workspace=apps/mobile",
     "test": "npm run test --if-present --workspace=packages --workspace=apps",
     "typecheck": "npm run typecheck --if-present --workspace=packages --workspace=apps",
     "build:2": "npm run build --if-present --workspace=packages --workspace=apps"
