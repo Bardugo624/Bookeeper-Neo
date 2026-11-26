@@ -518,3 +518,19 @@
 2026-11-26T13:38:45Z	bookeeper-fase-6b	m-isbn-index	qa	opus	PASS	-	-	-	40
 2026-11-26T13:38:51Z	bookeeper-fase-6b	m-shelves	dwarf	sonnet	-	-	-	-	155
 2026-11-26T13:40:18Z	bookeeper-fase-6b	m-shelves	qa	opus	PASS	-	-	-	80
+2026-11-26T13:59:09Z	bookeeper-fase-6b1	ui-icons	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npm test w bookeeper ui or any typecheck works	a fresh worktree needs `npm ci --offline` at the root before `npm test -w @bookeeper/ui` or any typecheck works [packages/ui/package.json]	48	1
+2026-11-26T13:59:55Z	bookeeper-fase-6b1	ui-icons	qa	opus	PASS	-	-	-	39
+2026-11-26T14:00:01Z	bookeeper-fase-6b1	p3-6b-desktop-b	dwarf	sonnet	-	-	-	-	101
+2026-11-26T14:02:17Z	bookeeper-fase-6b1	p3-6b-desktop-b	qa	opus	FAIL	-	-	-	130
+2026-11-26T14:02:34Z	bookeeper-fase-6b1	p3-6b-desktop-a	dwarf	sonnet	-	-	-	-	154
+2026-11-26T14:03:32Z	bookeeper-fase-6b1	p3-6b-desktop-a	qa	opus	FAIL	-	-	-	52
+2026-11-26T14:04:38Z	bookeeper-fase-6b1	p3-6b-desktop-b	dwarf	sonnet	-	trap	a loans page test must scope text queries to the loan list since the caller s name also shows in the user menu	a loans page test must scope text queries to the loan list, since the caller's name also shows in the user menu [apps/desktop/src/modules/loans/LoansPage.test.tsx]	136	1
+2026-11-26T14:07:19Z	bookeeper-fase-6b1	p3-6b-mobile-a	dwarf	sonnet	-	trap	a book card back link that must keep role link should be a link whose onclick calls navigate 1 when location key	a book-card back link that must keep role "link" should be a `Link` whose onClick calls `navigate(-1)` when `location.key !==… [apps/mobile/src/modules/search/BookDetailPage.tsx]	221	1
+2026-11-26T14:08:23Z	bookeeper-fase-6b1	p3-6b-desktop-b	qa	opus	PASS	trap	running the desktop loans books shelves vitest suites together can fail a timing sensitive test such as shelfform test tsx	running the desktop loans/books/shelves vitest suites together can fail a timing-sensitive test such as ShelfForm.test.tsx… [apps/desktop/src/modules/shelves/ShelfForm.test.tsx]	218	1
+2026-11-26T14:08:49Z	bookeeper-fase-6b1	p3-6b-mobile-a	qa	opus	FAIL	finding	a back control that uses location key default as no previous app page goes wrong after a replace navigation or a	a back control that uses `location.key === 'default'` as "no previous app page" goes wrong after a `replace` navigation or a… [apps/mobile/src/modules/search/BookDetailPage.tsx]	82	1
+2026-11-26T14:09:52Z	bookeeper-fase-6b1	p3-6b-mobile-a	dwarf	sonnet	-	trap	back navigation direct entry must use window history state idx survives replace not location key default memory	back-navigation "direct entry" must use `window.history.state.idx` (survives `replace`), not `location.key === 'default'`; memory… [apps/mobile/src/modules/search/useCanGoBack.ts]	58	1
+2026-11-26T14:11:12Z	bookeeper-fase-6b1	p3-6b-mobile-a	qa	opus	PASS	-	-	-	73
+2026-11-26T14:12:48Z	bookeeper-fase-6b1	p3-6b-mobile-b	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npm run typecheck w bookeeper mobile or npx vitest run works	a fresh worktree needs `npm ci --offline` at the root before `npm run typecheck -w @bookeeper/mobile` or `npx vitest run` works [apps/mobile/package.json]	90	1
+2026-11-26T14:13:54Z	bookeeper-fase-6b1	p3-6b-mobile-b	qa	opus	FAIL	-	-	-	59
+2026-11-26T14:15:53Z	bookeeper-fase-6b1	p3-6b-mobile-b	dwarf	sonnet	-	-	-	-	115
+2026-11-26T14:16:48Z	bookeeper-fase-6b1	p3-6b-mobile-b	qa	opus	PASS	-	-	-	48
