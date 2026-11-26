@@ -165,6 +165,15 @@ jobs:
           New-Item -ItemType Directory $pkg | Out-Null
           Copy-Item "target/$env:TARGET/release/bookeeper-server.exe", LICENSE $pkg
           Compress-Archive -Path $pkg -DestinationPath "$pkg.zip"
+      - name: Bare binary (for the Docker image)
+        if: startsWith(matrix.name, 'linux-')
+        run: cp "target/${TARGET}/release/bookeeper-server" bookeeper-server
+      - uses: actions/upload-artifact@v4
+        if: startsWith(matrix.name, 'linux-')
+        with:
+          name: server-bin-${{ matrix.name }}
+          path: bookeeper-server
+          if-no-files-found: error
       - uses: actions/upload-artifact@v4
         with:
           name: archive-${{ matrix.name }}
@@ -174,18 +183,48 @@ jobs:
           if-no-files-found: error
 
   docker:
-    needs: [check, web]
+    needs: [check, server]
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+    env:
+      VERSION: ${{ needs.check.outputs.version }}
     steps:
       - uses: actions/checkout@v4
       - name: Image name
         id: img
         run: echo "name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/bookeeper-server" >> "$GITHUB_OUTPUT"
+      - uses: actions/download-artifact@v4
+        with:
+          name: server-bin-linux-amd64
+          path: docker-context/bin/amd64
+      - uses: actions/download-artifact@v4
+        with:
+          name: server-bin-linux-arm64
+          path: docker-context/bin/arm64
+      - name: Prepare the build context
+        run: |
+          # Artifacts do not keep the executable bit.
+          chmod +x docker-context/bin/*/bookeeper-server
+          mkdir docker-context/data
+          touch docker-context/data/.keep
+      # QEMU only assembles the arm64 image: Dockerfile.release has no RUN, nothing runs under emulation.
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
+      - name: Build the amd64 image and check its version
+        uses: docker/build-push-action@v6
+        with:
+          context: docker-context
+          file: Dockerfile.release
+          platforms: linux/amd64
+          load: true
+          tags: bookeeper-server:verify
+      - name: Image reports the version
+        run: |
+          out=$(docker run --rm bookeeper-server:verify --version)
+          echo "$out"
+          case "$out" in *"$VERSION"*) ;; *) echo "::error::--version does not print ${VERSION}"; exit 1;; esac
       - uses: docker/login-action@v3
         if: env.PUBLISH == 'true'
         with:
@@ -202,14 +241,12 @@ jobs:
             type=raw,value=${{ needs.check.outputs.major }},enable=${{ needs.check.outputs.prerelease == 'false' }}
       - uses: docker/build-push-action@v6
         with:
-          context: .
-          file: Dockerfile
+          context: docker-context
+          file: Dockerfile.release
           platforms: linux/amd64,linux/arm64
           push: ${{ env.PUBLISH == 'true' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
   desktop:
     needs: check
