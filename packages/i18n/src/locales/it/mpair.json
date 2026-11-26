@@ -39,6 +39,21 @@
     "codeEmpty": "Scrivi il codice mostrato sul computer.",
     "nameEmpty": "Dai un nome a questo telefono.",
     "invalid": "Il codice non è corretto o è scaduto. Genera un codice nuovo dal computer (Dispositivi → Aggiungi un telefono) e riprova.",
-    "network": "Non riesco a raggiungere Bookeeper. Controlla la connessione del telefono e riprova."
+    "network": "Non riesco a raggiungere Bookeeper. Controlla la connessione del telefono e riprova.",
+    "displayEmpty": "Scrivi il tuo nome."
+  },
+  "invite": {
+    "title": "Sei stato invitato",
+    "text": "Sei stato invitato in «{library}» come {role}.",
+    "label": "Il tuo nome",
+    "hint": "È il nome che vedranno gli altri della libreria.",
+    "action": "Entra",
+    "busy": "Accesso in corso…"
+  },
+  "roles": {
+    "owner": "Proprietario",
+    "admin": "Admin",
+    "member": "Membro",
+    "guest": "Ospite"
   }
 }
