@@ -1,0 +1,43 @@
+/* One row that scrolls on its own; the page never scrolls sideways. */
+.bar {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 2px 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.bar::-webkit-scrollbar {
+  display: none;
+}
+
+.chip {
+  flex: none;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--bk-border-strong);
+  border-radius: 999px;
+  background: var(--bk-surface);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--bk-text-strong);
+  white-space: nowrap;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.on {
+  border-color: var(--bk-primary-600);
+  background: var(--bk-primary-600);
+  color: var(--bk-on-primary);
+}
+
+.chip:focus-visible {
+  outline: 2px solid var(--bk-focus);
+  outline-offset: 2px;
+}

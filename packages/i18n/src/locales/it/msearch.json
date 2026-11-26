@@ -32,7 +32,9 @@
   "none": {
     "title": "Nessun risultato",
     "text": "Nessun libro corrisponde a questa ricerca.",
-    "textFor": "Nessun libro corrisponde a «{q}»."
+    "textFor": "Nessun libro corrisponde a «{q}».",
+    "filtered": "Nessun libro corrisponde a questi filtri.",
+    "reset": "Azzera i filtri"
   },
   "detail": {
     "back": "Torna all'elenco",
@@ -67,5 +69,32 @@
       "title": "Libro non trovato",
       "text": "Questo libro non esiste più o è stato rimosso dalla libreria."
     }
+  },
+  "reading": {
+    "to_read": "Da leggere",
+    "reading": "In lettura",
+    "read": "Letti",
+    "abandoned": "Abbandonato",
+    "none": "Senza stato"
+  },
+  "sheet": {
+    "open": "Filtri",
+    "title": "Filtri",
+    "reading": "Stato di lettura",
+    "tags": "Tag",
+    "room": "Stanza",
+    "reset": "Azzera",
+    "show": "Mostra i libri",
+    "showCount": {
+      "one": "Mostra {count} libro",
+      "other": "Mostra {count} libri"
+    }
+  },
+  "active": {
+    "label": "Filtri attivi",
+    "reading": "Stato: {value}",
+    "tag": "Tag: {name}",
+    "room": "Stanza: {name}",
+    "remove": "Togli il filtro {label}"
   }
 }
