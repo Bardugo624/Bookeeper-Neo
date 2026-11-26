@@ -4,6 +4,7 @@
      overwritten. Facts only, one per line. -->
 
 ## Verify
+- a throwaway desktop vitest runs from the scratchpad with a `.mts` config that spreads `apps/desktop/vite.config`, sets `root` to apps/desktop,… [apps/desktop/vite.config.ts]
 - npm ci --offline at the root, then `npx vitest run --root packages/ui` for the kit tests [packages/ui/package.json]
 - a throwaway mobile vitest can run from outside the repo with a `.mts` config that spreads `apps/mobile/vite.config` and sets `root` to apps/mobile and… [apps/mobile/vite.config.ts]
 - cargo test --offline --release -p bookeeper-core --test perf_10k -- --ignored --nocapture [crates/bookeeper-core/tests/perf_10k.rs]
@@ -28,5 +29,4 @@
 - `t` from `@bookeeper/i18n` takes the locale first (`t('it', 'palette.hint')`), and the sidebar hint button's accessible name also includes its… [apps/desktop/src/shell/Sidebar.tsx]
 - a book card link has no aria-label, so its accessible name is its spans joined by spaces ("Libro 1 Autore 1"), and `textContent`… [apps/desktop/src/modules/books/BookCard.tsx]
 - `ResultList.windowing.test.tsx` "measures the row height once…" takes ~4.4s against vitest's 5s timeout and times… [apps/mobile/src/modules/search/ResultList.windowing.test.tsx]
-- mobile search BookRow has no aria-label: the link name is built from its child spans, which jsdom/axe join with spaces ("Libro 1… [apps/mobile/src/modules/search/BookRow.tsx]
 

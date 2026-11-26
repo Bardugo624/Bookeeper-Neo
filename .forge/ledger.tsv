@@ -613,3 +613,19 @@
 2026-11-26T21:03:05Z	bookeeper-fase-8a	tour-core	qa	opus	PASS	-	-	-	32
 2026-11-26T21:18:22Z	bookeeper-fase-8a	kit-dialog-grow	dwarf	opus	-	-	-	-	74
 2026-11-26T21:19:27Z	bookeeper-fase-8a	kit-dialog-grow	qa	opus	PASS	-	-	-	59
+2026-11-26T21:20:59Z	bookeeper-fase-8a	kit-danger-zone	dwarf	sonnet	-	-	-	-	84
+2026-11-26T21:22:32Z	bookeeper-fase-8a	kit-danger-zone	qa	opus	PASS	-	-	-	87
+2026-11-26T21:24:12Z	bookeeper-fase-8a	danger-mobile	dwarf	sonnet	-	-	-	-	94
+2026-11-26T21:24:39Z	bookeeper-fase-8a	book-dialog	dwarf	sonnet	-	-	-	-	303
+2026-11-26T21:25:55Z	bookeeper-fase-8a	danger-mobile	qa	opus	FAIL	finding	mobile modules raise touch targets to 44px with direct child selectors like actions button so moving a button into a	mobile modules raise touch targets to 44px with direct-child selectors like `.actions > button`, so moving a Button into a… [apps/mobile/src/modules/wishlist/Wishlist.module.css]	97	1
+2026-11-26T21:26:26Z	bookeeper-fase-8a	danger-mobile	dwarf	sonnet	-	-	-	-	26
+2026-11-26T21:27:16Z	bookeeper-fase-8a	danger-mobile	qa	opus	PASS	-	-	-	44
+2026-11-26T21:27:57Z	bookeeper-fase-8a	fix-8a-verify	dwarf	sonnet	-	-	-	-	36
+2026-11-26T21:28:17Z	bookeeper-fase-8a	book-dialog	qa	opus	FAIL	-	-	-	212
+2026-11-26T21:28:40Z	bookeeper-fase-8a	fix-8a-verify	qa	opus	PASS	-	-	-	38
+2026-11-26T21:29:44Z	bookeeper-fase-8a	book-dialog	dwarf	sonnet	-	-	-	-	82
+2026-11-26T21:32:08Z	bookeeper-fase-8a	book-dialog	qa	opus	PASS	verify	a throwaway desktop vitest runs from the scratchpad with a mts config that spreads apps desktop vite config sets root to apps desktop	a throwaway desktop vitest runs from the scratchpad with a `.mts` config that spreads `apps/desktop/vite.config`, sets `root` to apps/desktop,… [apps/desktop/vite.config.ts]	138	1
+2026-11-26T21:34:47Z	bookeeper-fase-8a	book-cover-flight	dwarf	sonnet	-	-	-	-	151
+2026-11-26T21:37:23Z	bookeeper-fase-8a	book-cover-flight	qa	opus	FAIL	-	-	-	151
+2026-11-26T21:38:22Z	bookeeper-fase-8a	book-cover-flight	dwarf	sonnet	-	-	-	-	54
+2026-11-26T21:40:32Z	bookeeper-fase-8a	book-cover-flight	qa	opus	PASS	trap	the repo has no prettier config so npx prettier write rewrites files to double quotes while the codebase uses single quotes	the repo has no prettier config, so `npx prettier --write` rewrites files to double quotes while the codebase uses single quotes [apps/desktop/src/modules/books/useCoverFlight.ts]	124	1
