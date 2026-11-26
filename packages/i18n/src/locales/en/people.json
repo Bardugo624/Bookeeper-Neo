@@ -5,10 +5,6 @@
     "other": "{count} people"
   },
   "loading": "Loading people",
-  "error": {
-    "title": "Couldn't load the people",
-    "text": "Check your connection and try again."
-  },
   "you": "You",
   "roles": {
     "owner": "Owner",
@@ -92,6 +88,9 @@
     "empty": "No pending invitations.",
     "by": "Created by {name}",
     "expires": "expires on {date}",
-    "revoke": "Revoke"
+    "revoke": "Revoke",
+    "revokeLabel": "Revoke the {role} invitation, expires {date}",
+    "error": "The pending invitations couldn’t be loaded. Try again in a moment.",
+    "retry": "Try again"
   }
 }

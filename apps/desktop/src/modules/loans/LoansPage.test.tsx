@@ -97,6 +97,25 @@ describe('empty and error states', () => {
     expect(await screen.findByText(title)).toBeInTheDocument();
   });
 
+  it('offers the next step in every empty list', async () => {
+    const user = userEvent.setup();
+    const { router } = renderLoans(store({ loans: [] }), '/loans?filter=returned');
+    await user.click(await screen.findByRole('button', { name: 'Vedi i prestiti in corso' }));
+    expect(router.state.location.search).not.toContain('returned');
+    await screen.findByText('Nessun prestito in corso');
+    // The header button and the one of the empty state.
+    expect(screen.getAllByRole('button', { name: 'Nuovo prestito' })).toHaveLength(2);
+  });
+
+  it('lets the visible "A Marco" start the accessible name of the person button', async () => {
+    renderLoans(store());
+    const buttons = await screen.findAllByRole('button', { name: /^A .+: mostra i suoi prestiti$/ });
+    for (const b of buttons) {
+      const visible = b.textContent?.trim() ?? '';
+      expect(b.getAttribute('aria-label')?.startsWith(visible)).toBe(true);
+    }
+  });
+
   it('shows the error with a retry that works', async () => {
     const s = store({ failList: true });
     renderLoans(s);
@@ -159,7 +178,7 @@ describe('permissions', () => {
     }
     expect(screen
         .queryAllByRole('button')
-        .filter((b) => b.closest('li') && !b.getAttribute('aria-label')?.startsWith('Mostra i prestiti di'))).toHaveLength(0);
+        .filter((b) => b.closest('li') && !b.getAttribute('aria-label')?.startsWith('A '))).toHaveLength(0);
   });
 
   it('shows them to a member', async () => {
@@ -187,10 +206,10 @@ describe('loans to members', () => {
         ],
       }),
     );
-    const person = await screen.findByRole('button', { name: 'Mostra i prestiti di Marta Rossi' });
+    const person = await screen.findByRole('button', { name: 'A Marta Rossi: mostra i suoi prestiti' });
     expect(person).toHaveTextContent('A Marta Rossi');
     expect(person.querySelector('svg')).not.toBeNull();
-    const plain = screen.getByRole('button', { name: 'Mostra i prestiti di Luca' });
+    const plain = screen.getByRole('button', { name: 'A Luca: mostra i suoi prestiti' });
     expect(plain.querySelector('svg')).toBeNull();
   });
 

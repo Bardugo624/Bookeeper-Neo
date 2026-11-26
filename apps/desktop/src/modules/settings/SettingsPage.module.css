@@ -36,14 +36,20 @@
 }
 
 .item:focus-visible {
-  outline: 2px solid var(--bk-primary-400);
+  outline: 2px solid var(--bk-focus);
   outline-offset: 2px;
 }
 
 .active,
 .active:hover {
-  background: var(--bk-primary-50);
-  color: var(--bk-primary-700);
+  background: var(--bk-accent-surface);
+  color: var(--bk-on-accent-surface);
+  font-weight: 600;
+}
+
+.item span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .content {

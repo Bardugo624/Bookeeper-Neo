@@ -179,12 +179,7 @@ pub async fn facets(State(state): State<AppState>, who: AuthUser) -> ApiResult<J
             )?;
 
             let tags = conn
-                .prepare(
-                    "SELECT t.id, t.name, t.color, COUNT(*) AS n FROM tags t \
-                     JOIN book_tags bt ON bt.tag_id = t.id \
-                     JOIN books b ON b.id = bt.book_id AND b.library_id = t.library_id \
-                     WHERE t.library_id = ?1 GROUP BY t.id ORDER BY n DESC, t.name, t.id",
-                )?
+                .prepare(TAGS_SQL)?
                 .query_map(params![lib], |r| {
                     Ok(TagFacet {
                         id: r.get(0)?,
@@ -206,19 +201,8 @@ pub async fn facets(State(state): State<AppState>, who: AuthUser) -> ApiResult<J
                     })?
                     .collect()
             };
-            let rooms = named(
-                "SELECT r.id, r.name, COUNT(*) AS n FROM rooms r \
-                 JOIN shelves s ON s.room_id = r.id \
-                 JOIN shelf_books sb ON sb.shelf_id = s.id \
-                 JOIN books b ON b.id = sb.book_id AND b.library_id = r.library_id \
-                 WHERE r.library_id = ?1 GROUP BY r.id ORDER BY n DESC, r.name, r.id",
-            )?;
-            let shelves = named(
-                "SELECT s.id, s.name, COUNT(*) AS n FROM shelves s \
-                 JOIN shelf_books sb ON sb.shelf_id = s.id \
-                 JOIN books b ON b.id = sb.book_id AND b.library_id = s.library_id \
-                 WHERE s.library_id = ?1 GROUP BY s.id ORDER BY n DESC, s.name, s.id",
-            )?;
+            let rooms = named(ROOMS_SQL)?;
+            let shelves = named(SHELVES_SQL)?;
 
             let total: i64 = conn.query_row(
                 "SELECT COUNT(*) FROM books WHERE library_id = ?1",
@@ -232,11 +216,7 @@ pub async fn facets(State(state): State<AppState>, who: AuthUser) -> ApiResult<J
                 abandoned: 0,
                 none: 0,
             };
-            let mut stmt = conn.prepare(
-                "SELECT rd.status, COUNT(*) FROM reading rd \
-                 JOIN books b ON b.id = rd.book_id \
-                 WHERE b.library_id = ?1 AND rd.user_id = ?2 GROUP BY rd.status",
-            )?;
+            let mut stmt = conn.prepare(READING_SQL)?;
             let rows = stmt
                 .query_map(params![lib, who.user_id], |r| {
                     Ok((r.get::<_, String>(0)?, r.get::<_, i64>(1)?))
@@ -255,12 +235,7 @@ pub async fn facets(State(state): State<AppState>, who: AuthUser) -> ApiResult<J
             reading.none = total - with_state;
 
             let owners = conn
-                .prepare(
-                    "SELECT u.id, u.display_name, COUNT(*) AS n FROM users u \
-                     JOIN books b ON b.owner_user_id = u.id AND b.library_id = u.library_id \
-                     WHERE u.library_id = ?1 \
-                     GROUP BY u.id ORDER BY n DESC, u.display_name COLLATE NOCASE, u.id",
-                )?
+                .prepare(OWNERS_SQL)?
                 .query_map(params![lib], |r| {
                     Ok(OwnerFacet {
                         id: r.get(0)?,
@@ -291,3 +266,33 @@ pub async fn facets(State(state): State<AppState>, who: AuthUser) -> ApiResult<J
         .await?;
     Ok(Json(out))
 }
+
+// The join queries of the facets, public (hidden) so the plan test can check them.
+// `CROSS JOIN` pins the join order: with the extra indexes on `books` SQLite would
+// otherwise start from a full scan of `books`.
+#[doc(hidden)]
+pub const TAGS_SQL: &str = "SELECT t.id, t.name, t.color, COUNT(*) AS n FROM tags t \
+     CROSS JOIN book_tags bt ON bt.tag_id = t.id \
+     CROSS JOIN books b ON b.id = bt.book_id AND b.library_id = t.library_id \
+     WHERE t.library_id = ?1 GROUP BY t.id ORDER BY n DESC, t.name, t.id";
+#[doc(hidden)]
+pub const ROOMS_SQL: &str = "SELECT r.id, r.name, COUNT(*) AS n FROM rooms r \
+     JOIN shelves s ON s.room_id = r.id \
+     JOIN shelf_books sb ON sb.shelf_id = s.id \
+     JOIN books b ON b.id = sb.book_id AND b.library_id = r.library_id \
+     WHERE r.library_id = ?1 GROUP BY r.id ORDER BY n DESC, r.name, r.id";
+#[doc(hidden)]
+pub const SHELVES_SQL: &str = "SELECT s.id, s.name, COUNT(*) AS n FROM shelves s \
+     JOIN shelf_books sb ON sb.shelf_id = s.id \
+     JOIN books b ON b.id = sb.book_id AND b.library_id = s.library_id \
+     WHERE s.library_id = ?1 GROUP BY s.id ORDER BY n DESC, s.name, s.id";
+/// Takes `?1` library and `?2` user.
+#[doc(hidden)]
+pub const READING_SQL: &str = "SELECT rd.status, COUNT(*) FROM reading rd \
+     JOIN books b ON b.id = rd.book_id \
+     WHERE b.library_id = ?1 AND rd.user_id = ?2 GROUP BY rd.status";
+#[doc(hidden)]
+pub const OWNERS_SQL: &str = "SELECT u.id, u.display_name, COUNT(*) AS n FROM users u \
+     JOIN books b ON b.owner_user_id = u.id AND b.library_id = u.library_id \
+     WHERE u.library_id = ?1 \
+     GROUP BY u.id ORDER BY n DESC, u.display_name COLLATE NOCASE, u.id";

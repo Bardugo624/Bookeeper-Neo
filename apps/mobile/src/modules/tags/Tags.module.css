@@ -71,7 +71,7 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: var(--tag-color, var(--bk-neutral-500));
+  background: var(--tag-color, var(--bk-text-faint));
 }
 
 .plain {
@@ -110,8 +110,8 @@
 
 .primary {
   width: 100%;
-  border-color: var(--bk-primary-600);
-  background: var(--bk-primary-600);
+  border-color: var(--bk-primary-fill);
+  background: var(--bk-primary-fill);
   color: var(--bk-on-primary);
 }
 
@@ -175,7 +175,7 @@
   width: 24px;
   height: 24px;
   margin: 0;
-  accent-color: var(--bk-primary-600);
+  accent-color: var(--bk-accent-control);
 }
 
 .name {

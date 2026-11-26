@@ -10,6 +10,7 @@
     "label": "Prestiti",
     "loading": "Caricamento dei prestiti",
     "loadError": "Non riesco a leggere i prestiti.",
+    "moreError": "Non riesco a caricare gli altri prestiti.",
     "more": "Mostra altri"
   },
   "empty": {
@@ -23,7 +24,6 @@
     }
   },
   "row": {
-    "name": "{title}, {person}",
     "due": "scadenza {date}",
     "noDue": "senza scadenza",
     "returnedOn": "restituito il {date}",
@@ -35,12 +35,14 @@
     "returnLabel": "Restituisci «{title}»"
   },
   "return": {
+    "failed": "Il prestito non è stato chiuso.",
     "title": "Restituire il libro?",
     "text": "«{title}» torna a casa: il prestito a {person} si chiude oggi.",
     "confirm": "Restituisci",
     "cancel": "Annulla"
   },
   "lend": {
+    "failed": "Il prestito non è stato registrato.",
     "title": "Presta il libro",
     "book": "«{title}»",
     "person": "A chi lo presti",

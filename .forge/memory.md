@@ -4,6 +4,10 @@
      overwritten. Facts only, one per line. -->
 
 ## Verify
+- npm ci --offline at the root, then `npx vitest run --root packages/ui` for the kit tests [packages/ui/package.json]
+- a throwaway mobile vitest can run from outside the repo with a `.mts` config that spreads `apps/mobile/vite.config` and sets `root` to apps/mobile and… [apps/mobile/vite.config.ts]
+- cargo test --offline --release -p bookeeper-core --test perf_10k -- --ignored --nocapture [crates/bookeeper-core/tests/perf_10k.rs]
+- copy package.json, package-lock.json and the apps/*/package.json and packages/*/package.json files to a scratch dir and run `npm install --package-lock-only… [package-lock.json]
 - cargo test --offline -p bookeeper-core --test reading_api --test books_api --test db --test backup_api --test openapi_errors [crates/bookeeper-core/Cargo.toml]
 - npm install && npm run typecheck -w @bookeeper/mobile && npm test -w @bookeeper/mobile && npm run build -w @bookeeper/mobile && cargo test --offline -p… [apps/mobile/package.json]
 - cargo test --offline -p bookeeper-desktop && cargo clippy --offline -p bookeeper-desktop --all-targets -- -D warnings [apps/desktop/src-tauri/Cargo.toml]
@@ -18,15 +22,11 @@
 - a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/mobile [apps/mobile/package.json]
 - a rejected optimistic write can restore the cache in the same batch as the optimistic render, so an effect keyed on the saved value… [apps/mobile/src/modules/reading/NoteField.tsx]
 - a fresh worktree has no node_modules; run `npm ci --offline` at the root, then `npx vitest run <path>` from apps/desktop [apps/desktop/package.json]
-- a fresh worktree needs `npm ci --offline` at the root before `npm run typecheck -w @bookeeper/mobile` or `npx vitest run` works [apps/mobile/package.json]
-- running the desktop loans/books/shelves vitest suites together can fail a timing-sensitive test such as ShelfForm.test.tsx… [apps/desktop/src/modules/shelves/ShelfForm.test.tsx]
-- a book-card back link that must keep role "link" should be a `Link` whose onClick calls `navigate(-1)` when `location.key !==… [apps/mobile/src/modules/search/BookDetailPage.tsx]
-- a loans page test must scope text queries to the loan list, since the caller's name also shows in the user menu [apps/desktop/src/modules/loans/LoansPage.test.tsx]
-- a fresh worktree needs `npm ci --offline` at the root before `npm test -w @bookeeper/ui` or any typecheck works [packages/ui/package.json]
-- when `GET /me` fails at launch with a transient error, the session goes to `ready` with `me === null`, and the fake transport never simulates… [apps/mobile/src/session/store.ts]
-- in a vitest test kit, spreading `...renderMobile({ platform })` after a `platform` property fails typecheck with TS2783 because the… [apps/mobile/src/modules/loans/testkit.tsx]
-- `cargo add` needs network access, so `--offline` fails for crates missing from the registry cache; run it online, since the proxy allows… [apps/desktop/src-tauri/Cargo.toml]
-- a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/desktop [apps/desktop/package.json]
-- `useListParams().set` non vede una scrittura fatta prima nello stesso handler: per cambiare più chiavi insieme (es. `mine` + `filter`) si… [apps/desktop/src/kit/useListParams.ts]
-- `useListParams().reset()` resets every key in the schema, so a page that adds a mode/scope parameter to its schema also resets that mode… [apps/desktop/src/kit/useListParams.ts]
+- `committed_snapshot_is_current` in the openapi test is `#[ignore]`d, so a plain `cargo test --test openapi` skips the snapshot check; pass… [crates/bookeeper-core/tests/openapi.rs]
+- `apps/desktop/src/modules/settings/settings.test.tsx` asserts the real `apps/desktop/package.json` version, so a version bump… [apps/desktop/src/modules/settings/settings.test.tsx]
+- on Node 22 `node --test scripts/` fails with MODULE_NOT_FOUND because a directory argument is not searched; use a glob like `node --test… [scripts/update-manifest.test.mjs]
+- `t` from `@bookeeper/i18n` takes the locale first (`t('it', 'palette.hint')`), and the sidebar hint button's accessible name also includes its… [apps/desktop/src/shell/Sidebar.tsx]
+- a book card link has no aria-label, so its accessible name is its spans joined by spaces ("Libro 1 Autore 1"), and `textContent`… [apps/desktop/src/modules/books/BookCard.tsx]
+- `ResultList.windowing.test.tsx` "measures the row height once…" takes ~4.4s against vitest's 5s timeout and times… [apps/mobile/src/modules/search/ResultList.windowing.test.tsx]
+- mobile search BookRow has no aria-label: the link name is built from its child spans, which jsdom/axe join with spaces ("Libro 1… [apps/mobile/src/modules/search/BookRow.tsx]
 

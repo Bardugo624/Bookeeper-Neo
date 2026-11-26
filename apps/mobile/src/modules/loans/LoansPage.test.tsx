@@ -35,6 +35,14 @@ describe('loans list', () => {
     expect(within(member!).getByRole('link')).toHaveAttribute('href', '/books/b1');
   });
 
+  it('names the link by what it shows, so the visible text is part of the name', async () => {
+    renderLoans({ loans: [loan(1, { due_at: now() + 5 * DAY })] });
+    await screen.findByRole('list', { name: 'Prestiti' });
+    const link = within(rows()[0]!).getByRole('link');
+    expect(link).not.toHaveAttribute('aria-label');
+    expect(link).toHaveAccessibleName(/^Libro 1/);
+  });
+
   it('lists the returned ones, the latest first', async () => {
     renderLoans({
       loans: [loan(1, { returned_at: now() - 5 * DAY }), loan(2, { returned_at: now() - DAY }), loan(3)],

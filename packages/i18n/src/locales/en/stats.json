@@ -36,10 +36,6 @@
     "text": "Add books to your library to see the numbers.",
     "action": "Go to books"
   },
-  "error": {
-    "title": "Could not load statistics",
-    "text": "Check your connection and try again."
-  },
   "formatLabel": {
     "paperback": "Paperback",
     "hardcover": "Hardcover",
@@ -64,10 +60,6 @@
     "year": "Year",
     "yearLabel": "Reading year",
     "loading": "Loading reading statistics",
-    "error": {
-      "title": "Could not load reading statistics",
-      "text": "Check your connection and try again."
-    },
     "empty": {
       "title": "No reading in {year}",
       "text": "Mark a book as read to see it here.",

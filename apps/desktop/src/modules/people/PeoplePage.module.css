@@ -22,3 +22,16 @@
   color: var(--bk-danger);
   font-size: 13px;
 }
+
+.inlineError {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 10px 12px;
+  border-radius: var(--bk-radius);
+  background: var(--bk-danger-bg);
+  color: var(--bk-danger);
+  font-size: 13px;
+}

@@ -536,3 +536,68 @@
 2026-11-26T14:16:48Z	bookeeper-fase-6b1	p3-6b-mobile-b	qa	opus	PASS	-	-	-	48
 2026-11-26T14:22:21Z	bookeeper-fase-6b1	p3-6b-desktop-a	dwarf	sonnet	-	-	-	-	13
 2026-11-26T14:23:01Z	bookeeper-fase-6b1	p3-6b-desktop-a	qa	opus	PASS	-	-	-	33
+2026-11-26T15:01:09Z	bookeeper-fase-7a	cleanup-03	dwarf	sonnet	-	trap	npm install package lock only offline dopo aver tolto un workspace lascia le sue voci come extraneous true in package lock json vanno tolte a mano	`npm install --package-lock-only --offline` dopo aver tolto un workspace lascia le sue voci come `"extraneous": true` in package-lock.json; vanno tolte a mano [package-lock.json]	497	1
+2026-11-26T15:02:07Z	bookeeper-fase-7a	cleanup-03	qa	opus	PASS	verify	copy package json package lock json and the apps package json and packages package json files to a scratch dir and run npm install package lock only	copy package.json, package-lock.json and the apps/*/package.json and packages/*/package.json files to a scratch dir and run `npm install --package-lock-only… [package-lock.json]	48	1
+2026-11-26T15:04:53Z	bookeeper-fase-7a	perf-core	dwarf	sonnet	-	trap	adding an index on books can make sqlite choose a worse join order for the facets queries check the plan and force the order with	adding an index on `books` can make SQLite choose a worse join order for the facets queries; check the plan and force the order with… [crates/bookeeper-core/src/api/facets.rs]	721	1
+2026-11-26T15:04:53Z	bookeeper-fase-7a	perf-core	dwarf	sonnet	-	verify	cargo test offline release p bookeeper core test perf 10k ignored nocapture	cargo test --offline --release -p bookeeper-core --test perf_10k -- --ignored --nocapture [crates/bookeeper-core/tests/perf_10k.rs]	721	1
+2026-11-26T15:09:03Z	bookeeper-fase-7a	perf-desktop	dwarf	sonnet	-	-	-	-	406
+2026-11-26T15:11:14Z	bookeeper-fase-7a	perf-core	qa	opus	FAIL	-	-	-	372
+2026-11-26T15:12:12Z	bookeeper-fase-7a	perf-desktop	qa	opus	FAIL	trap	jsdom does no layout so a test cannot show spacers or fixed height rows collapsing or growing in a real browser check with	jsdom does no layout, so a test cannot show spacers or fixed-height rows collapsing or growing in a real browser; check with… [apps/desktop/src/modules/books/useWindowedRows.ts]	184	1
+2026-11-26T15:13:42Z	bookeeper-fase-7a	perf-desktop	dwarf	sonnet	-	trap	jsdom does no layout so a test cannot show spacers or fixed height rows collapsing or growing in a real browser check with	jsdom does no layout, so a test cannot show spacers or fixed-height rows collapsing or growing in a real browser; check with… [apps/desktop/src/modules/books/useWindowedRows.ts]	86	1
+2026-11-26T15:15:07Z	bookeeper-fase-7a	perf-desktop	qa	opus	PASS	-	-	-	79
+2026-11-26T15:17:39Z	bookeeper-fase-7a	perf-core	dwarf	sonnet	-	trap	a plan test that only flags scan misses a join order that walks every book of the library because sqlite reports it as search b using	a plan test that only flags `SCAN` misses a join order that walks every book of the library, because SQLite reports it as `SEARCH b USING… [crates/bookeeper-core/tests/perf_10k.rs]	381	1
+2026-11-26T15:17:49Z	bookeeper-fase-7a	perf-mobile	dwarf	sonnet	-	trap	in jsdom the mobile search list has no layout so tests of resultlist windowing must stub	in jsdom the mobile search list has no layout, so tests of `ResultList` windowing must stub… [apps/mobile/src/modules/search/ResultList.windowing.test.tsx]	156	1
+2026-11-26T15:19:31Z	bookeeper-fase-7a	perf-mobile	qa	opus	FAIL	trap	mobile search bookrow is about 105px tall 56px cover with 2 3 aspect 84px plus 20px padding under global border box plus	mobile search `BookRow` is about 105px tall (56px cover with 2/3 aspect = 84px, plus 20px padding under global border-box, plus… [apps/mobile/src/modules/search/BookRow.module.css]	96	1
+2026-11-26T15:19:31Z	bookeeper-fase-7a	perf-mobile	qa	opus	FAIL	trap	the mobile app has no scroll restoration screen body is the scroller and remounts at scrolltop 0 on back navigation	the mobile app has no scroll restoration: `Screen` `.body` is the scroller and remounts at scrollTop 0 on back-navigation [apps/mobile/src/kit/Screen.tsx]	96	1
+2026-11-26T15:19:43Z	bookeeper-fase-7a	perf-core	qa	opus	PASS	-	-	-	118
+2026-11-26T15:22:08Z	bookeeper-fase-7a	perf-mobile	dwarf	sonnet	-	trap	jsdom lacks layout and window scrollto windowing scroll restore tests must stub getboundingclientrect	jsdom lacks layout and `window.scrollTo`; windowing/scroll-restore tests must stub `getBoundingClientRect`,… [apps/mobile/src/modules/search/ResultList.windowing.test.tsx]	153	1
+2026-11-26T15:22:45Z	bookeeper-fase-7a	docs-user	dwarf	sonnet	-	-	-	-	177
+2026-11-26T15:24:22Z	bookeeper-fase-7a	perf-mobile	qa	opus	FAIL	trap	module level state keyed by location key leaks across mobile tests since every test s initial entry has key default	module-level state keyed by `location.key` leaks across mobile tests, since every test's initial entry has key `'default'` [apps/mobile/src/modules/search/ResultList.tsx]	128	1
+2026-11-26T15:24:41Z	bookeeper-fase-7a	docs-user	qa	opus	FAIL	trap	bookeeper server setup code and fingerprint default to data unless data dir or bookeeper data is set so a hint without the	`bookeeper-server setup-code` and `fingerprint` default to `./data` unless `--data-dir` or `BOOKEEPER_DATA` is set, so a hint without the… [crates/bookeeper-server/src/main.rs]	111	1
+2026-11-26T15:25:10Z	bookeeper-fase-7a	docs-user	dwarf	sonnet	-	-	-	-	24
+2026-11-26T15:25:28Z	bookeeper-fase-7a	design-docs	dwarf	sonnet	-	-	-	-	61
+2026-11-26T15:25:56Z	bookeeper-fase-7a	docs-user	qa	opus	PASS	-	-	-	40
+2026-11-26T15:26:26Z	bookeeper-fase-7a	design-docs	qa	opus	PASS	-	-	-	52
+2026-11-26T15:33:10Z	bookeeper-fase-7a	perf-mobile	dwarf	opus	-	-	-	-	94
+2026-11-26T15:35:36Z	bookeeper-fase-7a	perf-mobile	qa	opus	FAIL	verify	a throwaway mobile vitest can run from outside the repo with a mts config that spreads apps mobile vite config and sets root to apps mobile and	a throwaway mobile vitest can run from outside the repo with a `.mts` config that spreads `apps/mobile/vite.config` and sets `root` to apps/mobile and… [apps/mobile/vite.config.ts]	140	1
+2026-11-26T15:51:15Z	bookeeper-fase-7a	perf-mobile	dwarf	opus	-	trap	resultlist windowing test tsx s shared api override always returns the module level all books so a test that	`ResultList.windowing.test.tsx`'s shared `api.override` always returns the module-level `all` books, so a test that… [apps/mobile/src/modules/search/ResultList.windowing.test.tsx]	316	1
+2026-11-26T15:53:45Z	bookeeper-fase-7a	perf-mobile	qa	opus	FAIL	trap	mobile search windowing tests a scroll event is handled in the next requestanimationframe so a waitfor that is	mobile search windowing tests: a scroll event is handled in the next requestAnimationFrame, so a `waitFor` that is… [apps/mobile/src/modules/search/ResultList.windowing.test.tsx]	145	1
+2026-11-26T16:14:20Z	bookeeper-fase-7b	people-cache	dwarf	sonnet	-	-	-	-	103
+2026-11-26T16:15:50Z	bookeeper-fase-7b	people-cache	qa	opus	PASS	-	-	-	83
+2026-11-26T16:19:39Z	bookeeper-fase-7b	p3-7a	dwarf	sonnet	-	-	-	-	423
+2026-11-26T16:23:43Z	bookeeper-fase-7b	p3-7a	qa	opus	PASS	-	-	-	238
+2026-11-26T16:28:24Z	bookeeper-fase-7b	ui-tokens	dwarf	sonnet	-	verify	npm ci offline at the root then npx vitest run root packages ui for the kit tests	npm ci --offline at the root, then `npx vitest run --root packages/ui` for the kit tests [packages/ui/package.json]	273	1
+2026-11-26T16:29:42Z	bookeeper-fase-7b	ui-tokens	qa	opus	FAIL	finding	when a colour migration splits accent into control and fill tokens filled controls with bk on primary text get mapped to the control token	when a colour migration splits "accent" into control and fill tokens, filled controls with `--bk-on-primary` text get mapped to the control token;… [packages/ui/src/tokens.css]	72	1
+2026-11-26T16:30:53Z	bookeeper-fase-7b	ui-tokens	dwarf	sonnet	-	-	-	-	66
+2026-11-26T16:31:51Z	bookeeper-fase-7b	ui-tokens	qa	opus	PASS	-	-	-	51
+2026-11-26T16:34:37Z	bookeeper-fase-7b	d-polish-books	dwarf	sonnet	-	-	-	-	161
+2026-11-26T16:35:24Z	bookeeper-fase-7b	d-polish-frame	dwarf	sonnet	-	-	-	-	208
+2026-11-26T16:36:13Z	bookeeper-fase-7b	d-polish-books	qa	opus	PASS	-	-	-	89
+2026-11-26T16:36:39Z	bookeeper-fase-7b	d-polish-frame	qa	opus	FAIL	-	-	-	68
+2026-11-26T16:39:12Z	bookeeper-fase-7b	d-polish-people	dwarf	sonnet	-	-	-	-	148
+2026-11-26T16:39:22Z	bookeeper-fase-7b	d-polish-collection	dwarf	sonnet	-	-	-	-	183
+2026-11-26T16:40:12Z	bookeeper-fase-7b	d-polish-people	qa	opus	PASS	-	-	-	54
+2026-11-26T16:40:54Z	bookeeper-fase-7b	d-polish-collection	qa	opus	PASS	-	-	-	87
+2026-11-26T16:42:53Z	bookeeper-fase-7b	m-polish-frame	dwarf	sonnet	-	-	-	-	155
+2026-11-26T16:43:59Z	bookeeper-fase-7b	m-polish-frame	qa	opus	FAIL	finding	a last child rule on a shared kit row also matches every row wrapped in its own li so all of them lose their divider	a `:last-child` rule on a shared kit row also matches every row wrapped in its own `<li>`, so all of them lose their divider [apps/mobile/src/kit/ListRow.module.css]	60	1
+2026-11-26T16:46:05Z	bookeeper-fase-7b	m-polish-frame	dwarf	sonnet	-	-	-	-	121
+2026-11-26T16:47:01Z	bookeeper-fase-7b	m-polish-frame	qa	opus	PASS	-	-	-	49
+2026-11-26T16:48:16Z	bookeeper-fase-7b	m-polish-search	dwarf	sonnet	-	trap	mobile search bookrow has no aria label the link name is built from its child spans which jsdom axe join with spaces libro 1	mobile search BookRow has no aria-label: the link name is built from its child spans, which jsdom/axe join with spaces ("Libro 1… [apps/mobile/src/modules/search/BookRow.tsx]	436	1
+2026-11-26T16:48:16Z	bookeeper-fase-7b	m-polish-search	dwarf	sonnet	-	trap	the mobile style test forbids literal colors in module css even 000 in a mask image use a token	the mobile style test forbids literal colors in module CSS, even `#000` in a `mask-image`; use a token [apps/mobile/src/styles.test.ts]	436	1
+2026-11-26T16:51:38Z	bookeeper-fase-7b	m-polish-collection	dwarf	sonnet	-	-	-	-	271
+2026-11-26T16:51:49Z	bookeeper-fase-7b	m-polish-search	qa	opus	PASS	trap	resultlist windowing test tsx measures the row height once takes 4 4s against vitest s 5s timeout and times	`ResultList.windowing.test.tsx` "measures the row height once…" takes ~4.4s against vitest's 5s timeout and times… [apps/mobile/src/modules/search/ResultList.windowing.test.tsx]	206	1
+2026-11-26T16:52:29Z	bookeeper-fase-7b	m-polish-collection	qa	opus	PASS	-	-	-	45
+2026-11-26T17:01:40Z	bookeeper-fase-7b	d-polish-frame	dwarf	sonnet	-	-	-	-	68
+2026-11-26T17:02:41Z	bookeeper-fase-7b	d-polish-frame	qa	opus	PASS	-	-	-	55
+2026-11-26T17:20:30Z	bookeeper-fase-7b1	ui-fix-mobile	dwarf	sonnet	-	-	-	-	12
+2026-11-26T17:20:49Z	bookeeper-fase-7b1	ui-fix-mobile	qa	opus	PASS	-	-	-	14
+2026-11-26T17:26:41Z	bookeeper-fase-7b1	ui-fix-desktop	dwarf	sonnet	-	trap	a book card link has no aria label so its accessible name is its spans joined by spaces libro 1 autore 1 and textcontent	a book card link has no aria-label, so its accessible name is its spans joined by spaces ("Libro 1 Autore 1"), and `textContent`… [apps/desktop/src/modules/books/BookCard.tsx]	383	1
+2026-11-26T17:28:35Z	bookeeper-fase-7b1	ui-fix-desktop	qa	opus	PASS	-	-	-	108
+2026-11-26T17:42:32Z	bookeeper-fase-7b1	fix-7b1	dwarf	sonnet	-	trap	t from bookeeper i18n takes the locale first t it palette hint and the sidebar hint button s accessible name also includes its	`t` from `@bookeeper/i18n` takes the locale first (`t('it', 'palette.hint')`), and the sidebar hint button's accessible name also includes its… [apps/desktop/src/shell/Sidebar.tsx]	187	1
+2026-11-26T17:43:41Z	bookeeper-fase-7b1	fix-7b1	qa	opus	PASS	-	-	-	63
+2026-11-26T17:55:13Z	bookeeper-fase-7c	release-notes	dwarf	sonnet	-	-	-	-	27
+2026-11-26T17:55:58Z	bookeeper-fase-7c	release-notes	qa	opus	PASS	trap	on node 22 node test scripts fails with module not found because a directory argument is not searched use a glob like node test	on Node 22 `node --test scripts/` fails with MODULE_NOT_FOUND because a directory argument is not searched; use a glob like `node --test… [scripts/update-manifest.test.mjs]	37	1
+2026-11-26T17:59:01Z	bookeeper-fase-7c	p3-card-hover	dwarf	sonnet	-	-	-	-	178
+2026-11-26T18:00:42Z	bookeeper-fase-7c	p3-card-hover	qa	opus	PASS	-	-	-	94
+2026-11-26T18:02:01Z	bookeeper-fase-7c	version-200	dwarf	sonnet	-	trap	apps desktop src modules settings settings test tsx asserts the real apps desktop package json version so a version bump	`apps/desktop/src/modules/settings/settings.test.tsx` asserts the real `apps/desktop/package.json` version, so a version bump… [apps/desktop/src/modules/settings/settings.test.tsx]	434	1
+2026-11-26T18:03:36Z	bookeeper-fase-7c	version-200	qa	opus	PASS	trap	committed snapshot is current in the openapi test is ignore d so a plain cargo test test openapi skips the snapshot check pass	`committed_snapshot_is_current` in the openapi test is `#[ignore]`d, so a plain `cargo test --test openapi` skips the snapshot check; pass… [crates/bookeeper-core/tests/openapi.rs]	89	1

@@ -48,6 +48,12 @@ jobs:
             echo "::error::apps/desktop/src-tauri/tauri.conf.json has version ${tauri_version}, Cargo.toml has ${version}"
             exit 1
           fi
+          if [ "$PUBLISH" = "true" ]; then
+            if ! node scripts/release-notes.mjs --version "$version" --out /dev/null; then
+              echo "::error::CHANGELOG.md has no section for ${version}"
+              exit 1
+            fi
+          fi
           echo "version=${version}" >> "$GITHUB_OUTPUT"
           echo "major=${version%%.*}" >> "$GITHUB_OUTPUT"
           core=${version%%-*}
@@ -353,6 +359,12 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Release notes from the CHANGELOG
+        run: node scripts/release-notes.mjs --version "${{ needs.check.outputs.version }}" --out release-notes.md
       - uses: actions/download-artifact@v4
         with:
           pattern: archive-*
@@ -371,7 +383,8 @@ jobs:
           tag_name: v${{ needs.check.outputs.version }}
           target_commitish: ${{ github.sha }}
           name: v${{ needs.check.outputs.version }}
-          generate_release_notes: true
+          body_path: release-notes.md
+          generate_release_notes: false
           prerelease: ${{ needs.check.outputs.prerelease == 'true' }}
           files: |
             dist/bookeeper-server-*
@@ -420,9 +433,10 @@ jobs:
         id: manifest
         if: steps.gate.outputs.go == 'true'
         run: |
+          node scripts/release-notes.mjs --version "$VERSION" --out release-notes.md
           channel=$(node scripts/update-manifest.mjs --dir updates --version "$VERSION" \
             --base-url https://app.neokeeper.dev/updates \
-            --notes "Bookeeper ${VERSION}: https://github.com/${GITHUB_REPOSITORY}/releases/tag/v${VERSION}" \
+            --notes-file release-notes.md \
             --out latest.json)
           echo "channel=${channel}" >> "$GITHUB_OUTPUT"
           cat latest.json

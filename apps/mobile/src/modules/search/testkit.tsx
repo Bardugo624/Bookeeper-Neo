@@ -5,6 +5,7 @@ import type { BookOut } from '@bookeeper/api';
 import { renderMobile } from '../../app/testing';
 import { fakePlatform, type FakePlatform, type Handler, type RawHandler, type RecordedCall } from '../../platform/testing';
 import { ME, ok, pair } from '../../session/fixtures';
+import { forgetScrollPositions } from './ResultList';
 import { module } from './routes';
 
 export const book = (n: number, over: Partial<BookOut> = {}): BookOut =>
@@ -98,6 +99,7 @@ export interface RenderOptions {
 export function renderSearch({ api = { books: [] }, handler, rawHandler, route = '/search', online }: RenderOptions = {}) {
   const platform: FakePlatform = fakePlatform({ handler: handler ?? apiHandler(api), rawHandler, online });
   pair(platform.storage);
+  forgetScrollPositions();
   return renderMobile({ platform, modules: [module], route });
 }
 

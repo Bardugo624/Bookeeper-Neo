@@ -1,6 +1,6 @@
 .scene {
     /* Page-edge ivory: declared once, derived from tokens. */
-    --book-pages: color-mix(in srgb, var(--bk-neutral-0) 88%, var(--bk-warn));
+    --book-pages: color-mix(in srgb, var(--bk-cover-light) 88%, var(--bk-warn));
     --book-rest: rotateY(-8deg);
     display: inline-block;
     perspective: 900px;

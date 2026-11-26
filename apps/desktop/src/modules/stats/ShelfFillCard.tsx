@@ -17,7 +17,7 @@ export function ShelfFillCard({ shelves }: { shelves: Stats['shelf_fill'] }) {
       <ul className={styles.list}>
         {shelves.map((s) => (
           <li key={s.id} className={styles.item}>
-            <Link to={`/shelves?unit=${encodeURIComponent(s.id)}`} className={styles.link}>
+            <Link to={`/shelves?unit=${encodeURIComponent(s.id)}`} className={styles.link} title={s.name}>
               {s.name}
             </Link>
             <FillBar tone="auto" value={s.pct} label={t('stats.shelfFill.bar', { name: s.name, pct: Math.round(s.pct * 100) })} />

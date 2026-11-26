@@ -1,7 +1,6 @@
 //! Anna's Archive provider (read-only, bibliographic metadata only).
 //!
-//! Port of the 0.3 Go provider (`server/internal/annas/annas.go`): the public
-//! `/isbn/<isbn>` page of a list of mirror domains is fetched and the
+//! The public `/isbn/<isbn>` page of a list of mirror domains is fetched and the
 //! `og:*` / `twitter:image` meta tags plus a few text patterns are read.
 //! Only metadata and the cover URL are extracted: no download link is ever
 //! read or stored.

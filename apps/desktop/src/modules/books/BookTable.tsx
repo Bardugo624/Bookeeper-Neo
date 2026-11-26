@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { Link } from 'react-router';
 import type { BookOut } from '@bookeeper/api';
 import { Icon, Skeleton, Tag } from '@bookeeper/ui/base';
@@ -9,10 +10,14 @@ import { SelectionCheckbox } from './SelectionCheckbox';
 import { WhereLink } from './WhereLink';
 import { ReadingCell } from './ReadingCell';
 import { useShelfNames } from './useBook';
+import { useWindowedRows } from './useWindowedRows';
 import type { Selection } from './useSelection';
 import styles from './BookTable.module.css';
 
-const SORTABLE: Array<{ key: SortKey | null; id: 'title' | 'author' | 'year' | 'placement' | 'reading' | 'tags' | 'status' }> = [
+const SORTABLE: Array<{
+  key: SortKey | null;
+  id: 'title' | 'author' | 'year' | 'placement' | 'reading' | 'tags' | 'status';
+}> = [
   { key: 'title', id: 'title' },
   { key: 'author', id: 'author' },
   { key: 'published_year', id: 'year' },
@@ -21,6 +26,9 @@ const SORTABLE: Array<{ key: SortKey | null; id: 'title' | 'author' | 'year' | '
   { key: null, id: 'tags' },
   { key: null, id: 'status' },
 ];
+
+/** Height of a row (padding, one line of text and the border); a windowed table keeps every row at this height. */
+export const ROW_HEIGHT = 41;
 
 export interface BookTableProps {
   books: BookOut[];
@@ -33,6 +41,11 @@ export interface BookTableProps {
 export function BookTable({ books, params, loadingMore, selection }: BookTableProps) {
   const t = useT();
   const shelves = useShelfNames();
+  const win = useWindowedRows<HTMLTableSectionElement>({
+    count: books.length,
+    pitch: ROW_HEIGHT,
+  });
+  const columns = SORTABLE.length + (selection ? 1 : 0);
   const state: FromList = { list: params.search };
   const place = (b: BookOut) => {
     if (!b.placement) return t('books.list.unplaced');
@@ -76,44 +89,51 @@ export function BookTable({ books, params, loadingMore, selection }: BookTablePr
           })}
         </tr>
       </thead>
-      <tbody>
-        {books.map((b) => (
-          <tr key={b.id} className={styles.row}>
-            {selection ? (
-              <td>
-                <SelectionCheckbox
-                  label={t('books.selection.select', { title: b.title })}
-                  checked={selection.selected.has(b.id)}
-                  onToggle={(range) => selection.toggle(b.id, range)}
-                />
-              </td>
-            ) : null}
-            <td>
-              <Link to={detailPath(b.id)} state={state} className={styles.link}>
-                {b.title}
-              </Link>
-            </td>
-            <td>{authorsOf(b)}</td>
-            <td>{b.published_year ?? ''}</td>
-            <td>
-              <span className={styles.place}>
-                {place(b)}
-                <WhereLink book={b} />
-              </span>
-            </td>
-            <td>
-              <ReadingCell reading={b.reading} />
-            </td>
-            <td className={styles.tags}>
-              <TagChips tags={b.tags} />
-            </td>
-            <td>{b.on_loan ? <Tag tone="warn">{t('books.list.onLoan')}</Tag> : t('books.list.available')}</td>
-          </tr>
-        ))}
+      <tbody ref={win.ref} {...win.handlers}>
+        {win.items.map(({ index, gapBefore }) => {
+          const b = books[index]!;
+          return (
+            <Fragment key={b.id}>
+              {gapBefore > 0 ? <Spacer height={gapBefore} columns={columns} /> : null}
+              <tr className={win.windowed ? styles.fixed : undefined} data-index={index}>
+                {selection ? (
+                  <td>
+                    <SelectionCheckbox
+                      label={t('books.selection.select', { title: b.title })}
+                      checked={selection.selected.has(b.id)}
+                      onToggle={(range) => selection.toggle(b.id, range)}
+                    />
+                  </td>
+                ) : null}
+                <td>
+                  <Link to={detailPath(b.id)} state={state} className={styles.link}>
+                    {b.title}
+                  </Link>
+                </td>
+                <td>{authorsOf(b)}</td>
+                <td>{b.published_year ?? ''}</td>
+                <td>
+                  <span className={styles.place}>
+                    {place(b)}
+                    <WhereLink book={b} />
+                  </span>
+                </td>
+                <td>
+                  <ReadingCell reading={b.reading} />
+                </td>
+                <td className={styles.tags}>
+                  <TagChips tags={b.tags} />
+                </td>
+                <td>{b.on_loan ? <Tag tone="warn">{t('books.list.onLoan')}</Tag> : t('books.list.available')}</td>
+              </tr>
+            </Fragment>
+          );
+        })}
+        {win.tail > 0 ? <Spacer height={win.tail} columns={columns} /> : null}
         {loadingMore
           ? Array.from({ length: 4 }, (_, i) => (
               <tr key={`s${i}`} aria-hidden="true">
-                <td colSpan={SORTABLE.length + (selection ? 1 : 0)}>
+                <td colSpan={columns}>
                   <Skeleton shape="line" width="100%" />
                 </td>
               </tr>
@@ -121,6 +141,15 @@ export function BookTable({ books, params, loadingMore, selection }: BookTablePr
           : null}
       </tbody>
     </table>
+  );
+}
+
+/** Stands for the rows that are not rendered, so the table keeps its height. */
+function Spacer({ height, columns }: { height: number; columns: number }) {
+  return (
+    <tr aria-hidden="true" style={{ height }}>
+      <td colSpan={columns} style={{ padding: 0, border: 0 }} />
+    </tr>
   );
 }
 

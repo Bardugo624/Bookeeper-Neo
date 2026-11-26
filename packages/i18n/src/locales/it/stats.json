@@ -36,10 +36,6 @@
     "text": "Aggiungi dei libri alla libreria per vedere i numeri.",
     "action": "Vai ai libri"
   },
-  "error": {
-    "title": "Impossibile caricare le statistiche",
-    "text": "Controlla la connessione e riprova."
-  },
   "formatLabel": {
     "paperback": "Brossura",
     "hardcover": "Rilegato",
@@ -64,10 +60,6 @@
     "year": "Anno",
     "yearLabel": "Anno di lettura",
     "loading": "Caricamento della lettura",
-    "error": {
-      "title": "Impossibile caricare la lettura",
-      "text": "Controlla la connessione e riprova."
-    },
     "empty": {
       "title": "Nessuna lettura nel {year}",
       "text": "Segna un libro come letto per vederlo qui.",

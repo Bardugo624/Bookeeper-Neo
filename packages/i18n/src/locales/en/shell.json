@@ -1,6 +1,10 @@
 {
-  "toast": { "close": "Dismiss notification" },
-  "sidebar": { "label": "Main navigation" },
+  "toast": {
+    "close": "Dismiss notification"
+  },
+  "sidebar": {
+    "label": "Main navigation"
+  },
   "window": {
     "minimize": "Minimize",
     "maximize": "Maximize",
@@ -34,8 +38,26 @@
   },
   "error": {
     "title": "Something went wrong",
-    "text": "Try again. If the problem continues, restart Bookeeper.",
-    "retry": "Try again"
+    "text": "This page did not load. Try again; if it keeps happening, close and reopen Bookeeper.",
+    "retry": "Try again",
+    "home": "Go to books",
+    "signOut": "Sign out",
+    "network": {
+      "title": "The library is not responding",
+      "text": "Check your connection and try again. If the library is on a server, make sure it is running."
+    },
+    "unauthorized": {
+      "title": "Your session has expired",
+      "text": "Sign out and sign in again to continue."
+    },
+    "forbidden": {
+      "title": "You cannot open this page",
+      "text": "Your role does not allow it. Ask a library administrator."
+    },
+    "notFound": {
+      "title": "This item no longer exists",
+      "text": "It may have been deleted by another member."
+    }
   },
   "errors": {
     "generic": "Something went wrong. Try again.",

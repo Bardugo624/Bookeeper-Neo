@@ -2,7 +2,7 @@
     position: fixed;
     inset: 0;
     z-index: var(--bk-z-overlay);
-    background: color-mix(in srgb, var(--bk-neutral-950) 55%, transparent);
+    background: color-mix(in srgb, var(--bk-scrim) 55%, transparent);
 }
 
 .panel {

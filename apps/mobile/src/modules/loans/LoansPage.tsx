@@ -47,6 +47,11 @@ export function LoansPage() {
             <LoanRow key={loan.id} loan={loan} now={now} onReturn={writer && scope === 'active' ? setReturning : undefined} />
           ))}
         </ul>
+        {query.isError ? (
+          <p role="alert" className={styles.error}>
+            {`${t('mloans.list.moreError')} ${apiErrorMessage(t, query.error)}`}
+          </p>
+        ) : null}
         {query.hasNextPage ? (
           <button type="button" className={styles.button} disabled={query.isFetchingNextPage} onClick={() => void query.fetchNextPage()}>
             {query.isFetchingNextPage ? <Spinner label={t('mloans.list.loading')} /> : t('mloans.list.more')}

@@ -85,7 +85,12 @@
 .blockedActions {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  width: min(100%, 320px);
+}
+
+.blockedActions > button {
+  width: 100%;
 }
 
 .blockedActions > button,
@@ -102,7 +107,9 @@
 .enter {
   display: flex;
   flex-direction: column;
-  margin-top: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--bk-border);
 }
 
 .enter > button {

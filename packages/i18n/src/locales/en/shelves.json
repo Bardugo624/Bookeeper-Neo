@@ -17,15 +17,16 @@
   "loadingBooks": "Loading the cabinet's books",
   "error": {
     "title": "Couldn't load the shelves",
-    "text": "Check your connection and try again."
+    "text": "Couldn't read the shelves from the server. Check your connection and try again."
   },
   "booksError": {
     "title": "Couldn't load the cabinet's books",
-    "text": "Check your connection and try again."
+    "text": "Couldn't read the books of this cabinet. Check your connection and try again."
   },
   "empty": {
     "title": "No cabinets",
     "text": "Create a cabinet to say where your books live.",
+    "textReadOnly": "No cabinets yet. They will appear here once someone allowed to edit creates them.",
     "create": "Create the first cabinet"
   },
   "emptyUnit": {

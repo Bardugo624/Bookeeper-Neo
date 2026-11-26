@@ -1,6 +1,6 @@
 import { Button, EmptyState, Skeleton } from '@bookeeper/ui/base';
 import { useT } from '../../app';
-import { ConfirmDialog, PageHeader, usePermission } from '../../kit';
+import { ConfirmDialog, PageHeader, usePermission, ErrorState } from '../../kit';
 import { DeviceCard } from './DeviceCard';
 import { PairDialog } from './PairDialog';
 import { PhoneNotice } from './PhoneNotice';
@@ -41,12 +41,7 @@ export function DevicesPage() {
     );
   } else if (query.isError) {
     body = (
-      <EmptyState
-        icon="alert"
-        title={t('devices.error.title')}
-        text={t('devices.error.text')}
-        action={<Button onClick={() => void query.refetch()}>{t('common.retry')}</Button>}
-      />
+      <ErrorState error={query.error} onRetry={() => void query.refetch()} />
     );
   } else {
     body = (

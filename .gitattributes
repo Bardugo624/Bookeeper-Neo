@@ -14,3 +14,7 @@
 Caddyfile   text eol=lf
 Dockerfile  text eol=lf
 .env*       text eol=lf
+
+# Impeccable skill launchers: the batch file needs CRLF, the POSIX one LF.
+*.cmd       text eol=crlf
+.claude/skills/impeccable/scripts/impeccable text eol=lf

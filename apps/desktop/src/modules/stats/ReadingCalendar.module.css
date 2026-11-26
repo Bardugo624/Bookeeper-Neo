@@ -37,17 +37,17 @@
 }
 
 .cell[data-level='1'] {
-  background: var(--bk-primary-200);
+  background: color-mix(in srgb, var(--bk-accent-control) 75%, var(--bk-border));
 }
 
 .cell[data-level='2'] {
-  background: var(--bk-primary-400);
+  background: var(--bk-accent-control);
 }
 
 .cell[data-level='3'] {
-  background: var(--bk-primary-600);
+  background: var(--bk-accent-text);
 }
 
 .cell[data-level='4'] {
-  background: var(--bk-primary-800);
+  background: color-mix(in srgb, var(--bk-accent-text) 70%, var(--bk-text-strong));
 }

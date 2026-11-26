@@ -24,7 +24,7 @@
     "count": "{count} of {max} tags",
     "limit": "You have reached the limit of {max} tags.",
     "loading": "Loading tags…",
-    "failed": "Could not read the tags.",
+    "failed": "Could not read the tags. Check the connection and try again.",
     "none": "No tag matches.",
     "create": "Create “{name}”",
     "newColor": "Color of the new tag"
@@ -45,7 +45,7 @@
   "manage": {
     "title": "Manage tags",
     "loading": "Loading tags",
-    "error": "Could not read the tags. Try again later.",
+    "error": "Could not read the tags. Check the connection and reopen this window.",
     "empty": "There are no tags yet. They are created from a book's form.",
     "list": "Tags of the library",
     "name": "Name of “{name}”",

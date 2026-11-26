@@ -18,3 +18,4 @@ export {
   type ParamSpec,
 } from './useListParams';
 export { FilePicker, type FilePickerProps } from './FilePicker';
+export { ErrorState, type ErrorStateProps } from './ErrorState';

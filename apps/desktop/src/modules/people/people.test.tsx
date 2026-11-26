@@ -35,7 +35,7 @@ describe('list', () => {
 
   it('shows an error with a retry', async () => {
     renderPeople({ ...library('member', others()), listFails: true });
-    expect(await screen.findByText('Impossibile caricare le persone')).toBeInTheDocument();
+    expect(await screen.findByText('Qualcosa non ha funzionato')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Riprova' })).toBeInTheDocument();
   });
 
@@ -246,12 +246,18 @@ describe('invitations', () => {
     const world = { ...library('owner', others()), invites: [invite('i1', 'member'), invite('i2', 'guest', { created_by: { id: 'u2', display_name: 'Bruno' } })] };
     const { platform } = renderPeople(world);
     expect(await screen.findByText('Inviti in attesa')).toBeInTheDocument();
-    const items = screen.getAllByRole('listitem').filter((li) => within(li).queryByRole('button', { name: 'Revoca' }));
+    const items = screen.getAllByRole('listitem').filter((li) => within(li).queryByRole('button', { name: /^Revoca/ }));
     expect(items).toHaveLength(2);
     expect(within(items[1]!).getByText('Ospite')).toBeInTheDocument();
     expect(within(items[1]!).getByText(/Creato da Bruno/)).toBeInTheDocument();
-    await userEvent.click(within(items[0]!).getByRole('button', { name: 'Revoca' }));
-    await waitFor(() => expect(screen.getAllByRole('button', { name: 'Revoca' })).toHaveLength(1));
+    await userEvent.click(within(items[0]!).getByRole('button', { name: /^Revoca l’invito per un Membro, scade il /  }));
+    await waitFor(() => expect(screen.getAllByRole('button', { name: /^Revoca/ })).toHaveLength(1));
     expect(platform.calls.find((c) => c.method === 'DELETE')?.path).toBe('/api/v1/invites/i1');
+  });
+
+  it('says so, with a retry, when the pending invitations cannot be loaded', async () => {
+    renderPeople({ ...library('owner', others()), fails: { method: 'GET', pattern: /invites/, status: 500, code: 'internal' } });
+    expect(await screen.findByText(/Non riesco a leggere gli inviti in attesa/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Riprova' })).toBeInTheDocument();
   });
 });

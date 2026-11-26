@@ -1,0 +1,7 @@
+# id	deps	difficulty	files	dwarf	qa	title
+cleanup-03	-	medium	server,clients,deploy,site,header.bmp,wizard.bmp,.github/workflows,README.md,.gitignore,.dockerignore,package.json,package-lock.json,Cargo.toml,Cargo.lock,scripts	-	-	Rimozione della 0.3
+perf-core	-	high	crates/bookeeper-core/src,crates/bookeeper-core/tests,packages/api/openapi.json	-	-	Core: 10.000 libri
+perf-desktop	-	high	apps/desktop/src/modules/books,apps/desktop/src/modules/shelves	-	-	Desktop: liste lunghe
+perf-mobile	-	medium	apps/mobile/src/modules/search	-	-	PWA: liste lunghe
+docs-user	cleanup-03	medium	README.md,ROADMAP.md,CHANGELOG.md,docs/deploy.md	-	-	Documentazione della 2.0
+design-docs	-	medium	PRODUCT.md,DESIGN.md	-	-	PRODUCT.md e DESIGN.md per la 2.0

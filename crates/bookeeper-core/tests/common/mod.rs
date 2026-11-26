@@ -8,6 +8,8 @@ use bookeeper_core::{router, AppState};
 use http_body_util::BodyExt;
 use tower::ServiceExt;
 
+pub mod big;
+
 pub struct Seeded {
     pub state: AppState,
     pub library_id: String,

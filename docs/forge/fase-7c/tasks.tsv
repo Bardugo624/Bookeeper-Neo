@@ -1,0 +1,4 @@
+# id	deps	difficulty	files	dwarf	qa	title
+version-200	-	medium	Cargo.toml,Cargo.lock,apps/desktop/src-tauri/tauri.conf.json,apps/desktop/package.json,apps/mobile/package.json,packages/api/package.json,packages/i18n/package.json,packages/ui/package.json,package-lock.json,packages/api/openapi.json,CHANGELOG.md	-	-	Versione 2.0.0
+release-notes	-	medium	scripts/release-notes.mjs,scripts/release-notes.test.mjs,.github/workflows/release.yml,.github/workflows/ci.yml,package.json	-	-	Note di rilascio dal CHANGELOG
+p3-card-hover	-	low	apps/desktop/src/modules/books	-	-	Card dei libri: etichette solidali con la copertina

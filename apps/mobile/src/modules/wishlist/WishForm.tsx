@@ -48,7 +48,7 @@ export function WishForm({ initial, submitLabel, onSubmit }: WishFormProps) {
     try {
       await onSubmit(values);
     } catch (error) {
-      setFailure(apiErrorMessage(t, error));
+      setFailure(`${t('mwishlist.errors.save')} ${apiErrorMessage(t, error)}`);
       setBusy(false);
     }
   };

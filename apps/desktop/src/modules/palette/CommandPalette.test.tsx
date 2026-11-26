@@ -1,5 +1,6 @@
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { t } from '@bookeeper/i18n';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { resetThemeForTest } from '../../theme/useTheme';
 import { book, renderPalette, searches } from './testkit';
@@ -34,7 +35,7 @@ describe('opening and closing', () => {
 
   it('opens from the hint in the sidebar', async () => {
     renderPalette();
-    await userEvent.click(await screen.findByRole('button', { name: /Cerca o lancia un comando/ }));
+    await userEvent.click(await screen.findByRole('button', { name: new RegExp(`^${t('it', 'palette.hint')}`) }));
     expect(await box()).toHaveFocus();
   });
 

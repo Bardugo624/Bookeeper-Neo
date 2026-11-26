@@ -6,11 +6,19 @@ product
 
 ## Users
 
-Membri di una famiglia / convivenza che gestiscono la biblioteca di casa: catalogano libri (spesso via ISBN), li assegnano a scaffali fisici, tracciano prestiti ad amici e wishlist. Uso desktop prevalente (app Wails), sessioni frequenti ma brevi ("aggiungo i tre libri comprati oggi"), più sessioni lunghe di riordino. Utenti non tecnici: il self-hosting è invisibile (modalità "libreria locale" one-click) o gestito da un familiare smanettone.
+Membri di una famiglia / convivenza che gestiscono la biblioteca di casa, ciascuno con un ruolo: Proprietario, Admin, Membro, Ospite. Catalogano libri (spesso via ISBN), li assegnano a scaffali fisici, tracciano prestiti ad amici e wishlist, e registrano lo stato di lettura di ciascuno.
+
+Tre superfici, stessa libreria:
+
+- **App desktop (Tauri)**: l'uso prevalente per il riordino e le sessioni lunghe ("sistemo la stanza dei ragazzi"), ma anche per quelle brevi ("aggiungo i tre libri comprati oggi"). Può usare una libreria locale o collegarsi a un server.
+- **PWA sul telefono**: lo strumento da tasca. Si usa in libreria o in negozio per scansionare un ISBN, registrare un prestito al volo e rispondere a "Dov'è?" (mobile e ripiano del libro, con il dorso evidenziato).
+- **Server**: self-hosted, tiene la libreria raggiungibile da tutti i dispositivi della famiglia.
+
+Utenti non tecnici: il self-hosting è invisibile o gestito da un familiare smanettone.
 
 ## Product Purpose
 
-Bookeeper Neo è il gestionale della libreria domestica: robusto, privato (self-hosted), completo (copertine, metadati automatici, statistiche, prestiti, multi-dispositivo). Successo = il catalogo è sempre aggiornato perché aggiungere e trovare libri è più veloce e piacevole che non farlo.
+Bookeeper Neo è il gestionale della libreria domestica: robusto, privato (self-hosted), completo (copertine, metadati automatici, statistiche, prestiti, famiglia con ruoli, più dispositivi). Successo = il catalogo è sempre aggiornato perché aggiungere e trovare libri è più veloce e piacevole che non farlo, sia alla scrivania sia con il telefono in mano.
 
 ## Brand Personality
 
@@ -33,6 +41,7 @@ Biblioteca moderna: editoriale, sereno, caldo — ma con dettagli contemporanei 
 ## Accessibility & Inclusion
 
 - Contrasto testo ≥ 4.5:1 (body) / 3:1 (large) in entrambi i temi light/dark.
-- `prefers-reduced-motion` rispettato globalmente (già in style.css, da mantenere in ogni nuova animazione).
-- Navigazione tastiera completa e `:focus-visible` sempre visibile.
+- `prefers-reduced-motion` rispettato: ogni animazione sta dentro `@media (prefers-reduced-motion: no-preference)` e con movimento ridotto lo stato finale è immediato.
+- Navigazione tastiera completa e `:focus-visible` sempre visibile (anello 2px `--bk-focus`).
+- Sul telefono: ogni azione resta raggiungibile con un semplice tocco, senza gesti obbligatori.
 - UI in italiano; testi chiari senza gergo tecnico (il gergo "tenant" sta migrando verso "libreria").

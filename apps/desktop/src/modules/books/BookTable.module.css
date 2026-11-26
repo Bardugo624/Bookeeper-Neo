@@ -14,7 +14,7 @@
 }
 
 .head {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--bk-text-muted);
 }
@@ -81,4 +81,26 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+}
+
+/* In a windowed table every row has the height the window counts with. */
+.table tr.fixed {
+  height: 41px;
+}
+
+.table tr.fixed td {
+  /* The row height comes from `height`, not from padding around taller content. */
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.table tr.fixed td.tags {
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.table tr.fixed td.tags > * {
+  flex-wrap: nowrap;
+  max-height: 28px;
+  overflow: hidden;
 }

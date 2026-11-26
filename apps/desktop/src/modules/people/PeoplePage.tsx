@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button, EmptyState, Skeleton } from '@bookeeper/ui/base';
 import { useT } from '../../app';
-import { PageHeader, apiErrorMessage, usePermission } from '../../kit';
+import { PageHeader, apiErrorMessage, usePermission, ErrorState } from '../../kit';
 import { useServerInfo } from '../devices';
 import { useSession } from '../../session';
 import { InviteDialog } from './InviteDialog';
@@ -46,12 +46,7 @@ export function PeoplePage() {
     );
   } else if (query.isError) {
     body = (
-      <EmptyState
-        icon="alert"
-        title={t('people.error.title')}
-        text={t('people.error.text')}
-        action={<Button onClick={() => void query.refetch()}>{t('common.retry')}</Button>}
-      />
+      <ErrorState error={query.error} onRetry={() => void query.refetch()} />
     );
   } else {
     body = (
@@ -82,6 +77,14 @@ export function PeoplePage() {
         </p>
       ) : null}
       {body}
+      {inviter && invites.query.isError ? (
+        <div role="alert" className={styles.inlineError}>
+          <span>{t('people.pending.error')}</span>
+          <Button size="sm" variant="secondary" onClick={() => void invites.query.refetch()}>
+            {t('people.pending.retry')}
+          </Button>
+        </div>
+      ) : null}
       {inviter && invites.query.data ? <InviteList invites={invites.query.data} revoke={(id) => void revoke(id)} busyId={invites.revoke.isPending ? (invites.revoke.variables ?? null) : null} /> : null}
       {inviting ? (
         <InviteDialog roles={assignableRoles(role)} phoneUrl={phoneAddress(server.data)} create={(b) => invites.create.mutateAsync(b)} onClose={() => setInviting(false)} />

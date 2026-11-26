@@ -1,11 +1,9 @@
 import type { WishOut } from '@bookeeper/api';
-import { Tag } from '@bookeeper/ui/base';
 import { useT } from '../../app/i18n';
-import { ListRow } from '../../kit';
+import { ListRow, cx } from '../../kit';
 import { groupByPerson, priorityKey } from './model';
 import styles from './Wishlist.module.css';
 
-const TONES = { low: 'neutral', medium: 'warn', high: 'danger' } as const;
 
 export interface WishRowsProps {
   items: readonly WishOut[];
@@ -26,7 +24,7 @@ export function WishRows({ items, family, meId, onOpen }: WishRowsProps) {
         <ListRow
           title={wish.title}
           subtitle={wish.authors ?? undefined}
-          trailing={<Tag tone={TONES[key]}>{t(`mwishlist.priority.${key}`)}</Tag>}
+          trailing={<span className={cx(styles.priority, styles[key])}>{t(`mwishlist.priority.${key}`)}</span>}
           onClick={own && onOpen ? () => onOpen(wish) : undefined}
         />
       </li>

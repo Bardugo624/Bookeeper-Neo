@@ -1,4 +1,3 @@
-import { useId } from 'react';
 import { Link } from 'react-router';
 import type { BookOut } from '@bookeeper/api';
 import { Tag } from '@bookeeper/ui/base';
@@ -17,12 +16,8 @@ export interface BookRowProps {
 
 export function BookRow({ book, from }: BookRowProps) {
   const t = useT();
-  const loanId = useId();
-  const readingId = useId();
   const src = useCover(book.id, mayHaveCover(book.cover_color));
   const author = book.authors.join(', ');
-  const name = author ? t('msearch.list.rowName', { title: book.title, author }) : book.title;
-  const hasBadge = book.reading?.status === 'reading' || book.reading?.status === 'read';
   const state: FromList = { list: from };
   return (
     <li className={styles.item}>
@@ -30,20 +25,22 @@ export function BookRow({ book, from }: BookRowProps) {
         to={detailPath(book.id)}
         state={state}
         className={styles.row}
-        aria-label={name}
-        aria-describedby={[book.on_loan ? loanId : null, hasBadge ? readingId : null].filter(Boolean).join(' ') || undefined}
       >
         <BookCover title={book.title} src={src} color={book.cover_color ?? undefined} width={56} />
         <span className={styles.text}>
+          {/* No aria-label: the name is the visible text (WCAG 2.5.3); title and author are separate spans, read with a space between. */}
           <span className={styles.title}>{book.title}</span>
-          {author ? <span className={styles.author}>{author}</span> : null}
+          {/* With no author the line is kept, empty, so the row is as tall as the others at any text size. */}
+          <span className={styles.author} aria-hidden={author ? undefined : true}>
+            {author || '\u00a0'}
+          </span>
         </span>
         {book.on_loan ? (
-          <Tag id={loanId} tone="warn" className={styles.loan}>
+          <Tag tone="warn" className={styles.loan}>
             {t('msearch.list.onLoan')}
           </Tag>
         ) : null}
-        <ReadingBadge id={readingId} reading={book.reading} pageCount={book.page_count} />
+        <ReadingBadge reading={book.reading} pageCount={book.page_count} />
       </Link>
     </li>
   );

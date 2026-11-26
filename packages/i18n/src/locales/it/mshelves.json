@@ -7,6 +7,10 @@
     "one": "{count} libro",
     "other": "{count} libri"
   },
+  "row": "Ripiano {row}",
+  "byRow": "Libri per ripiano",
+  "loadError": "Non riesco a leggere i mobili.",
+  "loadErrorUnit": "Non riesco a leggere questo mobile.",
   "unit": "Mobile {name}",
   "emptyUnit": "Nessun libro su questo mobile.",
   "empty": {

@@ -14,7 +14,7 @@ const loose = book(2);
 describe('"Dov\'è?" in the list', () => {
   it('is offered on the cards of placed books only, and goes to the unit with the book', async () => {
     const { router } = renderBooks({ books: [placed, loose] });
-    await screen.findByRole('link', { name: 'Libro 2, Autore 2' });
+    await screen.findByRole('link', { name: 'Libro 2 Autore 2' });
     expect(screen.getAllByRole('link', { name: /^Dov'è/ })).toHaveLength(1);
     await userEvent.click(screen.getByRole('link', { name: 'Dov\'è «Libro 1»?' }));
     expect(router.state.location.pathname).toBe('/shelves');

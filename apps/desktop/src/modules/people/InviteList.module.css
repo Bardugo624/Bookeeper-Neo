@@ -44,12 +44,14 @@
 }
 
 .role {
+  overflow-wrap: anywhere;
   font-size: 14px;
   font-weight: 600;
   color: var(--bk-text);
 }
 
 .meta {
+  overflow-wrap: anywhere;
   font-size: 13px;
   color: var(--bk-text-muted);
 }

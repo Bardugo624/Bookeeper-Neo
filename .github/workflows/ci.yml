@@ -78,6 +78,7 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
+      - run: npm run test:scripts
       - run: npm run build:2
 
   openapi:

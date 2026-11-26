@@ -22,4 +22,5 @@
   font-weight: 600;
   color: var(--bk-text-strong);
   overflow-wrap: anywhere;
+  text-wrap: pretty;
 }

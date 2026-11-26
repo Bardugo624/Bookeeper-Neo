@@ -163,7 +163,7 @@ describe('errors', () => {
 describe('convert', () => {
   it('converts, removes the item, offers the book and invalidates books and stats', async () => {
     const { platform, router } = renderWishlist({ items: [wish(1, { title: 'Comprato' }), wish(2, { title: 'Resta' })] });
-    await userEvent.click(await screen.findByRole('button', { name: 'Ho comprato Comprato' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Ho comprato questo libro: Comprato' }));
     await screen.findByText('Aggiunto ai libri');
     const calls = platform.calls.filter((c) => c.method === 'POST');
     expect(calls.map((c) => c.path)).toEqual(['/api/v1/wishlist/w1/convert']);
@@ -176,7 +176,7 @@ describe('convert', () => {
 
   it('leaves no notice of its own: the shared toast carries the action', async () => {
     renderWishlist({ items: [wish(1)] });
-    await userEvent.click(await screen.findByRole('button', { name: 'Ho comprato Desiderio 1' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Ho comprato questo libro: Desiderio 1' }));
     await screen.findByText('Aggiunto ai libri');
     expect(screen.queryByRole('link', { name: 'Apri' })).toBeNull();
   });
@@ -187,7 +187,7 @@ describe('convert', () => {
     await screen.findByText('Desiderio 1');
     await waitFor(() => expect(count('/api/v1/books')).toBe(1));
     await waitFor(() => expect(count('/api/v1/shelves')).toBe(1));
-    await userEvent.click(screen.getByRole('button', { name: 'Ho comprato Desiderio 1' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Ho comprato questo libro: Desiderio 1' }));
     await screen.findByText('Aggiunto ai libri');
     await waitFor(() => expect(count('/api/v1/books')).toBe(2));
     await waitFor(() => expect(count('/api/v1/shelves')).toBe(2));
@@ -195,7 +195,7 @@ describe('convert', () => {
 
   it('shows the error and keeps the item when the core refuses', async () => {
     renderWishlist({ items: [wish(1)], convertFails: 422 });
-    await userEvent.click(await screen.findByRole('button', { name: 'Ho comprato Desiderio 1' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Ho comprato questo libro: Desiderio 1' }));
     expect(await screen.findByText(/Alcuni dati non sono validi/)).toBeInTheDocument();
     expect(screen.getByText('Desiderio 1')).toBeInTheDocument();
   });
@@ -236,7 +236,7 @@ describe('family scope', () => {
     await screen.findByText('Mia alta');
     const own = screen.getByRole('region', { name: 'Tu' });
     expect(within(own).getAllByRole('button', { name: /^Modifica / })).toHaveLength(2);
-    expect(within(own).getAllByRole('button', { name: /^Ho comprato / })).toHaveLength(2);
+    expect(within(own).getAllByRole('button', { name: /^Ho comprato questo libro: / })).toHaveLength(2);
     for (const name of ['Bruno', 'Carla']) {
       expect(within(screen.getByRole('region', { name })).queryByRole('button')).toBeNull();
     }

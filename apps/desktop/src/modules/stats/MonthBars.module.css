@@ -21,7 +21,7 @@
 }
 
 .bar {
-  fill: var(--bk-primary-500);
+  fill: var(--bk-accent-control);
 }
 
 .value {

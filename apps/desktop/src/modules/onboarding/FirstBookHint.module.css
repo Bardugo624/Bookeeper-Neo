@@ -13,8 +13,8 @@
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: var(--bk-primary-50);
-  color: var(--bk-primary-500);
+  background: var(--bk-accent-surface);
+  color: var(--bk-on-accent-surface);
 }
 .title {
   margin: 8px 0 0;
@@ -38,5 +38,7 @@
   color: var(--bk-text-strong);
 }
 .steps a {
-  color: var(--bk-primary-500);
+  color: var(--bk-accent-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }

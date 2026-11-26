@@ -34,7 +34,7 @@
     "due": "due {date}",
     "noDue": "no due date",
     "returnedOn": "returned on {date}",
-    "byBorrower": "Show the loans of {name}"
+    "byBorrower": "To {name}: show their loans"
   },
   "actions": {
     "return": "Mark as returned",
@@ -43,28 +43,33 @@
   "empty": {
     "active": {
       "title": "No active loans",
-      "text": "Books you lend show up here until they come back."
+      "text": "Books you lend show up here until they come back.",
+      "textReadOnly": "No book is on loan right now."
     },
     "overdue": {
       "title": "No overdue loans",
-      "text": "Every open loan is within its due date."
+      "text": "Every open loan is within its due date. If one runs late, it shows up here.",
+      "action": "See active loans"
     },
     "returned": {
       "title": "No returned loans",
-      "text": "Finished loans show up here."
+      "text": "When you mark a loan as returned, it shows up here with how long it lasted.",
+      "action": "See active loans"
     },
     "all": {
       "title": "No loans",
-      "text": "You haven't lent any book yet."
+      "text": "You haven't lent any book yet. When you do, the loan shows up here.",
+      "textReadOnly": "No book has been lent yet."
     },
     "mine": {
       "title": "No loans to you",
-      "text": "The books lent to you show up here."
+      "text": "The books lent to you show up here.",
+      "action": "See active loans"
     }
   },
   "error": {
     "title": "Can't load the loans",
-    "text": "Check your connection and try again."
+    "text": "Couldn't read the loans from the server. Check your connection and try again."
   },
   "new": {
     "button": "New loan",

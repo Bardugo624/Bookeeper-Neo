@@ -8,9 +8,9 @@
   "priority": { "low": "Low", "medium": "Medium", "high": "High" },
   "filters": { "label": "Filter by priority", "all": "All" },
   "sort": { "label": "Sort order", "priority": "By priority", "date": "By date" },
-  "empty": { "title": "Your wishlist is empty", "text": "Add the books you would like to own." },
+  "empty": { "title": "Your wishlist is empty", "text": "Add the books you would like to own.", "textReadOnly": "Nobody has added a book yet. They will show up here once someone with write access adds one." },
   "noResults": { "title": "No results", "text": "No book with this priority.", "reset": "Show all" },
-  "error": { "title": "Could not load the wishlist", "text": "Check your connection and try again." },
+  "error": { "title": "Could not load the wishlist", "text": "Couldn't read the wishlist from the server. Check your connection and try again." },
   "card": {
     "added": "Added {date}",
     "isbn": "ISBN {isbn}",
@@ -20,7 +20,7 @@
   },
   "convert": {
     "button": "I bought this book",
-    "label": "I bought {title}",
+    "label": "I bought this book: {title}",
     "working": "Converting"
   },
   "converted": { "title": "Added to books", "open": "Open", "dismiss": "Dismiss notification" },

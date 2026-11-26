@@ -17,16 +17,18 @@ export interface BookCardProps {
   from: string;
   /** Present while the list is in selection mode. */
   selection?: Selection;
+  /** Position in the list, and, in a windowed grid, the cell (1-based) the card is placed in. */
+  index?: number;
+  cell?: { row: number; column: number };
 }
 
-export function BookCard({ book, from, selection }: BookCardProps) {
+export function BookCard({ book, from, selection, index, cell }: BookCardProps) {
   const t = useT();
   const src = useCover(book.id, mayHaveCover(book.cover_color));
   const author = authorsOf(book);
-  const name = author ? t('books.list.cardName', { title: book.title, author }) : book.title;
   const state: FromList = { list: from };
   return (
-    <li className={styles.item}>
+    <li className={styles.item} data-index={index} style={cell ? { gridRow: cell.row, gridColumn: cell.column } : undefined}>
       {selection ? (
         <SelectionCheckbox
           label={t('books.selection.select', { title: book.title })}
@@ -36,8 +38,12 @@ export function BookCard({ book, from, selection }: BookCardProps) {
         />
       ) : null}
       <WhereLink book={book} className={styles.where} />
-      <Link to={detailPath(book.id)} state={state} aria-label={name} className={styles.card}>
-        <BookCover title={book.title} author={author || undefined} src={src} color={book.cover_color ?? undefined} lift>
+      {/* The link is named by its content. Title, author, "On loan" and the reading state come first in the
+          DOM, in that order; the cover is placed above them by the grid, and its decoration is hidden. */}
+      <Link to={detailPath(book.id)} state={state} className={styles.card}>
+        <span className={styles.title}>{book.title}</span>
+        {author ? <span className={styles.author}>{author}</span> : null}
+        <span className={styles.labels}>
           {book.on_loan ? (
             <Tag tone="warn" className={styles.loan}>
               {t('books.list.onLoan')}
@@ -53,9 +59,10 @@ export function BookCard({ book, from, selection }: BookCardProps) {
               <Icon name="check" size={12} />
             </span>
           ) : null}
-        </BookCover>
-        <span className={styles.title}>{book.title}</span>
-        {author ? <span className={styles.author}>{author}</span> : null}
+        </span>
+        <span className={styles.cover} aria-hidden="true">
+          <BookCover title={book.title} author={author || undefined} src={src} color={book.cover_color ?? undefined} lift />
+        </span>
       </Link>
     </li>
   );

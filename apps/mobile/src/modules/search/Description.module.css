@@ -24,7 +24,7 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--bk-primary-600);
+  color: var(--bk-accent-text);
   font: inherit;
   font-size: 14px;
   font-weight: 500;
@@ -33,7 +33,7 @@
 }
 
 .toggle:focus-visible {
-  outline: 2px solid var(--bk-primary-400);
+  outline: 2px solid var(--bk-focus);
   outline-offset: 2px;
 }
 

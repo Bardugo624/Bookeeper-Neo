@@ -7,7 +7,7 @@
     "filter": "Filtra o crea un tag",
     "list": "Tag della libreria",
     "loading": "Caricamento dei tag…",
-    "loadError": "Non riesco a leggere i tag.",
+    "loadError": "Non riesco a leggere i tag. Controlla la connessione e riprova.",
     "retry": "Riprova",
     "empty": "Nessun tag.",
     "create": "Crea «{name}»",

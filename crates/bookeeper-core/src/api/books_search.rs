@@ -285,6 +285,58 @@ fn order_by(sort: Option<&str>, desc: bool, searching: bool) -> ApiResult<String
     })
 }
 
+/// The two statements of a list request and their bound values.
+#[doc(hidden)]
+pub struct ListSql {
+    pub count: String,
+    pub count_args: Vec<Value>,
+    pub list: String,
+    pub list_args: Vec<Value>,
+}
+
+/// Validates the query and builds the count and list statements.
+#[doc(hidden)]
+pub fn build_sql(
+    q: &ListBooksQuery,
+    tag_ids: &[String],
+    library_id: &str,
+    user_id: &str,
+    limit: i64,
+    offset: i64,
+) -> ApiResult<ListSql> {
+    let sort = q.sort.as_deref();
+    let desc = match q.order.as_deref() {
+        None => matches!(sort, None | Some("created_at")),
+        Some("asc") => false,
+        Some("desc") => true,
+        Some(_) => return Err(ApiError::validation("order must be asc or desc")),
+    };
+    let filter = build_filter(q, tag_ids, library_id, user_id)?;
+    let searching = filter.joins.contains("books_fts");
+    if searching && sort.is_none() && q.order.is_some() {
+        return Err(ApiError::validation(
+            "order requires sort when searching with q",
+        ));
+    }
+    let order = order_by(sort, desc, searching)?;
+    let Filter { joins, conds, args } = filter;
+    let where_ = format!("WHERE {}", conds.join(" AND "));
+    let n = args.len();
+    let mut list_args = args.clone();
+    list_args.push(Value::Integer(limit));
+    list_args.push(Value::Integer(offset));
+    Ok(ListSql {
+        count: format!("SELECT COUNT(*) {FROM_BOOKS}{joins} {where_}"),
+        count_args: args,
+        list: format!(
+            "{SELECT_BOOK}{joins} {where_} ORDER BY {order} LIMIT ?{} OFFSET ?{}",
+            n + 1,
+            n + 2
+        ),
+        list_args,
+    })
+}
+
 #[utoipa::path(
     get,
     path = "/api/v1/books",
@@ -336,47 +388,18 @@ pub async fn list_books(
         }
     }
 
-    let sort = q.sort.as_deref();
-    let desc = match q.order.as_deref() {
-        None => matches!(sort, None | Some("created_at")),
-        Some("asc") => false,
-        Some("desc") => true,
-        Some(_) => return Err(ApiError::validation("order must be asc or desc")),
-    };
-    let filter = build_filter(&q, &tag_ids, &who.library_id, &who.user_id)?;
-    let searching = filter.joins.contains("books_fts");
-    if searching && sort.is_none() && q.order.is_some() {
-        return Err(ApiError::validation(
-            "order requires sort when searching with q",
-        ));
-    }
-    let order = order_by(sort, desc, searching)?;
-
-    let Filter {
-        joins,
-        conds,
-        mut args,
-    } = filter;
-    let where_ = format!("WHERE {}", conds.join(" AND "));
+    let sql = build_sql(&q, &tag_ids, &who.library_id, &who.user_id, limit, offset)?;
     let out = state
         .db
         .run(move |conn| {
             let total: i64 = conn.query_row(
-                &format!("SELECT COUNT(*) {FROM_BOOKS}{joins} {where_}"),
-                rusqlite::params_from_iter(args.iter()),
+                &sql.count,
+                rusqlite::params_from_iter(sql.count_args.iter()),
                 |r| r.get(0),
             )?;
-            let n = args.len();
-            let sql = format!(
-                "{SELECT_BOOK}{joins} {where_} ORDER BY {order} LIMIT ?{} OFFSET ?{}",
-                n + 1,
-                n + 2
-            );
-            args.push(Value::Integer(limit));
-            args.push(Value::Integer(offset));
-            let mut stmt = conn.prepare(&sql)?;
+            let mut stmt = conn.prepare(&sql.list)?;
             let mut items = stmt
-                .query_map(rusqlite::params_from_iter(args.iter()), map_book)?
+                .query_map(rusqlite::params_from_iter(sql.list_args.iter()), map_book)?
                 .collect::<rusqlite::Result<Vec<_>>>()?;
             attach_reading(conn, &who.user_id, &mut items)?;
             attach_tags(conn, &mut items)?;

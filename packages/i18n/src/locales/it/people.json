@@ -5,10 +5,6 @@
     "other": "{count} persone"
   },
   "loading": "Caricamento delle persone",
-  "error": {
-    "title": "Impossibile caricare le persone",
-    "text": "Controlla la connessione e riprova."
-  },
   "you": "Tu",
   "roles": {
     "owner": "Proprietario",
@@ -92,6 +88,9 @@
     "empty": "Nessun invito in attesa.",
     "by": "Creato da {name}",
     "expires": "scade il {date}",
-    "revoke": "Revoca"
+    "revoke": "Revoca",
+    "revokeLabel": "Revoca l’invito per un {role}, scade il {date}",
+    "error": "Non riesco a leggere gli inviti in attesa. Riprova tra poco.",
+    "retry": "Riprova"
   }
 }

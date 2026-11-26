@@ -12,7 +12,7 @@
 }
 
 .back:focus-visible {
-  outline: 2px solid var(--bk-primary-400);
+  outline: 2px solid var(--bk-focus);
   outline-offset: -2px;
 }
 
@@ -40,12 +40,17 @@
   line-height: 1.2;
   color: var(--bk-text-strong);
   overflow-wrap: anywhere;
+  text-wrap: balance;
+  max-width: 100%;
 }
 
 .subtitle {
   margin: 0;
   font-size: 15px;
   color: var(--bk-text-muted);
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
 }
 
 .authors {
@@ -54,6 +59,9 @@
   font-size: 18px;
   font-style: italic;
   color: var(--bk-text-muted);
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
 }
 
 .metaRow {
@@ -72,12 +80,12 @@
   border-radius: var(--bk-radius-sm);
   font-size: 16px;
   font-weight: 600;
-  color: var(--bk-primary-600);
+  color: var(--bk-accent-text);
   text-decoration: none;
   touch-action: manipulation;
 }
 
 .edit:focus-visible {
-  outline: 2px solid var(--bk-primary-400);
+  outline: 2px solid var(--bk-focus);
   outline-offset: -2px;
 }

@@ -7,6 +7,10 @@
     "one": "{count} book",
     "other": "{count} books"
   },
+  "row": "Shelf {row}",
+  "byRow": "Books by shelf",
+  "loadError": "Could not load the furniture.",
+  "loadErrorUnit": "Could not load this furniture.",
   "unit": "Furniture {name}",
   "emptyUnit": "No books on this furniture.",
   "empty": {

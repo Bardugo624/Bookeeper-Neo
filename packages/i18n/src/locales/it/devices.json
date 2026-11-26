@@ -2,7 +2,6 @@
   "title": "Dispositivi",
   "count": { "one": "{count} dispositivo collegato", "other": "{count} dispositivi collegati" },
   "loading": "Caricamento dei dispositivi",
-  "error": { "title": "Impossibile caricare i dispositivi", "text": "Controlla la connessione e riprova." },
   "revokedSection": "Revocati ({count})",
   "kind": { "desktop": "Computer", "mobile": "Telefono" },
   "card": {

@@ -175,7 +175,7 @@ fn a_version_1_database_is_migrated_without_losing_data() {
         (title.as_str(), status.as_str(), rating, page),
         ("Dune", "read", 5, None)
     );
-    assert_eq!(version, 3);
+    assert_eq!(version, 4);
     assert!(db
         .with(|c| c.execute("UPDATE reading SET current_page = -1", []))
         .is_err());
@@ -230,7 +230,7 @@ fn migration_0003_applies_to_a_populated_version_2_database() {
             )
         })
         .unwrap();
-    assert_eq!((rows, with_id, version), (2, 0, 3));
+    assert_eq!((rows, with_id, version), (2, 0, 4));
     // New rows take an id; the id is unique, a missing one is not.
     db.with(|c| {
         c.execute(

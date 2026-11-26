@@ -22,7 +22,7 @@ export function useCreateLocal() {
   const [errors, setErrors] = useState<Errors>({});
   const { busy, run } = useBusy();
 
-  const fail = (e: unknown) => setErrors(apiErrors(e, t));
+  const fail = (e: unknown) => setErrors(apiErrors(e, t, { local: true }));
 
   const create = (e: FormEvent) => {
     e.preventDefault();

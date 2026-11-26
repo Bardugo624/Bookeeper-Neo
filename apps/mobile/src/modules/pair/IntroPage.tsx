@@ -9,16 +9,7 @@ export function IntroPage() {
   const t = useT();
   const navigate = useNavigate();
   return (
-    <Screen
-      title={t('mpair.intro.title')}
-      footer={
-        <div className={styles.actions}>
-          <Button variant="primary" onClick={() => navigate('/pair/code')}>
-            {t('mpair.intro.haveCode')}
-          </Button>
-        </div>
-      }
-    >
+    <Screen title={t('mpair.intro.title')}>
       <div className={styles.content}>
         <p className={styles.lead}>{t('mpair.intro.text')}</p>
         <ol className={styles.steps} aria-label={t('mpair.intro.stepsLabel')}>
@@ -28,6 +19,11 @@ export function IntroPage() {
             </li>
           ))}
         </ol>
+        <div className={styles.introAction}>
+          <Button variant="primary" onClick={() => navigate('/pair/code')}>
+            {t('mpair.intro.haveCode')}
+          </Button>
+        </div>
       </div>
     </Screen>
   );

@@ -18,7 +18,7 @@ export function ReturnSheet({ loan, onClose }: { loan: LoanOut; onClose: () => v
       await ret.mutateAsync(loan.id);
       onClose();
     } catch (e) {
-      setError(apiErrorMessage(t, e));
+      setError(`${t('mloans.return.failed')} ${apiErrorMessage(t, e)}`);
     }
   };
   return (

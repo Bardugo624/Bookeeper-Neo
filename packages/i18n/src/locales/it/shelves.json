@@ -17,15 +17,16 @@
   "loadingBooks": "Caricamento dei libri del mobile",
   "error": {
     "title": "Impossibile caricare gli scaffali",
-    "text": "Controlla la connessione e riprova."
+    "text": "Non sono riuscito a leggere gli scaffali dal server. Controlla la connessione e riprova."
   },
   "booksError": {
     "title": "Impossibile caricare i libri del mobile",
-    "text": "Controlla la connessione e riprova."
+    "text": "Non sono riuscito a leggere i libri di questo mobile. Controlla la connessione e riprova."
   },
   "empty": {
     "title": "Nessun mobile",
     "text": "Crea un mobile per dire dove stanno i tuoi libri.",
+    "textReadOnly": "Nessun mobile ancora. Compariranno qui quando qualcuno con il permesso di scrivere li crea.",
     "create": "Crea il primo mobile"
   },
   "emptyUnit": {

@@ -1,4 +1,4 @@
-import { Button } from '@bookeeper/ui/base';
+import { Button, Icon } from '@bookeeper/ui/base';
 import styles from './form.module.css';
 
 export interface NoticeProps {
@@ -11,7 +11,10 @@ export interface NoticeProps {
 export function Notice({ text, action }: NoticeProps) {
   return (
     <div role="alert" className={styles.notice}>
-      <p className={styles.noticeText}>{text}</p>
+      <p className={styles.noticeText}>
+        <Icon name="alert" size={15} />
+        <span>{text}</span>
+      </p>
       {action ? (
         <Button size="sm" variant="secondary" onClick={action.onClick}>
           {action.label}

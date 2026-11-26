@@ -95,17 +95,17 @@
 }
 
 .choice:has(input:checked) {
-  border-color: var(--bk-primary-600);
-  background: var(--bk-primary-50);
+  border-color: var(--bk-accent-control);
+  background: var(--bk-accent-surface);
 }
 
 .choice:has(input:focus-visible) {
-  outline: 2px solid var(--bk-primary-400);
+  outline: 2px solid var(--bk-focus);
   outline-offset: 2px;
 }
 
 .choice input {
-  accent-color: var(--bk-primary-600);
+  accent-color: var(--bk-accent-control);
 }
 
 .failures {

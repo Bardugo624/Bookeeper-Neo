@@ -33,7 +33,6 @@
     "onLoan": "In prestito",
     "available": "In casa",
     "unplaced": "Non collocato",
-    "cardName": "{title}, {author}",
     "columns": {
       "title": "Titolo",
       "author": "Autore",

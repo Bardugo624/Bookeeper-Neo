@@ -83,7 +83,7 @@
     position: absolute;
     right: 10px;
     display: inline-flex;
-    color: var(--bk-primary-500);
+    color: var(--bk-accent-text);
 }
 
 @media (prefers-reduced-motion: no-preference) {
