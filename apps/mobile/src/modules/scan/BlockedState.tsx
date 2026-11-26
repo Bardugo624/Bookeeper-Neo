@@ -23,14 +23,14 @@ export function BlockedState({ reason, onRetry, onManual }: BlockedStateProps) {
         text={t(denied ? 'mscan.blocked.deniedText' : 'mscan.blocked.missingText')}
         action={
           <div className={styles.blockedActions}>
-            <Button variant="secondary" onClick={onRetry}>
-              {t('mscan.blocked.retry')}
-            </Button>
             {typing ? null : (
               <Button variant="primary" onClick={() => setTyping(true)}>
                 {t('mscan.blocked.manual')}
               </Button>
             )}
+            <Button variant={typing ? 'secondary' : 'ghost'} onClick={onRetry}>
+              {t('mscan.blocked.retry')}
+            </Button>
           </div>
         }
       />
