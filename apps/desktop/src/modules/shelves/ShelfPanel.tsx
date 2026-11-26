@@ -30,7 +30,10 @@ export function ShelfPanel({ shelf, roomName, onEdit, onDelete, children }: Shel
         {onDelete ? <IconButton icon="trash" size="sm" label={t('shelves.panel.delete', { name: shelf.name })} onClick={onDelete} /> : null}
       </div>
       <p className={styles.layout}>{t('shelves.panel.room', { name: roomName ?? t('shelves.rooms.none') })}</p>
-      <p className={styles.layout}>{t('shelves.panel.layout', { rows: shelf.rows, slots: shelf.slots_per_row })}</p>
+      <p className={styles.layout}>{t('shelves.panel.layout', {
+        rows: t('shelves.panel.layoutRows', { count: shelf.rows }),
+        slots: t('shelves.panel.layoutSlots', { count: shelf.slots_per_row }),
+      })}</p>
       {free !== null ? <FillBar tone="auto" value={value} label={t('shelves.panel.fill', { name: shelf.name })} /> : null}
       <p className={styles.fill}>
         {free !== null

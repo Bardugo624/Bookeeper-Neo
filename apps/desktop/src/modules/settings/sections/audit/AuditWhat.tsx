@@ -23,7 +23,7 @@ export function AuditWhat({ entry }: { entry: AuditOut }) {
         {book && after !== undefined ? (
           <>
             {before}
-            <Link to={`/books/${encodeURIComponent(book.id)}`}>{book.title}</Link>
+            <Link className={styles.link} to={`/books/${encodeURIComponent(book.id)}`}>{book.title}</Link>
             {after}
           </>
         ) : (

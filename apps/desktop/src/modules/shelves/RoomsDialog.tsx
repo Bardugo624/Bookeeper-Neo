@@ -28,7 +28,7 @@ export function RoomsDialog({ rooms, onDeleted, onClose }: RoomsDialogProps) {
   const add = async (event: FormEvent) => {
     event.preventDefault();
     const problem = roomNameProblem(name);
-    if (problem) return setError(t(`shelves.rooms.errors.${problem}`, { max: ROOM_NAME_MAX }));
+    if (problem) return setError(t(`shelves.rooms.errors.${problem}`, { count: ROOM_NAME_MAX }));
     try {
       await writes.create.mutateAsync({ name: name.trim() });
       setName('');
