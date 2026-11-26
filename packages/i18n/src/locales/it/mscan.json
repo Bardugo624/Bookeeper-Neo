@@ -44,7 +44,8 @@
       "title": "Libro trovato",
       "readOnly": "Non puoi aggiungere libri a questa libreria.",
       "add": "Aggiungi alla libreria",
-      "adding": "Aggiungo…"
+      "adding": "Aggiungo…",
+      "wish": "Aggiungi alla wishlist"
     },
     "added": {
       "tag": "Aggiunto",
