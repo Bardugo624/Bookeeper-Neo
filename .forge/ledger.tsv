@@ -593,3 +593,5 @@
 2026-11-26T17:20:49Z	bookeeper-fase-7b1	ui-fix-mobile	qa	opus	PASS	-	-	-	14
 2026-11-26T17:26:41Z	bookeeper-fase-7b1	ui-fix-desktop	dwarf	sonnet	-	trap	a book card link has no aria label so its accessible name is its spans joined by spaces libro 1 autore 1 and textcontent	a book card link has no aria-label, so its accessible name is its spans joined by spaces ("Libro 1 Autore 1"), and `textContent`… [apps/desktop/src/modules/books/BookCard.tsx]	383	1
 2026-11-26T17:28:35Z	bookeeper-fase-7b1	ui-fix-desktop	qa	opus	PASS	-	-	-	108
+2026-11-26T17:42:32Z	bookeeper-fase-7b1	fix-7b1	dwarf	sonnet	-	trap	t from bookeeper i18n takes the locale first t it palette hint and the sidebar hint button s accessible name also includes its	`t` from `@bookeeper/i18n` takes the locale first (`t('it', 'palette.hint')`), and the sidebar hint button's accessible name also includes its… [apps/desktop/src/shell/Sidebar.tsx]	187	1
+2026-11-26T17:43:41Z	bookeeper-fase-7b1	fix-7b1	qa	opus	PASS	-	-	-	63
