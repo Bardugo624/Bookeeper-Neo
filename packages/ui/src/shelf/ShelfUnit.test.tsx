@@ -233,6 +233,37 @@ describe('pulledId', () => {
     rerender(<ShelfUnit color={SHELF_COLORS[0]!} rows={rows} pulledId="d" />);
     expect(spy).toHaveBeenCalledTimes(1);
   });
+
+  it('scrolls again when pulledId returns to a spine after a spine on another shelf', () => {
+    const spy = vi.fn();
+    HTMLElement.prototype.scrollIntoView = spy;
+    const two: ShelfRow[] = [
+      { id: 'r1', label: 'Ripiano 1', capacity: 10, books: [rows[0]!.books[0]!] },
+      { id: 'r2', label: 'Ripiano 2', capacity: 10, books: [rows[1]!.books[0]!] },
+    ];
+    const first = two[0]!.books[0]!.id;
+    const second = two[1]!.books[0]!.id;
+    const ui = (id: string) => <ShelfUnit color={SHELF_COLORS[0]!} rows={two} pulledId={id} />;
+    const { rerender } = render(ui(first));
+    expect(spy).toHaveBeenCalledTimes(1);
+    rerender(ui(second));
+    expect(spy).toHaveBeenCalledTimes(2);
+    rerender(ui(first));
+    expect(spy).toHaveBeenCalledTimes(3);
+  });
+
+  it('scrolls when the pulled spine appears late, and not on a reload of the same books', () => {
+    const spy = vi.fn();
+    HTMLElement.prototype.scrollIntoView = spy;
+    const empty: ShelfRow[] = [{ id: 'r1', label: 'Ripiano 1', capacity: 10, books: [] }];
+    const ui = (r: ShelfRow[]) => <ShelfUnit color={SHELF_COLORS[0]!} rows={r} pulledId="a" />;
+    const { rerender } = render(ui(empty));
+    expect(spy).not.toHaveBeenCalled();
+    rerender(ui(rows));
+    expect(spy).toHaveBeenCalledTimes(1);
+    rerender(ui(rows.map((r) => ({ ...r, books: [...r.books] }))));
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('read-only use', () => {
