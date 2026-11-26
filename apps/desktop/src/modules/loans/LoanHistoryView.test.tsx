@@ -71,7 +71,7 @@ describe('per person', () => {
     const user = userEvent.setup();
     const { router } = renderLoans(store());
     await screen.findByText('Libro 5');
-    await user.click(screen.getByRole('button', { name: 'Mostra i prestiti di Carla' }));
+    await user.click(screen.getByRole('button', { name: 'A Carla: mostra i suoi prestiti' }));
     expect(router.state.location.search).toBe('?borrower=Carla&filter=all');
     await screen.findByText('Solo i prestiti a Carla.');
     expect(screen.queryByText('Libro 4')).toBeNull();

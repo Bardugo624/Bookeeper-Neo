@@ -73,6 +73,20 @@ describe('units and panel', () => {
     expect(screen.getByRole('button', { name: 'Libro b1, Autore b1' })).toHaveAttribute('aria-pressed', 'false');
   });
 
+  it('reaches every spine action from the keyboard, through the menu', async () => {
+    const user = userEvent.setup();
+    renderShelves(world());
+    const spine = await screen.findByRole('button', { name: 'Libro b1, Autore b1' });
+    spine.focus();
+    await user.keyboard('{Enter}');
+    const dialog = await screen.findByRole('dialog');
+    for (const name of ['Togli dallo scaffale', 'Sposta in…']) {
+      expect(within(dialog).getByRole('button', { name })).toBeInTheDocument();
+    }
+    expect(within(dialog).getByRole('link', { name: 'Apri scheda' })).toBeInTheDocument();
+    expect(within(dialog).getByRole('group', { name: 'Larghezza del dorso' })).toBeInTheDocument();
+  });
+
   it('opens the book page from a spine', async () => {
     const { router } = renderShelves(world());
     await userEvent.click(await screen.findByRole('button', { name: 'Libro b1, Autore b1' }));

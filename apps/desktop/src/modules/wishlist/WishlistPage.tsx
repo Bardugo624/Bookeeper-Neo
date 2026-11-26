@@ -59,7 +59,7 @@ export function WishlistPage() {
       <EmptyState
         icon="heart"
         title={t('wishlist.empty.title')}
-        text={t('wishlist.empty.text')}
+        text={t(canWrite ? 'wishlist.empty.text' : 'wishlist.empty.textReadOnly')}
         action={canWrite ? <Button variant="primary" icon="plus" onClick={() => a.setDialog({ kind: 'form' })}>{t('wishlist.add')}</Button> : undefined}
       />
     );

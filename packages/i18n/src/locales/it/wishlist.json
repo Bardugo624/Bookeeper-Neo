@@ -8,9 +8,9 @@
   "priority": { "low": "Bassa", "medium": "Media", "high": "Alta" },
   "filters": { "label": "Filtra per priorità", "all": "Tutte" },
   "sort": { "label": "Ordinamento", "priority": "Per priorità", "date": "Per data" },
-  "empty": { "title": "La wishlist è vuota", "text": "Aggiungi i libri che vorresti avere." },
+  "empty": { "title": "La wishlist è vuota", "text": "Aggiungi i libri che vorresti avere.", "textReadOnly": "Nessuno ha ancora aggiunto libri. Compariranno qui quando qualcuno con il permesso di scrivere li aggiunge." },
   "noResults": { "title": "Nessun risultato", "text": "Nessun libro con questa priorità.", "reset": "Mostra tutti" },
-  "error": { "title": "Impossibile caricare la wishlist", "text": "Controlla la connessione e riprova." },
+  "error": { "title": "Impossibile caricare la wishlist", "text": "Non sono riuscito a leggere la wishlist dal server. Controlla la connessione e riprova." },
   "card": {
     "added": "Aggiunto il {date}",
     "isbn": "ISBN {isbn}",
@@ -20,7 +20,7 @@
   },
   "convert": {
     "button": "Ho comprato questo libro",
-    "label": "Ho comprato {title}",
+    "label": "Ho comprato questo libro: {title}",
     "working": "Conversione in corso"
   },
   "converted": { "title": "Aggiunto ai libri", "open": "Apri", "dismiss": "Chiudi la notifica" },
