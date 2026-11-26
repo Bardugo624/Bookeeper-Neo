@@ -10,10 +10,9 @@ use bookeeper_core::lookup::{GoogleBooks, Provider};
 const ISBN: &str = "9788845292613";
 
 fn fixture(name: &str) -> String {
-    let p = format!(
-        "{}/tests/fixtures/google/{name}",
-        env!("CARGO_MANIFEST_DIR")
-    );
+    let dir = std::env::var("CARGO_MANIFEST_DIR")
+        .expect("CARGO_MANIFEST_DIR is not set: run the test through `cargo test`");
+    let p = format!("{dir}/tests/fixtures/google/{name}");
     std::fs::read_to_string(p).unwrap()
 }
 

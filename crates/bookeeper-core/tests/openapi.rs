@@ -10,16 +10,15 @@ fn spec_documents_health() {
 #[test]
 #[ignore = "run by the openapi CI job and by the api-client task"]
 fn committed_snapshot_is_current() {
-    let path = concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../../packages/api/openapi.json"
-    );
+    let dir = std::env::var("CARGO_MANIFEST_DIR")
+        .expect("CARGO_MANIFEST_DIR is not set: run the test through `cargo test`");
+    let path = format!("{dir}/../../packages/api/openapi.json");
     let fresh = serde_json::to_string_pretty(&bookeeper_core::openapi()).unwrap() + "\n";
     if std::env::var("UPDATE_OPENAPI").is_ok() {
-        std::fs::write(path, &fresh).unwrap();
+        std::fs::write(&path, &fresh).unwrap();
     }
     assert_eq!(
-        std::fs::read_to_string(path).unwrap(),
+        std::fs::read_to_string(&path).unwrap(),
         fresh,
         "run: UPDATE_OPENAPI=1 cargo test -p bookeeper-core --test openapi"
     );
