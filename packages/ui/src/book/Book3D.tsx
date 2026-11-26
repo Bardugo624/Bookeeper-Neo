@@ -8,6 +8,7 @@ export interface Book3DProps {
   author?: string;
   src?: string;
   color?: string;
+  /** Room the book may take, spine and page edge included; the 2:3 cover face is this minus 48px. */
   width?: number;
   pages?: number;
 }
@@ -19,17 +20,27 @@ export function spineThickness(pages?: number): number {
   return 14 + t * 26;
 }
 
+/** Widest spine (800 pages or more) plus the page edge: the cover face never gives way to them. */
+const SIDE = 40 + 8;
+
 export function Book3D({ title, author, src, color, width = 240, pages }: Book3DProps) {
   const img = useCoverImage(src);
   const style = {
-    '--book-w': `${width}px`,
+    '--book-face': `${Math.max(width / 2, width - SIDE)}px`,
     '--book-spine': `${spineThickness(pages)}px`,
     '--book-bg': color ?? clothTone(title),
   } as CSSProperties;
   return (
     <div className={styles.scene} style={style}>
       <div className={styles.book}>
-        <div className={styles.spine} aria-hidden="true" />
+        <div className={styles.spine} aria-hidden="true">
+          {img.src ? (
+            <>
+              <img className={styles.spineImg} src={img.src} alt="" decoding="async" />
+              <span className={styles.spineShade} />
+            </>
+          ) : null}
+        </div>
         <div className={styles.cover}>
           {img.src ? (
             <img className={styles.img} src={img.src} alt="" loading="lazy" decoding="async" onError={img.onError} />
@@ -39,6 +50,8 @@ export function Book3D({ title, author, src, color, width = 240, pages }: Book3D
               {author ? <span className={styles.author}>{author}</span> : null}
             </>
           )}
+          <span className={styles.fold} aria-hidden="true" />
+          <span className={styles.light} aria-hidden="true" />
         </div>
         <div className={styles.pages} aria-hidden="true" />
       </div>
