@@ -1222,7 +1222,7 @@ export interface components {
         /** @description Counts over the whole library, whatever filter a list is using. */
         Facets: {
             formats: components["schemas"]["ValueCount"][];
-            /** @description Grouped ignoring ASCII case, showing the most frequent spelling; at most 200. */
+            /** @description Grouped ignoring Unicode case, showing the most frequent spelling; at most 200. */
             genres: components["schemas"]["ValueCount"][];
             /** @description Same rules as `genres`. */
             languages: components["schemas"]["ValueCount"][];

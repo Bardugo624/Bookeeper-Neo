@@ -66,7 +66,7 @@ pub struct ReadingFacet {
 /// Counts over the whole library, whatever filter a list is using.
 #[derive(Debug, Serialize, ToSchema)]
 pub struct Facets {
-    /// Grouped ignoring ASCII case, showing the most frequent spelling; at most 200.
+    /// Grouped ignoring Unicode case, showing the most frequent spelling; at most 200.
     pub genres: Vec<ValueCount>,
     /// Same rules as `genres`.
     pub languages: Vec<ValueCount>,
