@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import type { ShelfOut } from '@bookeeper/api';
-import { Button, DangerAction, DangerZone, IconButton } from '@bookeeper/ui/base';
+import { IconButton } from '@bookeeper/ui/base';
 import { FillBar } from '@bookeeper/ui/book';
 import { useT } from '../../app';
 import { freeSlots } from './model';
@@ -17,7 +17,7 @@ export interface ShelfPanelProps {
   children: ReactNode;
 }
 
-/** Side panel: the unit's name, how full it is, the unplaced books, and the danger zone. */
+/** Side panel: the unit's name, how full it is, and the unplaced books. */
 export function ShelfPanel({ shelf, roomName, onEdit, onDelete, children }: ShelfPanelProps) {
   const t = useT();
   const free = freeSlots(shelf);
@@ -27,6 +27,7 @@ export function ShelfPanel({ shelf, roomName, onEdit, onDelete, children }: Shel
       <div className={styles.head}>
         <h2 className={styles.name}>{shelf.name}</h2>
         {onEdit ? <IconButton icon="pencil" size="sm" label={t('shelves.panel.edit', { name: shelf.name })} onClick={onEdit} /> : null}
+        {onDelete ? <IconButton icon="trash" size="sm" label={t('shelves.panel.delete', { name: shelf.name })} onClick={onDelete} /> : null}
       </div>
       <p className={styles.layout}>{t('shelves.panel.room', { name: roomName ?? t('shelves.rooms.none') })}</p>
       <p className={styles.layout}>{t('shelves.panel.layout', {
@@ -43,19 +44,6 @@ export function ShelfPanel({ shelf, roomName, onEdit, onDelete, children }: Shel
           : t('shelves.panel.books', { count: shelf.book_count })}
       </p>
       {children}
-      {onDelete ? (
-        <DangerZone title={t('shelves.danger.title')} headingLevel="h3">
-          <DangerAction
-            title={t('shelves.danger.delete.title')}
-            consequence={t('shelves.danger.delete.consequence')}
-            action={
-              <Button variant="danger" size="sm" icon="trash" onClick={onDelete}>
-                {t('shelves.panel.delete', { name: shelf.name })}
-              </Button>
-            }
-          />
-        </DangerZone>
-      ) : null}
     </aside>
   );
 }
