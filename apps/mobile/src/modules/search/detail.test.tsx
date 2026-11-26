@@ -115,7 +115,7 @@ describe('way back', () => {
       api: { books: [book(1, { on_loan: true }), book(2, { on_loan: true })] },
       route: '/search?q=Libro&filter=loan',
     });
-    await user.click(await screen.findByRole('link', { name: 'Libro 2, Autore 2' }));
+    await user.click(await screen.findByRole('link', { name: /^Libro 2 Autore 2/ }));
     await user.click(await screen.findByRole('link', { name: "Torna all'elenco" }));
     expect(router.state.location.pathname).toBe('/search');
     expect(router.state.location.search).toBe('?q=Libro&filter=loan');

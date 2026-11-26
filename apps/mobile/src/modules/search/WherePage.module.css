@@ -23,3 +23,7 @@
   color: var(--bk-text-strong);
   overflow-wrap: anywhere;
 }
+
+.phrase {
+  text-wrap: pretty;
+}
