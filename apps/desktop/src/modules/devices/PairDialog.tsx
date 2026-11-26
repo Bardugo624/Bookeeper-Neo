@@ -1,6 +1,7 @@
 import { Button } from '@bookeeper/ui/base';
 import { Dialog } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
+import { tourAnchor } from '../tour';
 import { CodeBlock } from './CodeBlock';
 import { QrCode } from './QrCode';
 import { pairingAddress } from './model';
@@ -47,7 +48,7 @@ export function PairDialog({ phoneUrl, onClose }: PairDialogProps) {
         {code ? (
           <>
             {phone ? (
-              <div className={`${styles.qr} ${remaining <= 0 ? styles.dim : ''}`}>
+              <div {...tourAnchor('devices.qr')} className={`${styles.qr} ${remaining <= 0 ? styles.dim : ''}`}>
                 <QrCode text={pairingAddress(phoneUrl, code)} label={t('devices.pair.qrLabel')} />
                 <p className={styles.address}>{phoneUrl}</p>
               </div>

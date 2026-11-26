@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { BookOut, ShelfBook, ShelfOut } from '@bookeeper/api';
 import type { SlotDrop, SpineBook } from '@bookeeper/ui/shelf';
 import { useT } from '../../app';
+import { tourSignal } from '../tour';
 import { apiErrorMessage, stringParam, useListParams, usePermission } from '../../kit';
 import { createBody, patchBody, roomIdOf, type ShelfValues } from './formModel';
 import { NEW_ROOM, groupByRoom } from './roomModel';
@@ -74,7 +75,9 @@ export function useShelvesView() {
     const known = books.data.items.some((b) => b.book_id === d.bookId);
     const fresh = known ? undefined : unshelved.data?.items.find((b) => b.id === d.bookId);
     if (!known && !fresh && !moves.isPlaced(d.bookId)) return;
-    void placement.placeAt({ shelf, books: books.data.items, bookId: d.bookId, rowIndex: Number(d.rowId), index: d.index }, fresh);
+    void placement
+      .placeAt({ shelf, books: books.data.items, bookId: d.bookId, rowIndex: Number(d.rowId), index: d.index }, fresh)
+      .then((placed) => placed && tourSignal('book-placed'));
   };
 
   /** From the "place in…" dialog: the end of the chosen row of the chosen unit. */
@@ -87,6 +90,7 @@ export function useShelvesView() {
     }
     const ok = await placement.placeAt({ shelf: target, books: targetBooks, bookId: d.book.id, rowIndex, index }, d.fresh);
     if (ok) {
+      tourSignal('book-placed');
       setDialog(null);
       params.set({ unit: target.id });
     }
@@ -101,7 +105,10 @@ export function useShelvesView() {
     if (here) return;
     const fresh = unshelved.data?.items.find((b) => b.id === bookId);
     if (!fresh && !moves.isPlaced(bookId)) return;
-    if (await moves.placeFirstFree(bookId, target, fresh)) params.set({ unit: target.id, book: '' });
+    if (await moves.placeFirstFree(bookId, target, fresh)) {
+      tourSignal('book-placed');
+      params.set({ unit: target.id, book: '' });
+    }
   };
 
   const bookOf = (id: string) => books.data?.items.find((b) => b.book_id === id);
@@ -158,6 +165,7 @@ export function useShelvesView() {
     }
     const made = await writes.create.mutateAsync(createBody(v, room));
     madeRoom.current = null;
+    tourSignal('shelf-created');
     // A filter that would hide the new cabinet is lifted.
     params.set({ unit: made.id, book: '', ...(roomId && made.room_id !== roomId ? { room: '' } : {}) });
   };

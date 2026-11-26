@@ -21,6 +21,9 @@ export function usePauseTriggers(active: boolean, target: Element | null, pause:
     const onDown = (e: PointerEvent) => {
       const node = e.target instanceof Element ? e.target : null;
       if (!node || !target || target.contains(node)) return;
+      // The same anchor can sit on two buttons at once (e.g. a header and an empty state).
+      const id = target.getAttribute('data-tour');
+      if (id && node.closest(`[data-tour="${CSS.escape(id)}"]`)) return;
       if (node.closest(`[${CARD_ATTR}], ${PART_OF_USE}`)) return;
       if (target.closest('[role="dialog"]')?.contains(node)) return;
       pause();

@@ -1,5 +1,6 @@
 import { Button, EmptyState, Skeleton } from '@bookeeper/ui/base';
 import { useT } from '../../app';
+import { tourAnchor } from '../tour';
 import { ConfirmDialog, PageHeader, usePermission, ErrorState } from '../../kit';
 import { DeviceCard } from './DeviceCard';
 import { PairDialog } from './PairDialog';
@@ -60,7 +61,7 @@ export function DevicesPage() {
   }
 
   return (
-    <div className={styles.page}>
+    <div className={styles.page} {...tourAnchor('devices.page')}>
       <PageHeader
         title={t('devices.title')}
         count={query.data ? t('devices.count', { count: active.length }) : undefined}
@@ -71,7 +72,7 @@ export function DevicesPage() {
                 {t('devices.add.computer')}
               </Button>
               {phoneUrl ? (
-                <Button variant="secondary" icon="phone" onClick={() => flow.open('phone')}>
+                <Button {...tourAnchor('devices.addPhone')} variant="secondary" icon="phone" onClick={() => flow.open('phone')}>
                   {t('devices.add.phone')}
                 </Button>
               ) : null}

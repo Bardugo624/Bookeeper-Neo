@@ -285,3 +285,29 @@ describe('useTour', () => {
     expect(result.current.total).toBe(3);
   });
 });
+
+describe('finale', () => {
+  const WITH_FINALE = { ...PATH, finale: { titleKey: 'tour.finale.title', textKey: 'tour.finale.text' } };
+
+  it('says «La tua libreria è pronta» with every bookmark full, then closes by itself', async () => {
+    renderTour();
+    await screen.findByRole('heading', { name: 'Pagina' });
+    await flush();
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    act(() => state().start(WITH_FINALE));
+    act(() => {
+      tourSignal('one-done');
+      tourSignal('two-done', 'ok');
+      tourSignal('three-done');
+    });
+    expect(state().status).toBe('done');
+    const card = screen.getByRole('region', { name: 'La tua libreria è pronta' });
+    expect(within(card).getAllByRole('listitem').every((li) => li.dataset.state === 'done')).toBe(true);
+    expect(screen.queryByText('Primi passi')).not.toBeInTheDocument();
+    await act(async () => {
+      vi.advanceTimersByTime(6100);
+    });
+    vi.useRealTimers();
+    expect(screen.queryByRole('region')).not.toBeInTheDocument();
+  });
+});

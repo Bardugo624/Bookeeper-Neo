@@ -44,5 +44,45 @@
       "title": "Il tuo primo libro",
       "text": "{title} è il primo libro della tua libreria."
     }
+  },
+  "place": {
+    "nav": {
+      "title": "Dagli un posto",
+      "text": "Apri gli Scaffali: lì il libro trova il suo posto."
+    },
+    "new": {
+      "title": "Dagli un posto",
+      "text": "Crea il mobile dove tieni i libri: un nome e quanti ripiani."
+    },
+    "form": {
+      "title": "Dagli un posto",
+      "text": "Scegli un nome e quanti ripiani ha il mobile, poi salva."
+    },
+    "unplaced": {
+      "title": "Dagli un posto",
+      "text": "Trascina il libro su un ripiano, oppure usa «Colloca»."
+    },
+    "confirm": {
+      "title": "Dagli un posto",
+      "text": "Scegli il mobile e il ripiano, poi conferma."
+    }
+  },
+  "phone": {
+    "nav": {
+      "title": "Portalo in tasca",
+      "text": "Apri i Dispositivi: da lì colleghi il telefono."
+    },
+    "add": {
+      "title": "Portalo in tasca",
+      "text": "Premi «Aggiungi un telefono» per portare la libreria con te."
+    },
+    "qr": {
+      "title": "Portalo in tasca",
+      "text": "Inquadralo con la fotocamera del telefono."
+    }
+  },
+  "finale": {
+    "title": "La tua libreria è pronta",
+    "text": "Il tuo primo libro ha il suo posto. Buona lettura."
   }
 }

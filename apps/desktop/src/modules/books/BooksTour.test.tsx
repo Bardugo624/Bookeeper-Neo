@@ -115,12 +115,11 @@ describe('step 1', () => {
     expect(within(dialog).getByRole('region')).toHaveTextContent('Controlla i dati e salva');
     await userEvent.type(screen.getByRole('textbox', { name: 'Titolo' }), 'Dune');
     await userEvent.click(screen.getByRole('button', { name: 'Salva' }));
-    await waitFor(() => expect(state().status).toBe('done'));
-    expect(await screen.findByRole('region', { name: 'Il tuo primo libro' })).toHaveTextContent('Dune è il primo libro della tua libreria.');
+    // The path has more steps: saving the first book moves it to step 2, it does not end it.
+    await waitFor(() => expect(state().step).toBe(1));
+    expect(state().status).toBe('running');
+    await waitFor(() => expect(screen.getAllByRole('region').map((r) => r.textContent).join(' ')).toContain('Dune è il primo libro della tua libreria.'));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(spotAt()).toBeUndefined();
-    await userEvent.click(screen.getByRole('button', { name: 'Ho capito' }));
-    expect(screen.queryByRole('region', { name: 'Il tuo primo libro' })).not.toBeInTheDocument();
   });
 
   it('without the tour the celebration of the first book opens', async () => {
