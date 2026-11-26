@@ -68,7 +68,7 @@ export function RoomRow({ room, busy, rename, onDelete }: RoomRowProps) {
       <span className={styles.name}>{room.name}</span>
       <span className={styles.count}>{t('shelves.rooms.shelves', { count: room.shelf_count })}</span>
       <IconButton icon="pencil" size="sm" label={t('shelves.rooms.rename', { name: room.name })} onClick={() => setDraft(room.name)} />
-      <IconButton icon="trash" size="sm" tone="danger" label={t('shelves.rooms.delete', { name: room.name })} onClick={() => onDelete(room)} />
+      <IconButton icon="trash" size="sm" label={t('shelves.rooms.delete', { name: room.name })} onClick={() => onDelete(room)} />
     </li>
   );
 }
