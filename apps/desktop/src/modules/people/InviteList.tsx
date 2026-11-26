@@ -31,7 +31,7 @@ export function InviteList({ invites, revoke, busyId }: InviteListProps) {
                   {t('people.pending.by', { name: i.created_by.display_name })} · {t('people.pending.expires', { date: formatDate(locale, i.expires_at) })}
                 </span>
               </div>
-              <Button size="sm" variant="secondary" aria-label={t('people.pending.revokeLabel', { role: t(`people.roles.${i.role}`) })} loading={busyId === i.id} loadingLabel={t('common.saving')} onClick={() => revoke(i.id)}>
+              <Button size="sm" variant="secondary" aria-label={t('people.pending.revokeLabel', { role: t(`people.roles.${i.role}`), date: formatDate(locale, i.expires_at) })} loading={busyId === i.id} loadingLabel={t('common.saving')} onClick={() => revoke(i.id)}>
                 {t('people.pending.revoke')}
               </Button>
             </li>

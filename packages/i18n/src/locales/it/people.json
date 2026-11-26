@@ -5,10 +5,6 @@
     "other": "{count} persone"
   },
   "loading": "Caricamento delle persone",
-  "error": {
-    "title": "Impossibile caricare le persone",
-    "text": "Non riesco a leggere l’elenco: il server non risponde. Controlla la connessione e riprova; se non cambia, chiedi a chi gestisce il server."
-  },
   "you": "Tu",
   "roles": {
     "owner": "Proprietario",
@@ -93,7 +89,7 @@
     "by": "Creato da {name}",
     "expires": "scade il {date}",
     "revoke": "Revoca",
-    "revokeLabel": "Revoca l’invito come {role}",
+    "revokeLabel": "Revoca l’invito per un {role}, scade il {date}",
     "error": "Non riesco a leggere gli inviti in attesa. Riprova tra poco.",
     "retry": "Riprova"
   }

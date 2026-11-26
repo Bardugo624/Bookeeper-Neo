@@ -35,8 +35,7 @@ describe('list', () => {
 
   it('shows an error with a retry', async () => {
     renderPeople({ ...library('member', others()), listFails: true });
-    expect(await screen.findByText('Impossibile caricare le persone')).toBeInTheDocument();
-    expect(screen.getByText(/chiedi a chi gestisce il server/)).toBeInTheDocument();
+    expect(await screen.findByText('Qualcosa non ha funzionato')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Riprova' })).toBeInTheDocument();
   });
 
@@ -251,7 +250,7 @@ describe('invitations', () => {
     expect(items).toHaveLength(2);
     expect(within(items[1]!).getByText('Ospite')).toBeInTheDocument();
     expect(within(items[1]!).getByText(/Creato da Bruno/)).toBeInTheDocument();
-    await userEvent.click(within(items[0]!).getByRole('button', { name: 'Revoca l’invito come Membro' }));
+    await userEvent.click(within(items[0]!).getByRole('button', { name: /^Revoca l’invito per un Membro, scade il /  }));
     await waitFor(() => expect(screen.getAllByRole('button', { name: /^Revoca/ })).toHaveLength(1));
     expect(platform.calls.find((c) => c.method === 'DELETE')?.path).toBe('/api/v1/invites/i1');
   });

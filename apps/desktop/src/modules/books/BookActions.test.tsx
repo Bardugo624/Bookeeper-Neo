@@ -80,7 +80,7 @@ describe('selection', () => {
 
   async function select(books = makeDb(6), routes: Parameters<typeof renderWithWrites>[1] = {}) {
     const view = renderWithWrites({ books }, routes);
-    await screen.findByRole('link', { name: 'Libro 1, Autore 1' });
+    await screen.findByRole('link', { name: 'Libro 1 Autore 1' });
     await userEvent.click(screen.getByRole('button', { name: 'Seleziona' }));
     return view;
   }

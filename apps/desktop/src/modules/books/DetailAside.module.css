@@ -40,6 +40,10 @@
   color: var(--bk-text-muted);
 }
 
+.tag {
+  align-self: flex-start;
+}
+
 .link {
   align-self: flex-start;
   font-size: 13px;

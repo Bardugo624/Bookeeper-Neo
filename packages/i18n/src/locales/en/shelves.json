@@ -26,6 +26,7 @@
   "empty": {
     "title": "No cabinets",
     "text": "Create a cabinet to say where your books live.",
+    "textReadOnly": "No cabinets yet. They will appear here once someone allowed to edit creates them.",
     "create": "Create the first cabinet"
   },
   "emptyUnit": {

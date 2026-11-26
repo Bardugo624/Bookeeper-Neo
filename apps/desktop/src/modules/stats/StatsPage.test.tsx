@@ -119,7 +119,7 @@ describe('states', () => {
   it('shows an error with a retry that recovers', async () => {
     const backend = { stats: stats(), fails: true };
     renderStats(backend);
-    expect(await screen.findByText('Impossibile caricare le statistiche')).toBeInTheDocument();
+    expect(await screen.findByText('Qualcosa non ha funzionato')).toBeInTheDocument();
     backend.fails = false;
     await userEvent.click(screen.getByRole('button', { name: 'Riprova' }));
     expect(await screen.findByText('Prestiti attivi')).toBeInTheDocument();

@@ -19,7 +19,7 @@ describe('loading and counts', () => {
     renderBooks({ books: makeDb(12) });
     const loading = await screen.findByRole('list', { name: 'Caricamento dei libri' });
     expect(within(loading).getAllByRole('listitem')).toHaveLength(12);
-    await screen.findByRole('link', { name: 'Libro 1, Autore 1' });
+    await screen.findByRole('link', { name: 'Libro 1 Autore 1' });
     expect(cards()).toHaveLength(12);
     expect(screen.queryByRole('list', { name: 'Caricamento dei libri' })).toBeNull();
   });
@@ -45,7 +45,7 @@ describe('loading and counts', () => {
 describe('search', () => {
   it('sends one request with q after 250 ms', async () => {
     const { platform } = renderBooks({ books: makeDb(5) });
-    await screen.findByRole('link', { name: 'Libro 1, Autore 1' });
+    await screen.findByRole('link', { name: 'Libro 1 Autore 1' });
     const field = screen.getByRole('searchbox', { name: 'Cerca nei libri' });
     const before = listCalls(platform).length;
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
@@ -114,10 +114,10 @@ describe('filters', () => {
 describe('paging', () => {
   it('asks offset 60 when the end comes into view, then stops at the end', async () => {
     const { platform } = renderBooks({ books: makeDb(100) });
-    await screen.findByRole('link', { name: 'Libro 1, Autore 1' });
+    await screen.findByRole('link', { name: 'Libro 1 Autore 1' });
     expect(listCalls(platform).filter((p) => p.get('offset') === '60')).toHaveLength(0);
     scrollToEnd();
-    await screen.findByRole('link', { name: 'Libro 100, Autore 100' });
+    await screen.findByRole('link', { name: 'Libro 100 Autore 100' });
     expect(listCalls(platform).filter((p) => p.get('offset') === '60')).toHaveLength(1);
     const total = listCalls(platform).length;
     scrollToEnd();
@@ -130,7 +130,7 @@ describe('paging', () => {
 describe('grid and list', () => {
   it('remembers the choice per connection and reads it back', async () => {
     const first = renderBooks({ books: makeDb(3) });
-    await screen.findByRole('link', { name: 'Libro 1, Autore 1' });
+    await screen.findByRole('link', { name: 'Libro 1 Autore 1' });
     await userEvent.click(screen.getByRole('tab', { name: 'Lista' }));
     expect(await screen.findByRole('table', { name: 'Libri' })).toBeInTheDocument();
     expect(localStorage.getItem('bookeeper.books.view.c1')).toBe('list');
@@ -171,7 +171,7 @@ describe('states', () => {
     const { router } = renderBooks({ books: makeDb(3) }, '/books?q=zzz&filter=loan');
     expect(await screen.findByRole('heading', { name: 'Nessun risultato' })).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Azzera ricerca e filtri' }));
-    await screen.findByRole('link', { name: 'Libro 1, Autore 1' });
+    await screen.findByRole('link', { name: 'Libro 1 Autore 1' });
     expect(router.state.location.search).toBe('');
   });
 
@@ -182,23 +182,32 @@ describe('states', () => {
     const before = listCalls(platform).length;
     lib.fail.on = false;
     await userEvent.click(screen.getByRole('button', { name: 'Riprova' }));
-    await screen.findByRole('link', { name: 'Libro 1, Autore 1' });
+    await screen.findByRole('link', { name: 'Libro 1 Autore 1' });
     expect(listCalls(platform).length).toBeGreaterThan(before);
   });
 });
 
 describe('card', () => {
-  it('has an accessible name, goes to the detail and shows the loan label only when on loan', async () => {
+  it('names the link from its content, in reading order, and shows the loan label only when on loan', async () => {
     const books = [book(1, { authors: ['Ada', 'Bo'], on_loan: true }), book(2)];
     const { router } = renderBooks({ books });
-    const link = await screen.findByRole('link', { name: 'Libro 1, Ada, Bo, In prestito' });
-    // 2.5.3: the name starts with the title and holds every visible word.
-    expect(link.getAttribute('aria-label')?.startsWith('Libro 1')).toBe(true);
+    const link = await screen.findByRole('link', { name: 'Libro 1 Ada, Bo In prestito' });
+    // 2.5.3: no aria-label; the name is the text that is read, and the decorative initial is hidden.
+    expect(link).not.toHaveAttribute('aria-label');
+    expect(link.textContent).toContain('Libro 1');
     expect(within(link).getByText('Ada, Bo')).toBeInTheDocument();
     expect(within(link).getByText('In prestito')).toBeInTheDocument();
-    expect(within(screen.getByRole('link', { name: 'Libro 2, Autore 2' })).queryByText('In prestito')).toBeNull();
+    const plain = screen.getByRole('link', { name: 'Libro 2 Autore 2' });
+    expect(plain).not.toHaveAttribute('aria-label');
+    expect(within(plain).queryByText('In prestito')).toBeNull();
     await userEvent.click(link);
     expect(router.state.location.pathname).toBe('/books/b1');
+  });
+
+  it('puts the reading state last in the name of a book being read', async () => {
+    renderBooks({ books: [book(1, { reading: { status: 'reading', current_page: 50, rating: null }, page_count: 100 })] });
+    const link = await screen.findByRole('link', { name: /^Libro 1 Autore 1 .+/ });
+    expect(link).not.toHaveAttribute('aria-label');
   });
 });
 
@@ -220,13 +229,13 @@ describe('cover', () => {
 
   it('does not request the cover of a book that has none', async () => {
     const { platform } = renderBooks({ books: makeDb(3) });
-    await screen.findByRole('link', { name: 'Libro 1, Autore 1' });
+    await screen.findByRole('link', { name: 'Libro 1 Autore 1' });
     expect(platform.calls.some((c) => c.path.endsWith('/cover'))).toBe(false);
   });
 
   it('draws the placeholder with cover_color when there is no image', async () => {
     const { container } = renderBooks({ books: [book(1, { cover_color: '#aabbcc' })] });
-    await screen.findByRole('link', { name: 'Libro 1, Autore 1' });
+    await screen.findByRole('link', { name: 'Libro 1 Autore 1' });
     expect(container.querySelector('img')).toBeNull();
     expect(container.querySelector<HTMLElement>('[style*="--cover-bg"]')!.style.getPropertyValue('--cover-bg')).toBe('#aabbcc');
   });
