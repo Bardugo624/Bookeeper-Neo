@@ -74,7 +74,8 @@
     "library": {
       "backup": "Backup",
       "import": "Import",
-      "restore": "Restore"
+      "restore": "Restore",
+      "owner": "Owner changed"
     },
     "loan": {
       "create": "Loan recorded",
@@ -112,6 +113,15 @@
     },
     "device": {
       "revoke": "Device revoked"
+    },
+    "user": {
+      "update": "Person changed",
+      "remove": "Person removed",
+      "join": "Person joined"
+    },
+    "invite": {
+      "create": "Invitation created",
+      "revoke": "Invitation revoked"
     }
   },
   "what": {
@@ -127,7 +137,8 @@
       "backup": "Downloaded a backup",
       "import": "Imported books ({new} new, {duplicates} already present)",
       "restore": "Restored the library from a backup",
-      "backupAuto": "Created a backup automatically"
+      "backupAuto": "Created a backup automatically",
+      "owner": "Handed the library over to someone else"
     },
     "loan": {
       "create": "Recorded a loan",
@@ -165,6 +176,19 @@
     },
     "device": {
       "revoke": "Revoked a device"
+    },
+    "user": {
+      "update": "Changed a person",
+      "updateName": "Renamed a person to “{name}”",
+      "updateRole": "Changed a person’s role to {role}",
+      "remove": "Removed “{name}” from the library",
+      "removeUnnamed": "Removed a person from the library",
+      "join": "“{name}” joined the library as {role}",
+      "joinUnnamed": "A person joined the library as {role}"
+    },
+    "invite": {
+      "create": "Created an invitation as {role}",
+      "revoke": "Revoked an invitation"
     }
   },
   "loading": "Loading…",
@@ -209,5 +233,11 @@
       "create": "Added a wish to the wishlist",
       "convert": "Turned a wish into a book that no longer exists"
     }
+  },
+  "roles": {
+    "owner": "owner",
+    "admin": "admin",
+    "member": "member",
+    "guest": "guest"
   }
 }

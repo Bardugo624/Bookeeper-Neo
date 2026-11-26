@@ -74,7 +74,8 @@
     "library": {
       "backup": "Copia di sicurezza",
       "import": "Importazione",
-      "restore": "Ripristino"
+      "restore": "Ripristino",
+      "owner": "Cambio di proprietario"
     },
     "loan": {
       "create": "Prestito registrato",
@@ -112,6 +113,15 @@
     },
     "device": {
       "revoke": "Dispositivo revocato"
+    },
+    "user": {
+      "update": "Persona modificata",
+      "remove": "Persona rimossa",
+      "join": "Persona entrata"
+    },
+    "invite": {
+      "create": "Invito creato",
+      "revoke": "Invito revocato"
     }
   },
   "what": {
@@ -127,7 +137,8 @@
       "backup": "Ha scaricato una copia di sicurezza",
       "import": "Ha importato dei libri ({new} nuovi, {duplicates} già presenti)",
       "restore": "Ha ripristinato la libreria da una copia di sicurezza",
-      "backupAuto": "Ha creato automaticamente una copia di sicurezza"
+      "backupAuto": "Ha creato automaticamente una copia di sicurezza",
+      "owner": "Ha passato la libreria a un’altra persona"
     },
     "loan": {
       "create": "Ha registrato un prestito",
@@ -165,6 +176,19 @@
     },
     "device": {
       "revoke": "Ha revocato un dispositivo"
+    },
+    "user": {
+      "update": "Ha modificato una persona",
+      "updateName": "Ha cambiato il nome di una persona in «{name}»",
+      "updateRole": "Ha cambiato il ruolo di una persona in {role}",
+      "remove": "Ha rimosso «{name}» dalla libreria",
+      "removeUnnamed": "Ha rimosso una persona dalla libreria",
+      "join": "«{name}» è entrato nella libreria come {role}",
+      "joinUnnamed": "Una persona è entrata nella libreria come {role}"
+    },
+    "invite": {
+      "create": "Ha creato un invito come {role}",
+      "revoke": "Ha revocato un invito"
     }
   },
   "loading": "Caricamento…",
@@ -209,5 +233,11 @@
       "create": "Ha aggiunto un desiderio alla lista dei desideri",
       "convert": "Ha trasformato un desiderio in un libro non più presente"
     }
+  },
+  "roles": {
+    "owner": "proprietario",
+    "admin": "amministratore",
+    "member": "membro",
+    "guest": "ospite"
   }
 }

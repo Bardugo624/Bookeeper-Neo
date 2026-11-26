@@ -17,6 +17,7 @@ export const KNOWN_ACTIONS = [
   'tag.create', 'tag.update', 'tag.delete',
   'wishlist.create', 'wishlist.update', 'wishlist.delete', 'wishlist.convert',
   'device.revoke',
+  'user.update', 'user.remove', 'user.join', 'library.owner', 'invite.create', 'invite.revoke',
 ] as const;
 
 export function isKnownAction(action: string): boolean {
@@ -96,5 +97,22 @@ export function phraseOf(e: AuditOut): Phrase {
     vars.duplicates = Number(d.duplicates ?? 0);
   }
   if (e.action === 'reading.set') vars.status = text(d.status) ?? '';
+  if (e.action === 'invite.create') vars.role = text(d.role) ?? '';
+  if (e.action === 'user.join') {
+    vars.name = text(d.display_name) ?? '';
+    vars.role = text(d.role) ?? '';
+    if (!vars.name) return { key: 'audit.what.user.joinUnnamed', vars, title };
+  }
+  if (e.action === 'user.remove') {
+    vars.name = text(d.display_name) ?? '';
+    if (!vars.name) return { key: 'audit.what.user.removeUnnamed', vars, title };
+  }
+  if (e.action === 'user.update') {
+    // One change has its own sentence; several at once (or none known) get the general one.
+    const name = text(d.display_name);
+    const role = text(d.role);
+    if (name && !role) return { key: 'audit.what.user.updateName', vars: { name }, title };
+    if (role && !name) return { key: 'audit.what.user.updateRole', vars: { role }, title };
+  }
   return { key: `audit.what.${e.action}`, vars, title };
 }
