@@ -5,6 +5,7 @@ import { EmptyState, Icon, Skeleton } from '@bookeeper/ui/base';
 import { BookCover } from '@bookeeper/ui/book';
 import { useT, type Translate } from '../../app/i18n';
 import { ErrorState, Screen, apiErrorMessage } from '../../kit';
+import { ReadingBlock } from '../reading';
 import { Description } from './Description';
 import { LoanBlock, WhereBlock } from './Placement';
 import type { FromList } from './searchState';
@@ -42,6 +43,7 @@ function Detail({ book }: { book: BookOut }) {
       </div>
       <WhereBlock book={book} />
       <LoanBlock book={book} />
+      <ReadingBlock book={book} />
       {description ? (
         <section className={blocks.block} aria-labelledby="desc-title">
           <h2 id="desc-title" className={blocks.heading}>
