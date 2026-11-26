@@ -21,12 +21,12 @@ export function FilterBar({ state, onFilter, onReading, onAll }: FilterBarProps)
   const t = useT();
   const none = state.filter === 'all' && state.reading === null;
   const chip = (key: string, label: string, selected: boolean, onClick: () => void) => (
-    <button key={key} type="button" role="tab" aria-selected={selected} className={cx(styles.chip, selected && styles.on)} onClick={onClick}>
+    <button key={key} type="button" aria-pressed={selected} className={cx(styles.chip, selected && styles.on)} onClick={onClick}>
       {label}
     </button>
   );
   return (
-    <div className={styles.bar} role="tablist" aria-label={t('msearch.filters.label')} aria-orientation="horizontal">
+    <div className={styles.bar} role="group" aria-label={t('msearch.filters.label')}>
       {FILTERS.map((id) =>
         chip(id, t(`msearch.filters.${id}`), id === 'all' ? none : state.filter === id, () => (id === 'all' ? onAll() : onFilter(id))),
       )}

@@ -84,6 +84,7 @@
     "tags": "Tag",
     "room": "Stanza",
     "reset": "Azzera",
+    "retry": "Riprova",
     "show": "Mostra i libri",
     "showCount": {
       "one": "Mostra {count} libro",

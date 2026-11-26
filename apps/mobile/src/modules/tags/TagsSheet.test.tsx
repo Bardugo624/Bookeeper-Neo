@@ -78,3 +78,15 @@ describe('the sheet', () => {
     expect(puts(view)).toHaveLength(0);
   });
 });
+
+describe('when the tag list fails', () => {
+  it('shows the error with "Riprova" and never offers "Crea"', async () => {
+    const view = renderTags({ tags: [], failList: true }, []);
+    await userEvent.click(await screen.findByRole('button', { name: 'Modifica tag' }));
+    const sheet = within(await screen.findByRole('dialog'));
+    expect(await sheet.findByRole('button', { name: 'Riprova' })).toBeTruthy();
+    await userEvent.type(sheet.getByRole('searchbox'), 'Nuovo');
+    expect(sheet.queryByRole('button', { name: /^Crea/ })).toBeNull();
+    expect(view.platform.fake.calls.some(isCreate)).toBe(false);
+  });
+});

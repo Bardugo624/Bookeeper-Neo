@@ -75,7 +75,7 @@ export function useAuditBook(bookId: string | undefined) {
   });
   return {
     book: query.data ? { id: query.data.id, title: query.data.title } : undefined,
-    /** The book was looked up and is not there (or could not be read), as opposed to still loading. */
-    gone: !!bookId && !query.data && !query.isPending,
+    /** The book was looked up and is not there (404), as opposed to still loading or another error. */
+    gone: !!bookId && !query.data && query.error instanceof ApiError && query.error.status === 404,
   };
 }

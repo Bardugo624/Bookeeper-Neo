@@ -48,5 +48,5 @@ export function useDraftCount(draft: SearchState, enabled: boolean): number | un
     placeholderData: keepPreviousData,
     queryFn: () => client.listBooks({ ...params, limit: 1, offset: 0 }),
   });
-  return query.data?.total;
+  return query.isPlaceholderData ? undefined : query.data?.total;
 }

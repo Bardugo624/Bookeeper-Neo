@@ -17,6 +17,8 @@ export interface TagsServer {
   put?: (call: RecordedCall) => { status: number; body: unknown } | undefined;
   /** Makes `POST /tags` fail. */
   failCreate?: boolean;
+  /** Makes `GET /tags` fail. */
+  failList?: boolean;
   role?: 'owner' | 'admin' | 'member' | 'guest';
 }
 
@@ -33,7 +35,7 @@ export function renderTags(server: TagsServer, have: TagOut[] = []) {
       override: async (call) => {
         const path = call.path.replace('/api/v1', '');
         if (path === '/me') return ok({ ...ME, user: { ...ME.user, role: server.role ?? 'owner' } });
-        if (path === '/tags' && call.method === 'GET') return ok({ items: server.tags });
+        if (path === '/tags' && call.method === 'GET') return server.failList ? refuse : ok({ items: server.tags });
         if (isCreate(call)) {
           if (server.failCreate) return refuse;
           const body = call.body as { name: string; color: string };

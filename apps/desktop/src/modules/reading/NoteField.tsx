@@ -16,8 +16,12 @@ export function NoteField({ reading }: { reading: ReadingOut }) {
   const [text, setText] = useState(saved);
   // The note as it was before our own write: a refusal puts it back, and what was typed must stay in the field then.
   const before = useRef<string | null>(null);
+  // True while our own write waits for its answer: its optimistic value must not end the reference.
+  const pending = useRef(false);
   useEffect(() => {
     if (before.current !== null && saved === before.current) return;
+    // A value taken from the server ends the reference: the next one, even an old one, replaces the text too.
+    if (!pending.current) before.current = null;
     setText(saved);
   }, [saved]);
 
@@ -25,7 +29,17 @@ export function NoteField({ reading }: { reading: ReadingOut }) {
     // Only spaces is the same as no note.
     if (text.trim() === saved.trim()) return;
     before.current = saved;
-    set.mutate(bodyFrom(reading, { note: text.trim() === '' ? null : text }));
+    pending.current = true;
+    set.mutate(bodyFrom(reading, { note: text.trim() === '' ? null : text }), {
+      // From now on the saved value is the reference: a later, different value from the server replaces the text.
+      onSuccess: (done) => {
+        before.current = done.note ?? '';
+      },
+      // A refusal keeps the old note as the reference, so the restore leaves the typed text alone.
+      onSettled: () => {
+        pending.current = false;
+      },
+    });
   };
   const error = fieldError(t, set.error);
   return (
