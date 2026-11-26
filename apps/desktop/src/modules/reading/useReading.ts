@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { PutReading, ReadingOut } from '@bookeeper/api';
 import { useClient, useSession } from '../../session';
+import { tourSignal } from '../tour';
 import { optimisticReading } from './readingModel';
 
 /** Order number of the last write started, per connection and book: an answer counts only if no later write started. */
@@ -60,6 +61,7 @@ export function useSetReading(bookId: string, pageCount?: number | null) {
     // The answer of a write that a newer one has passed must not undo what the screen shows already.
     onSuccess: (saved, _body, context) => {
       if (!superseded(context?.order)) queryClient.setQueryData<ReadingOut | null>(key, saved);
+      tourSignal('reading-changed');
     },
     onError: (_error, _body, context) => {
       if (context && !superseded(context.order)) queryClient.setQueryData<ReadingOut | null>(key, context.previous ?? null);
@@ -82,6 +84,7 @@ export function useClearReading(bookId: string) {
       queryClient.setQueryData<ReadingOut | null>(key, null);
       return { previous };
     },
+    onSuccess: () => tourSignal('reading-changed'),
     onError: (_error, _v, context) => {
       if (context) queryClient.setQueryData<ReadingOut | null>(key, context.previous ?? null);
     },

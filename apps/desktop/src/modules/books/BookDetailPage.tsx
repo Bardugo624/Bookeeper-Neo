@@ -1,9 +1,11 @@
+import { useEffect } from 'react';
 import { Link, useLocation, useParams } from 'react-router';
 import { ApiError } from '@bookeeper/api';
 import { Button, EmptyState, Icon, Skeleton } from '@bookeeper/ui/base';
 import { Book3D } from '@bookeeper/ui/book';
 import { useT } from '../../app';
 import { usePermission } from '../../kit';
+import { tourSignal } from '../tour';
 import { DetailAside } from './DetailAside';
 import { DetailToolbar } from './DetailToolbar';
 import { MarkReadButton } from '../reading';
@@ -22,6 +24,11 @@ export function BookDetailPage() {
   const { data: book, error, isPending, refetch } = useBook(id);
   const canWrite = usePermission().can('write');
   const src = useCover(id, mayHaveCover(book?.cover_color));
+
+  const opened = book?.id;
+  useEffect(() => {
+    if (opened) tourSignal('book-opened');
+  }, [opened]);
 
   const back = (
     <Link to={listPath} className={styles.back}>

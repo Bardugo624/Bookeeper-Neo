@@ -6,6 +6,7 @@ import { formatDate } from '../../kit';
 import { useActiveLoan } from '../loans';
 import { ReadingCard } from '../reading';
 import { wherePhrase } from '../shelves';
+import { tourAnchor } from '../tour';
 import { OwnerLine, ReadersBlock } from './DetailPeople';
 import { DetailTags } from './DetailTags';
 import { useShelfNames } from './useBook';
@@ -35,7 +36,7 @@ export function DetailAside({ book }: { book: BookOut }) {
       <ReadingCard book={book} />
       <ReadersBlock bookId={book.id} />
       <DetailTags book={book} />
-      <section className={styles.card} aria-labelledby="book-where">
+      <section className={styles.card} aria-labelledby="book-where" {...tourAnchor('book.where')}>
         <h2 id="book-where" className={styles.heading}>
           <Icon name="pin" size={14} />
           {t('books.detail.where.title')}

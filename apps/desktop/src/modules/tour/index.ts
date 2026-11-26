@@ -5,3 +5,5 @@ export { tourAnchor, tourSignal, tourExpects, tourNote, registerTourPath, useTou
 export { setTourPending, isTourPending, clearTourPending } from './storage';
 export { MAX_STEPS, type TourContext, type TourPath, type TourStatus, type TourStep } from './model';
 export { firstBook, FIRST_BOOK_ID } from './firstBook';
+export { explore, EXPLORE_ID } from './explore';
+export { useReplayTour } from './useReplayTour';

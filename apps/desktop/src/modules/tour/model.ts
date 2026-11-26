@@ -24,6 +24,8 @@ export interface TourStep {
   variants?: Readonly<Record<string, Pick<TourStep, 'titleKey' | 'textKey' | 'params'>>>;
   /** The name of the signal that completes the step. */
   signal: string;
+  /** The signal also counts while the tour is paused (the person's way to it starts with a press elsewhere). */
+  whilePaused?: boolean;
   /** Narrows the signal by its data; every signal with the right name counts when absent. */
   accept?: (data: unknown) => boolean;
 }

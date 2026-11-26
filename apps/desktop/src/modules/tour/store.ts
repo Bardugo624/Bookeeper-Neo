@@ -71,7 +71,7 @@ export const useTourStore = create<TourStore>((set, get) => {
       // Finished or skipped never comes back, unless the person asks to see it again.
       if ((s.status === 'done' || s.status === 'skipped') && !options?.replay) return;
       if (s.status === 'running' || s.status === 'paused') {
-        if (s.pathId === path.id) return;
+        if (s.pathId === path.id && !options?.replay) return;
       }
       set({ seen: [] });
       commit({ pathId: path.id, step: 0, status: 'running' });
@@ -92,7 +92,14 @@ export const useTourStore = create<TourStore>((set, get) => {
     signal(name, data) {
       const s = get();
       const step = currentStep(s);
-      if (s.status !== 'running' || !step) return;
+      if (!step) return;
+      // A signal the step takes while paused brings the tour back first.
+      if (s.status === 'paused' && step.whilePaused && step.signal === name && (!step.accept || step.accept(data))) {
+        commit({ status: 'running' });
+        get().signal(name, data);
+        return;
+      }
+      if (s.status !== 'running') return;
       if (step.signal !== name) {
         // Not the step's end, but the step may move its light because of it.
         if (!s.seen.includes(name)) set({ seen: [...s.seen, name] });

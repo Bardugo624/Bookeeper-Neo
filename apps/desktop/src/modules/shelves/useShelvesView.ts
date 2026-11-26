@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { BookOut, ShelfBook, ShelfOut } from '@bookeeper/api';
 import type { SlotDrop, SpineBook } from '@bookeeper/ui/shelf';
 import { useT } from '../../app';
-import { tourSignal } from '../tour';
+import { tourSignal, useTour } from '../tour';
 import { apiErrorMessage, stringParam, useListParams, usePermission } from '../../kit';
 import { createBody, patchBody, roomIdOf, type ShelfValues } from './formModel';
 import { NEW_ROOM, groupByRoom } from './roomModel';
@@ -51,6 +51,13 @@ export function useShelvesView() {
     params.set({ unit, ...(roomId && !shelves.some((s) => s.id === unit) ? { room: '' } : {}) }),
     !shelf && !list.isPending && !list.isError,
   );
+  // The answer to «where is it?» is on screen: a book on a spine, or the word that it has no place.
+  const shown = where?.kind === 'here' || where?.kind === 'unplaced';
+  // Also when the tour comes to the step after the answer is already there.
+  const asked = useTour().current?.signal === 'where-shown';
+  useEffect(() => {
+    if (shown) tourSignal('where-shown');
+  }, [shown, bookParam, asked]);
   // A room filter that leaves no unit open must not hide the answer: with a book in the address it is
   // lifted, whatever the book turns out to be (unplaced, gone, unreadable).
   const roomEmpty = Boolean(roomId) && bookParam !== '' && !shelf && !list.isPending && !list.isError;
