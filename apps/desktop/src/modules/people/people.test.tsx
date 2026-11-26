@@ -73,7 +73,10 @@ describe('menu by role', () => {
     expect(await menuNames()).toEqual(['Rinomina']);
     await userEvent.keyboard('{Escape}');
     await open('Bruno');
-    expect(await menuNames()).toEqual(['Cambia ruolo', 'Rinomina', 'Rimuovi', 'Rendi proprietario']);
+    expect(await menuNames()).toEqual(['Cambia ruolo', 'Rinomina', 'Rendi proprietario', 'Rimuovi']);
+    const separator = screen.getByRole('separator');
+    const remove = screen.getByRole('menuitem', { name: 'Rimuovi' });
+    expect(separator.compareDocumentPosition(remove) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('gives an admin the invite button and a member none', async () => {
