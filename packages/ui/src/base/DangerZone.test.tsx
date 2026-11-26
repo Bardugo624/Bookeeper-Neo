@@ -30,3 +30,13 @@ it('shows a DangerAction with title, consequence and a working command', async (
   await userEvent.setup().click(screen.getByRole('button', { name: 'Delete' }));
   expect(onClick).toHaveBeenCalledTimes(1);
 });
+
+it('wraps loose children in an actions block styled with padding and gap', async () => {
+  const { readFileSync } = await import('node:fs');
+  const css = readFileSync('src/base/DangerZone.module.css', 'utf8');
+  const rule = css.match(/\.actions\s*\{([^}]*)\}/)?.[1] ?? '';
+  expect(rule).toMatch(/padding:\s*12px 16px/);
+  expect(rule).toMatch(/gap:\s*12px/);
+  const { container } = render(<DangerZone title="Zone"><input type="file" aria-label="File" /></DangerZone>);
+  expect(container.querySelector('[class*="actions"]')?.contains(screen.getByLabelText('File'))).toBe(true);
+});
