@@ -12,10 +12,12 @@ export interface CodeBlockProps {
   remaining: number;
   onRegenerate(): void;
   regenerating: boolean;
+  /** Replaces the countdown with this text (e.g. a date) while the code is still valid. */
+  expiresText?: string;
 }
 
 /** The code in large fixed-pitch characters, with Copy, the countdown and, once expired, a way to renew it. */
-export function CodeBlock({ code, remaining, onRegenerate, regenerating }: CodeBlockProps) {
+export function CodeBlock({ code, remaining, onRegenerate, regenerating, expiresText }: CodeBlockProps) {
   const t = useT();
   const [copied, setCopied] = useState(false);
   const expired = remaining <= 0;
@@ -51,7 +53,7 @@ export function CodeBlock({ code, remaining, onRegenerate, regenerating }: CodeB
         </div>
       ) : (
         <div className={styles.row}>
-          <span>{t('devices.pair.expiresIn', { time: formatCountdown(remaining) })}</span>
+          <span>{expiresText ?? t('devices.pair.expiresIn', { time: formatCountdown(remaining) })}</span>
           <Button variant="secondary" size="sm" icon={copied ? 'check' : 'link'} onClick={() => void copy()}>
             {copied ? t('devices.pair.copied') : t('devices.pair.copy')}
           </Button>
