@@ -287,3 +287,21 @@ describe('motion', () => {
     await waitFor(() => expect(opener).toHaveFocus());
   });
 });
+
+describe('Dialog tone', () => {
+  afterEach(cleanup);
+
+  it('danger tone adds the tone class and the alert icon, the name stays the title', () => {
+    render(<Dialog open onOpenChange={() => {}} title="Delete?" closeLabel="Close" tone="danger" />);
+    const dialog = screen.getByRole('dialog', { name: 'Delete?' });
+    expect(dialog.className).toMatch(/danger/);
+    expect(dialog.querySelector('[class*="alertIcon"] svg')).not.toBeNull();
+  });
+
+  it('without tone nothing changes', () => {
+    render(<Dialog open onOpenChange={() => {}} title="Plain" closeLabel="Close" />);
+    const dialog = screen.getByRole('dialog', { name: 'Plain' });
+    expect(dialog.className).not.toMatch(/danger/);
+    expect(dialog.querySelector('[class*="alertIcon"] svg')).toBeNull();
+  });
+});

@@ -35,4 +35,9 @@ describe('ConfirmDialog', () => {
     await userEvent.keyboard('{Escape}');
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
+
+  it('opens the dialog with the danger tone', () => {
+    setup();
+    expect(screen.getByRole('dialog').className).toMatch(/danger/);
+  });
 });

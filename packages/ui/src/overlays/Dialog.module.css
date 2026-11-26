@@ -15,6 +15,10 @@
     box-shadow: var(--bk-shadow-3);
 }
 
+.danger {
+    border: 2px solid var(--bk-danger);
+}
+
 .panel:focus {
     outline: none;
 }
@@ -42,6 +46,18 @@
 
 .heading {
     min-width: 0;
+}
+
+.titleRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.alertIcon {
+    display: inline-flex;
+    flex: none;
+    color: var(--bk-danger-strong);
 }
 
 .title {
