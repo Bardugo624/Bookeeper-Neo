@@ -611,3 +611,5 @@
 2026-11-26T21:01:50Z	bookeeper-fase-8a	tour-core	qa	opus	FAIL	-	-	-	150
 2026-11-26T21:02:26Z	bookeeper-fase-8a	tour-core	dwarf	sonnet	-	-	-	-	30
 2026-11-26T21:03:05Z	bookeeper-fase-8a	tour-core	qa	opus	PASS	-	-	-	32
+2026-11-26T21:18:22Z	bookeeper-fase-8a	kit-dialog-grow	dwarf	opus	-	-	-	-	74
+2026-11-26T21:19:27Z	bookeeper-fase-8a	kit-dialog-grow	qa	opus	PASS	-	-	-	59
