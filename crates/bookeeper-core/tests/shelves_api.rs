@@ -1268,3 +1268,55 @@ async fn spine_width_has_three_states() {
         );
     }
 }
+
+#[tokio::test]
+async fn already_placed_without_slot_applies_spine_width() {
+    let s = seed(Role::Owner, None, None).await;
+    let sh = insert_shelf(&s.state, &s.library_id, "A", 1, 5).await;
+    let b = books(&s, 1).await;
+    place(&s, &b[0], &sh, 0, 2).await;
+    let put = |body: Value| {
+        let s = &s;
+        let id = b[0].clone();
+        async move {
+            call(
+                &s.state,
+                "PUT",
+                &format!("/api/v1/books/{id}/placement"),
+                Some(&tok(s)),
+                Some(body),
+            )
+            .await
+            .0
+        }
+    };
+    let item = || async {
+        let (_, l) = get(&s, &format!("/api/v1/shelves/{sh}/books")).await;
+        (
+            l["items"][0]["slot_index"].clone(),
+            l["items"][0]["spine_width"].clone(),
+        )
+    };
+    let audits = || async { audit_rows(&s.state, &s.library_id).await.len() };
+    let base = audits().await;
+    assert_eq!(
+        put(json!({"shelf_id": sh, "row_index": 0, "spine_width": 3})).await,
+        200
+    );
+    assert_eq!(item().await, (json!(2), json!(3)));
+    assert_eq!(audits().await, base + 1);
+    // Same width again, or no width: nothing changes, no audit row.
+    assert_eq!(
+        put(json!({"shelf_id": sh, "row_index": 0, "spine_width": 3})).await,
+        200
+    );
+    assert_eq!(put(json!({"shelf_id": sh, "row_index": 0})).await, 200);
+    assert_eq!(item().await, (json!(2), json!(3)));
+    assert_eq!(audits().await, base + 1);
+    assert_eq!(
+        put(json!({"shelf_id": sh, "row_index": 0, "spine_width": null})).await,
+        200
+    );
+    assert_eq!(item().await, (json!(2), Value::Null));
+    assert_eq!(audits().await, base + 2);
+}

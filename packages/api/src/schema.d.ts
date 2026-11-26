@@ -3396,7 +3396,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description slot_taken: slot occupied (without shift); row_full: shift has no free slot to the right */
+            /** @description slot_taken: slot occupied (without shift); row_full: shift has no free slot to the right, or appending to a row whose last slot is occupied */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -3414,7 +3414,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorBody"];
                 };
             };
-            /** @description validation: slot outside the shelf or bad spine_width */
+            /** @description validation: slot outside the shelf, bad spine_width, or shift without slot_index */
             422: {
                 headers: {
                     [name: string]: unknown;

@@ -1976,7 +1976,7 @@
             }
           },
           "409": {
-            "description": "slot_taken: slot occupied (without shift); row_full: shift has no free slot to the right",
+            "description": "slot_taken: slot occupied (without shift); row_full: shift has no free slot to the right, or appending to a row whose last slot is occupied",
             "content": {
               "application/json": {
                 "schema": {
@@ -1996,7 +1996,7 @@
             }
           },
           "422": {
-            "description": "validation: slot outside the shelf or bad spine_width",
+            "description": "validation: slot outside the shelf, bad spine_width, or shift without slot_index",
             "content": {
               "application/json": {
                 "schema": {
