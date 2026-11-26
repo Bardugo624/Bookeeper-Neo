@@ -478,3 +478,4 @@
 2026-11-26T12:37:46Z	bookeeper-fase-6a	client-6a	qa	opus	PASS	-	-	-	62
 2026-11-26T12:40:10Z	bookeeper-fase-6a	apps-compat-6a	dwarf	sonnet	-	-	-	-	140
 2026-11-26T12:41:14Z	bookeeper-fase-6a	apps-compat-6a	qa	opus	PASS	-	-	-	58
+2026-11-26T13:01:24Z	bookeeper-fase-6b	d-join	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npx vitest run works in apps desktop	a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/desktop [apps/desktop/package.json]	103	1

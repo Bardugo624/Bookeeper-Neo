@@ -18,6 +18,7 @@
 - a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/mobile [apps/mobile/package.json]
 - a rejected optimistic write can restore the cache in the same batch as the optimistic render, so an effect keyed on the saved value… [apps/mobile/src/modules/reading/NoteField.tsx]
 - a fresh worktree has no node_modules; run `npm ci --offline` at the root, then `npx vitest run <path>` from apps/desktop [apps/desktop/package.json]
+- a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/desktop [apps/desktop/package.json]
 - `UPDATE_OPENAPI=1 cargo test --test openapi` does nothing without `-- --include-ignored`; the updater is an ignored test [packages/api/openapi.json]
 - `RateLimiter` outcome `succeeded()` clears every failure of the shared "redeem" key, so a read-only lookup on that key must use… [crates/bookeeper-core/src/auth/limit.rs]
 - the auth guard rewrites `devices.last_seen` on any request older than 60s, so a test that reads a person's `last_seen` must list with a… [crates/bookeeper-core/src/auth/guard.rs]
@@ -28,5 +29,4 @@
 - PUT placement upserts `spine_width` with COALESCE, so sending `null` keeps the stored width; the desktop shelves testkit fake does the… [crates/bookeeper-core/src/api/shelves.rs]
 - to test a timer-driven drag with fake timers, call `vi.useFakeTimers()` only right before the drag event and… [apps/desktop/src/modules/shelves/MoveBetween.test.tsx]
 - `npm test -w @bookeeper/desktop` first needs `npm ci --offline` at the root in a fresh worktree, or tsc cannot find vite/vitest types [apps/desktop/package.json]
-- `Db` is one `Arc<Mutex<Connection>>`, so every `run` closure is serialised in-process and a concurrency test on the API cannot catch a… [crates/bookeeper-core/src/db/mod.rs]
 
