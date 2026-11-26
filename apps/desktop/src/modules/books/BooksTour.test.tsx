@@ -123,6 +123,33 @@ describe('step 1', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
+  it('says «primo libro» only when the library was empty, not for a book added to a full one', async () => {
+    show({ books: [book(1)] });
+    await screen.findByRole('link', { name: 'Libro 1 Autore 1' });
+    act(() => state().start(firstBook));
+    await waitFor(() => lampOn('books.add'));
+    await userEvent.click(screen.getByRole('button', { name: 'Aggiungi' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Inserisci a mano' }));
+    await userEvent.type(screen.getByRole('textbox', { name: 'Titolo' }), 'Dune');
+    await userEvent.click(screen.getByRole('button', { name: 'Salva' }));
+    await waitFor(() => expect(state().step).toBe(1));
+    expect(document.body.textContent).not.toContain('è il primo libro della tua libreria');
+    // The tour did not take the celebration's place here: nothing is marked.
+    expect(localStorage.getItem('bookeeper.onboarding.firstBook.c1')).toBeNull();
+  });
+
+  it('marks the celebration as seen when the tour takes its place', async () => {
+    show();
+    const add = await screen.findByRole('button', { name: 'Aggiungi il primo libro' });
+    await waitFor(() => lampOn('books.addFirst'));
+    await userEvent.click(add);
+    await userEvent.click(await screen.findByRole('button', { name: 'Inserisci a mano' }));
+    await userEvent.type(screen.getByRole('textbox', { name: 'Titolo' }), 'Dune');
+    await userEvent.click(screen.getByRole('button', { name: 'Salva' }));
+    await waitFor(() => expect(state().step).toBe(1));
+    expect(localStorage.getItem('bookeeper.onboarding.firstBook.c1')).toBe('1');
+  });
+
   it('without the tour the celebration of the first book opens', async () => {
     localStorage.clear();
     show();

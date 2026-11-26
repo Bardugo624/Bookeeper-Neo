@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { placeCard } from './placement';
+import { placeBesidePanel, placeCard } from './placement';
 
 const CARD = { width: 300, height: 160 };
 const VIEW = { width: 1000, height: 700 };
@@ -21,5 +21,37 @@ describe('placeCard', () => {
   });
   it('docks in a corner without a target', () => {
     expect(placeCard(null, CARD, VIEW)).toMatchObject({ side: 'none', x: 676, y: 516 });
+  });
+});
+
+describe('placeBesidePanel', () => {
+  const panel = { x: 300, y: 100, width: 400, height: 400 };
+  const anchor = { x: 320, y: 200, width: 360, height: 40 };
+  const overlaps = (p: { x: number; y: number }) =>
+    p.x < panel.x + panel.width && p.x + CARD.width > panel.x && p.y < panel.y + panel.height && p.y + CARD.height > panel.y;
+  it('goes to the right of the panel, aligned with the anchor, never over it', () => {
+    const p = placeBesidePanel(anchor, panel, CARD, { width: 1200, height: 700 });
+    expect(p.side).toBe('right');
+    expect(p.x).toBe(714);
+    expect(overlaps(p)).toBe(false);
+  });
+  it('goes to the left when the right has no room', () => {
+    const p = placeBesidePanel(anchor, { ...panel, x: 600 }, CARD, { width: 1100, height: 700 });
+    expect(p.side).toBe('left');
+    expect(p.x + CARD.width).toBeLessThanOrEqual(600);
+  });
+  it('goes above or below a narrow window\'s panel', () => {
+    const wide = { x: 20, y: 250, width: 360, height: 300 };
+    const p = placeBesidePanel({ x: 30, y: 300, width: 340, height: 40 }, wide, CARD, { width: 400, height: 800 });
+    expect(['top', 'bottom']).toContain(p.side);
+    expect(p.y + CARD.height <= wide.y || p.y >= wide.y + wide.height).toBe(true);
+  });
+  it('with no room on any side, stays off the anchor instead of over the footer buttons', () => {
+    const view = { width: 1280, height: 800 };
+    const wide = { x: 260, y: 20, width: 760, height: 760 };
+    const save = { x: 926, y: 690, width: 70, height: 36 };
+    const p = placeBesidePanel(save, wide, { width: 320, height: 200 }, view);
+    const over = p.x < save.x + save.width && p.x + 320 > save.x && p.y < save.y + save.height && p.y + 200 > save.y;
+    expect(over).toBe(false);
   });
 });
