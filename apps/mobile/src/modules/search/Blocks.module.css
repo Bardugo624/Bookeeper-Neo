@@ -124,3 +124,13 @@
   outline: 2px solid var(--bk-focus);
   outline-offset: 2px;
 }
+
+/* On the tinted block the text takes the accent surface's own text token, in both themes. */
+.where .heading,
+.where .big {
+  color: var(--bk-on-accent-surface);
+}
+
+.big {
+  text-wrap: pretty;
+}

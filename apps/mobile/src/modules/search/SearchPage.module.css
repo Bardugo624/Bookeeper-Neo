@@ -58,7 +58,7 @@
   margin: 4px 0 0;
   min-height: 20px;
   font-size: 13px;
-  color: var(--bk-text-faint);
+  color: var(--bk-text-muted);
 }
 
 .shelves {

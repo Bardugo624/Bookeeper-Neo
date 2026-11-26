@@ -40,12 +40,17 @@
   line-height: 1.2;
   color: var(--bk-text-strong);
   overflow-wrap: anywhere;
+  text-wrap: balance;
+  max-width: 100%;
 }
 
 .subtitle {
   margin: 0;
   font-size: 15px;
   color: var(--bk-text-muted);
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
 }
 
 .authors {
@@ -54,6 +59,9 @@
   font-size: 18px;
   font-style: italic;
   color: var(--bk-text-muted);
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
 }
 
 .metaRow {
