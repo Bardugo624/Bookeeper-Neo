@@ -165,7 +165,7 @@ describe('about', () => {
   it('shows app and server versions and the server mode', async () => {
     renderSettings({ health: { version: '2.3.4' }, server: { phone_ready: false, public_url: null, tls: 'acme' } }, '/settings/about');
     expect(await screen.findByText('2.3.4')).toBeInTheDocument();
-    expect(screen.getByText('2.0.0-dev')).toBeInTheDocument();
+    expect(screen.getByText('2.0.0')).toBeInTheDocument();
     expect(await screen.findByText('Cifrata, con indirizzo pubblico')).toBeInTheDocument();
   });
 

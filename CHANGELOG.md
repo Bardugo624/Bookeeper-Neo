@@ -14,7 +14,7 @@ pubblicata e la mostra nella dialog "Vedi novità". Sono supportati:
 - link `[text](https://...)`
 
 
-## [2.0.0]
+## [2.0.0] - 2026-11-26
 
 Bookeeper 2.0 è una versione nuova, riscritta. Non importa i dati della 0.x:
 si parte da una libreria nuova (da Goodreads, Calibre o LibraryThing si può
@@ -43,6 +43,15 @@ importare).
 - **Palette comandi** (`Ctrl+K`).
 - **Backup programmato** con rotazione, backup a mano e ripristino
   riservato al proprietario.
+- **Tutto ciò che c'era nella 0.3**: libri con ricerca, griglia e tabella,
+  lookup ISBN, scaffali, prestiti, wishlist, statistiche, import
+  (Goodreads, Calibre, LibraryThing), export JSON/CSV, etichette PDF,
+  italiano e inglese, aggiornamenti con note di versione, tema chiaro,
+  scuro o di sistema.
+- **Libreria grande**: elenchi e ricerca restano fluidi con 10.000 libri,
+  sul desktop e sul telefono.
+- **Contrasto e tema scuro**: colori rivisti in entrambi i temi per
+  rispettare i contrasti di leggibilità, anche sul telefono.
 
 ### Changed
 
@@ -54,6 +63,8 @@ importare).
 ### Removed
 
 - Compatibilità con i dati e con l'API della 0.x.
+- Il vecchio server, i vecchi client, i file di distribuzione e il sito
+  della 0.3: restano solo le tre parti della 2.0.
 
 ## [0.2.1]
 
