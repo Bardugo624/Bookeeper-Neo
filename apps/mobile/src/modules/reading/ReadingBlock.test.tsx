@@ -60,6 +60,15 @@ describe('with a state', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
+  it('puts the clearing option last, after a divider', async () => {
+    renderBlock({ current: reading() });
+    await userEvent.click(await (await block()).findByRole('button', { name: 'Cambia stato' }));
+    const sheet = within(await screen.findByRole('dialog'));
+    const items = sheet.getAllByRole('listitem', { hidden: true });
+    expect(items[items.length - 2]!.querySelector('[role="separator"]')).not.toBeNull();
+    expect(items[items.length - 1]!.textContent).toBe('Togli lo stato');
+  });
+
   it('removes the state', async () => {
     const view = renderBlock({ current: reading() });
     await userEvent.click(await (await block()).findByRole('button', { name: 'Cambia stato' }));

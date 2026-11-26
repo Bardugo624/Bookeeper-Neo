@@ -162,6 +162,14 @@ describe('updates', () => {
 describe('disconnect', () => {
   const LOGOUT = '/api/v1/auth/logout';
 
+  it('lives in a named danger zone and confirms with the danger tone', async () => {
+    open(platformWith());
+    const zone = await screen.findByRole('region', { name: 'Zona pericolosa' });
+    await userEvent.click(within(zone).getByRole('button', { name: 'Scollega questo telefono' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog.className).toMatch(/danger/);
+  });
+
   it('asks first, then logs out, forgets the session and goes to /pair', async () => {
     const p = platformWith((c) => (c.path === LOGOUT ? { status: 204, body: null } : apiError(404, 'not_found')));
     const { router } = open(p);
