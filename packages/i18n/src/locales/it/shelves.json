@@ -75,7 +75,15 @@
   },
   "spine": {
     "open": "Apri scheda",
-    "remove": "Togli dallo scaffale"
+    "remove": "Togli dallo scaffale",
+    "move": "Sposta in…",
+    "width": {
+      "label": "Larghezza del dorso",
+      "pages": "Dalle pagine",
+      "thin": "Sottile",
+      "medium": "Medio",
+      "wide": "Largo"
+    }
   },
   "announce": {
     "pick": "{title} sollevato dal {row}. Usa le frecce per scegliere il posto, Spazio per lasciarlo, Esc per annullare.",
@@ -86,7 +94,9 @@
   "toast": {
     "failed": "Non è stato possibile spostare il libro",
     "rowFull": "Il ripiano è pieno.",
-    "slotTaken": "Quel posto è stato preso nel frattempo. L'ordine è stato ripristinato."
+    "slotTaken": "Quel posto è stato preso nel frattempo. L'ordine è stato ripristinato.",
+    "unitFull": "Il mobile è pieno.",
+    "widthFailed": "Non è stato possibile cambiare la larghezza del dorso"
   },
   "colors": {
     "sage": "Salvia",
@@ -173,5 +183,13 @@
       "title": "Nessun mobile in questa stanza",
       "text": "La stanza non ha mobili, oppure non esiste più."
     }
+  },
+  "where": {
+    "at": "{shelf} · ripiano {row} · posto {slot}",
+    "titled": "«{title}» · {shelf} · ripiano {row} · posto {slot}",
+    "unit": "Mobile",
+    "none": "«{title}» · Non è su nessuno scaffale",
+    "place": "Colloca in…",
+    "done": "Fatto"
   }
 }

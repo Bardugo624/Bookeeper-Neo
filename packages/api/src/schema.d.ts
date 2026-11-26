@@ -1564,14 +1564,18 @@ export interface components {
             shelf_id: string;
             /**
              * @description When true, books from `slot_index` onwards slide one slot right up to
-             *     the first free slot, atomically. Defaults to false.
+             *     the first free slot, atomically. Defaults to false. Requires `slot_index`.
              */
             shift?: boolean;
-            /** Format: int64 */
-            slot_index: number;
             /**
              * Format: int64
-             * @description 1–3; absent keeps the current value.
+             * @description Absent: the book goes to the slot after the last occupied one of the
+             *     row (0 when empty), or stays put if it is already on that row.
+             */
+            slot_index?: number | null;
+            /**
+             * Format: int64
+             * @description 1–3 sets the width; absent keeps the current value; `null` clears it.
              */
             spine_width?: number | null;
         };

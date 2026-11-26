@@ -17,6 +17,8 @@ export interface ShelfUnitProps {
   onSpineClick?: (book: SpineBook) => void;
   onSlotDrop?: (drop: SlotDrop) => void;
   selectedId?: string;
+  /** The spine drawn pulled out toward the viewer ("where is it?"); independent of `selectedId`. */
+  pulledId?: string;
   /** No dragging or keyboard move, even if `onSlotDrop` is given (e.g. no write permission). */
   readOnly?: boolean;
   /** Draws the dashed insertion slot, e.g. while something outside the unit is dragged over it. */
@@ -48,6 +50,7 @@ export function ShelfUnit(props: ShelfUnitProps) {
               rowIndex={rowIndex}
               spineLabel={props.spineLabel ?? defaultLabel}
               selectedId={props.selectedId}
+              pulledId={props.pulledId}
               pickedId={kb.picked}
               externalIndex={externalIndex(row.id)}
               onSpineClick={props.onSpineClick}

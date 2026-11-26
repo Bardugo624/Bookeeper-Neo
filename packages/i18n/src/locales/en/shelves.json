@@ -75,7 +75,15 @@
   },
   "spine": {
     "open": "Open book",
-    "remove": "Take off the shelf"
+    "remove": "Take off the shelf",
+    "move": "Move to…",
+    "width": {
+      "label": "Spine width",
+      "pages": "From the pages",
+      "thin": "Thin",
+      "medium": "Medium",
+      "wide": "Wide"
+    }
   },
   "announce": {
     "pick": "{title} picked up from {row}. Use the arrows to choose the place, Space to drop it, Esc to cancel.",
@@ -86,7 +94,9 @@
   "toast": {
     "failed": "Couldn't move the book",
     "rowFull": "The shelf is full.",
-    "slotTaken": "That place was taken in the meantime. The order was restored."
+    "slotTaken": "That place was taken in the meantime. The order was restored.",
+    "unitFull": "The cabinet is full.",
+    "widthFailed": "Couldn't change the spine width"
   },
   "colors": {
     "sage": "Sage",
@@ -173,5 +183,13 @@
       "title": "No cabinets in this room",
       "text": "The room has no cabinets, or it no longer exists."
     }
+  },
+  "where": {
+    "at": "{shelf} · shelf {row} · place {slot}",
+    "titled": "“{title}” · {shelf} · shelf {row} · place {slot}",
+    "unit": "Unit",
+    "none": "“{title}” · Not on any shelf",
+    "place": "Place in…",
+    "done": "Done"
   }
 }

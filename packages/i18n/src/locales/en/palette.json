@@ -26,9 +26,7 @@
   },
   "where": {
     "prefix": "where is ",
-    "at": "{shelf} · shelf {row}",
-    "none": "Not placed · open the book",
-    "shelf": "Unit"
+    "none": "Not placed · open the book"
   },
   "notice": {
     "none": "No results",

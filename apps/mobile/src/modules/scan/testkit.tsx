@@ -31,6 +31,8 @@ export interface Server {
   lookup?: Metadata | ReturnType<typeof err>;
   create?: (body: unknown) => ReturnType<typeof ok> | ReturnType<typeof err>;
   role?: string;
+  /** Answers first; `undefined` falls through to the defaults. */
+  extra?: (call: RecordedCall) => ReturnType<typeof ok> | ReturnType<typeof err> | undefined;
 }
 
 /** An in-memory server for the calls the scan module makes. */
@@ -38,6 +40,8 @@ export function server(s: Server = {}): Handler {
   return (call: RecordedCall) => {
     const url = new URL(call.path, 'http://x');
     const p = url.pathname;
+    const own = s.extra?.(call);
+    if (own) return own;
     if (p === '/api/v1/me') return ok({ ...ME, user: { ...ME.user, role: s.role ?? 'owner' } });
     if (p === '/api/v1/shelves') return ok({ items: [{ id: 's1', name: 'Salotto' }], total: 1 });
     if (p === '/api/v1/books' && call.method === 'GET') {

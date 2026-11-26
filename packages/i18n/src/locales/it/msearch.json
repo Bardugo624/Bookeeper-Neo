@@ -41,8 +41,10 @@
     "where": {
       "title": "Dove si trova",
       "shelf": "Mobile",
-      "row": "Ripiano {row}",
-      "none": "Non collocato"
+      "none": "Non collocato",
+      "phrase": "{shelf} · ripiano {row} · posto {slot}",
+      "button": "Dov'è?",
+      "row": "Ripiano {row}"
     },
     "loan": {
       "title": "Prestito",
@@ -68,6 +70,13 @@
     "notFound": {
       "title": "Libro non trovato",
       "text": "Questo libro non esiste più o è stato rimosso dalla libreria."
+    },
+    "whereIs": {
+      "title": "Dov'è?",
+      "unit": "Mobile con il libro evidenziato",
+      "back": "Torna alla scheda",
+      "missing": "Non è su nessuno scaffale",
+      "missingText": "Questo libro non è collocato, oppure è stato spostato."
     }
   },
   "reading": {

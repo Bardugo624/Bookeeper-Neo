@@ -42,7 +42,9 @@
       "reading": "Reading",
       "status": "Loan"
     },
-    "sortBy": "Sort by {column}"
+    "sortBy": "Sort by {column}",
+    "where": "Where is it?",
+    "whereFor": "Where is “{title}”?"
   },
   "empty": {
     "title": "No books",

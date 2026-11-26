@@ -57,6 +57,8 @@ export interface World {
   listPending?: boolean;
   /** A write to the shelf routes that the core refuses. */
   refuse?: { method: string; status: number; code: string };
+  /** Spine width of each placed book id, as the core keeps it. */
+  widths?: Record<string, number>;
   /** Placement writes wait for this before answering. */
   gate?: Promise<void>;
 }
@@ -122,6 +124,13 @@ export function shelvesPlatform(w: World): FakePlatform {
         const items = w.books.filter((b) => !w.spots[b.id] && b.title.toLowerCase().includes(text));
         return ok({ items, total: items.length });
       }
+      const one = /^\/api\/v1\/books\/([^/]+)$/.exec(p!);
+      if (one && r.method === 'GET') {
+        const found = w.books.find((b) => b.id === one[1]);
+        if (!found) return err(404, 'not_found');
+        const s = w.spots[found.id];
+        return ok(s ? { ...found, placement: { shelf_id: s.shelf, row_index: s.row, slot_index: s.slot } } : found);
+      }
       let m = /^\/api\/v1\/shelves\/([^/]+)(\/books)?$/.exec(p!);
       if (m) {
         const found = w.shelves.find((s) => s.id === m![1]);
@@ -131,7 +140,7 @@ export function shelvesPlatform(w: World): FakePlatform {
             .filter(([, s]) => s.shelf === found.id)
             .map(([id, s]) => {
               const b = w.books.find((x) => x.id === id)!;
-              return { book_id: id, title: b.title, authors: b.authors, progressive_number: null, cover_color: null, row_index: s.row, slot_index: s.slot, spine_width: null };
+              return { book_id: id, title: b.title, authors: b.authors, progressive_number: null, cover_color: null, row_index: s.row, slot_index: s.slot, spine_width: w.widths?.[id] ?? null };
             })
             .sort((a, b) => a.row_index - b.row_index || a.slot_index - b.slot_index);
           return ok({ items });
@@ -160,26 +169,42 @@ export function shelvesPlatform(w: World): FakePlatform {
           w.takenOnce = undefined;
           return err(409, 'slot_taken');
         }
-        const b = r.body as { shelf_id: string; row_index: number; slot_index: number; shift?: boolean };
+        const b = r.body as { shelf_id: string; row_index: number; slot_index?: number; shift?: boolean; spine_width?: number | null };
         const id = m[1]!;
         const shelfOf = w.shelves.find((s) => s.id === b.shelf_id)!;
+        // Absent keeps the width, null removes it, 1..3 sets it.
+        if ('spine_width' in b) {
+          if (b.spine_width) (w.widths ??= {})[id] = b.spine_width;
+          else delete w.widths?.[id];
+        }
+        if (b.slot_index === undefined) {
+          // The core's "next place": after the last one of the row, or where the book already is.
+          const here = w.spots[id];
+          if (here && here.shelf === b.shelf_id && here.row === b.row_index) return ok({ ...b, slot_index: here.slot });
+          const taken = Object.values(w.spots).filter((s) => s.shelf === b.shelf_id && s.row === b.row_index).map((s) => s.slot);
+          const next = taken.length ? Math.max(...taken) + 1 : 0;
+          if (next >= shelfOf.slots_per_row) return err(409, 'row_full');
+          w.spots[id] = { shelf: b.shelf_id, row: b.row_index, slot: next };
+          return ok({ shelf_id: b.shelf_id, row_index: b.row_index, slot_index: next });
+        }
+        const slotIndex = b.slot_index;
         const inTarget = (s: Spot) => s.shelf === b.shelf_id && s.row === b.row_index;
         const old = w.spots[id];
         const others = Object.entries(w.spots).filter(([other, s]) => other !== id && inTarget(s));
-        const at = others.find(([, s]) => s.slot === b.slot_index);
+        const at = others.find(([, s]) => s.slot === slotIndex);
         if (at && !b.shift) return err(409, 'slot_taken');
         if (at) {
           // The core's shift: the contiguous run from the slot slides right; at the end of the row it
           // slides left into the old slot instead when the book moves right inside the same row.
           const run: string[] = [];
-          for (let n = b.slot_index; others.some(([, s]) => s.slot === n); n++) run.push(others.find(([, s]) => s.slot === n)![0]);
-          if (b.slot_index + run.length >= shelfOf.slots_per_row) {
-            if (!old || !inTarget(old) || old.slot > b.slot_index) return err(409, 'row_full');
-            for (const [, s] of others) if (s.slot > old.slot && s.slot <= b.slot_index) s.slot -= 1;
+          for (let n = slotIndex; others.some(([, s]) => s.slot === n); n++) run.push(others.find(([, s]) => s.slot === n)![0]);
+          if (slotIndex + run.length >= shelfOf.slots_per_row) {
+            if (!old || !inTarget(old) || old.slot > slotIndex) return err(409, 'row_full');
+            for (const [, s] of others) if (s.slot > old.slot && s.slot <= slotIndex) s.slot -= 1;
           } else for (const other of run) w.spots[other]!.slot += 1;
         }
-        w.spots[id] = { shelf: b.shelf_id, row: b.row_index, slot: b.slot_index };
-        return ok({ shelf_id: b.shelf_id, row_index: b.row_index, slot_index: b.slot_index });
+        w.spots[id] = { shelf: b.shelf_id, row: b.row_index, slot: slotIndex };
+        return ok({ shelf_id: b.shelf_id, row_index: b.row_index, slot_index: slotIndex });
       }
       return err(404, 'not_found');
     },
@@ -190,6 +215,11 @@ export function renderShelves(w: World, route = '/shelves', locale: 'it' | 'en' 
   const platform = shelvesPlatform(w);
   const stub: AppModule = { id: 'books', routes: [{ path: '/books/:id', element: <p>Scheda libro</p> }] };
   return { ...renderApp({ platform, modules: [module, stub], route, locale }), platform };
+}
+
+/** The bodies of the placement writes, in order. */
+export function placeBodies(platform: FakePlatform): Array<Record<string, unknown>> {
+  return platform.calls.filter((c) => c.method === 'PUT').map((c) => c.body as Record<string, unknown>);
 }
 
 /** The writes sent to the placement route, as [book id, row, slot]. */

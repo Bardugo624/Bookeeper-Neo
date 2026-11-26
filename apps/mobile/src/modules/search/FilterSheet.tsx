@@ -73,51 +73,45 @@ export function FilterSheet({ applied, onApply, onClose }: FilterSheetProps) {
               ))}
             </ul>
         </section>
-        {facetsQ.isError ? (
+        {tags.length > 0 || facetsQ.isError ? (
           <section aria-labelledby="msf-tags">
             <h3 id="msf-tags" className={styles.heading}>{t('msearch.sheet.tags')}</h3>
-            <SectionError message={apiErrorMessage(t, facetsQ.error)} onRetry={() => void facetsQ.refetch()} />
+            {tags.length > 0 ? (
+              <ul className={styles.options}>
+                {tags.map((tag) => (
+                  <li key={tag.id}>
+                    <label className={styles.option}>
+                      <input type="checkbox" className={styles.check} checked={draft.tags.includes(tag.id)} onChange={() => toggleTag(tag.id)} />
+                      <span className={styles.name}>{tag.name}</span>
+                      <span className={styles.n}>{tag.count}</span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            {facetsQ.isError ? <SectionError message={apiErrorMessage(t, facetsQ.error)} onRetry={() => void facetsQ.refetch()} /> : null}
           </section>
         ) : null}
-        {tags.length > 0 ? (
-          <section aria-labelledby="msf-tags">
-            <h3 id="msf-tags" className={styles.heading}>{t('msearch.sheet.tags')}</h3>
-            <ul className={styles.options}>
-              {tags.map((tag) => (
-                <li key={tag.id}>
-                  <label className={styles.option}>
-                    <input type="checkbox" className={styles.check} checked={draft.tags.includes(tag.id)} onChange={() => toggleTag(tag.id)} />
-                    <span className={styles.name}>{tag.name}</span>
-                    <span className={styles.n}>{tag.count}</span>
-                  </label>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
-        {roomsQ.isError ? (
+        {rooms.length > 0 || roomsQ.isError ? (
           <section aria-labelledby="msf-room">
             <h3 id="msf-room" className={styles.heading}>{t('msearch.sheet.room')}</h3>
-            <SectionError message={apiErrorMessage(t, roomsQ.error)} onRetry={() => void roomsQ.refetch()} />
-          </section>
-        ) : null}
-        {rooms.length > 0 ? (
-          <section aria-labelledby="msf-room">
-            <h3 id="msf-room" className={styles.heading}>{t('msearch.sheet.room')}</h3>
-            <ul className={styles.choices}>
-              {rooms.map((room) => (
-                <li key={room.id}>
-                  <button
-                    type="button"
-                    aria-pressed={draft.room === room.id}
-                    className={cx(styles.choice, draft.room === room.id && styles.on)}
-                    onClick={() => pick('room', room.id)}
-                  >
-                    {room.name}
-                  </button>
-                </li>
-              ))}
-            </ul>
+            {rooms.length > 0 ? (
+              <ul className={styles.choices}>
+                {rooms.map((room) => (
+                  <li key={room.id}>
+                    <button
+                      type="button"
+                      aria-pressed={draft.room === room.id}
+                      className={cx(styles.choice, draft.room === room.id && styles.on)}
+                      onClick={() => pick('room', room.id)}
+                    >
+                      {room.name}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            {roomsQ.isError ? <SectionError message={apiErrorMessage(t, roomsQ.error)} onRetry={() => void roomsQ.refetch()} /> : null}
           </section>
         ) : null}
       </div>

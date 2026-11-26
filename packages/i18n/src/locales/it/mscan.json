@@ -64,5 +64,99 @@
       "addFailed": "Il libro non è stato aggiunto."
     },
     "close": "Chiudi"
+  },
+  "shelf": {
+    "enter": "Riempi un ripiano",
+    "title": "Riempi un ripiano",
+    "back": "Torna a Scansiona",
+    "needPermission": {
+      "title": "Serve il permesso",
+      "text": "Per riempire un ripiano devi poter modificare i libri. Chiedi a chi gestisce la libreria."
+    },
+    "pick": {
+      "intro": "Scegli il mobile da riempire.",
+      "noRoom": "Senza stanza",
+      "unitInfo": "{rows} · {books}",
+      "rows": {
+        "one": "{count} ripiano",
+        "other": "{count} ripiani"
+      },
+      "books": {
+        "one": "{count} libro",
+        "other": "{count} libri"
+      },
+      "free": {
+        "one": "{count} posto libero",
+        "other": "{count} posti liberi"
+      },
+      "fill": "{books} · {free}",
+      "full": "Pieno",
+      "row": "Ripiano {row}",
+      "rowsTitle": "{shelf}: scegli il ripiano",
+      "change": "Cambia mobile",
+      "emptyTitle": "Nessun mobile",
+      "emptyText": "Crea prima un mobile dal computer."
+    },
+    "session": {
+      "where": "{shelf}, ripiano {row}",
+      "counter": {
+        "one": "{count} libro collocato",
+        "other": "{count} libri collocati"
+      },
+      "counterLabel": "Libri collocati",
+      "undo": "Annulla l'ultimo",
+      "finish": "Ho finito"
+    },
+    "feedback": {
+      "idle": "Inquadra il primo libro del ripiano.",
+      "placed": "{title} · posto {slot}",
+      "moved": "{title} · posto {slot}, spostato da {from}",
+      "added": "{title} aggiunto · posto {slot}",
+      "here": "{title} è già qui · posto {slot}",
+      "skipped": "Saltato: ISBN {isbn}",
+      "undone": "Annullato: {title}",
+      "undoError": "Non sono riuscito ad annullare: {title}",
+      "error": "Non è andata a buon fine per l'ISBN {isbn}.",
+      "retry": "Riprova",
+      "fromShelf": "{shelf}, ripiano {row}",
+      "fromRow": "ripiano {row}"
+    },
+    "none": {
+      "text": "Non ho trovato informazioni per questo libro.",
+      "type": "Inserisci il titolo",
+      "skip": "Salta",
+      "authorLabel": "Autore (facoltativo)",
+      "create": "Crea e colloca"
+    },
+    "summary": {
+      "title": "Riepilogo",
+      "full": "Il ripiano è pieno",
+      "placed": {
+        "one": "{count} collocato",
+        "other": "{count} collocati"
+      },
+      "moved": {
+        "one": "{count} spostato",
+        "other": "{count} spostati"
+      },
+      "added": {
+        "one": "{count} aggiunto",
+        "other": "{count} aggiunti"
+      },
+      "skipped": {
+        "one": "{count} saltato",
+        "other": "{count} saltati"
+      },
+      "list": "Libri nell'ordine di scansione",
+      "empty": "Nessun libro letto.",
+      "kind": {
+        "placed": "collocato",
+        "moved": "spostato",
+        "added": "aggiunto",
+        "skipped": "saltato"
+      },
+      "again": "Un altro ripiano",
+      "close": "Chiudi"
+    }
   }
 }

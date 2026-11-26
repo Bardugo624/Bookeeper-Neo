@@ -26,17 +26,18 @@
     align-items: flex-end;
     gap: 2px;
     height: 132px;
-    padding: 6px 6px 0;
+    padding: 6px 6px var(--pull-room, 12px);
     overflow-x: auto;
     overflow-y: hidden;
     background: var(--shelf-niche);
+    background-clip: content-box;
     background-repeat: no-repeat;
     background-size: 100% 26px;
 }
 
 .board {
     height: 10px;
-    margin: 0 -6px;
+    margin: calc(var(--pull-room, 12px) * -1) -6px 0;
     background: var(--shelf-board);
     background-image: var(--shelf-grain);
     border-radius: 1px;
@@ -85,6 +86,17 @@
 
 .spine[data-picked] {
     opacity: 0.7;
+}
+
+.spine[data-pulled] {
+    z-index: 1;
+    outline: 2px solid var(--bk-primary-400);
+    outline-offset: 1px;
+}
+
+.spine[data-pulled]::after {
+    background: var(--bk-primary-300);
+    box-shadow: 0 0 10px 2px var(--bk-primary-400);
 }
 
 .empty {
@@ -137,10 +149,45 @@
         transition: opacity var(--bk-dur-fast) var(--bk-ease);
     }
 
+.spine[data-pulled] {
+        transform: translateY(10px) scale(1.06);
+        transform-origin: 50% 100%;
+        transition:
+            transform var(--bk-dur-slow) var(--bk-ease-spring),
+            opacity var(--bk-dur-fast) var(--bk-ease);
+    }
+
+    .spine[data-pulled]::after {
+        animation: spine-pulse 700ms var(--bk-ease) 3 both;
+    }
+
+    @keyframes spine-pulse {
+        0%,
+        100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: 0.55;
+        }
+    }
+
     @keyframes spine-in {
         from {
             opacity: 0;
             transform: translateY(8px);
         }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .spine[data-pulled],
+    .spine[data-pulled]:hover {
+        transform: none;
+        outline: 3px solid var(--bk-primary-400);
+        outline-offset: 2px;
+    }
+
+    .spine[data-pulled]::after {
+        opacity: 0;
     }
 }

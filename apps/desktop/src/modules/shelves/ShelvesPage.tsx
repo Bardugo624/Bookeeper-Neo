@@ -9,6 +9,7 @@ import { ShelfFormDialog } from './ShelfFormDialog';
 import { ShelfPanel } from './ShelfPanel';
 import { ShelfTabs } from './ShelfTabs';
 import { SpineMenu } from './SpineMenu';
+import { WhereBar } from './WhereBar';
 import { UnshelvedList } from './UnshelvedList';
 import { roomOf } from './roomModel';
 import { useShelvesView } from './useShelvesView';
@@ -19,6 +20,7 @@ export function ShelvesPage() {
   const v = useShelvesView();
   const { shelf, shelves, canWrite, dialog } = v;
   const navigate = useNavigate();
+  const unplacedBook = v.where?.kind === 'unplaced' ? v.where.book : null;
   const create = () => v.setDialog({ kind: 'form' });
   const newButton = canWrite ? (
     <>
@@ -76,9 +78,21 @@ export function ShelvesPage() {
   } else {
     body = (
       <>
-        <ShelfTabs groups={v.groups} value={shelf.id} onChange={(unit) => v.params.set({ unit, book: '' })} />
+        <ShelfTabs
+          groups={v.groups}
+          value={shelf.id}
+          onChange={(unit) => v.params.set({ unit, book: '' })}
+          onDropBook={canWrite ? (bookId, unit) => void v.dropOnTab(bookId, unit) : null}
+        />
         <div className={styles.layout}>
           <div className={styles.main}>
+            <WhereBar
+              state={v.where}
+              shelf={shelf}
+              blocked={dialog !== null || v.spine !== null}
+              onDone={v.doneWhere}
+              onPlace={canWrite && unplacedBook ? () => v.setDialog({ kind: 'place', book: unplacedBook, fresh: unplacedBook }) : null}
+            />
             {v.books.isPending ? (
               <div role="status" aria-label={t('shelves.loadingBooks')}>
                 <Skeleton height={380} />
@@ -93,6 +107,7 @@ export function ShelvesPage() {
             ) : (
               <ShelfCabinet
                 shelf={shelf}
+                pulledId={v.where?.kind === 'here' ? v.where.bookId : undefined}
                 books={v.books.data.items}
                 selectedId={v.params.values.book || undefined}
                 canWrite={canWrite}
@@ -115,7 +130,7 @@ export function ShelvesPage() {
               q={v.search}
               onQ={v.setSearch}
               onRetry={() => void v.unshelved.refetch()}
-              onPlace={canWrite ? (book) => v.setDialog({ kind: 'place', book }) : null}
+              onPlace={canWrite ? (book) => v.setDialog({ kind: 'place', book, fresh: book }) : null}
             />
           </ShelfPanel>
         </div>
@@ -162,8 +177,9 @@ export function ShelvesPage() {
           book={dialog.book}
           shelves={v.all}
           initialShelfId={shelf.id}
+          initialRow={dialog.row}
           busy={v.placing}
-          onPlace={(target, books, row) => void v.placeAtEnd(dialog.book, target, books, row)}
+          onPlace={(target, books, row) => void v.placeAtEnd(dialog, target, books, row)}
           onClose={() => v.setDialog(null)}
         />
       ) : null}
@@ -194,6 +210,9 @@ export function ShelvesPage() {
       <SpineMenu
         book={v.spine}
         onRemove={canWrite ? (book) => void v.removeFromShelf(book) : null}
+        onMove={canWrite ? v.moveSpine : null}
+        width={v.spine ? v.widthOf(v.spine.id) : null}
+        onWidth={canWrite ? v.setWidth : null}
         onClose={() => v.setSpine(null)}
       />
     </div>

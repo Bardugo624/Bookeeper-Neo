@@ -26,9 +26,7 @@
   },
   "where": {
     "prefix": "dov'è ",
-    "at": "{shelf} · ripiano {row}",
-    "none": "Non collocato · apri la scheda",
-    "shelf": "Mobile"
+    "none": "Non collocato · apri la scheda"
   },
   "notice": {
     "none": "Nessun risultato",
