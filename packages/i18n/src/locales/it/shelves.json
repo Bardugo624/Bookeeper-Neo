@@ -173,5 +173,13 @@
       "title": "Nessun mobile in questa stanza",
       "text": "La stanza non ha mobili, oppure non esiste più."
     }
+  },
+  "where": {
+    "at": "{shelf} · ripiano {row} · posto {slot}",
+    "titled": "«{title}» · {shelf} · ripiano {row} · posto {slot}",
+    "unit": "Mobile",
+    "none": "«{title}» · Non è su nessuno scaffale",
+    "place": "Colloca in…",
+    "done": "Fatto"
   }
 }

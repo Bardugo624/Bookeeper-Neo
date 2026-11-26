@@ -9,6 +9,7 @@ import { ShelfFormDialog } from './ShelfFormDialog';
 import { ShelfPanel } from './ShelfPanel';
 import { ShelfTabs } from './ShelfTabs';
 import { SpineMenu } from './SpineMenu';
+import { WhereBar } from './WhereBar';
 import { UnshelvedList } from './UnshelvedList';
 import { roomOf } from './roomModel';
 import { useShelvesView } from './useShelvesView';
@@ -19,6 +20,7 @@ export function ShelvesPage() {
   const v = useShelvesView();
   const { shelf, shelves, canWrite, dialog } = v;
   const navigate = useNavigate();
+  const unplacedBook = v.where?.kind === 'unplaced' ? v.where.book : null;
   const create = () => v.setDialog({ kind: 'form' });
   const newButton = canWrite ? (
     <>
@@ -79,6 +81,13 @@ export function ShelvesPage() {
         <ShelfTabs groups={v.groups} value={shelf.id} onChange={(unit) => v.params.set({ unit, book: '' })} />
         <div className={styles.layout}>
           <div className={styles.main}>
+            <WhereBar
+              state={v.where}
+              shelf={shelf}
+              blocked={dialog !== null || v.spine !== null}
+              onDone={v.doneWhere}
+              onPlace={canWrite && unplacedBook ? () => v.setDialog({ kind: 'place', book: unplacedBook }) : null}
+            />
             {v.books.isPending ? (
               <div role="status" aria-label={t('shelves.loadingBooks')}>
                 <Skeleton height={380} />
@@ -93,6 +102,7 @@ export function ShelvesPage() {
             ) : (
               <ShelfCabinet
                 shelf={shelf}
+                pulledId={v.where?.kind === 'here' ? v.where.bookId : undefined}
                 books={v.books.data.items}
                 selectedId={v.params.values.book || undefined}
                 canWrite={canWrite}

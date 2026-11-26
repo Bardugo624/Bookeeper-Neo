@@ -78,3 +78,17 @@
   background: var(--bk-ok);
   color: var(--bk-on-primary);
 }
+
+.where {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity var(--bk-dur-fast) var(--bk-ease);
+}
+
+.item:hover .where,
+.item:focus-within .where {
+  opacity: 1;
+}

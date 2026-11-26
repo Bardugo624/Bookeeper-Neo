@@ -42,7 +42,9 @@
       "reading": "Lettura",
       "status": "Prestito"
     },
-    "sortBy": "Ordina per {column}"
+    "sortBy": "Ordina per {column}",
+    "where": "Dov'è?",
+    "whereFor": "Dov'è «{title}»?"
   },
   "empty": {
     "title": "Nessun libro",

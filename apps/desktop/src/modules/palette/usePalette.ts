@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { useT } from '../../app';
 import { useOverlays } from '../../app/overlays';
 import type { AppModule } from '../../app/types';
+import { wherePhrase } from '../shelves';
 import { arrange, bookAddress, matches, shelfAddress, shelfName, whereQuery, type PaletteItem } from './model';
 import { useBookResults, useShelfNames } from './useBookResults';
 import { useCommands } from './useCommands';
@@ -34,7 +35,7 @@ export function usePalette(modules: AppModule[]) {
       if (where === null) return { ...base, group: 'books', detail: author, run: () => navigate(bookAddress(book.id)) };
       const p = book.placement;
       const place = p
-        ? t('palette.where.at', { shelf: shelfName(shelves, p) ?? t('palette.where.shelf'), row: p.row_index + 1 })
+        ? wherePhrase(t, { ...p, shelfName: shelfName(shelves, p) })
         : t('palette.where.none');
       return { ...base, group: 'where', detail: place, run: () => navigate(p ? shelfAddress(p, book.id) : bookAddress(book.id)) };
     });
