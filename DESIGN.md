@@ -1,6 +1,7 @@
-# Design — Bookeeper Neo (client desktop)
+# Design — Bookeeper Neo 2.0
 
-Sistema visivo del client desktop (`clients/desktop/frontend`). Registro:
+Sistema visivo condiviso dall'app desktop (`apps/desktop`) e dalla PWA
+(`apps/mobile`), che vive in `packages/ui` (`@bookeeper/ui`). Registro:
 **product** — il design serve il compito, la familiarità è un pregio.
 Direzione: **biblioteca moderna** — editoriale, caldo, preciso; profondità e
 micro-interazioni contemporanee. Il libro è il protagonista.
@@ -9,81 +10,126 @@ micro-interazioni contemporanee. Il libro è il protagonista.
 
 ### Colore
 
-- **Primary**: verde-salvia `#4d8369` (scala 50–950 in
-  [theme/index.ts](clients/desktop/frontend/src/theme/index.ts), preset
-  PrimeVue Aura). Identico in light e dark (identità prima del default Aura).
-- **Neutri**: zinc caldo (`surface-50 #fbfaf8` → `950 #0c0b0a`).
+- **Primary**: verde-salvia, scala `--bk-primary-50` … `--bk-primary-950`
+  in [tokens.css](packages/ui/src/tokens.css); `--bk-primary-500` = `#4d8369`.
+  Identico in light e dark.
+- **Neutri**: `--bk-neutral-0` … `--bk-neutral-950` caldi (`--bk-neutral-50`
+  `#fbfaf8` → `--bk-neutral-950` `#0c0b0a`); in `html.dark` la scala è
+  invertita.
+- **Stati**: `--bk-ok`, `--bk-warn` (`#b7791f`), `--bk-danger` (`#b4493b`),
+  ciascuno con `-bg` (velatura) e `-strong` (leggibile come testo su
+  `--bk-surface`); `--bk-danger-fill` per i riempimenti, `--bk-on-primary`
+  per il testo su primary, `--bk-focus` per l'anello di fuoco.
 - **Strategia**: restrained — accento primario solo per azioni, selezione e
-  stato; i colori pieni vivono nei legni degli scaffali e nei dorsi.
-- **Colori scaffale** (`SHELF_COLOR_OPTIONS`): salvia, terracotta, notte,
-  prugna, ambra, grafite. Stessa famiglia usata dai placeholder copertina
-  (`CLOTH_TONES` in BookCover).
+  stato; i colori pieni vivono nei legni degli scaffali (`SHELF_COLORS`:
+  salvia, terracotta, notte, prugna, ambra, grafite) e nei dorsi/copertine
+  segnaposto (`CLOTH_TONES`).
 
-### Token condivisi — `src/theme/tokens.css`
+### Token — `packages/ui/src/tokens.css`
 
 Prefisso `--bk-`. Unica fonte per superfici light/dark: i componenti usano
-`--bk-surface/--bk-border/--bk-text-*` e NON scrivono blocchi `html.dark`
-duplicati (restano solo eccezioni puntuali).
+`--bk-surface` / `--bk-border` / `--bk-text-*` e NON scrivono blocchi
+`html.dark` duplicati.
 
 - **Superfici**: `--bk-bg` (fondo) · `--bk-surface` (card) ·
-  `--bk-chrome` (sidebar/topbar, secondo neutro caldo) · `--bk-inset`
-  (incassi: track, nicchie) · `--bk-border`, `--bk-border-strong`.
-- **Testo**: `--bk-text-strong / text / text-muted / text-faint`.
-- **Ombre** (tinte calde, non nero puro): `--bk-shadow-1/2/3` +
-  `--bk-shadow-book` e `--bk-shadow-book-lift` (ombra da volume fisico).
-- **Radius**: `--bk-radius-sm 8 / radius 12 / radius-lg 16`.
-- **Z-index semantici**: sticky 100 → dropdown 1000 → overlay 1100 →
-  modal 1200 → toast 1300 → tooltip 1400.
+  `--bk-surface-raised` (dialog, popover) · `--bk-chrome` (sidebar/topbar) ·
+  `--bk-inset` (incassi: track, nicchie) · `--bk-border`,
+  `--bk-border-strong`.
+- **Testo**: `--bk-text-strong`, `--bk-text`, `--bk-text-muted`,
+  `--bk-text-faint`.
+- **Ombre** (tinte calde, non nero puro): `--bk-shadow-1`, `--bk-shadow-2`,
+  `--bk-shadow-3`, `--bk-shadow-book`, `--bk-shadow-book-lift`.
+- **Radius**: `--bk-radius-sm` 8px · `--bk-radius` 12px · `--bk-radius-lg` 16px.
+- **Z-index semantici**: `--bk-z-sticky` 100 · `--bk-z-dropdown` 1000 ·
+  `--bk-z-overlay` 1100 · `--bk-z-modal` 1200 · `--bk-z-toast` 1300 ·
+  `--bk-z-tooltip` 1400.
 
 ### Tipografia
 
-- **Inter** (UI: label, corpo, dati) + **Lora** (titoli, valori editoriali).
-  Contrasto serif/sans deliberato; scelta confermata dall'utente.
-- Scala fissa rem (registro product); numeri sempre `tabular-nums`.
-- `text-wrap: balance` su h1–h4, `pretty` sui paragrafi (globale).
+- `--bk-font-ui` (**Inter Variable**: label, corpo, dati) e `--bk-font-serif`
+  (**Lora Variable**: titoli, valori editoriali), caricati da
+  [fonts.css](packages/ui/src/fonts.css) senza download a runtime
+  (sottoinsiemi latin e latin-ext).
+- Scala fissa (registro product), corpo 14px; numeri `tabular-nums`.
 
 ### Motion
 
-Token: `--bk-dur-fast 150ms` (feedback) · `--bk-dur 200ms` (stato) ·
-`--bk-dur-slow 280ms` (entrance) · easing `--bk-ease` (out-quart) e
-`--bk-ease-snappy` (out-quint). Regole:
+Token: `--bk-dur-fast` 150ms (feedback) · `--bk-dur` 200ms (stato) ·
+`--bk-dur-slow` 280ms (entrance, layout) · `--bk-ease`
+`cubic-bezier(0.25, 1, 0.5, 1)` (out-quart) · `--bk-ease-snappy`
+`cubic-bezier(0.22, 1, 0.36, 1)` (out-quint) · `--bk-ease-spring`
+`cubic-bezier(0.34, 1.56, 0.64, 1)` (elastica, solo per i movimenti
+approvati qui sotto). Regole:
 
-- Solo transform/opacity/filter (mai `width`/layout: le barre animano con
-  `scaleX`, origin left).
-- Entrance condivisa `bk-rise` (anima solo `from{}` → default visibile);
-  stagger via `--i` sull'item, cap ≤ ~400ms totali.
-- Uscite ~75% delle entrate. `prefers-reduced-motion` azzerato globalmente
-  in style.css.
-- Press feedback globale sui bottoni PrimeVue: `scale(0.97)` su `:active`.
+- Solo `transform` e `opacity`. Unica eccezione: il riempimento di
+  `ProgressRing`. Le barre (`FillBar`) animano con `scaleX`, origin left.
+- Entrance condivisa `bk-rise` (fade + alza 6px); lo stagger si fa con `--i`.
+  Il default è visibile: l'animazione parte da `from{}`.
+- Uscite più brevi delle entrate.
+- **`prefers-reduced-motion`**: ogni animazione e transizione sta dentro
+  `@media (prefers-reduced-motion: no-preference)`; con `reduce` lo stato
+  finale è immediato (il count-up salta al valore, il dorso estratto passa
+  a un contorno fisso).
+- **Movimenti approvati** (mockup 2A):
+  - Libro 3D (`Book3D`): riposo `rotateY(-8deg)` con prospettiva 900px, al
+    passaggio `rotateY(-18deg)`, `--bk-dur-slow` `--bk-ease`.
+  - Anello di avanzamento (`ProgressRing`): si riempie in 600ms
+    `--bk-ease` al montaggio.
+  - Dorso che si sfila (`ShelfUnit`): al passaggio `translateY(-2.5px)`;
+    nel "Dov'è?" il dorso evidenziato esce `translateY(10px) scale(1.06)` con
+    `--bk-dur-slow` `--bk-ease-spring`, alone che pulsa tre volte.
+  - Pillola scorrevole (`PillTabs`): `translateX`, `--bk-dur`
+    `--bk-ease-spring`.
+  - Tooltip: `scale(0.92)` → 1, `--bk-dur-fast` `--bk-ease-spring`.
+  - Copertina (`BookCover`) al passaggio: `translateY(-3px) rotate(-0.5deg)`
+    e `--bk-shadow-book-lift`, `--bk-dur` `--bk-ease`.
+  - Count-up di `StatCard`: 600ms.
 
-## Vocabolario componenti
+## Vocabolario componenti (`packages/ui/src`)
 
-- **Shell**: sidebar+topbar su `--bk-chrome`; voce attiva = pill su
-  `--bk-surface` con icona accesa in primary (niente barre laterali);
-  cambio rotta = fade+rise 8px.
-- **Copertine (BookCover)**: radius asimmetrico (dorso 2px / taglio 5px),
-  overlay piega-dorso + luce ambiente anche sulle cover reali,
-  `--bk-shadow-book`; placeholder = tinta `CLOTH_TONES` deterministica +
-  iniziale in Lora. Hover (in BookCard): la copertina si solleva
-  (`translateY(-3px) rotate(-0.5deg)` + shadow-lift), la card resta ferma.
-- **Scaffali (ShelfSvg)**: mobile vero — cornice nel colore scaffale con
-  overlay "venatura", fondale scurito (darken 0.45), mensole con spessore e
-  ombra portata, dorsi bottom-aligned con altezza variabile deterministica
-  (86–100%) e gradiente di cilindricità condiviso; slot vuoti a
-  `rgb(255 255 255 / 0.12)`, hover primario; hover dorso = si sfila
-  (-2.5px + brightness). Entrance a stagger per colonna (14ms, cap).
-  Gradienti SVG con id per-istanza (evita collisioni multi-card).
-- **Stato nelle card (Loans/Wishlist)**: MAI side-stripe; lo stato tinge
-  l'intero bordo (`color-mix` col border token) + velatura di fondo solo per
-  overdue/priorità alta. Il Tag resta l'indicatore esplicito.
-- **KPI (StatCard)**: registro editoriale — label con glifo piccolo colorato
-  per ruolo, valore grande in Lora, count-up 600ms out-quint al mount
-  (immediato con reduced-motion). Niente icon-pill hero-metric.
-- **Barre di riempimento**: track su `--bk-inset`, indicatore `scaleX`
-  (compositor), soglie semantiche ok/warn/danger.
+- **Base** (`base`): `Button` (varianti `primary`, `secondary`, `ghost`,
+  `danger`; press `scale(0.98)`), `IconButton`, `Icon` (set a tratto unico),
+  `Input`, `Textarea`, `Field`, `Tag` (toni `neutral`, `primary`, `ok`,
+  `warn`, `danger`), `Divider`, `Kbd`, `Skeleton`, `Spinner`, `EmptyState`.
+- **Overlay** (`overlays`): `Dialog`, `Drawer`, `Menu`, `Select`,
+  `PillTabs`, `Tooltip` (con `TooltipProvider`), `ToastProvider` /
+  `useToast`.
+- **Libro** (`book`): `BookCover` (radius asimmetrico dorso 2px / taglio
+  5px, piega del dorso, `--bk-shadow-book`; placeholder = `clothTone`
+  deterministica + iniziale in Lora), `Book3D` (scheda libro), `ProgressRing`
+  (`role="progressbar"`), `FillBar` (track su `--bk-inset`, soglie
+  ok/warn/danger), `StatCard` (KPI editoriale: label piccola, valore grande
+  in Lora, count-up; niente icon-pill hero-metric).
+- **Scaffale** (`shelf`): `ShelfUnit` — mobile con cornice nel colore
+  scaffale, fondale scurito, mensole con ombra portata, dorsi
+  bottom-aligned di larghezza e altezza deterministiche (`spineWidth`,
+  `spineHeight`), spostamento da tastiera, annunci per screen reader.
+- **Shell** (nelle app): sidebar + topbar su `--bk-chrome`; voce attiva =
+  pillola su `--bk-surface` con icona in primary (niente barre laterali).
+  Sul telefono la navigazione è una barra di schede in basso (`TabBar` nell’app mobile).
+- **Stato nelle card** (Prestiti/Wishlist): MAI side-stripe; lo stato tinge
+  l'intero bordo (`color-mix` col token del bordo) e il `Tag` resta
+  l'indicatore esplicito.
+
+## Decisioni approvate
+
+Una revisione automatica (inclusi i comandi Impeccable del run 7B) NON deve
+cambiare:
+
+- **Palette**: verde-salvia (`--bk-primary-*`, 500 = `#4d8369`) e neutri
+  caldi (`--bk-neutral-*`, ombre con inchiostro caldo). Nessuna deriva verso
+  blu/viola/grigi freddi.
+- **Caratteri**: Inter Variable per la UI, Lora Variable per i titoli e i
+  valori editoriali, come in `fonts.css`.
+- **Curve elastiche dei movimenti approvati**: `--bk-ease-spring` su
+  `PillTabs`, `Tooltip` e dorso estratto in `ShelfUnit`; libro 3D, anello di
+  avanzamento e sollevamento della copertina come descritti in Motion. Non
+  vanno sostituiti con curve piatte.
+- Registro product, direzione "biblioteca moderna", il libro protagonista.
 
 ## Anti-pattern (vietati qui)
 
 Side-stripe border-left colorati · gradient text · glassmorphism decorativo ·
 hero-metric template · animazioni su proprietà di layout · dark mode
-duplicato per componente quando i token bastano.
+duplicato per componente quando i token bastano · colori letterali fuori da
+`tokens.css`, `clothTone.ts` e `shelf/colors.ts`.

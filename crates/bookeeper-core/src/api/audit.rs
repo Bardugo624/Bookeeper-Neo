@@ -141,13 +141,7 @@ pub async fn list_audit(
     let out = state
         .db
         .run(move |conn| {
-            let filter = "WHERE a.library_id = ?1 \
-                AND (?2 IS NULL OR a.user_id = ?2) \
-                AND (?3 IS NULL OR a.device_id = ?3) \
-                AND (?4 IS NULL OR a.action = ?4) \
-                AND (?5 IS NULL OR a.entity_type = ?5) \
-                AND (?6 IS NULL OR a.at >= ?6) \
-                AND (?7 IS NULL OR a.at <= ?7)";
+            let filter = AUDIT_FILTER;
             let total: i64 = conn.query_row(
                 &format!("SELECT COUNT(*) FROM audit_log a {filter}"),
                 rusqlite::params_from_iter(filter_params.iter()),
@@ -156,14 +150,7 @@ pub async fn list_audit(
             let mut all = filter_params.clone();
             all.push(Sql::Integer(limit));
             all.push(Sql::Integer(offset));
-            let mut stmt = conn.prepare(&format!(
-                "SELECT a.id, a.at, a.action, a.entity_type, a.entity_id, \
-                        u.id, u.display_name, d.id, d.name, a.detail_json \
-                 FROM audit_log a \
-                 LEFT JOIN users u ON u.id = a.user_id AND u.library_id = a.library_id \
-                 LEFT JOIN devices d ON d.id = a.device_id AND d.library_id = a.library_id \
-                 {filter} ORDER BY a.at DESC, a.id DESC LIMIT ?8 OFFSET ?9"
-            ))?;
+            let mut stmt = conn.prepare(&audit_page_sql())?;
             let items = stmt
                 .query_map(rusqlite::params_from_iter(all.iter()), |r| {
                     let uid: Option<String> = r.get(5)?;
@@ -223,4 +210,33 @@ pub async fn list_actions(
         })
         .await?;
     Ok(Json(AuditActions { items }))
+}
+
+const AUDIT_FILTER: &str = "WHERE a.library_id = ?1 \
+    AND (?2 IS NULL OR a.user_id = ?2) \
+    AND (?3 IS NULL OR a.device_id = ?3) \
+    AND (?4 IS NULL OR a.action = ?4) \
+    AND (?5 IS NULL OR a.entity_type = ?5) \
+    AND (?6 IS NULL OR a.at >= ?6) \
+    AND (?7 IS NULL OR a.at <= ?7)";
+
+fn audit_page_sql() -> String {
+    format!(
+        "SELECT a.id, a.at, a.action, a.entity_type, a.entity_id, \
+                u.id, u.display_name, d.id, d.name, a.detail_json \
+         FROM audit_log a \
+         LEFT JOIN users u ON u.id = a.user_id AND u.library_id = a.library_id \
+         LEFT JOIN devices d ON d.id = a.device_id AND d.library_id = a.library_id \
+         {AUDIT_FILTER} ORDER BY a.at DESC, a.id DESC LIMIT ?8 OFFSET ?9"
+    )
+}
+
+/// The statements behind `GET /audit`, for the plan test: count and page.
+/// Binds: `?1` library, `?2`..`?7` NULL, `?8`/`?9` limit and offset.
+#[doc(hidden)]
+pub fn audit_list_sql() -> (String, String) {
+    (
+        format!("SELECT COUNT(*) FROM audit_log a {AUDIT_FILTER}"),
+        audit_page_sql(),
+    )
 }
