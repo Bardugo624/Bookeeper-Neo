@@ -11,10 +11,12 @@ export interface FoundBodyProps {
   adding: boolean;
   error: string | null;
   onAdd: () => void;
+  /** "Add to the wishlist" with what was found. */
+  onWish: () => void;
 }
 
 /** A book the core knows from outside: its data, and "Add" for whoever may write. */
-export function FoundBody({ meta, isbn13, canWrite, adding, error, onAdd }: FoundBodyProps) {
+export function FoundBody({ meta, isbn13, canWrite, adding, error, onAdd, onWish }: FoundBodyProps) {
   const t = useT();
   const title = meta.title ?? '';
   return (
@@ -42,6 +44,9 @@ export function FoundBody({ meta, isbn13, canWrite, adding, error, onAdd }: Foun
             loadingLabel={t('mscan.sheet.found.adding')}
           >
             {t('mscan.sheet.found.add')}
+          </Button>
+          <Button variant="secondary" onClick={onWish} disabled={adding}>
+            {t('mscan.sheet.found.wish')}
           </Button>
         </div>
       ) : (

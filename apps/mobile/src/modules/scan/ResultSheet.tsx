@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Spinner } from '@bookeeper/ui/base';
 import { useT } from '../../app/i18n';
 import { BottomSheet, ErrorState, apiErrorMessage } from '../../kit';
+import { AddWishSheet } from '../wishlist';
 import type { Isbn } from './isbn';
 import { AddedBody } from './AddedBody';
 import { FoundBody } from './FoundBody';
@@ -26,7 +27,11 @@ export function ResultSheet({ isbn, canWrite, onClose, onAdded }: ResultSheetPro
   const add = useAddBook(onAdded);
   const reset = add.reset;
   const key = isbn?.isbn13;
-  useEffect(() => reset(), [key, reset]);
+  const [wishing, setWishing] = useState(false);
+  useEffect(() => {
+    reset();
+    setWishing(false);
+  }, [key, reset]);
 
   const addError = add.isError ? apiErrorMessage(t, add.error) : null;
   const data = lookup.data;
@@ -60,6 +65,7 @@ export function ResultSheet({ isbn, canWrite, onClose, onAdded }: ResultSheetPro
           adding={add.isPending}
           error={addError}
           onAdd={() => add.mutate({ isbn, meta: data.meta, title: data.meta.title ?? '' })}
+          onWish={() => setWishing(true)}
         />
       );
     } else {
@@ -76,9 +82,24 @@ export function ResultSheet({ isbn, canWrite, onClose, onAdded }: ResultSheetPro
     }
   }
 
+  // One sheet at a time: the wish form takes the place of the result and gives it back when dismissed.
+  const wish = wishing && data?.kind === 'found' && isbn ? data.meta : null;
+
   return (
-    <BottomSheet open={isbn !== null} onOpenChange={(open) => !open && onClose()} title={title}>
-      {body}
-    </BottomSheet>
+    <>
+      <BottomSheet open={isbn !== null && !wish} onOpenChange={(open) => !open && onClose()} title={title}>
+        {body}
+      </BottomSheet>
+      {wish && isbn ? (
+        <AddWishSheet
+          initial={{ isbn: isbn.isbn13, title: wish.title ?? '', authors: wish.authors }}
+          onDone={() => {
+            setWishing(false);
+            onClose();
+          }}
+          onCancel={() => setWishing(false)}
+        />
+      ) : null}
+    </>
   );
 }

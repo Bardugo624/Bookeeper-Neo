@@ -44,7 +44,8 @@
       "title": "Book found",
       "readOnly": "You cannot add books to this library.",
       "add": "Add to the library",
-      "adding": "Adding…"
+      "adding": "Adding…",
+      "wish": "Add to the wishlist"
     },
     "added": {
       "tag": "Added",
