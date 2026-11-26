@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
+import { Button } from '@bookeeper/ui/base';
 import { useT } from '../../app/i18n';
 import { Screen } from '../../kit';
 import { useSession } from '../../session';
@@ -14,6 +16,7 @@ export function ScanPage() {
   const role = useSession((s) => s.me?.user.role);
   const [video, setVideo] = useState<HTMLVideoElement | null>(null);
   const [added, setAdded] = useState(0);
+  const navigate = useNavigate();
   const flow = useScanFlow();
   const camera = useCameraScan(video, flow.onCode);
   const blocked = camera.status === 'denied' || camera.status === 'unavailable';
@@ -29,6 +32,13 @@ export function ScanPage() {
         <p className={styles.counter} role="status">
           {t('mscan.added', { count: added })}
         </p>
+      ) : null}
+      {role !== undefined && role !== 'guest' ? (
+        <div className={styles.enter}>
+          <Button variant="secondary" onClick={() => navigate('/scan/shelf')}>
+            {t('mscan.shelf.enter')}
+          </Button>
+        </div>
       ) : null}
       <ResultSheet
         isbn={flow.isbn}
