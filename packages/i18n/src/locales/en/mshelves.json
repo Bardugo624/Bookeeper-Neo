@@ -1,0 +1,20 @@
+{
+  "title": "Shelves",
+  "back": "Back to search",
+  "backToList": "Back to shelves",
+  "noRoom": "No room",
+  "count": {
+    "one": "{count} book",
+    "other": "{count} books"
+  },
+  "unit": "Furniture {name}",
+  "emptyUnit": "No books on this furniture.",
+  "empty": {
+    "title": "No furniture",
+    "text": "Furniture is set up from the computer."
+  },
+  "notFound": {
+    "title": "Furniture not found",
+    "text": "It no longer exists or you have no access to it."
+  }
+}

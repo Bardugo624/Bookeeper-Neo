@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router';
 import { Button, EmptyState, Icon } from '@bookeeper/ui/base';
 import { useT } from '../../app/i18n';
 import { ErrorState, Screen, apiErrorMessage } from '../../kit';
@@ -58,7 +59,15 @@ export function SearchPage() {
   }
 
   return (
-    <Screen title={t('msearch.title')}>
+    <Screen
+      title={t('msearch.title')}
+      actions={
+        <Link to="/shelves" className={styles.shelves}>
+          <Icon name="library" size={18} />
+          {t('msearch.shelves')}
+        </Link>
+      }
+    >
       <div className={styles.top}>
         <SearchField value={state.q} onCommit={state.setQuery} />
         <div className={styles.filters}>
