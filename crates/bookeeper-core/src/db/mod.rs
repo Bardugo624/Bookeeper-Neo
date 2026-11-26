@@ -34,6 +34,7 @@ pub struct Db {
 const MIGRATIONS: &[&str] = &[
     include_str!("migrations/0001_schema.sql"),
     include_str!("migrations/0002_reading_progress.sql"),
+    include_str!("migrations/0003_invites.sql"),
 ];
 
 /// Highest schema version this build understands.

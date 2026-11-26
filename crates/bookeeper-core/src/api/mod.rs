@@ -12,6 +12,7 @@ pub mod covers;
 pub mod devices;
 pub mod facets;
 pub mod health;
+pub mod invites;
 pub mod labels;
 pub mod loans;
 pub mod lookup;
@@ -24,6 +25,7 @@ pub mod shelves;
 pub mod stats;
 pub mod tags;
 pub mod transfer;
+pub mod users;
 pub mod util;
 pub mod wishlist;
 
@@ -47,6 +49,8 @@ pub fn router(state: AppState) -> Router {
         .merge(auth::routes())
         .merge(pairing::routes())
         .merge(devices::routes())
+        .merge(users::routes())
+        .merge(invites::routes())
         .merge(books::routes())
         .merge(facets::routes())
         .merge(books_search::routes())
