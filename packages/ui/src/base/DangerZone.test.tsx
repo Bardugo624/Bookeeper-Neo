@@ -31,12 +31,22 @@ it('shows a DangerAction with title, consequence and a working command', async (
   expect(onClick).toHaveBeenCalledTimes(1);
 });
 
-it('wraps loose children in an actions block styled with padding and gap', async () => {
+it('insets loose children like a row, without touching DangerAction rows', async () => {
   const { readFileSync } = await import('node:fs');
   const css = readFileSync('src/base/DangerZone.module.css', 'utf8');
-  const rule = css.match(/\.actions\s*\{([^}]*)\}/)?.[1] ?? '';
-  expect(rule).toMatch(/padding:\s*12px 16px/);
-  expect(rule).toMatch(/gap:\s*12px/);
-  const { container } = render(<DangerZone title="Zone"><input type="file" aria-label="File" /></DangerZone>);
-  expect(container.querySelector('[class*="actions"]')?.contains(screen.getByLabelText('File'))).toBe(true);
+  const actions = css.match(/\.actions\s*\{([^}]*)\}/)?.[1] ?? '';
+  expect(actions).not.toMatch(/padding|border/);
+  const loose = css.match(/\.actions > :not\(\.row\)\s*\{([^}]*)\}/)?.[1] ?? '';
+  expect(loose).toMatch(/padding:\s*12px 16px/);
+  const gap = css.match(/\.actions > :not\(\.row\) \+ :not\(\.row\)\s*\{([^}]*)\}/)?.[1] ?? '';
+  expect(gap).toMatch(/margin-top:\s*12px/);
+  const { container } = render(
+    <DangerZone title="Zone">
+      <input type="file" aria-label="File" />
+      <DangerAction title="T" consequence="C" action={<button>Go</button>} />
+    </DangerZone>,
+  );
+  const actionsEl = container.querySelector('[class*="actions"]')!;
+  expect(actionsEl.contains(screen.getByLabelText('File'))).toBe(true);
+  expect(actionsEl.querySelector('[class*="row"]')).not.toBeNull();
 });
