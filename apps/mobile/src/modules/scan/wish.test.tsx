@@ -9,8 +9,12 @@ const withWishlist = (s: Server): Server => ({
   extra: (c) => (c.path === '/api/v1/wishlist' && c.method === 'POST' ? ok({ id: 'w1' }) : undefined),
 });
 
-async function scan(s: Server) {
-  const { platform } = scanPlatform(withWishlist(s));
+async function scan(s: Server, slowPost?: Promise<unknown>) {
+  const { platform } = scanPlatform(
+    slowPost
+      ? { ...s, extra: (c) => (c.path === '/api/v1/wishlist' && c.method === 'POST' ? ((slowPost.then(() => ok({ id: 'w1' }))) as never) : undefined) }
+      : withWishlist(s),
+  );
   renderScan(platform);
   await screen.findByText('Inquadra il codice a barre sul retro del libro');
   act(() => platform.scanner.emit({ text: ISBN13, format: 'ean_13' }));
@@ -38,6 +42,25 @@ describe('"Add to the wishlist" from a scan', () => {
     await user.click(await within(dialog).findByRole('button', { name: 'Aggiungi alla wishlist' }));
     await user.click(await screen.findByRole('button', { name: 'Chiudi' }));
     expect(await screen.findByRole('button', { name: 'Aggiungi alla libreria' })).toBeInTheDocument();
+  });
+
+  it('does not close the result when an add finishes after the form was dismissed', async () => {
+    const user = userEvent.setup();
+    let release: () => void = () => undefined;
+    const late = new Promise<void>((r) => (release = r));
+    const { platform, dialog } = await scan({ lookup: meta() }, late);
+    await user.click(await within(dialog).findByRole('button', { name: 'Aggiungi alla wishlist' }));
+    const form = await screen.findByRole('dialog');
+    await user.click(within(form).getByRole('button', { name: 'Aggiungi alla wishlist' }));
+    await waitFor(() => expect(platform.fake.calls.some((c) => c.method === 'POST' && c.path === '/api/v1/wishlist')).toBe(true));
+    await user.keyboard('{Escape}');
+    expect(await screen.findByRole('button', { name: 'Aggiungi alla libreria' })).toBeInTheDocument();
+    await act(async () => {
+      release();
+      await late;
+    });
+    await new Promise((r) => setTimeout(r, 20));
+    expect(screen.getByRole('button', { name: 'Aggiungi alla libreria' })).toBeInTheDocument();
   });
 
   it('is absent for a book already owned', async () => {

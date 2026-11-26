@@ -126,6 +126,23 @@ describe('writing', () => {
   });
 });
 
+describe('after a failed conversion', () => {
+  it('clears the error when moving on to "Modifica"', async () => {
+    const user = userEvent.setup();
+    const platform = wishPlatform({
+      mine: [wish()],
+      extra: (c) => (c.path.endsWith('/convert') ? { status: 500, body: { error_code: 'internal', message: 'x' } } : undefined),
+    });
+    renderWishlist(platform);
+    await user.click(await row('Dune'));
+    const dialog = await screen.findByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: "Ce l'ho: aggiungilo alla libreria" }));
+    expect(await within(dialog).findByRole('alert')).toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'Modifica' }));
+    expect(within(screen.getByRole('dialog')).queryByRole('alert')).toBeNull();
+  });
+});
+
 describe("other people's wishes", () => {
   it('are read-only: no row opens a sheet', async () => {
     const user = userEvent.setup();

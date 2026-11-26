@@ -87,4 +87,15 @@ describe('cold start without a network', () => {
     const dialog = await screen.findByRole('dialog');
     expect(await within(dialog).findByText('È nella tua libreria')).toBeInTheDocument();
   });
+
+  it('says no list was downloaded when the library id was never saved', async () => {
+    const { platform } = scanPlatform(
+      { extra: (c) => (c.path === '/api/v1/me' ? { status: 503, body: { error_code: 'x', message: 'x' } } : undefined) },
+      { online: false },
+    );
+    renderScan(platform, '/scan', memoryIndex());
+    await screen.findByText('Inquadra il codice a barre sul retro del libro');
+    read(platform);
+    expect(await screen.findByText("Non ho ancora scaricato l'elenco dei libri della libreria.")).toBeInTheDocument();
+  });
 });

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { useT } from '../../app/i18n';
 import { BottomSheet } from '../../kit';
 import { createBody, initialValues, type WishInitial } from './model';
@@ -17,10 +18,21 @@ export interface AddWishSheetProps {
 export function AddWishSheet({ initial, onDone, onCancel }: AddWishSheetProps) {
   const t = useT();
   const create = useCreateWish();
+  const closed = useRef(false);
+  useEffect(() => {
+    closed.current = false;
+    return () => {
+      closed.current = true;
+    };
+  }, []);
   return (
     <BottomSheet
       open
-      onOpenChange={(open) => (open ? undefined : (onCancel ?? onDone)())}
+      onOpenChange={(open) => {
+        if (open) return;
+        closed.current = true;
+        (onCancel ?? onDone)();
+      }}
       title={t('mwishlist.add.title')}
     >
       <WishForm
@@ -28,7 +40,7 @@ export function AddWishSheet({ initial, onDone, onCancel }: AddWishSheetProps) {
         submitLabel={t('mwishlist.add.submit')}
         onSubmit={async (values) => {
           await create.mutateAsync(createBody(values));
-          onDone();
+          if (!closed.current) onDone();
         }}
       />
     </BottomSheet>

@@ -11,10 +11,12 @@ interface Props {
   loading: boolean;
   error: string | null;
   onJoin(displayName: string): void;
+  /** Back to the code form; absent when the step was reached from a link. */
+  onBack?(): void;
 }
 
 /** The step after an invitation code: who is joining. Nothing is created until "Entra". */
-export function InviteStep({ info, loading, error, onJoin }: Props) {
+export function InviteStep({ info, loading, error, onJoin, onBack }: Props) {
   const t = useT();
   const formId = useId();
   const [name, setName] = useState('');
@@ -33,6 +35,11 @@ export function InviteStep({ info, loading, error, onJoin }: Props) {
           <Button type="submit" form={formId} variant="primary" loading={loading} loadingLabel={t('mpair.invite.busy')}>
             {t('mpair.invite.action')}
           </Button>
+          {onBack ? (
+            <Button variant="ghost" onClick={onBack} disabled={loading}>
+              {t('mpair.invite.back')}
+            </Button>
+          ) : null}
         </div>
       }
     >

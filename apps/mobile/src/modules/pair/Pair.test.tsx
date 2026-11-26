@@ -133,6 +133,17 @@ describe('invitation', () => {
     expect(redeems(p)[0]!.body).toMatchObject({ code: 'ABCD2345', display_name: 'Marco', device_kind: 'mobile' });
   });
 
+  it('"Indietro" returns to the code form with the code still typed', async () => {
+    const p = invitePlatform();
+    open(p, '/pair/code');
+    await userEvent.type(await screen.findByLabelText('Codice di abbinamento'), 'abcd2345');
+    await userEvent.click(screen.getByRole('button', { name: 'Collega' }));
+    await screen.findByText(/Sei stato invitato in «Casa Rossi»/);
+    await userEvent.click(screen.getByRole('button', { name: 'Indietro' }));
+    expect(await screen.findByLabelText('Codice di abbinamento')).toHaveValue('ABCD2345');
+    expect(screen.queryByRole('textbox', { name: 'Il tuo nome' })).toBeNull();
+  });
+
   it('keeps the step and shows the message when the invitation was used meanwhile', async () => {
     const p = invitePlatform(() => apiError(401, 'pairing_code_invalid'));
     open(p, '/pair?code=ABCD2345');
@@ -203,6 +214,17 @@ describe('typed code', () => {
     await userEvent.type(screen.getByLabelText('Codice di abbinamento'), ' - ');
     await userEvent.click(screen.getByRole('button', { name: 'Collega' }));
     expect(screen.getByText('Scrivi il codice mostrato sul computer.')).toBeInTheDocument();
+    expect(redeems(p)).toHaveLength(0);
+  });
+
+  it('refuses an empty device name before any request', async () => {
+    const p = platformWith();
+    open(p, '/pair/code');
+    await userEvent.type(await screen.findByLabelText('Codice di abbinamento'), 'abcd2345');
+    await userEvent.clear(screen.getByLabelText('Nome del dispositivo'));
+    await userEvent.click(screen.getByRole('button', { name: 'Collega' }));
+    expect(await screen.findByText('Dai un nome a questo telefono.')).toBeInTheDocument();
+    expect(inspects(p)).toHaveLength(0);
     expect(redeems(p)).toHaveLength(0);
   });
 
