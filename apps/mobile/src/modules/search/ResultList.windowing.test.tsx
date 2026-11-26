@@ -137,6 +137,8 @@ describe('windowed result list', () => {
     height = 150;
     resize.resize();
     await scrollTo(200 * 150);
+    // the scroll is handled a frame later; Libro 212 is shown only at the new position, not at the old one
+    await screen.findByRole('link', { name: /^Libro 212,/ });
     await waitFor(() => expect(parseFloat(list().style.paddingTop)).toBe(firstShown() * 150));
     expect(total(150)).toBe(2000 * 150);
     expect(screen.getByRole('link', { name: /^Libro 201,/ })).toBeInTheDocument();
