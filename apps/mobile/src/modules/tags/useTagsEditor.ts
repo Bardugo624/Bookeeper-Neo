@@ -18,7 +18,7 @@ export function useTagsEditor(book: BookOut, onSaved: () => void) {
   const all = tags.data ?? [];
   const needle = filter.trim().toLowerCase();
   const shown = needle ? all.filter((tag) => tag.name.toLowerCase().includes(needle)) : all;
-  const canCreate = needle !== '' && !all.some((tag) => sameName(tag.name, filter));
+  const canCreate = tags.isSuccess && needle !== '' && !all.some((tag) => sameName(tag.name, filter));
   const busy = create.isPending || set.isPending;
 
   const toggle = (id: string) => setSelected((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));

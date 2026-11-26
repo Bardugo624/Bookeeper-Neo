@@ -77,7 +77,7 @@ export function SearchPage() {
         <ActiveFilters state={state} />
         <p className={styles.count} aria-live="polite">
           {count !== null
-            ? q === '' && state.filter === 'all'
+            ? q === '' && !filtered
               ? `${t('msearch.list.recent')} · ${t('msearch.list.count', { count })}`
               : t('msearch.list.count', { count })
             : ''}

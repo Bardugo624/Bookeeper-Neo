@@ -67,13 +67,13 @@ describe('search page', () => {
       route: '/search?q=Libro&filter=loan',
     });
     expect(await screen.findByRole('searchbox')).toHaveValue('Libro');
-    expect(screen.getByRole('tab', { name: 'In prestito' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('button', { name: 'In prestito' })).toHaveAttribute('aria-pressed', 'true');
     await waitFor(() => expect(rows()).toHaveLength(2));
     expect(listCalls(platform)[0]).toContain('on_loan=true');
-    await user.click(screen.getByRole('tab', { name: 'Non collocati' }));
+    await user.click(screen.getByRole('button', { name: 'Non collocati' }));
     expect(router.state.location.search).toBe('?q=Libro&filter=unshelved');
     await waitFor(() => expect(listCalls(platform).some((p) => p.includes('unshelved=true'))).toBe(true));
-    await user.click(screen.getByRole('tab', { name: 'Tutti' }));
+    await user.click(screen.getByRole('button', { name: 'Tutti' }));
     expect(router.state.location.search).toBe('?q=Libro');
   });
 
@@ -199,7 +199,7 @@ describe('states', () => {
     await screen.findByRole('link', { name: /Libro 1/ });
     down = true;
     act(() => platform.network.set(false));
-    await user.click(screen.getByRole('tab', { name: 'In prestito' }));
+    await user.click(screen.getByRole('button', { name: 'In prestito' }));
     expect(await screen.findByText('Sei offline')).toBeInTheDocument();
     await waitFor(() => expect(listCalls(platform).some((p) => p.includes('on_loan=true'))).toBe(true));
     // The last result stays; there is no error state.

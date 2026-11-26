@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useT } from '../../app/i18n';
-import { BottomSheet, cx } from '../../kit';
+import { BottomSheet, apiErrorMessage, cx } from '../../kit';
 import { useDraftCount, useFacets, useRooms } from './useFilterData';
 import { NO_SHEET_FILTERS, READING_FILTERS, type ReadingFilter, type SearchState, type SheetFilters } from './searchState';
 import styles from './FilterSheet.module.css';
@@ -12,12 +12,26 @@ export interface FilterSheetProps {
   onClose: () => void;
 }
 
+function SectionError({ message, onRetry }: { message: string; onRetry: () => void }) {
+  const t = useT();
+  return (
+    <div className={styles.sectionError}>
+      <p role="alert">{message}</p>
+      <button type="button" className={styles.retry} onClick={onRetry}>
+        {t('msearch.sheet.retry')}
+      </button>
+    </div>
+  );
+}
+
 /** Reading state, tags and room in a bottom sheet; nothing changes the list until "Show N books". */
 export function FilterSheet({ applied, onApply, onClose }: FilterSheetProps) {
   const t = useT();
   const [draft, setDraft] = useState<SheetFilters>({ reading: applied.reading, tags: applied.tags, room: applied.room });
-  const facets = useFacets().data;
-  const rooms = useRooms().data ?? [];
+  const facetsQ = useFacets();
+  const roomsQ = useRooms();
+  const facets = facetsQ.data;
+  const rooms = roomsQ.data ?? [];
   const count = useDraftCount({ ...applied, ...draft }, true);
   const tags = facets?.tags ?? [];
   const toggleTag = (id: string) =>
@@ -42,8 +56,7 @@ export function FilterSheet({ applied, onApply, onClose }: FilterSheetProps) {
       }
     >
       <div className={styles.sheet}>
-        {facets ? (
-          <section aria-labelledby="msf-reading">
+        <section aria-labelledby="msf-reading">
             <h3 id="msf-reading" className={styles.heading}>{t('msearch.sheet.reading')}</h3>
             <ul className={styles.choices}>
               {READING_FILTERS.map((id: ReadingFilter) => (
@@ -54,11 +67,16 @@ export function FilterSheet({ applied, onApply, onClose }: FilterSheetProps) {
                     className={cx(styles.choice, draft.reading === id && styles.on)}
                     onClick={() => pick('reading', id)}
                   >
-                    {t(`msearch.reading.${id}`)} <span className={styles.n}>{facets.reading[id]}</span>
+                    {t(`msearch.reading.${id}`)} {facets?.reading[id] !== undefined ? <span className={styles.n}>{facets.reading[id]}</span> : null}
                   </button>
                 </li>
               ))}
             </ul>
+        </section>
+        {facetsQ.isError ? (
+          <section aria-labelledby="msf-tags">
+            <h3 id="msf-tags" className={styles.heading}>{t('msearch.sheet.tags')}</h3>
+            <SectionError message={apiErrorMessage(t, facetsQ.error)} onRetry={() => void facetsQ.refetch()} />
           </section>
         ) : null}
         {tags.length > 0 ? (
@@ -75,6 +93,12 @@ export function FilterSheet({ applied, onApply, onClose }: FilterSheetProps) {
                 </li>
               ))}
             </ul>
+          </section>
+        ) : null}
+        {roomsQ.isError ? (
+          <section aria-labelledby="msf-room">
+            <h3 id="msf-room" className={styles.heading}>{t('msearch.sheet.room')}</h3>
+            <SectionError message={apiErrorMessage(t, roomsQ.error)} onRetry={() => void roomsQ.refetch()} />
           </section>
         ) : null}
         {rooms.length > 0 ? (

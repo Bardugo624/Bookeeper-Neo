@@ -113,7 +113,7 @@ describe('way back', () => {
     expect(router.state.location.pathname).toBe('/search');
     expect(router.state.location.search).toBe('?q=Libro&filter=loan');
     expect(await screen.findByRole('searchbox')).toHaveValue('Libro');
-    expect(screen.getByRole('tab', { name: 'In prestito' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('button', { name: 'In prestito' })).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('returns to the plain list from a direct link', async () => {

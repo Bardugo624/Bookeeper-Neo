@@ -120,3 +120,29 @@
   outline: 2px solid var(--bk-focus);
   outline-offset: 2px;
 }
+
+.sectionError {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--bk-text-strong);
+}
+
+.sectionError p {
+  margin: 0;
+}
+
+.retry {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--bk-border-strong);
+  border-radius: 999px;
+  background: var(--bk-surface);
+  font: inherit;
+  font-size: 16px;
+  color: var(--bk-text-strong);
+  cursor: pointer;
+  touch-action: manipulation;
+}
