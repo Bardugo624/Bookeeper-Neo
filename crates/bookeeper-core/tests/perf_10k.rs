@@ -184,6 +184,42 @@ async fn queries_use_an_index_where_the_library_filters_or_sorts() {
         vec![text(&shelf), text(&lib_id)],
     ));
 
+    {
+        use bookeeper_core::api::{audit, facets, loans, stats};
+        let (lc, lp) = loans::loans_list_sql();
+        let loan_args = || vec![text(&lib_id), Value::Null, Value::Null];
+        let page = |mut a: Vec<Value>| {
+            a.push(Value::Integer(50));
+            a.push(Value::Integer(0));
+            a
+        };
+        statements.push(("loans (count)".into(), lc, loan_args()));
+        statements.push(("loans (page)".into(), lp, page(loan_args())));
+        let (ac, ap) = audit::audit_list_sql();
+        let mut audit_args = vec![text(&lib_id)];
+        audit_args.extend(std::iter::repeat_n(Value::Null, 6));
+        statements.push(("audit (count)".into(), ac, audit_args.clone()));
+        statements.push(("audit (page)".into(), ap, page(audit_args)));
+        for (name, sql) in [
+            ("facets tags", facets::TAGS_SQL),
+            ("facets rooms", facets::ROOMS_SQL),
+            ("facets shelves", facets::SHELVES_SQL),
+            ("facets owners", facets::OWNERS_SQL),
+        ] {
+            statements.push((name.into(), sql.into(), vec![text(&lib_id)]));
+        }
+        statements.push((
+            "facets reading".into(),
+            facets::READING_SQL.into(),
+            vec![text(&lib_id), text(&user)],
+        ));
+        statements.push((
+            "stats reading years".into(),
+            stats::reading_years_sql(),
+            vec![text(&user), text(&lib_id)],
+        ));
+    }
+
     let report = lib
         .state()
         .db
@@ -192,7 +228,11 @@ async fn queries_use_an_index_where_the_library_filters_or_sorts() {
             for (name, sql, args) in statements {
                 for line in plan(conn, &sql, args) {
                     println!("{name}: {line}");
-                    if bare_scan(&line) {
+                    // The tag facet must start from the tags, not walk every book of the library.
+                    let walks_books = name == "facets tags"
+                        && line.starts_with("SEARCH b ")
+                        && line.ends_with("(library_id=?)");
+                    if bare_scan(&line) || walks_books {
                         bad.push(format!("{name}: {line}"));
                     }
                 }

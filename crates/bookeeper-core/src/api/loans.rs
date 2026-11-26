@@ -194,6 +194,34 @@ pub struct ListLoansQuery {
     pub offset: Option<i64>,
 }
 
+fn loans_filter(cond: &str) -> String {
+    format!(
+        "WHERE l.library_id = ?1 AND (?2 IS NULL OR l.book_id = ?2) \
+         AND (?3 IS NULL OR l.borrower_user_id = ?3) AND {cond}"
+    )
+}
+
+fn loans_page_sql(filter: &str) -> String {
+    format!(
+        "{SELECT_LOAN} {filter} ORDER BY l.returned_at IS NOT NULL, \
+         CASE WHEN l.returned_at IS NULL THEN l.due_at IS NULL ELSE 0 END, \
+         CASE WHEN l.returned_at IS NULL THEN l.due_at END ASC, \
+         CASE WHEN l.returned_at IS NULL THEN l.lent_at END DESC, \
+         l.returned_at DESC, l.id DESC LIMIT ?4 OFFSET ?5"
+    )
+}
+
+/// The statements behind `GET /loans` (all loans), for the plan test.
+/// Binds: `?1` library, `?2`/`?3` NULL, `?4`/`?5` limit and offset.
+#[doc(hidden)]
+pub fn loans_list_sql() -> (String, String) {
+    let filter = loans_filter("1 = 1");
+    (
+        format!("SELECT COUNT(*) FROM loans l {filter}"),
+        loans_page_sql(&filter),
+    )
+}
+
 const SELECT_LOAN: &str = "SELECT l.id, l.book_id, b.title, b.authors_json, l.borrower_name, \
     l.borrower_user_id, l.lent_at, l.due_at, l.returned_at, l.notes, bu.id, bu.display_name \
     FROM loans l JOIN books b ON b.id = l.book_id \
@@ -329,22 +357,13 @@ pub async fn list_loans(
     let out = state
         .db
         .run(move |conn| {
-            let filter = format!(
-                "WHERE l.library_id = ?1 AND (?2 IS NULL OR l.book_id = ?2) \
-                 AND (?3 IS NULL OR l.borrower_user_id = ?3) AND {cond}"
-            );
+            let filter = loans_filter(&cond);
             let total: i64 = conn.query_row(
                 &format!("SELECT COUNT(*) FROM loans l {filter}"),
                 params![who.library_id, book_id, borrower],
                 |r| r.get(0),
             )?;
-            let sql = format!(
-                "{SELECT_LOAN} {filter} ORDER BY l.returned_at IS NOT NULL, \
-                 CASE WHEN l.returned_at IS NULL THEN l.due_at IS NULL ELSE 0 END, \
-                 CASE WHEN l.returned_at IS NULL THEN l.due_at END ASC, \
-                 CASE WHEN l.returned_at IS NULL THEN l.lent_at END DESC, \
-                 l.returned_at DESC, l.id DESC LIMIT ?4 OFFSET ?5"
-            );
+            let sql = loans_page_sql(&filter);
             let mut stmt = conn.prepare(&sql)?;
             let items = stmt
                 .query_map(

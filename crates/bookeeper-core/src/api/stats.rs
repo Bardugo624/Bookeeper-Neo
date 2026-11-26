@@ -458,12 +458,7 @@ pub fn compute_reading(
     let ystr = format!("{year:04}");
 
     let years = {
-        let mut stmt = conn.prepare(&format!(
-            "SELECT CAST(strftime('%Y', r.finished_at, 'unixepoch') AS INTEGER) AS y,
-                    COUNT(*), COALESCE(SUM(COALESCE(b.page_count, 0)), 0)
-             FROM reading r JOIN books b ON b.id = r.book_id
-             WHERE {FINISHED} GROUP BY y ORDER BY y DESC"
-        ))?;
+        let mut stmt = conn.prepare(&reading_years_sql())?;
         let rows = stmt.query_map(params![uid, lib], |r| {
             Ok(ReadingYearTotal {
                 year: r.get(0)?,
@@ -599,4 +594,15 @@ pub fn compute_reading(
             longest,
         },
     })
+}
+
+/// The join query of `GET /stats/reading` (binds `?1` user, `?2` library), for the plan test.
+#[doc(hidden)]
+pub fn reading_years_sql() -> String {
+    format!(
+        "SELECT CAST(strftime('%Y', r.finished_at, 'unixepoch') AS INTEGER) AS y,
+                COUNT(*), COALESCE(SUM(COALESCE(b.page_count, 0)), 0)
+         FROM reading r JOIN books b ON b.id = r.book_id
+         WHERE {FINISHED} GROUP BY y ORDER BY y DESC"
+    )
 }
