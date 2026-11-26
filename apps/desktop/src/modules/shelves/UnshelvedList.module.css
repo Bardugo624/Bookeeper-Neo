@@ -123,6 +123,10 @@
   gap: 0;
 }
 
+.windowed > * {
+  flex-shrink: 0;
+}
+
 .windowed > .row {
   box-sizing: border-box;
   height: 60px;
