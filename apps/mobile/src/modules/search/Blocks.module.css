@@ -85,3 +85,18 @@
   outline: 2px solid var(--bk-primary-400);
   outline-offset: 2px;
 }
+
+.owner {
+  margin: 0;
+  font-size: 16px;
+  color: var(--bk-text-muted);
+}
+
+.readers {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
