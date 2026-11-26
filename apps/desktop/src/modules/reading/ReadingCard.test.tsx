@@ -173,6 +173,21 @@ describe('p3 fixes', () => {
     expect((note as HTMLTextAreaElement).value).toBe('Nuova');
   });
 
+  it('keeps the typed note in the field when a slow save fails', async () => {
+    const view = renderReading(reading({ note: 'Prima' }), {
+      refuse: () => ({ status: 500, body: { error_code: 'internal', message: 'boom' } }),
+      gate: () => new Promise<void>((r) => setTimeout(r, 50)),
+    });
+    const note = await (await card()).findByRole('textbox', { name: 'Nota' });
+    await userEvent.clear(note);
+    await userEvent.type(note, 'Nuova');
+    await userEvent.tab();
+    await waitFor(() => expect(puts(view)).toHaveLength(1));
+    await screen.findByRole('alert');
+    await new Promise((r) => setTimeout(r, 100));
+    expect((note as HTMLTextAreaElement).value).toBe('Nuova');
+  });
+
   it('hides "Mark as read" while the state failed to load', async () => {
     renderReading(reading(), { failGet: true });
     await screen.findByRole('region', { name: 'Lettura' });
