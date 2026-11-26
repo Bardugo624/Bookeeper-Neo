@@ -27,7 +27,7 @@ function EditForm({ book }: { book: BookOut }) {
     <Screen
       title={t('msearch.edit.title')}
       leading={
-        <button type="button" className={styles.back} aria-label={t('msearch.edit.back')} onClick={() => navigate(back, { state: location.state })}>
+        <button type="button" className={styles.back} aria-label={t('msearch.edit.back')} onClick={() => (location.key === 'default' ? navigate(back, { replace: true, state: location.state }) : navigate(-1))}>
           <Icon name="chevron-left" size={22} />
         </button>
       }
@@ -44,7 +44,7 @@ function EditForm({ book }: { book: BookOut }) {
           </p>
         ) : null}
         {people.isError ? <p className={styles.hint}>{t('msearch.edit.peopleError')}</p> : null}
-        <EditFields values={form.values} errors={form.errors} people={people.data ?? []} meId={meId} set={form.set} />
+        <EditFields values={form.values} errors={form.errors} people={people.data ?? []} currentOwner={book.owner ?? undefined} meId={meId} set={form.set} />
       </form>
       <BottomSheet
         open={blocker.state === 'blocked'}

@@ -27,12 +27,14 @@ interface Props {
   values: EditValues;
   errors: EditErrors;
   people: PersonOut[];
+  /** The owner the book has now: shown while the people list is loading or failed. */
+  currentOwner?: { id: string; display_name: string };
   meId: string | undefined;
   set: <K extends EditKey>(key: K, value: EditValues[K]) => void;
 }
 
 /** The fields of the book form. Texts are free; year and pages open the numeric keyboard. */
-export function EditFields({ values, errors, people, meId, set }: Props) {
+export function EditFields({ values, errors, people, currentOwner, meId, set }: Props) {
   const t = useT();
   const text = (key: Exclude<EditKey, 'authors' | 'format' | 'owner'>, numeric = false) => (
     <Row label={t(`msearch.edit.${key === 'title' ? 'titleField' : key}`)} error={errors[key]}>
@@ -76,6 +78,9 @@ export function EditFields({ values, errors, people, meId, set }: Props) {
         {({ id }) => (
           <select id={id} name="owner" className={styles.input} value={values.owner} onChange={(e) => set('owner', e.target.value)}>
             <option value="">{t('msearch.edit.ownerNone')}</option>
+            {currentOwner && !people.some((p) => p.id === currentOwner.id) ? (
+              <option value={currentOwner.id}>{currentOwner.id === meId ? t('msearch.detail.you') : currentOwner.display_name}</option>
+            ) : null}
             {people.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.id === meId ? t('msearch.detail.you') : p.display_name}

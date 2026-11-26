@@ -19,7 +19,7 @@ export function useReaders(bookId: string): Reader[] {
   const client = useClient();
   const libraryId = useSession((s) => s.me?.library.id);
   const { data } = useQuery({
-    queryKey: ['readers', libraryId, bookId],
+    queryKey: ['books', libraryId, 'readers', bookId],
     retry: false,
     queryFn: async () => (await client.listReaders(bookId)).items,
   });
@@ -36,7 +36,7 @@ export function useUpdateBook(id: string) {
     onSuccess: async (saved) => {
       queryClient.setQueryData(['books', libraryId, 'detail', id], saved);
       await Promise.all(
-        [['books', libraryId], ['facets'], ['readers', libraryId], ['people', libraryId], ['me']].map((queryKey) =>
+        [['books', libraryId], ['facets'], ['people', libraryId], ['me']].map((queryKey) =>
           queryClient.invalidateQueries({ queryKey }),
         ),
       );
