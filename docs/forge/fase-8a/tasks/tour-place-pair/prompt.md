@@ -34,9 +34,13 @@ Nel namespace `tour` (italiano e inglese): titoli e testi dei passi 2 e 3 nei lo
 - Passo 3 solo se il telefono si può abbinare; altrimenti il percorso ha 2 passi; `device-paired` completa.
 - Il finale porta a `done` e toglie «Primi passi».
 
+## Un test da aggiornare
+
+`apps/desktop/src/modules/books/BooksTour.test.tsx` (di `tour-start`) si aspetta che il salvataggio del primo libro porti il tour a `done`: era vero con un passo solo. Ora il passo 1 porta al passo 2 e il tour resta `running`; `done` arriva solo dopo l'ultimo passo. Aggiorna l'attesa di quel test, senza toglierne i controlli sulla festa del primo libro.
+
 ## Acceptance criteria
 
 - `npm run typecheck -w @bookeeper/desktop` passa; `npx vitest run src/kit/styles.test.ts` (da `apps/desktop`) passa: i fogli di stile usano solo token esistenti; `npx vitest run src/modules/tour src/modules/shelves src/modules/devices` (da `apps/desktop`) passa; `npm test -w @bookeeper/i18n` passa.
 - Nessun componente oltre 250 righe; nessun testo nei componenti; nessun colore letterale.
 - `.claude/skills/impeccable/scripts/impeccable detect --json` sui file cambiati non trova nulla.
-- Cambiano solo file sotto `apps/desktop/src/modules/tour/`, `shelves/`, `devices/` e `tour.json` (it, en).
+- Cambiano solo file sotto `apps/desktop/src/modules/tour/`, `shelves/`, `devices/`, `modules/books/BooksTour.test.tsx` e `tour.json` (it, en).

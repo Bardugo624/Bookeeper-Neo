@@ -23,10 +23,10 @@
 - a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/mobile [apps/mobile/package.json]
 - a rejected optimistic write can restore the cache in the same batch as the optimistic render, so an effect keyed on the saved value… [apps/mobile/src/modules/reading/NoteField.tsx]
 - a fresh worktree has no node_modules; run `npm ci --offline` at the root, then `npx vitest run <path>` from apps/desktop [apps/desktop/package.json]
+- a devices/shelves test that fakes `Date` or timers with `vi.useFakeTimers` stalls `requestAnimationFrame`, so the tour lamp… [apps/desktop/src/modules/devices/devices.test.tsx]
+- `modules/books` has no `index.ts`, and `renderBooks` in `books/testkit.tsx` mounts only the books module; for cross-module tests call… [apps/desktop/src/modules/books/testkit.tsx]
 - `committed_snapshot_is_current` in the openapi test is `#[ignore]`d, so a plain `cargo test --test openapi` skips the snapshot check; pass… [crates/bookeeper-core/tests/openapi.rs]
 - `apps/desktop/src/modules/settings/settings.test.tsx` asserts the real `apps/desktop/package.json` version, so a version bump… [apps/desktop/src/modules/settings/settings.test.tsx]
 - on Node 22 `node --test scripts/` fails with MODULE_NOT_FOUND because a directory argument is not searched; use a glob like `node --test… [scripts/update-manifest.test.mjs]
 - `t` from `@bookeeper/i18n` takes the locale first (`t('it', 'palette.hint')`), and the sidebar hint button's accessible name also includes its… [apps/desktop/src/shell/Sidebar.tsx]
-- a book card link has no aria-label, so its accessible name is its spans joined by spaces ("Libro 1 Autore 1"), and `textContent`… [apps/desktop/src/modules/books/BookCard.tsx]
-- `ResultList.windowing.test.tsx` "measures the row height once…" takes ~4.4s against vitest's 5s timeout and times… [apps/mobile/src/modules/search/ResultList.windowing.test.tsx]
 

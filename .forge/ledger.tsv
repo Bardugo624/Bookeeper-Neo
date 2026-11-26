@@ -629,3 +629,9 @@
 2026-11-26T21:37:23Z	bookeeper-fase-8a	book-cover-flight	qa	opus	FAIL	-	-	-	151
 2026-11-26T21:38:22Z	bookeeper-fase-8a	book-cover-flight	dwarf	sonnet	-	-	-	-	54
 2026-11-26T21:40:32Z	bookeeper-fase-8a	book-cover-flight	qa	opus	PASS	trap	the repo has no prettier config so npx prettier write rewrites files to double quotes while the codebase uses single quotes	the repo has no prettier config, so `npx prettier --write` rewrites files to double quotes while the codebase uses single quotes [apps/desktop/src/modules/books/useCoverFlight.ts]	124	1
+2026-11-26T21:46:20Z	bookeeper-fase-8a	tour-start	dwarf	sonnet	-	trap	modules books has no index ts and renderbooks in books testkit tsx mounts only the books module for cross module tests call	`modules/books` has no `index.ts`, and `renderBooks` in `books/testkit.tsx` mounts only the books module; for cross-module tests call… [apps/desktop/src/modules/books/testkit.tsx]	342	1
+2026-11-26T21:49:35Z	bookeeper-fase-8a	tour-start	qa	opus	PASS	-	-	-	188
+2026-11-26T21:55:00Z	bookeeper-fase-8a	tour-place-pair	dwarf	sonnet	-	trap	a devices shelves test that fakes date or timers with vi usefaketimers stalls requestanimationframe so the tour lamp	a devices/shelves test that fakes `Date` or timers with `vi.useFakeTimers` stalls `requestAnimationFrame`, so the tour lamp… [apps/desktop/src/modules/devices/devices.test.tsx]	320	1
+2026-11-26T21:57:37Z	bookeeper-fase-8a	tour-place-pair	qa	opus	FAIL	-	-	-	151
+2026-11-26T21:58:33Z	bookeeper-fase-8a	tour-place-pair	dwarf	sonnet	-	-	-	-	51
+2026-11-26T21:59:51Z	bookeeper-fase-8a	tour-place-pair	qa	opus	FAIL	-	-	-	71
