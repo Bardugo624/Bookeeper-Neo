@@ -134,3 +134,34 @@ La deriva da correggere è una sola, ma sistemica: dodici fogli di stile usano d
 5. Verifica finale: `/impeccable audit` sulle stesse 98 schermate.
 
 Rapporto salvato solo nel repository: il salvataggio sul servizio di Impeccable non è stato usato.
+
+---
+
+# Dopo il run 7B (26 nov 2026)
+
+Stesse prove di prima: 98 schermate con `axe-core` e il rilevatore di Impeccable sul codice di desktop, PWA e kit.
+
+## Audit Health Score
+
+| # | Dimensione | Prima | Dopo | Rilievo principale |
+|---|---|---|---|---|
+| 1 | Accessibilità | 2 | 3 | Contrasto: da 631 violazioni su 88 pagine a 0. Resta l'etichetta nel nome delle card dei libri |
+| 2 | Prestazioni | 3 | 3 | Invariato |
+| 3 | Temi | 2 | 4 | Token semantici nei due temi, test del contrasto, guardia contro i gradini grezzi |
+| 4 | Responsive | 3 | 3 | Frase della posizione e filtri rapidi corretti; dorsi come eccezione dichiarata, con elenco equivalente sul telefono |
+| 5 | Integrità | 3 | 4 | P0 di Persone corretto; rilevatore pulito; un testo da completare |
+| **Totale** | | **13/20** | **17/20** | **Buono** |
+
+## Violazioni di `axe`
+
+| Regola | Prima | Dopo |
+|---|---|---|
+| `color-contrast` | 88 pagine, 631 elementi | 0 |
+| `label-content-name-mismatch` | 14 pagine, 64 elementi | 4 pagine (card dei libri, griglia, due temi) |
+| `target-size` | 6 pagine (dorsi) | 6 pagine (dorsi): eccezione dichiarata in `DESIGN.md` |
+
+## Rilievi rimasti (run 7B1)
+
+- **[P1]** Card dei libri nella griglia: il nome accessibile non contiene ancora il testo visibile (2.5.3).
+- **[P3]** Barra laterale: il suggerimento è diventato "Cerca o lancia", una frase in sospeso.
+- **[P3]** Più i sei rilievi P3 lasciati dai revisori del run 7B (etichetta "In prestito" nella colonna laterale, testi per l'ospite negli stati vuoti di Scaffali e Prestiti, errori che incolpano sempre il server, nome della revoca degli inviti, regola duplicata in "Dov'è?").
