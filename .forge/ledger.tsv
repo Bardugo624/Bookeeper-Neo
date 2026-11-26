@@ -584,3 +584,6 @@
 2026-11-26T16:47:01Z	bookeeper-fase-7b	m-polish-frame	qa	opus	PASS	-	-	-	49
 2026-11-26T16:48:16Z	bookeeper-fase-7b	m-polish-search	dwarf	sonnet	-	trap	mobile search bookrow has no aria label the link name is built from its child spans which jsdom axe join with spaces libro 1	mobile search BookRow has no aria-label: the link name is built from its child spans, which jsdom/axe join with spaces ("Libro 1… [apps/mobile/src/modules/search/BookRow.tsx]	436	1
 2026-11-26T16:48:16Z	bookeeper-fase-7b	m-polish-search	dwarf	sonnet	-	trap	the mobile style test forbids literal colors in module css even 000 in a mask image use a token	the mobile style test forbids literal colors in module CSS, even `#000` in a `mask-image`; use a token [apps/mobile/src/styles.test.ts]	436	1
+2026-11-26T16:51:38Z	bookeeper-fase-7b	m-polish-collection	dwarf	sonnet	-	-	-	-	271
+2026-11-26T16:51:49Z	bookeeper-fase-7b	m-polish-search	qa	opus	PASS	trap	resultlist windowing test tsx measures the row height once takes 4 4s against vitest s 5s timeout and times	`ResultList.windowing.test.tsx` "measures the row height once…" takes ~4.4s against vitest's 5s timeout and times… [apps/mobile/src/modules/search/ResultList.windowing.test.tsx]	206	1
+2026-11-26T16:52:29Z	bookeeper-fase-7b	m-polish-collection	qa	opus	PASS	-	-	-	45

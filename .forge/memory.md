@@ -22,11 +22,11 @@
 - a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/mobile [apps/mobile/package.json]
 - a rejected optimistic write can restore the cache in the same batch as the optimistic render, so an effect keyed on the saved value… [apps/mobile/src/modules/reading/NoteField.tsx]
 - a fresh worktree has no node_modules; run `npm ci --offline` at the root, then `npx vitest run <path>` from apps/desktop [apps/desktop/package.json]
+- `ResultList.windowing.test.tsx` "measures the row height once…" takes ~4.4s against vitest's 5s timeout and times… [apps/mobile/src/modules/search/ResultList.windowing.test.tsx]
 - mobile search BookRow has no aria-label: the link name is built from its child spans, which jsdom/axe join with spaces ("Libro 1… [apps/mobile/src/modules/search/BookRow.tsx]
 - the mobile style test forbids literal colors in module CSS, even `#000` in a `mask-image`; use a token [apps/mobile/src/styles.test.ts]
 - mobile search windowing tests: a scroll event is handled in the next requestAnimationFrame, so a `waitFor` that is… [apps/mobile/src/modules/search/ResultList.windowing.test.tsx]
 - `ResultList.windowing.test.tsx`'s shared `api.override` always returns the module-level `all` books, so a test that… [apps/mobile/src/modules/search/ResultList.windowing.test.tsx]
 - `bookeeper-server setup-code` and `fingerprint` default to `./data` unless `--data-dir` or `BOOKEEPER_DATA` is set, so a hint without the… [crates/bookeeper-server/src/main.rs]
 - module-level state keyed by `location.key` leaks across mobile tests, since every test's initial entry has key `'default'` [apps/mobile/src/modules/search/ResultList.tsx]
-- jsdom lacks layout and `window.scrollTo`; windowing/scroll-restore tests must stub `getBoundingClientRect`,… [apps/mobile/src/modules/search/ResultList.windowing.test.tsx]
 
