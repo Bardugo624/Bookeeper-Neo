@@ -1,18 +1,11 @@
 # Build artifacts
-server/bin/
-server/dist/
 *.exe
 
 # Node / npm workspaces
 node_modules/
 apps/*/dist/
-clients/*/dist/
-clients/*/frontend/dist/
-clients/mobile-web/dev-dist/
 
 # Local env (NEVER commit secrets)
-deploy/.env
-deploy/.env.publish
 .env
 .env.local
 
