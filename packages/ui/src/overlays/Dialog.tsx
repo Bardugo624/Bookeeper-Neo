@@ -25,6 +25,8 @@ export interface DialogProps {
 interface PanelProps extends Omit<DialogProps, 'size' | 'origin'> {
   panelClassName?: string;
   origin?: HTMLElement | null;
+  /** Dialog only: birth from `origin` and height following the content. The Drawer stays still. */
+  motion?: boolean;
 }
 
 const FOCUSABLE = 'a[href],button,input,select,textarea,[tabindex]:not([tabindex="-1"])';
@@ -68,8 +70,9 @@ export function DialogPanel({
   closeLabel,
   panelClassName,
   origin,
+  motion = false,
 }: PanelProps) {
-  const panelRef = useDialogMotion(origin);
+  const panelRef = useDialogMotion(origin, motion);
   // The dialog is controlled and has no Radix Trigger, so remember who had focus when it opened
   // (captured during render, before focus moves into the panel) and give focus back on close.
   const candidates = useRef<Element[]>([]);
@@ -105,7 +108,9 @@ export function DialogPanel({
               <IconButton icon="close" label={closeLabel} size="sm" />
             </RadixDialog.Close>
           </header>
-          {children ? <div className={styles.body}>{children}</div> : null}
+          {children ? <div className={styles.body}>
+              <div data-dialog-content>{children}</div>
+            </div> : null}
           {footer ? <footer className={styles.footer}>{footer}</footer> : null}
         </RadixDialog.Content>
       </RadixDialog.Portal>
@@ -114,5 +119,5 @@ export function DialogPanel({
 }
 
 export function Dialog({ size = 'default', ...props }: DialogProps) {
-  return <DialogPanel {...props} panelClassName={cx(styles.dialog, size === 'wide' && styles.wide)} />;
+  return <DialogPanel {...props} motion panelClassName={cx(styles.dialog, size === 'wide' && styles.wide)} />;
 }

@@ -28,12 +28,12 @@ function motionTokens(el: HTMLElement): { duration: number; easing: string } {
  * callback for the panel element. Without `animate`, `ResizeObserver` or with reduced motion
  * nothing moves.
  */
-export function useDialogMotion(origin: HTMLElement | null | undefined) {
+export function useDialogMotion(origin: HTMLElement | null | undefined, enabled = true) {
   const [panel, setPanel] = useState<HTMLElement | null>(null);
 
   // Born from the opener: from the centre of the button, small and transparent, to its place.
   useLayoutEffect(() => {
-    if (!panel || !origin || !canAnimate(panel)) return;
+    if (!enabled || !panel || !origin || !canAnimate(panel)) return;
     const from = origin.getBoundingClientRect();
     const to = panel.getBoundingClientRect();
     const dx = from.left + from.width / 2 - (to.left + to.width / 2);
@@ -52,15 +52,21 @@ export function useDialogMotion(origin: HTMLElement | null | undefined) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [panel]);
 
-  // The height follows the content, centred (the panel is centred with `translate`).
+  // The height follows the content, centred (the panel is centred with `translate`). The observed
+  // elements are the content blocks, not the panel: they do not resize while the panel animates.
   useEffect(() => {
-    if (!panel || typeof ResizeObserver === 'undefined') return;
+    if (!enabled || !panel || typeof ResizeObserver === 'undefined') return;
     let last = panel.offsetHeight;
     let running: Animation | null = null;
     const observer = new ResizeObserver(() => {
-      if (running) return; // our own animation resizes the panel
+      // Mid-animation the visible height is the animated one: start from there, from the new target.
+      const prev = running ? panel.offsetHeight : last;
+      if (running) {
+        const old = running;
+        running = null;
+        old.cancel();
+      }
       const next = panel.offsetHeight;
-      const prev = last;
       last = next;
       if (prev === next || prev === 0 || !canAnimate(panel)) return;
       const { duration, easing } = motionTokens(panel);
@@ -74,17 +80,16 @@ export function useDialogMotion(origin: HTMLElement | null | undefined) {
       running = anim;
       const done = () => {
         if (running === anim) running = null;
-        last = panel.offsetHeight;
       };
       anim.addEventListener('finish', done);
       anim.addEventListener('cancel', done);
     });
-    observer.observe(panel);
+    panel.querySelectorAll('header, footer, [data-dialog-content]').forEach((el) => observer.observe(el));
     return () => {
       observer.disconnect();
       running?.cancel();
     };
-  }, [panel]);
+  }, [panel, enabled]);
 
   return setPanel;
 }

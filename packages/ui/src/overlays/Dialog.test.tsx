@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import './polyfills';
 import { Dialog } from './Dialog';
+import { Drawer } from './Drawer';
 import { Menu } from './Menu';
 
 function Harness() {
@@ -108,6 +109,7 @@ describe('motion', () => {
   const realAnimate = Object.getOwnPropertyDescriptor(Element.prototype, 'animate');
   const realRO = globalThis.ResizeObserver;
   const realMM = window.matchMedia;
+  const realOH = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight');
   let animate: ReturnType<typeof vi.fn>;
   let roCallback: (() => void) | null;
   let height: number;
@@ -134,7 +136,8 @@ describe('motion', () => {
     else delete (Element.prototype as { animate?: unknown }).animate;
     globalThis.ResizeObserver = realRO;
     window.matchMedia = realMM;
-    delete (HTMLElement.prototype as { offsetHeight?: unknown }).offsetHeight;
+    if (realOH) Object.defineProperty(HTMLElement.prototype, 'offsetHeight', realOH);
+    else delete (HTMLElement.prototype as { offsetHeight?: unknown }).offsetHeight;
   });
 
   const base = { onOpenChange: () => {}, title: 'T', closeLabel: 'Close' };
@@ -156,6 +159,37 @@ describe('motion', () => {
     expect(animate).toHaveBeenCalledTimes(1);
     const frames = animate.mock.calls[0][0] as Array<{ height: string }>;
     expect([frames[0].height, frames[1].height]).toEqual(['200px', '320px']);
+  });
+
+  it('retargets from the current height when the content changes mid-animation', () => {
+    setup();
+    render(
+      <Dialog {...base} open>
+        x
+      </Dialog>,
+    );
+    height = 320;
+    roCallback?.();
+    height = 250; // visible (animated) height; once cancelled the panel is at its natural height
+    animate.mockImplementationOnce(() => ({ cancel: vi.fn(), addEventListener: vi.fn() }));
+    const first = animate.mock.results[0].value as { cancel: ReturnType<typeof vi.fn> };
+    first.cancel.mockImplementation(() => {
+      height = 400;
+    });
+    roCallback?.();
+    expect(animate).toHaveBeenCalledTimes(2);
+    const frames = animate.mock.calls[1][0] as Array<{ height: string }>;
+    expect([frames[0].height, frames[1].height]).toEqual(['250px', '400px']);
+  });
+
+  it('does not move a Drawer', () => {
+    setup();
+    const button = document.createElement('button');
+    document.body.appendChild(button);
+    render(<Drawer {...base} open origin={button} />);
+    height = 320;
+    roCallback?.();
+    expect(animate).not.toHaveBeenCalled();
   });
 
   it('does not animate the height with reduced motion', () => {
