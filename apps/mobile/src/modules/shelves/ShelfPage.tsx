@@ -3,7 +3,7 @@ import { ApiError } from '@bookeeper/api';
 import { EmptyState, Icon, Skeleton } from '@bookeeper/ui/base';
 import { useT } from '../../app/i18n';
 import { ErrorState, Screen, apiErrorMessage } from '../../kit';
-import { Cabinet, useShelf, useShelfBooks } from '../search';
+import { Cabinet, useCanGoBack, useShelf, useShelfBooks } from '../search';
 import styles from './Shelves.module.css';
 
 function Body({ id }: { id: string }) {
@@ -46,11 +46,24 @@ function Body({ id }: { id: string }) {
 export function ShelfPage() {
   const t = useT();
   const { id = '' } = useParams();
+  const navigate = useNavigate();
+  const canGoBack = useCanGoBack();
   return (
     <Screen
       title={t('mshelves.title')}
       leading={
-        <Link to="/shelves" className={styles.back} aria-label={t('mshelves.backToList')}>
+        <Link
+          to="/shelves"
+          replace
+          className={styles.back}
+          aria-label={t('mshelves.backToList')}
+          onClick={(e) => {
+            // Back is the page the person came from (a book card, say); the list is the way out of a direct entry.
+            if (!canGoBack) return;
+            e.preventDefault();
+            navigate(-1);
+          }}
+        >
           <Icon name="chevron-left" size={22} />
         </Link>
       }

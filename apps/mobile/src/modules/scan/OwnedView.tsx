@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router';
 import { Button, Icon, Tag } from '@bookeeper/ui/base';
 import { BookCover } from '@bookeeper/ui/book';
 import { useT } from '../../app/i18n';
+import { placementPhrase } from '../search';
 import styles from './Sheet.module.css';
 
 export interface OwnedViewProps {
@@ -12,18 +13,19 @@ export interface OwnedViewProps {
   shelf: string;
   /** Zero-based row; `null` when the book is not placed. */
   rowIndex: number | null;
+  /** Zero-based place in the row. */
+  slotIndex?: number | null;
   src?: string;
   color?: string;
 }
 
 /** "Already in the library": the book, where it stands, and the way to its page. */
-export function OwnedView({ bookId, title, authors, shelf, rowIndex, src, color }: OwnedViewProps) {
+export function OwnedView({ bookId, title, authors, shelf, rowIndex, slotIndex, src, color }: OwnedViewProps) {
   const t = useT();
   const navigate = useNavigate();
   let place = t('mscan.sheet.owned.unplaced');
   if (rowIndex !== null) {
-    const row = rowIndex + 1;
-    place = shelf ? t('mscan.sheet.owned.shelfRow', { shelf, row }) : t('mscan.sheet.owned.row', { row });
+    place = placementPhrase(t, { shelf, row: rowIndex, slot: slotIndex ?? 0 });
   }
   return (
     <>
@@ -34,7 +36,7 @@ export function OwnedView({ bookId, title, authors, shelf, rowIndex, src, color 
           {authors.length > 0 ? <p className={styles.authors}>{authors.join(', ')}</p> : null}
           <p className={styles.where}>
             <Icon name="pin" size={16} />
-            <span>{rowIndex !== null ? t('mscan.sheet.owned.where', { place }) : place}</span>
+            <span>{place}</span>
           </p>
         </div>
       </div>

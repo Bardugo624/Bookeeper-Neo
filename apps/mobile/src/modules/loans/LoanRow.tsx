@@ -33,7 +33,7 @@ export function LoanRow({ loan, now, onReturn }: LoanRowProps) {
         <span className={styles.text}>
           <span className={styles.title}>{loan.book_title}</span>
           <span className={styles.person}>
-            {isMember(loan) ? <Icon name="library" size={16} /> : null}
+            {isMember(loan) ? <Icon name="user" size={16} /> : null}
             <span className={styles.name}>{person}</span>
           </span>
           <span className={loan.overdue && loan.returned_at == null ? styles.late : styles.when}>{when}</span>

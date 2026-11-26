@@ -34,9 +34,6 @@
     "isbn": "ISBN {isbn}",
     "owned": {
       "tag": "È nella tua libreria",
-      "where": "Si trova in: {place}",
-      "shelfRow": "{shelf}, ripiano {row}",
-      "row": "ripiano {row}",
       "unplaced": "Non è ancora collocato",
       "open": "Apri la scheda"
     },

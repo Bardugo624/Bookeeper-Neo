@@ -1,4 +1,5 @@
-import { Link, useLocation, useParams } from 'react-router';
+import { useCanGoBack } from './useCanGoBack';
+import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import type { BookOut } from '@bookeeper/api';
 import { ApiError } from '@bookeeper/api';
 import { EmptyState, Icon, Skeleton } from '@bookeeper/ui/base';
@@ -97,6 +98,8 @@ export function BookDetailPage() {
   const t = useT();
   const { id = '' } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
+  const canGoBack = useCanGoBack();
   const from = (location.state as FromList | null)?.list ?? '';
   const book = useBook(id);
   const canEdit = useSession((s) => canEditBooks(s.me?.user.role));
@@ -120,7 +123,18 @@ export function BookDetailPage() {
         ) : undefined
       }
       leading={
-        <Link to={{ pathname: '/search', search: from }} className={styles.back} aria-label={t('msearch.detail.back')}>
+        <Link
+          to={{ pathname: '/search', search: from }}
+          replace
+          className={styles.back}
+          aria-label={t('msearch.detail.back')}
+          onClick={(e) => {
+            // Back is the page the person came from; the list is only the way out of a direct entry.
+            if (!canGoBack) return;
+            e.preventDefault();
+            navigate(-1);
+          }}
+        >
           <Icon name="chevron-left" size={22} />
         </Link>
       }

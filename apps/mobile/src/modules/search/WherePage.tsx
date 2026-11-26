@@ -1,4 +1,5 @@
-import { Link, useLocation, useParams } from 'react-router';
+import { useCanGoBack } from './useCanGoBack';
+import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { ApiError } from '@bookeeper/api';
 import { EmptyState, Icon, Skeleton } from '@bookeeper/ui/base';
 import { positionLabel } from '@bookeeper/ui/shelf';
@@ -74,11 +75,19 @@ export function WherePage() {
   const t = useT();
   const { id = '' } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
+  const canGoBack = useCanGoBack();
   return (
     <Screen
       title={t('msearch.detail.whereIs.title')}
       leading={
-        <Link to={`/books/${encodeURIComponent(id)}`} state={location.state as FromList | null} className={detail.back} aria-label={t('msearch.detail.whereIs.back')}>
+        <Link to={`/books/${encodeURIComponent(id)}`} state={location.state as FromList | null} replace className={detail.back} aria-label={t('msearch.detail.whereIs.back')}
+          onClick={(e) => {
+            if (!canGoBack) return;
+            e.preventDefault();
+            navigate(-1);
+          }}
+        >
           <Icon name="chevron-left" size={22} />
         </Link>
       }

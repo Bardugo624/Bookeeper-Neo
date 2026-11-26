@@ -13,6 +13,7 @@ export function OwnedBody({ book }: { book: BookOut }) {
       authors={book.authors}
       shelf={shelf}
       rowIndex={book.placement ? book.placement.row_index : null}
+      slotIndex={book.placement ? book.placement.slot_index : null}
       src={src}
       color={book.cover_color ?? undefined}
     />
