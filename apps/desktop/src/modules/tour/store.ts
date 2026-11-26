@@ -7,6 +7,8 @@ import { loadTour, saveTour } from './storage';
 interface TourStore extends TourSnapshot {
   /** The connection the state belongs to, `null` before the shell binds it. */
   connectionId: string | null;
+  /** Bumped when a new path is registered, so views of the path re-render. */
+  registryVersion: number;
   bind(connectionId: string | null): void;
   start(path: TourPath, options?: { replay?: boolean }): void;
   pause(): void;
@@ -22,10 +24,13 @@ export function registerTourPath(path: TourPath): void {
   if (path.steps.length === 0 || path.steps.length > MAX_STEPS) {
     throw new Error(`tour path "${path.id}" must have between 1 and ${MAX_STEPS} steps`);
   }
+  const isNew = !paths.has(path.id);
   paths.set(path.id, path);
+  // The registry is not state: a newly known path (e.g. after a restart) must wake its viewers.
+  if (isNew) useTourStore.setState((s) => ({ registryVersion: s.registryVersion + 1 }));
 }
 
-const INITIAL = { ...EMPTY_SNAPSHOT, connectionId: null as string | null };
+const INITIAL = { ...EMPTY_SNAPSHOT, connectionId: null as string | null, registryVersion: 0 };
 
 export const useTourStore = create<TourStore>((set, get) => {
   /** Applies a change and remembers it for the connection. */
@@ -107,6 +112,7 @@ export function useTour(): TourApi {
   const pathId = useTourStore((s) => s.pathId);
   const step = useTourStore((s) => s.step);
   const status = useTourStore((s) => s.status);
+  useTourStore((s) => s.registryVersion);
   const start = useTourStore((s) => s.start);
   const pause = useTourStore((s) => s.pause);
   const resume = useTourStore((s) => s.resume);

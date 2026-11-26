@@ -134,6 +134,15 @@ describe('leaving and coming back', () => {
 });
 
 describe('memory', () => {
+  it('shows a saved tour after a restart once its path is registered later', async () => {
+    localStorage.setItem('bookeeper.tour.c1', JSON.stringify({ pathId: 'test', step: 1, status: 'running' }));
+    renderTour('c1');
+    await flush();
+    expect(screen.queryByRole('region')).not.toBeInTheDocument();
+    act(() => state().start(PATH));
+    expect(screen.getByRole('region')).toBeInTheDocument();
+  });
+
   it('survives a new mount of the same connection and is separate per connection', async () => {
     const first = renderTour('c1');
     await flush();
