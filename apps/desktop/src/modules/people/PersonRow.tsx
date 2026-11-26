@@ -12,19 +12,17 @@ export interface PersonRowProps {
   onAction(action: PersonAction): void;
 }
 
-const MENU: Record<PersonAction, { label: string; icon: IconName; danger?: boolean }> = {
+const MENU: Record<Exclude<PersonAction, 'owner' | 'leave'>, { label: string; icon: IconName; danger?: boolean }> = {
   role: { label: 'people.menu.role', icon: 'settings' },
   rename: { label: 'people.menu.rename', icon: 'pencil' },
-  owner: { label: 'people.menu.owner', icon: 'check' },
   remove: { label: 'people.menu.remove', icon: 'trash', danger: true },
-  leave: { label: 'people.menu.leave', icon: 'logout', danger: true },
 };
 
 export function PersonRow({ person, actions, onAction }: PersonRowProps) {
   const t = useT();
   const locale = useLocale();
   const seen = person.last_seen != null ? t('people.lastSeen', { when: formatRelativeDays(locale, person.last_seen) }) : t('people.neverSeen');
-  const items: MenuEntry[] = actions.map((a) => ({
+  const items: MenuEntry[] = actions.map((a) => a as keyof typeof MENU).map((a) => ({
     id: a,
     label: t(MENU[a].label),
     icon: MENU[a].icon,

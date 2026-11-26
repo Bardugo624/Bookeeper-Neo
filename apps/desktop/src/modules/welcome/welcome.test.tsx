@@ -577,6 +577,7 @@ describe('Bentornato', () => {
     const u = user();
     await u.click(await screen.findByRole('button', { name: 'Dimentica questa libreria' }));
     const dialog = await screen.findByRole('dialog', { name: 'Dimenticare questa libreria?' });
+    expect(dialog.className).toMatch(/danger/);
     await u.click(within(dialog).getByRole('button', { name: 'Annulla' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(p.state.items).toHaveLength(1);
