@@ -173,6 +173,21 @@ describe('p3 fixes', () => {
     expect((note as HTMLTextAreaElement).value).toBe('Nuova');
   });
 
+  it('keeps the typed note in the field when a slow save fails', async () => {
+    const view = renderReading(reading({ note: 'Prima' }), {
+      refuse: () => ({ status: 500, body: { error_code: 'internal', message: 'boom' } }),
+      gate: () => new Promise<void>((r) => setTimeout(r, 50)),
+    });
+    const note = await (await card()).findByRole('textbox', { name: 'Nota' });
+    await userEvent.clear(note);
+    await userEvent.type(note, 'Nuova');
+    await userEvent.tab();
+    await waitFor(() => expect(puts(view)).toHaveLength(1));
+    await screen.findByRole('alert');
+    await new Promise((r) => setTimeout(r, 100));
+    expect((note as HTMLTextAreaElement).value).toBe('Nuova');
+  });
+
   it('hides "Mark as read" while the state failed to load', async () => {
     renderReading(reading(), { failGet: true });
     await screen.findByRole('region', { name: 'Lettura' });
@@ -195,6 +210,25 @@ describe('p3 fixes', () => {
     await new Promise((r) => setTimeout(r, 100));
     expect(field.value).toBe('314');
     releases[1]!();
+    await new Promise((r) => setTimeout(r, 100));
+    expect(field.value).toBe('314');
+  });
+
+  it('keeps the newer page when the answers come back in reverse order', async () => {
+    const releases: Array<() => void> = [];
+    renderReading(reading(), { gate: () => new Promise<void>((r) => releases.push(r)) });
+    const c = await card();
+    const more = await c.findByRole('button', { name: 'Una pagina in più' });
+    const field = c.getByRole('spinbutton', { name: 'Aggiorna la pagina' }) as HTMLInputElement;
+    await userEvent.click(more);
+    await waitFor(() => expect(field.value).toBe('313'));
+    await userEvent.click(more);
+    await waitFor(() => expect(field.value).toBe('314'));
+    await waitFor(() => expect(releases).toHaveLength(2));
+    releases[1]!();
+    await new Promise((r) => setTimeout(r, 100));
+    expect(field.value).toBe('314');
+    releases[0]!();
     await new Promise((r) => setTimeout(r, 100));
     expect(field.value).toBe('314');
   });
