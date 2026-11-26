@@ -132,6 +132,17 @@ describe('writes', () => {
     expect(platform.calls.find((c) => c.method === 'PATCH')).toMatchObject({ path: '/api/v1/users/u3', body: { display_name: 'Carlotta' } });
   });
 
+  it('renaming yourself refreshes me', async () => {
+    renderPeople(library('owner', others()));
+    await open('Anna');
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Rinomina' }));
+    const input = screen.getByRole('textbox', { name: 'Nome' });
+    await userEvent.clear(input);
+    await userEvent.type(input, 'Annalisa');
+    await userEvent.click(screen.getByRole('button', { name: 'Salva' }));
+    await waitFor(() => expect(useSession.getState().me?.user.display_name).toBe('Annalisa'));
+  });
+
   it('lists what removing does, then removes', async () => {
     const { platform } = renderPeople(library('owner', others()));
     await open('Dario');

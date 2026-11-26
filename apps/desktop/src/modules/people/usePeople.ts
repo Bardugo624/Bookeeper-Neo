@@ -15,10 +15,22 @@ export function usePeople() {
     retry: false,
     queryFn: async () => (await client.listUsers()).items,
   });
+  /** The write already succeeded: a failed re-read must not turn it into an error the user would retry. */
+  const reloadMe = async () => {
+    try {
+      useSession.setState({ me: await client.me() });
+    } catch {
+      /* the next start reads `me` again */
+    }
+  };
   const refresh = () => Promise.all(TOUCHED_KEYS.map((k) => qc.invalidateQueries({ queryKey: [k] })));
 
   const update = useMutation({
-    mutationFn: ({ id, patch }: { id: string; patch: PatchPerson }) => client.updateUser(id, patch),
+    mutationFn: async ({ id, patch }: { id: string; patch: PatchPerson }) => {
+      await client.updateUser(id, patch);
+      // Renaming yourself: the session's `me` carries the name the rest of the app shows.
+      if (id === useSession.getState().me?.user.id) await reloadMe();
+    },
     onSuccess: refresh,
   });
   const remove = useMutation({ mutationFn: (id: string) => client.removeUser(id), onSuccess: refresh });
@@ -26,7 +38,7 @@ export function usePeople() {
     mutationFn: async (id: string) => {
       await client.transferOwnership(id);
       // The caller's own role has changed: read `me` again, as the session does at start.
-      useSession.setState({ me: await client.me() });
+      await reloadMe();
     },
     onSuccess: refresh,
   });

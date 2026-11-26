@@ -37,7 +37,7 @@ export function peoplePlatform(w: World): FakePlatform {
       const p = r.path.split('?')[0]!;
       const err = (status: number, error_code: string) => ({ status, body: { error_code, message: 'x' } });
       if (w.fails && w.fails.method === r.method && w.fails.pattern.test(p)) return err(w.fails.status, w.fails.code);
-      if (p === '/api/v1/me') return ok({ ...ME, user: { ...ME.user, role: w.role } });
+      if (p === '/api/v1/me') return ok({ ...ME, user: { ...ME.user, role: w.role, display_name: w.people.find((x) => x.id === ME.user.id)?.display_name ?? ME.user.display_name } });
       if (p === '/api/v1/auth/logout') return { status: 204, body: undefined };
       if (p === '/api/v1/server') return ok({ version: '2.0.0', tls: 'acme', ...(w.server ?? { phone_ready: false, public_url: null }) });
       if (p === '/api/v1/users' && r.method === 'GET') return w.listFails ? err(500, 'internal') : ok({ items: w.people });
