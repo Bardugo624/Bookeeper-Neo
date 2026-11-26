@@ -21,7 +21,7 @@ export function ReadingRing({ reading, pageCount, size }: ReadingRingProps) {
   const big = size >= 44;
   let center = null;
   if (big && reading.status === 'read') center = <Icon name="check" size={Math.round(size / 3)} />;
-  else if (big && percent !== null) center = `${percent}%`;
+  else if (big && percent !== null) center = t('reading.ring.percent', { percent });
   return (
     <ProgressRing value={(percent ?? 0) / 100} size={size} label={label}>
       {center}

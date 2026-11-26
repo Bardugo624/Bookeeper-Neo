@@ -73,5 +73,9 @@ export function useAuditBook(bookId: string | undefined) {
     staleTime: 60_000,
     queryFn: () => client.getBook(bookId!),
   });
-  return query.data ? { id: query.data.id, title: query.data.title } : undefined;
+  return {
+    book: query.data ? { id: query.data.id, title: query.data.title } : undefined,
+    /** The book was looked up and is not there (or could not be read), as opposed to still loading. */
+    gone: !!bookId && !query.data && !query.isPending,
+  };
 }

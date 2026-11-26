@@ -10,6 +10,8 @@ import { auditCsv } from './auditCsv';
 import { CSV_MAX, CSV_PAGE, queryParams, type AuditFilters } from './auditModel';
 import { useDescribe } from './useDescribe';
 
+const localDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
 /** Reads every page of the current results (up to 5,000 entries) and hands the CSV to "Save as". */
 export function useAuditExport(filters: AuditFilters) {
   const t = useT();
@@ -40,7 +42,7 @@ export function useAuditExport(filters: AuditFilters) {
           what: describe(entry),
         })),
       );
-      const suggestedName = `${t('audit.csv.file')}-${new Date().toISOString().slice(0, 10)}.csv`;
+      const suggestedName = `${t('audit.csv.file')}-${localDay(new Date())}.csv`;
       const out = await platform.saveFile({
         suggestedName,
         bytes: new TextEncoder().encode(csv),

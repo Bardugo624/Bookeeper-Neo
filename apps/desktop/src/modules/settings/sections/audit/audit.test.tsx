@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { resetLocalePreferenceForTest } from '../../../../app/i18n';
 import { t } from '@bookeeper/i18n';
 import type { AuditOut } from '@bookeeper/api';
@@ -115,6 +115,32 @@ describe('filters and pages', () => {
     await waitFor(() => expect(screen.getAllByRole('row')).toHaveLength(71));
     expect(auditCalls(platform).some((c) => c.path.includes('offset=50'))).toBe(true);
     expect(screen.queryByRole('button', { name: 'Carica altri' })).toBeNull();
+  });
+});
+
+describe('p3 fixes', () => {
+  afterEach(() => vi.useRealTimers());
+
+  it('pluralises the total', async () => {
+    renderAudit({ entries: [entry(1)] });
+    expect(await screen.findByText('1 voce')).toBeInTheDocument();
+  });
+
+  it('gives a missing book its own sentence, without quotes', async () => {
+    renderAudit({ entries: [{ ...entry(1, { action: 'book.update', entity_id: 'zz', detail: null }) }] });
+    expect(await screen.findByText('Ha modificato un libro non più presente')).toBeInTheDocument();
+    expect(screen.queryByText(/«/)).toBeNull();
+  });
+
+  it('uses the local date in the CSV name', async () => {
+    // 00:30 local: east of UTC the UTC date is still the day before (the check bites under TZ=Pacific/Auckland).
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2024, 2, 5, 0, 30));
+    const { platform } = renderAudit({ entries: [entry(1)] });
+    await screen.findByRole('table', { name: 'Voci del registro' });
+    await userEvent.click(screen.getByRole('button', { name: 'Scarica CSV' }));
+    await waitFor(() => expect(platform.saved).toHaveLength(1));
+    expect(platform.saved[0]!.suggestedName).toBe('registro-attivita-2024-03-05.csv');
   });
 });
 

@@ -103,7 +103,7 @@ export function LoansPage() {
         label={t('loans.filters.label')}
         onChange={(id) => {
           dialogs.dismissError();
-          params.set({ filter: id as LoanFilter });
+          params.pickFilter(id as LoanFilter);
         }}
       />
       {book ? (

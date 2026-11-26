@@ -14,6 +14,8 @@ export interface TagColorPickerProps {
 export function TagColorPicker({ value, label, onChange, disabled = false }: TagColorPickerProps) {
   const t = useT();
   const move = (i: number, step: number, group: HTMLElement | null) => {
+    // While a save is on, the choice cannot change, so the focus must not run ahead of it.
+    if (disabled) return;
     const next = TAG_COLORS[(i + step + TAG_COLORS.length) % TAG_COLORS.length]!;
     onChange(next);
     queueMicrotask(() => group?.querySelector<HTMLElement>(`[data-color="${next}"]`)?.focus());
