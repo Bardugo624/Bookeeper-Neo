@@ -37,8 +37,10 @@ export function AboutSection() {
       <h2 id="account-about" className={styles.heading}>
         {t('maccount.about.title')}
       </h2>
-      <ListRow title={pkg.version} subtitle={t('maccount.about.app')} />
-      <ListRow title={health.data?.version ?? t('maccount.about.serverUnknown')} subtitle={t('maccount.about.server')} />
+      <div className={styles.rows}>
+        <ListRow title={pkg.version} subtitle={t('maccount.about.app')} />
+        <ListRow title={health.data?.version ?? t('maccount.about.serverUnknown')} subtitle={t('maccount.about.server')} />
+      </div>
       <Button variant="secondary" onClick={() => void check()} disabled={checking}>
         {t('maccount.about.check')}
       </Button>

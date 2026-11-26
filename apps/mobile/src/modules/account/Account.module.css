@@ -98,3 +98,20 @@
   outline: 2px solid var(--bk-focus);
   outline-offset: 2px;
 }
+
+.rows {
+  margin-inline: -12px;
+}
+
+.rows > :last-child {
+  border-bottom: 0;
+}
+
+.rename {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.actions button {
+  min-height: 44px;
+}

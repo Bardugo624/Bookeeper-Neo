@@ -48,9 +48,22 @@ export function WhoSection() {
       </h2>
       {me ? (
         <>
-          <ListRow title={me.library.name} subtitle={t('maccount.who.library')} />
-          <ListRow title={me.user.display_name} subtitle={t('maccount.who.name')} />
-          <ListRow title={t(`maccount.who.roles.${me.user.role}`)} subtitle={t('maccount.who.role')} />
+          <div className={styles.rows}>
+            <ListRow title={me.library.name} subtitle={t('maccount.who.library')} />
+            <ListRow title={me.user.display_name} subtitle={t('maccount.who.name')} />
+            <ListRow title={t(`maccount.who.roles.${me.user.role}`)} subtitle={t('maccount.who.role')} />
+            {editing ? null : (
+              <ListRow
+                title={me.device.name}
+                subtitle={t('maccount.who.device')}
+                trailing={
+                  <Button size="sm" variant="secondary" className={styles.rename} onClick={start}>
+                    {t('maccount.who.rename')}
+                  </Button>
+                }
+              />
+            )}
+          </div>
           {editing ? (
             <form
               className={styles.form}
@@ -71,17 +84,7 @@ export function WhoSection() {
                 </Button>
               </div>
             </form>
-          ) : (
-            <ListRow
-              title={me.device.name}
-              subtitle={t('maccount.who.device')}
-              trailing={
-                <Button size="sm" variant="secondary" onClick={start}>
-                  {t('maccount.who.rename')}
-                </Button>
-              }
-            />
-          )}
+          ) : null}
         </>
       ) : null}
     </section>
