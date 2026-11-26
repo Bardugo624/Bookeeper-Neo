@@ -36,7 +36,10 @@ export function BookRow({ book, from }: BookRowProps) {
         <BookCover title={book.title} src={src} color={book.cover_color ?? undefined} width={56} />
         <span className={styles.text}>
           <span className={styles.title}>{book.title}</span>
-          {author ? <span className={styles.author}>{author}</span> : null}
+          {/* With no author the line is kept, empty, so the row is as tall as the others at any text size. */}
+          <span className={styles.author} aria-hidden={author ? undefined : true}>
+            {author || '\u00a0'}
+          </span>
         </span>
         {book.on_loan ? (
           <Tag id={loanId} tone="warn" className={styles.loan}>

@@ -26,7 +26,8 @@ export function ResultSkeletons() {
 
 /**
  * Fallback height of one row: 84px cover (56px wide, 2:3) + 2 x 10px padding + 1px divider.
- * The real height is measured from the first rendered row when the browser has layout.
+ * Every row is as tall (the stylesheet reserves two title lines and one author line), so the real
+ * height is measured once from any row and again only when that row is resized (text size, width).
  */
 export const ROW_HEIGHT = 105;
 const OVERSCAN = 6;
@@ -39,35 +40,42 @@ const scrollParent = (el: HTMLElement): HTMLElement | null => {
   return null;
 };
 
-/** Scroll position of each history entry, so coming back from a book's card lands on the same row. */
-const savedScroll = new Map<string, number>();
+/**
+ * Where each history entry was: `offset` px from the top of the list to the top of the view, also
+ * as `rows` (in rows), so coming back lands on the same row even if the row height changed meanwhile.
+ */
+const savedScroll = new Map<string, { offset: number; rows: number }>();
 
 /** Forgets every saved position; a fresh app (or test) starts from the top. */
 export function forgetScrollPositions() {
   savedScroll.clear();
 }
 
+const heightOf = (el: Element | null | undefined) => el?.getBoundingClientRect().height ?? 0;
+
 /** Which rows [start, end) are near the viewport; the page's own scrolling is only listened to. */
 function useWindow(count: number) {
   const listRef = useRef<HTMLUListElement>(null);
   const [rowHeight, setRowHeight] = useState(ROW_HEIGHT);
   const rowRef = useRef(ROW_HEIGHT);
+  /** Whether a row has been measured (or found to have no layout, as in tests). */
+  const measured = useRef(false);
   const locationKey = useLocation().key;
-  /** Offset to go back to, read once on mount; cleared after the one attempt to reach it. */
-  const pending = useRef<number | null>(savedScroll.get(locationKey) || null);
+  /** Position to go back to, read once on mount; cleared after the one attempt to reach it. */
+  const pending = useRef(savedScroll.get(locationKey) ?? null);
   const [range, setRange] = useState<[number, number]>([0, Math.min(count, 2 * OVERSCAN + 10)]);
+  const setHeight = useCallback((h: number) => {
+    if (h > 0 && Math.abs(h - rowRef.current) > 0.5) {
+      rowRef.current = h;
+      setRowHeight(h);
+    }
+  }, []);
   const measure = useCallback(() => {
     const list = listRef.current;
     if (!list) return;
     const parent = scrollParent(list);
-    const first = list.firstElementChild?.getBoundingClientRect().height ?? 0;
-    if (first > 0 && Math.abs(first - rowRef.current) > 0.5) {
-      rowRef.current = first;
-      setRowHeight(first);
-    }
     const rh = rowRef.current;
     const listTop = list.getBoundingClientRect().top;
-    if (pending.current === null) savedScroll.set(locationKey, parent ? parent.scrollTop : window.scrollY);
     let offset: number;
     let height: number;
     if (parent) {
@@ -77,27 +85,61 @@ function useWindow(count: number) {
       offset = -listTop;
       height = window.innerHeight;
     }
+    if (pending.current === null) savedScroll.set(locationKey, { offset, rows: offset / rh });
     const start = Math.max(0, Math.floor(offset / rh) - OVERSCAN);
     const end = Math.min(count, Math.max(start, Math.ceil((offset + height) / rh) + OVERSCAN));
     setRange((r) => (r[0] === start && r[1] === end ? r : [start, end]));
   }, [count, locationKey]);
   const hasRows = Math.min(range[1], count) > Math.min(range[0], count);
+
+  // Watch one row for size changes; when it leaves the DOM another row takes its place, unmeasured
+  // (all rows are as tall), so scrolling never changes the height.
+  const observed = useRef<{ row: Element; ro: ResizeObserver | null } | null>(null);
+  useLayoutEffect(() => {
+    const row = listRef.current?.firstElementChild;
+    if (!row || (observed.current && observed.current.row.isConnected)) return;
+    if (!measured.current) {
+      measured.current = true;
+      setHeight(heightOf(row));
+    }
+    let ro = observed.current?.ro ?? null;
+    if (!ro && typeof ResizeObserver !== 'undefined') {
+      /** Last size seen per row: the first report of a row only records it, a later change is measured. */
+      const seen = new WeakMap<Element, number>();
+      ro = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const h = heightOf(entry.target);
+          const before = seen.get(entry.target);
+          seen.set(entry.target, h);
+          if (before !== undefined && Math.abs(h - before) > 0.5) setHeight(h);
+        }
+      });
+    }
+    ro?.disconnect();
+    ro?.observe(row);
+    observed.current = { row, ro };
+  });
+  useEffect(
+    () => () => {
+      observed.current?.ro?.disconnect();
+      observed.current = null;
+    },
+    [],
+  );
+
   useLayoutEffect(() => {
     const list = listRef.current;
     const want = pending.current;
-    // Restore once the rows are there and their real height is known, so the spacers are final;
-    // then stop, whether or not the offset could be reached (a rotated or larger-text page may be shorter).
-    if (list && want !== null && hasRows) {
-      const first = list.firstElementChild?.getBoundingClientRect().height ?? 0;
-      if (first > 0 && Math.abs(first - rowRef.current) > 0.5) {
-        rowRef.current = first;
-        setRowHeight(first);
-        return;
-      }
+    // Restore once the rows are there and their height is measured, so the spacers are final;
+    // then stop, whether or not the position could be reached (a rotated or larger-text page may be shorter).
+    if (list && want !== null && hasRows && measured.current && rowHeight === rowRef.current) {
       pending.current = null;
       const parent = scrollParent(list);
-      if (parent) parent.scrollTop = want;
-      else window.scrollTo(0, want);
+      const listTop = list.getBoundingClientRect().top;
+      const at = parent ? parent.scrollTop + listTop - parent.getBoundingClientRect().top : window.scrollY + listTop;
+      const y = Math.max(0, Math.round(at + (want.offset > 0 ? want.rows * rowHeight : want.offset)));
+      if (parent) parent.scrollTop = y;
+      else window.scrollTo(0, y);
     }
     measure();
   }, [measure, rowHeight, hasRows]);
@@ -113,14 +155,19 @@ function useWindow(count: number) {
         measure();
       });
     };
+    // Without ResizeObserver a resize (rotation, text size) measures the row again.
+    const onResize = () => {
+      if (typeof ResizeObserver === 'undefined') setHeight(heightOf(listRef.current?.firstElementChild));
+      onScroll();
+    };
     target.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
+    window.addEventListener('resize', onResize);
     return () => {
       target.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
+      window.removeEventListener('resize', onResize);
       if (frame) cancelAnimationFrame(frame);
     };
-  }, [measure]);
+  }, [measure, setHeight]);
   return { listRef, rowHeight, start: Math.min(range[0], count), end: Math.min(range[1], count) };
 }
 

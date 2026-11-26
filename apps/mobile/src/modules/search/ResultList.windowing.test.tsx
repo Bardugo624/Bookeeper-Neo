@@ -37,13 +37,53 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function stubLayout() {
+/** The list starts at the top of the page; `rowHeight` gives a row's height (jsdom has no layout). */
+function stubLayout(rowHeight?: (row: Element) => number) {
   const real = Element.prototype.getBoundingClientRect;
   vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
     if (this.tagName === 'UL') return { top: -scrolled, bottom: 0, left: 0, right: 0, width: 0, height: 0, x: 0, y: -scrolled, toJSON() {} } as DOMRect;
+    if (this.tagName === 'LI' && rowHeight) {
+      const height = rowHeight(this);
+      return { top: 0, bottom: height, left: 0, right: 0, width: 0, height, x: 0, y: 0, toJSON() {} } as DOMRect;
+    }
     return real.call(this);
   });
 }
+
+/** Replaces `ResizeObserver`; `resize()` reports every observed element, as a text size change does. */
+function stubResize() {
+  const observers = new Set<{ cb: ResizeObserverCallback; els: Set<Element> }>();
+  class Stub {
+    entry = { cb: (() => {}) as ResizeObserverCallback, els: new Set<Element>() };
+    constructor(cb: ResizeObserverCallback) {
+      this.entry.cb = cb;
+      observers.add(this.entry);
+    }
+    observe(el: Element) {
+      this.entry.els.add(el);
+      this.entry.cb([{ target: el } as ResizeObserverEntry], this as unknown as ResizeObserver);
+    }
+    unobserve(el: Element) {
+      this.entry.els.delete(el);
+    }
+    disconnect() {
+      this.entry.els.clear();
+    }
+  }
+  vi.stubGlobal('ResizeObserver', Stub);
+  return {
+    observed: () => [...observers].reduce((n, o) => n + o.els.size, 0),
+    resize: () =>
+      act(() => {
+        for (const o of observers) o.cb([...o.els].map((target) => ({ target }) as ResizeObserverEntry), {} as ResizeObserver);
+      }),
+  };
+}
+
+const list = () => screen.getByRole('list', { name: 'Libri' });
+const firstShown = () => Number(/Libro (\d+),/.exec(rows()[0]!.getAttribute('aria-label') ?? '')![1]) - 1;
+/** Height the spacers and rows add up to, with `h` per row. */
+const total = (h: number) => parseFloat(list().style.paddingTop) + parseFloat(list().style.paddingBottom) + rows().length * h;
 
 describe('windowed result list', () => {
   it('keeps at most 80 rows in the DOM wherever the page is scrolled', async () => {
@@ -56,9 +96,50 @@ describe('windowed result list', () => {
       await waitFor(() => expect(rows().length).toBeGreaterThan(0));
       expect(rows().length).toBeLessThanOrEqual(80);
     }
-    const list = screen.getByRole('list', { name: 'Libri' });
-    const total = parseFloat(list.style.paddingTop) + parseFloat(list.style.paddingBottom) + rows().length * ROW_HEIGHT;
-    expect(total).toBe(2000 * ROW_HEIGHT);
+    expect(total(ROW_HEIGHT)).toBe(2000 * ROW_HEIGHT);
+  });
+
+  it('measures the row height once, so rows of titles of any length never move the list', async () => {
+    // Titles of different lengths; were a long one taller (as with large text before the fixed
+    // row height), a list that re-measured from whichever row comes first would jump.
+    const books = all.map((b, i) => ({ ...b, title: i % 2 ? `${b.title}, ${'una storia lunga '.repeat(6)}` : b.title }));
+    const long = new Set(books.filter((_, i) => i % 2).map((b) => b.title));
+    stubLayout((row) => (long.has(row.querySelector('a')!.getAttribute('aria-label')!.split(', Autore')[0]!) ? 144 : 105));
+    const resize = stubResize();
+    renderSearch({
+      api: {
+        books,
+        override: (call: { path: string }) =>
+          call.path.startsWith('/api/v1/books?') ? ok({ items: books, total: 2000, limit: 2000, offset: 0 }) : undefined,
+      },
+    });
+    await screen.findByRole('link', { name: /^Libro 1,/ });
+    expect(screen.getByRole('link', { name: /^Libro 2, una storia lunga/ })).toBeInTheDocument();
+    for (let y = 0; y <= 2000 * 105; y += 3700) {
+      await scrollTo(y);
+      // the row at the top of the view is the one 105px rows put there, six rows of margin above it
+      await waitFor(() => expect(firstShown()).toBe(Math.max(0, Math.floor(y / 105) - 6)));
+      expect(parseFloat(list().style.paddingTop)).toBe(firstShown() * 105);
+      expect(total(105)).toBe(2000 * 105);
+      expect(rows().length).toBeLessThanOrEqual(80);
+    }
+    expect(resize.observed()).toBe(1);
+  });
+
+  it('measures again when the watched row is resized, as when the text grows', async () => {
+    let height = 105;
+    stubLayout(() => height);
+    const resize = stubResize();
+    renderSearch({ api });
+    await screen.findByRole('link', { name: /^Libro 1,/ });
+    await scrollTo(200 * 105);
+    await screen.findByRole('link', { name: /^Libro 201,/ });
+    height = 150;
+    resize.resize();
+    await scrollTo(200 * 150);
+    await waitFor(() => expect(parseFloat(list().style.paddingTop)).toBe(firstShown() * 150));
+    expect(total(150)).toBe(2000 * 150);
+    expect(screen.getByRole('link', { name: /^Libro 201,/ })).toBeInTheDocument();
   });
 
   it('shows the rows at the scrolled position, and the same ones again when coming back to it', async () => {
@@ -101,6 +182,24 @@ describe('windowed result list', () => {
     await act(() => router.navigate(-1));
     await waitFor(() => expect(scrolled).toBe(30 * ROW_HEIGHT));
     await screen.findByRole('link', { name: /Libro 31,/ });
+  });
+
+  it('comes back to the same row after the row height changed while the card was open', async () => {
+    let height = 105;
+    stubLayout(() => height);
+    stubWindowScroll();
+    const user = userEvent.setup();
+    const { router } = renderSearch({ api });
+    await screen.findByRole('link', { name: /^Libro 1,/ });
+    await scrollTo(100 * 105);
+    await user.click(await screen.findByRole('link', { name: /^Libro 101,/ }));
+    await screen.findByRole('heading', { level: 1, name: /Libro 101/ });
+    scrolled = 0;
+    height = 140;
+    await act(() => router.navigate(-1));
+    await waitFor(() => expect(scrolled).toBe(100 * 140));
+    await waitFor(() => expect(firstShown()).toBe(100 - 6));
+    expect(parseFloat(list().style.paddingTop)).toBe(94 * 140);
   });
 
   it('still asks for the next page when the end comes into view', async () => {
