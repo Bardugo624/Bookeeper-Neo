@@ -47,3 +47,10 @@ it('puts the bundled font family first in both stacks, keeping the fallbacks', (
   expect(css).toMatch(/--bk-font-ui:\s*'Inter Variable',[^;]*sans-serif;/);
   expect(css).toMatch(/--bk-font-serif:\s*'Lora Variable',[^;]*Georgia, serif;/);
 });
+it('stacks dropdowns above the dialogs they open from', () => {
+  const z = (name: string) => Number(new RegExp(`${name}:\\s*(\\d+)`).exec(css)?.[1]);
+  // Select and Menu render in a portal: below the modal layers, an open dialog hides them.
+  expect(z('--bk-z-dropdown')).toBeGreaterThan(z('--bk-z-overlay'));
+  expect(z('--bk-z-dropdown')).toBeGreaterThan(z('--bk-z-modal'));
+  expect(z('--bk-z-dropdown')).toBeLessThan(z('--bk-z-toast'));
+});

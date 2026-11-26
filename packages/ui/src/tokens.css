@@ -54,11 +54,12 @@
     --bk-radius: 12px;
     --bk-radius-lg: 16px;
 
-    /* ===== Z-index semantici ===== */
+    /* ===== Z-index semantici =====
+     * I menu (Select, Menu) stanno sopra i dialoghi: si aprono anche da dentro un dialogo. */
     --bk-z-sticky: 100;
-    --bk-z-dropdown: 1000;
     --bk-z-overlay: 1100;   /* modal backdrop */
     --bk-z-modal: 1200;
+    --bk-z-dropdown: 1250;
     --bk-z-toast: 1300;
     --bk-z-tooltip: 1400;
 

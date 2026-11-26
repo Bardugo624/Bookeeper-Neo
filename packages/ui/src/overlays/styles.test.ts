@@ -40,3 +40,10 @@ it.each(files)('%s animates only under prefers-reduced-motion: no-preference', (
   const css = withoutMotionBlocks(strip(readFileSync(new URL(file, dir), 'utf8')));
   expect(css).not.toMatch(/\b(transition|animation)(-[a-z]+)*\s*:/);
 });
+
+it('puts the portalled popups of Select and Menu on the dropdown layer', () => {
+  for (const file of ['Select.module.css', 'Menu.module.css']) {
+    const css = strip(readFileSync(new URL(file, dir), 'utf8'));
+    expect(css, file).toContain('z-index: var(--bk-z-dropdown)');
+  }
+});
