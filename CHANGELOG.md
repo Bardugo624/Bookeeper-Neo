@@ -1,7 +1,7 @@
 # Changelog
 
-Tutte le modifiche significative al client desktop Bookeeper sono
-documentate qui. Il formato segue [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/)
+Tutte le modifiche significative a Bookeeper 2.0 (app desktop, server e
+PWA) sono documentate qui. Il formato segue [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/)
 e il versioning aderisce a [Semantic Versioning](https://semver.org/lang/it/).
 
 L'auto-updater dell'app legge la sezione corrispondente alla versione
@@ -13,6 +13,47 @@ pubblicata e la mostra nella dialog "Vedi novità". Sono supportati:
 - inline code `` ` ``
 - link `[text](https://...)`
 
+
+## [2.0.0]
+
+Bookeeper 2.0 è una versione nuova, riscritta. Non importa i dati della 0.x:
+si parte da una libreria nuova (da Goodreads, Calibre o LibraryThing si può
+importare).
+
+### Added
+
+- **Tre parti**: app desktop con la libreria sul tuo computer, server
+  autonomo (binario o Docker) e PWA sul telefono. Le guide sono in
+  `docs/deploy.md`.
+- **Server in rete**: tre modalità TLS (`off` dietro un proxy, `acme` con
+  dominio, `self` per la rete di casa), configurabile con variabili
+  `BOOKEEPER_*`, codice di setup, controllo di salute per Docker.
+- **Dispositivi e persone**: abbinamento con codice o QR, revoca,
+  ruoli (proprietario, admin, membro, ospite), inviti e registro attività.
+- **Lettura e organizzazione**: stato di lettura per persona con date,
+  valutazione e nota; tag colorati; stanze; filtri avanzati; statistiche di
+  lettura e «Il tuo anno in libri».
+- **Scaffale fisico**: «Dov'è?» da ricerca, palette e scheda libro;
+  trascinamento dei libri anche da tastiera; dorso dal colore della
+  copertina; scan-a-scaffale dal telefono.
+- **Famiglia e mobile**: prestiti anche a membri, storico dei prestiti,
+  wishlist di famiglia, promemoria dei prestiti scaduti sul desktop. La PWA
+  cerca, scansiona, modifica i campi base, gestisce prestiti e wishlist e
+  avvisa offline se hai già un libro.
+- **Palette comandi** (`Ctrl+K`).
+- **Backup programmato** con rotazione, backup a mano e ripristino
+  riservato al proprietario.
+
+### Changed
+
+- Il core è scritto in Rust e l'app desktop usa Tauri.
+- L'accesso usa un token per dispositivo su HTTPS. La password
+  amministratore e il certificato condiviso (mTLS) non esistono più.
+- Il telefono si collega solo a un server con HTTPS valido.
+
+### Removed
+
+- Compatibilità con i dati e con l'API della 0.x.
 
 ## [0.2.1]
 
