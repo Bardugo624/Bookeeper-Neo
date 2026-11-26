@@ -28,8 +28,8 @@
 .scope.on,
 .choice.on {
   border-color: var(--bk-accent-control);
-  background: var(--bk-accent-surface);
-  color: var(--bk-text-strong);
+  background: var(--bk-accent-surface-strong);
+  color: var(--bk-on-accent-surface);
 }
 
 .list,

@@ -28,7 +28,7 @@ export function LoanRow({ loan, now, onReturn }: LoanRowProps) {
   else when = loan.due_at != null ? t('mloans.row.due', { date: date(loan.due_at) }) : t('mloans.row.noDue');
   return (
     <li className={styles.item}>
-      <Link to={`/books/${encodeURIComponent(loan.book_id)}`} className={styles.row} aria-label={t('mloans.row.name', { title: loan.book_title, person })}>
+      <Link to={`/books/${encodeURIComponent(loan.book_id)}`} className={styles.row}>
         <BookCover title={loan.book_title} src={src} width={48} />
         <span className={styles.text}>
           <span className={styles.title}>{loan.book_title}</span>
