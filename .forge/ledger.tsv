@@ -562,3 +562,25 @@
 2026-11-26T15:35:36Z	bookeeper-fase-7a	perf-mobile	qa	opus	FAIL	verify	a throwaway mobile vitest can run from outside the repo with a mts config that spreads apps mobile vite config and sets root to apps mobile and	a throwaway mobile vitest can run from outside the repo with a `.mts` config that spreads `apps/mobile/vite.config` and sets `root` to apps/mobile and… [apps/mobile/vite.config.ts]	140	1
 2026-11-26T15:51:15Z	bookeeper-fase-7a	perf-mobile	dwarf	opus	-	trap	resultlist windowing test tsx s shared api override always returns the module level all books so a test that	`ResultList.windowing.test.tsx`'s shared `api.override` always returns the module-level `all` books, so a test that… [apps/mobile/src/modules/search/ResultList.windowing.test.tsx]	316	1
 2026-11-26T15:53:45Z	bookeeper-fase-7a	perf-mobile	qa	opus	FAIL	trap	mobile search windowing tests a scroll event is handled in the next requestanimationframe so a waitfor that is	mobile search windowing tests: a scroll event is handled in the next requestAnimationFrame, so a `waitFor` that is… [apps/mobile/src/modules/search/ResultList.windowing.test.tsx]	145	1
+2026-11-26T16:14:20Z	bookeeper-fase-7b	people-cache	dwarf	sonnet	-	-	-	-	103
+2026-11-26T16:15:50Z	bookeeper-fase-7b	people-cache	qa	opus	PASS	-	-	-	83
+2026-11-26T16:19:39Z	bookeeper-fase-7b	p3-7a	dwarf	sonnet	-	-	-	-	423
+2026-11-26T16:23:43Z	bookeeper-fase-7b	p3-7a	qa	opus	PASS	-	-	-	238
+2026-11-26T16:28:24Z	bookeeper-fase-7b	ui-tokens	dwarf	sonnet	-	verify	npm ci offline at the root then npx vitest run root packages ui for the kit tests	npm ci --offline at the root, then `npx vitest run --root packages/ui` for the kit tests [packages/ui/package.json]	273	1
+2026-11-26T16:29:42Z	bookeeper-fase-7b	ui-tokens	qa	opus	FAIL	finding	when a colour migration splits accent into control and fill tokens filled controls with bk on primary text get mapped to the control token	when a colour migration splits "accent" into control and fill tokens, filled controls with `--bk-on-primary` text get mapped to the control token;… [packages/ui/src/tokens.css]	72	1
+2026-11-26T16:30:53Z	bookeeper-fase-7b	ui-tokens	dwarf	sonnet	-	-	-	-	66
+2026-11-26T16:31:51Z	bookeeper-fase-7b	ui-tokens	qa	opus	PASS	-	-	-	51
+2026-11-26T16:34:37Z	bookeeper-fase-7b	d-polish-books	dwarf	sonnet	-	-	-	-	161
+2026-11-26T16:35:24Z	bookeeper-fase-7b	d-polish-frame	dwarf	sonnet	-	-	-	-	208
+2026-11-26T16:36:13Z	bookeeper-fase-7b	d-polish-books	qa	opus	PASS	-	-	-	89
+2026-11-26T16:36:39Z	bookeeper-fase-7b	d-polish-frame	qa	opus	FAIL	-	-	-	68
+2026-11-26T16:39:12Z	bookeeper-fase-7b	d-polish-people	dwarf	sonnet	-	-	-	-	148
+2026-11-26T16:39:22Z	bookeeper-fase-7b	d-polish-collection	dwarf	sonnet	-	-	-	-	183
+2026-11-26T16:40:12Z	bookeeper-fase-7b	d-polish-people	qa	opus	PASS	-	-	-	54
+2026-11-26T16:40:54Z	bookeeper-fase-7b	d-polish-collection	qa	opus	PASS	-	-	-	87
+2026-11-26T16:42:53Z	bookeeper-fase-7b	m-polish-frame	dwarf	sonnet	-	-	-	-	155
+2026-11-26T16:43:59Z	bookeeper-fase-7b	m-polish-frame	qa	opus	FAIL	finding	a last child rule on a shared kit row also matches every row wrapped in its own li so all of them lose their divider	a `:last-child` rule on a shared kit row also matches every row wrapped in its own `<li>`, so all of them lose their divider [apps/mobile/src/kit/ListRow.module.css]	60	1
+2026-11-26T16:46:05Z	bookeeper-fase-7b	m-polish-frame	dwarf	sonnet	-	-	-	-	121
+2026-11-26T16:47:01Z	bookeeper-fase-7b	m-polish-frame	qa	opus	PASS	-	-	-	49
+2026-11-26T16:48:16Z	bookeeper-fase-7b	m-polish-search	dwarf	sonnet	-	trap	mobile search bookrow has no aria label the link name is built from its child spans which jsdom axe join with spaces libro 1	mobile search BookRow has no aria-label: the link name is built from its child spans, which jsdom/axe join with spaces ("Libro 1… [apps/mobile/src/modules/search/BookRow.tsx]	436	1
+2026-11-26T16:48:16Z	bookeeper-fase-7b	m-polish-search	dwarf	sonnet	-	trap	the mobile style test forbids literal colors in module css even 000 in a mask image use a token	the mobile style test forbids literal colors in module CSS, even `#000` in a `mask-image`; use a token [apps/mobile/src/styles.test.ts]	436	1

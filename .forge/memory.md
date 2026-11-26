@@ -4,6 +4,7 @@
      overwritten. Facts only, one per line. -->
 
 ## Verify
+- npm ci --offline at the root, then `npx vitest run --root packages/ui` for the kit tests [packages/ui/package.json]
 - a throwaway mobile vitest can run from outside the repo with a `.mts` config that spreads `apps/mobile/vite.config` and sets `root` to apps/mobile and… [apps/mobile/vite.config.ts]
 - cargo test --offline --release -p bookeeper-core --test perf_10k -- --ignored --nocapture [crates/bookeeper-core/tests/perf_10k.rs]
 - copy package.json, package-lock.json and the apps/*/package.json and packages/*/package.json files to a scratch dir and run `npm install --package-lock-only… [package-lock.json]
@@ -21,12 +22,11 @@
 - a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/mobile [apps/mobile/package.json]
 - a rejected optimistic write can restore the cache in the same batch as the optimistic render, so an effect keyed on the saved value… [apps/mobile/src/modules/reading/NoteField.tsx]
 - a fresh worktree has no node_modules; run `npm ci --offline` at the root, then `npx vitest run <path>` from apps/desktop [apps/desktop/package.json]
+- mobile search BookRow has no aria-label: the link name is built from its child spans, which jsdom/axe join with spaces ("Libro 1… [apps/mobile/src/modules/search/BookRow.tsx]
+- the mobile style test forbids literal colors in module CSS, even `#000` in a `mask-image`; use a token [apps/mobile/src/styles.test.ts]
+- mobile search windowing tests: a scroll event is handled in the next requestAnimationFrame, so a `waitFor` that is… [apps/mobile/src/modules/search/ResultList.windowing.test.tsx]
+- `ResultList.windowing.test.tsx`'s shared `api.override` always returns the module-level `all` books, so a test that… [apps/mobile/src/modules/search/ResultList.windowing.test.tsx]
 - `bookeeper-server setup-code` and `fingerprint` default to `./data` unless `--data-dir` or `BOOKEEPER_DATA` is set, so a hint without the… [crates/bookeeper-server/src/main.rs]
 - module-level state keyed by `location.key` leaks across mobile tests, since every test's initial entry has key `'default'` [apps/mobile/src/modules/search/ResultList.tsx]
-- mobile search `BookRow` is about 105px tall (56px cover with 2/3 aspect = 84px, plus 20px padding under global border-box, plus… [apps/mobile/src/modules/search/BookRow.module.css]
-- the mobile app has no scroll restoration: `Screen` `.body` is the scroller and remounts at scrollTop 0 on back-navigation [apps/mobile/src/kit/Screen.tsx]
-- a plan test that only flags `SCAN` misses a join order that walks every book of the library, because SQLite reports it as `SEARCH b USING… [crates/bookeeper-core/tests/perf_10k.rs]
-- jsdom does no layout, so a test cannot show spacers or fixed-height rows collapsing or growing in a real browser; check with… [apps/desktop/src/modules/books/useWindowedRows.ts]
-- adding an index on `books` can make SQLite choose a worse join order for the facets queries; check the plan and force the order with… [crates/bookeeper-core/src/api/facets.rs]
-- `npm install --package-lock-only --offline` dopo aver tolto un workspace lascia le sue voci come `"extraneous": true` in package-lock.json; vanno tolte a mano [package-lock.json]
+- jsdom lacks layout and `window.scrollTo`; windowing/scroll-restore tests must stub `getBoundingClientRect`,… [apps/mobile/src/modules/search/ResultList.windowing.test.tsx]
 

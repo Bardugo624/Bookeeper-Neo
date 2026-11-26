@@ -22,9 +22,18 @@ Schermate: barra laterale su ogni pagina, palette (`Ctrl K`), `/welcome` (tre pe
 4. `/impeccable clarify` solo dove i rilievi parlano di testi.
 5. Nel rapporto: cosa hai cambiato per ogni rilievo, cosa hai trovato in più e cosa hai lasciato com'è e perché.
 
+## Correzioni dalla prima revisione
+
+Il piano non dichiarava la pagina d'errore condivisa: ora `apps/desktop/src/app/RouteError.tsx` e `apps/desktop/src/app/routes.tsx` sono tra i tuoi file.
+
+1. **[P2]** `ErrorState` nuovo non è usato da nessuno: l'elemento d'errore del router (`app/routes.tsx`) mostra ancora `RouteError`, sempre con "Qualcosa non ha funzionato" e Riprova. Regola: la pagina d'errore del router usa `ErrorState` e dice cosa non ha funzionato quando l'errore lo dice (permesso negato, rete assente, sessione scaduta), con l'azione giusta per ciascuno.
+2. **[P3]** `welcome.errors.generic` dice "controlla che il server sia acceso" anche quando si crea una libreria locale, dove il server non c'è (`useCreateLocal.ts` → `apiErrors`). Regola: un testo per gli errori senza server e uno per quelli con il server.
+3. **[P3]** `ErrorState` per `unauthorized` dice "Esci e accedi di nuovo", ma offre solo Riprova, che fallirebbe di nuovo. Regola: con `unauthorized` l'azione è uscire (come "Esci" nell'account).
+4. **[P3]** Registro attività con errore sconosciuto: il messaggio si ripete ("Non è stato possibile caricare il registro. Qualcosa è andato storto. Riprova." più il bottone Riprova). Regola: una frase sola, poi il bottone.
+
 ## Acceptance criteria
 
 - `npm run typecheck -w @bookeeper/desktop`, `npm test -w @bookeeper/desktop` e `npm run build -w @bookeeper/desktop` passano.
 - `npm test -w @bookeeper/i18n` e `npm test -w @bookeeper/ui` passano.
 - `.claude/skills/impeccable/scripts/impeccable detect --json` sui file cambiati non trova nulla.
-- Cambiano solo file sotto `apps/desktop/src/shell/`, `apps/desktop/src/kit/`, `apps/desktop/src/modules/palette/`, `welcome/`, `onboarding/`, `updates/`, `settings/`, e i file i18n `shell`, `palette`, `welcome`, `onboarding`, `updates`, `settings`, `backup`, `transfer`, `sharing`, `audit`, `notifications`, `common`, `status`, `app` (it e en).
+- Cambiano solo file sotto `apps/desktop/src/shell/`, `apps/desktop/src/kit/`, `apps/desktop/src/app/RouteError.tsx`, `apps/desktop/src/app/routes.tsx`, `apps/desktop/src/modules/palette/`, `welcome/`, `onboarding/`, `updates/`, `settings/`, e i file i18n `shell`, `palette`, `welcome`, `onboarding`, `updates`, `settings`, `backup`, `transfer`, `sharing`, `audit`, `notifications`, `common`, `status`, `app` (it e en).
