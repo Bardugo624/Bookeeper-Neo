@@ -31,7 +31,7 @@ export function LoanDialogs({ dialog, deleting, onClose, onConfirmDelete }: Loan
           tone="danger"
           busy={deleting}
           title={t('loans.delete.title')}
-          description={t('loans.delete.description', { title: dialog.loan.book_title, name: labelOf(dialog.loan) })}
+          description={t('loans.delete.description', { title: dialog.loan.book_title, name: labelOf(dialog.loan, true) })}
           confirmLabel={t('common.delete')}
           onConfirm={() => onConfirmDelete(dialog.loan)}
           onCancel={onClose}

@@ -55,3 +55,11 @@ describe('validateLoan on a returned loan', () => {
     expect(validateLoan(t, l)({ ...valuesOf(l), lent_at: returnedDay }).lent_at).toBeUndefined();
   });
 });
+
+describe('valuesOf names the caller', () => {
+  it('puts the "you" label in the person field of a loan to the caller', () => {
+    const l = loan(1, { borrower_user_id: 'u1', borrower: { id: 'u1', display_name: 'Anna' } });
+    expect(valuesOf(l, { meId: 'u1', label: 'Tu' }).borrower_name).toBe('Tu');
+    expect(valuesOf(l, { meId: 'u2', label: 'Tu' }).borrower_name).toBe('Anna');
+  });
+});

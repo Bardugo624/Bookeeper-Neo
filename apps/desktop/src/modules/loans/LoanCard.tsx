@@ -36,7 +36,7 @@ export function LoanCard({ loan, actions, busy = false, onBorrower, extra }: Loa
   const status = loanStatus(loan);
   const labels = { active: t('loans.status.active'), overdue: t('loans.status.overdue'), returned: t('loans.status.returned') };
   const authors = authorsOf(loan);
-  const who = labelOf(loan);
+  const who = labelOf(loan, true);
   const rawWho = borrowerLabel(loan);
   const toWho = (
     <>

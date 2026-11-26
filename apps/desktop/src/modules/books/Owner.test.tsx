@@ -140,6 +140,20 @@ describe('owner filter', () => {
     expect(new URLSearchParams(router.state.location.search).get('owner')).toBe('u2');
   });
 
+  it('names a person with no books from /users and lists them with 0 in the panel', async () => {
+    const view = { ...lib(), people: [...people, { id: 'u3', display_name: 'Chiara' }] };
+    const { router } = renderBooks(view, '/books?owner=u3');
+    const chip = await screen.findByRole('button', { name: 'Togli il filtro: Di chi è: Chiara' });
+    expect(chip).toBeInTheDocument();
+    await userEvent.click(await screen.findByRole('button', { name: /^Filtri/ }));
+    const panel = await screen.findByRole('dialog', { name: 'Filtri' });
+    const pressed = await within(panel).findByRole('button', { name: 'Chiara (0)' });
+    expect(pressed).toHaveAttribute('aria-pressed', 'true');
+    await userEvent.click(pressed);
+    await userEvent.click(within(panel).getByRole('button', { name: /^Mostra/ }));
+    await waitFor(() => expect(new URLSearchParams(router.state.location.search).get('owner')).toBeNull());
+  });
+
   it('removes the label and the filter', async () => {
     const { platform, router } = renderBooks(lib(), '/books?owner=none');
     await userEvent.click(await screen.findByRole('button', { name: 'Togli il filtro: Di chi è: Di tutti' }));

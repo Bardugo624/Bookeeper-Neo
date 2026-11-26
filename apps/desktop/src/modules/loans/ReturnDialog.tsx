@@ -35,7 +35,7 @@ export function ReturnDialog({ loan, onClose }: ReturnDialogProps) {
     <FormDialog
       open
       title={t('loans.return.title')}
-      description={t('loans.return.description', { title: loan.book_title, name: labelOf(loan) })}
+      description={t('loans.return.description', { title: loan.book_title, name: labelOf(loan, true) })}
       error={form.submitError ? apiErrorMessage(t, form.submitError) : null}
       busy={form.submitting}
       submitLabel={t('loans.return.submit')}
