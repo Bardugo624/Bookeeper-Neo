@@ -1,0 +1,18 @@
+# syntax=docker/dockerfile:1
+# Image from the static binaries the release workflow already built: nothing is compiled here.
+# Context layout: bin/<amd64|arm64>/bookeeper-server and data/ (see .github/workflows/release.yml).
+ARG BASE_IMAGE=gcr.io/distroless/static-debian12
+
+FROM ${BASE_IMAGE}
+ARG TARGETARCH
+LABEL org.opencontainers.image.title="Bookeeper server" \
+      org.opencontainers.image.source="https://github.com/Bardugo624/Bookeeper-Neo" \
+      org.opencontainers.image.licenses="MIT"
+COPY bin/${TARGETARCH}/bookeeper-server /usr/local/bin/bookeeper-server
+COPY data /data
+ENV BOOKEEPER_DATA=/data BOOKEEPER_MDNS=off
+VOLUME /data
+EXPOSE 7842 443
+HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=3 \
+  CMD ["/usr/local/bin/bookeeper-server", "healthcheck"]
+ENTRYPOINT ["/usr/local/bin/bookeeper-server"]
