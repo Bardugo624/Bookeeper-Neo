@@ -1,10 +1,7 @@
 # Desktop updates on the VPS
 
-`bookeeper.caddy` is the full site definition for `app.neokeeper.dev` and
-`mobile.neokeeper.dev`: the one in `ops/vps/deploy/` plus a `/updates/*` block. It is
-**not** applied by any workflow (a push under `ops/vps/deploy/` starts a deploy). The owner
-decides when to replace `/etc/caddy/bookeeper.caddy` with it (or copy it over
-`ops/vps/deploy/bookeeper.caddy`), validate and reload Caddy.
+The `/updates/*` route is part of the site definition `ops/vps/deploy/bookeeper.caddy`,
+which every VPS deploy installs as `/etc/caddy/bookeeper.caddy`.
 
 ## Layout of `/opt/bookeeper/updates/`
 
