@@ -46,4 +46,12 @@ describe('placeBesidePanel', () => {
     expect(['top', 'bottom']).toContain(p.side);
     expect(p.y + CARD.height <= wide.y || p.y >= wide.y + wide.height).toBe(true);
   });
+  it('with no room on any side, stays off the anchor instead of over the footer buttons', () => {
+    const view = { width: 1280, height: 800 };
+    const wide = { x: 260, y: 20, width: 760, height: 760 };
+    const save = { x: 926, y: 690, width: 70, height: 36 };
+    const p = placeBesidePanel(save, wide, { width: 320, height: 200 }, view);
+    const over = p.x < save.x + save.width && p.x + 320 > save.x && p.y < save.y + save.height && p.y + 200 > save.y;
+    expect(over).toBe(false);
+  });
 });

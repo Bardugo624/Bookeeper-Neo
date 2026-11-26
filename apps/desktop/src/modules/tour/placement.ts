@@ -59,7 +59,7 @@ export function placeCard(target: Rect | null, card: { width: number; height: nu
 /**
  * Where the card goes when the anchor lives in a dialog: beside the dialog's panel, never over it, so the
  * controls the step asks for stay clickable. Right, then left, aligned with the anchor; above or below when
- * the window is too narrow for either side.
+ * the window is too narrow for either side; against the anchor when no side has room.
  */
 export function placeBesidePanel(anchor: Rect, panel: Rect, card: { width: number; height: number }, view: { width: number; height: number }, gap = 14): Placement {
   const room = {
@@ -69,7 +69,9 @@ export function placeBesidePanel(anchor: Rect, panel: Rect, card: { width: numbe
     bottom: view.height - (panel.y + panel.height) - gap - MARGIN,
   };
   const fits = (s: keyof typeof room) => room[s] >= (s === 'left' || s === 'right' ? card.width : card.height);
-  const side = (['right', 'left', 'top', 'bottom'] as const).find(fits) ?? (['top', 'bottom', 'right', 'left'] as const).reduce((a, b) => (room[b] > room[a] ? b : a));
+  const side = (['right', 'left', 'top', 'bottom'] as const).find(fits);
+  // Nowhere beside the panel: lay the card against the anchor itself, which at least keeps it off the control.
+  if (!side) return placeCard(anchor, card, view, gap);
   const cx = anchor.x + anchor.width / 2;
   const cy = anchor.y + anchor.height / 2;
   const maxX = Math.max(MARGIN, view.width - card.width - MARGIN);

@@ -134,6 +134,8 @@ describe('step 1', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Salva' }));
     await waitFor(() => expect(state().step).toBe(1));
     expect(document.body.textContent).not.toContain('è il primo libro della tua libreria');
+    // The tour did not take the celebration's place here: nothing is marked.
+    expect(localStorage.getItem('bookeeper.onboarding.firstBook.c1')).toBeNull();
   });
 
   it('marks the celebration as seen when the tour takes its place', async () => {

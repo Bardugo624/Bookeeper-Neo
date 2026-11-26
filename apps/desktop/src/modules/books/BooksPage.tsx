@@ -180,7 +180,7 @@ export function BooksPage() {
           if (guiding) {
             session.current.toured = true;
             // The tour takes the celebration's place for good: it must not open later.
-            if (connectionId) markFirstBookSeen(connectionId);
+            if (isFirst && connectionId) markFirstBookSeen(connectionId);
           }
           const landed = () => guiding && isFirst && tourNote({ titleKey: 'tour.firstBook.landed.title', textKey: 'tour.firstBook.landed.text', params: { title: created.title } });
           if (cover && !another) flight.start(created.id, cover, landed);
