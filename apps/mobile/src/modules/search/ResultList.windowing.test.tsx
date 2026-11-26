@@ -14,11 +14,13 @@ const api = {
 };
 
 let scrolled = 0;
+/** The furthest the page can scroll, as when a rotated screen makes it shorter. */
+let maxScroll = Infinity;
 /** Where the page is scrolled: `scrolled` is what the list sees, `scrollY` what the page reports. */
 function stubWindowScroll() {
   Object.defineProperty(window, 'scrollY', { configurable: true, get: () => scrolled });
   vi.spyOn(window, 'scrollTo').mockImplementation(((_x: number, y: number) => {
-    scrolled = y;
+    scrolled = Math.min(y, maxScroll);
   }) as typeof window.scrollTo);
 }
 const rows = () => within(screen.getByRole('list', { name: 'Libri' })).getAllByRole('link');
@@ -30,6 +32,7 @@ const scrollTo = async (y: number) => {
 
 afterEach(() => {
   scrolled = 0;
+  maxScroll = Infinity;
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
@@ -75,6 +78,29 @@ describe('windowed result list', () => {
     await waitFor(() => expect(scrolled).toBe(100 * ROW_HEIGHT));
     await screen.findByRole('link', { name: /Libro 101,/ });
     expect(screen.queryByRole('link', { name: /Libro 1,/ })).toBeNull();
+  });
+
+  it('keeps saving the position after coming back to one the page can no longer reach', async () => {
+    stubLayout();
+    stubWindowScroll();
+    const user = userEvent.setup();
+    const { router } = renderSearch({ api });
+    await screen.findByRole('link', { name: /Libro 1,/ });
+    await scrollTo(100 * ROW_HEIGHT);
+    await user.click(await screen.findByRole('link', { name: /Libro 101,/ }));
+    await screen.findByRole('heading', { level: 1, name: /Libro 101/ });
+    scrolled = 0;
+    maxScroll = 50 * ROW_HEIGHT;
+    await act(() => router.navigate(-1));
+    await waitFor(() => expect(scrolled).toBe(50 * ROW_HEIGHT));
+    maxScroll = Infinity;
+    await scrollTo(30 * ROW_HEIGHT);
+    await user.click(await screen.findByRole('link', { name: /Libro 31,/ }));
+    await screen.findByRole('heading', { level: 1, name: /Libro 31/ });
+    scrolled = 0;
+    await act(() => router.navigate(-1));
+    await waitFor(() => expect(scrolled).toBe(30 * ROW_HEIGHT));
+    await screen.findByRole('link', { name: /Libro 31,/ });
   });
 
   it('still asks for the next page when the end comes into view', async () => {

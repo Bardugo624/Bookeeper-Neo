@@ -42,12 +42,18 @@ const scrollParent = (el: HTMLElement): HTMLElement | null => {
 /** Scroll position of each history entry, so coming back from a book's card lands on the same row. */
 const savedScroll = new Map<string, number>();
 
+/** Forgets every saved position; a fresh app (or test) starts from the top. */
+export function forgetScrollPositions() {
+  savedScroll.clear();
+}
+
 /** Which rows [start, end) are near the viewport; the page's own scrolling is only listened to. */
 function useWindow(count: number) {
   const listRef = useRef<HTMLUListElement>(null);
   const [rowHeight, setRowHeight] = useState(ROW_HEIGHT);
   const rowRef = useRef(ROW_HEIGHT);
   const locationKey = useLocation().key;
+  /** Offset to go back to, read once on mount; cleared after the one attempt to reach it. */
   const pending = useRef<number | null>(savedScroll.get(locationKey) || null);
   const [range, setRange] = useState<[number, number]>([0, Math.min(count, 2 * OVERSCAN + 10)]);
   const measure = useCallback(() => {
@@ -75,18 +81,26 @@ function useWindow(count: number) {
     const end = Math.min(count, Math.max(start, Math.ceil((offset + height) / rh) + OVERSCAN));
     setRange((r) => (r[0] === start && r[1] === end ? r : [start, end]));
   }, [count, locationKey]);
+  const hasRows = Math.min(range[1], count) > Math.min(range[0], count);
   useLayoutEffect(() => {
     const list = listRef.current;
     const want = pending.current;
-    if (list && want !== null && count > 0) {
+    // Restore once the rows are there and their real height is known, so the spacers are final;
+    // then stop, whether or not the offset could be reached (a rotated or larger-text page may be shorter).
+    if (list && want !== null && hasRows) {
+      const first = list.firstElementChild?.getBoundingClientRect().height ?? 0;
+      if (first > 0 && Math.abs(first - rowRef.current) > 0.5) {
+        rowRef.current = first;
+        setRowHeight(first);
+        return;
+      }
+      pending.current = null;
       const parent = scrollParent(list);
       if (parent) parent.scrollTop = want;
       else window.scrollTo(0, want);
-      const now = parent ? parent.scrollTop : window.scrollY;
-      if (Math.abs(now - want) < 1) pending.current = null;
     }
     measure();
-  }, [measure]);
+  }, [measure, rowHeight, hasRows]);
   useEffect(() => {
     const list = listRef.current;
     if (!list) return;
