@@ -15,7 +15,9 @@
 
 ## Known traps
 - a fresh worktree has no node_modules; run `npm ci --offline` at the root, then `npx vitest run <path>` from apps/desktop [apps/desktop/package.json]
+- the reading/audit desktop files have no Prettier config in the repo; format with `npx prettier --no-config --single-quote --print-width… [apps/desktop/src/modules/tags/testkit.tsx]
 - turning an i18n string into a `{one, other}` plural makes any caller that doesn't pass a numeric `count` render the raw key; grep every `t('<key>'`… [packages/i18n/src/index.ts]
+- a rejected optimistic write can restore the cache in the same batch as the optimistic render, so an effect keyed on the saved value… [apps/mobile/src/modules/reading/NoteField.tsx]
 - the books testkit `extra` handler is synchronous; to delay a response in a test, wrap the handler with `platform.handle(...)` and… [apps/desktop/src/modules/reading/testkit.tsx]
 - a fresh worktree needs `npm ci --offline` at the root before `npm run gen/test/typecheck -w @bookeeper/api` works [packages/api/package.json]
 - in the books tests, a list that ends up empty swaps the top active-filter chips for the NoResults ones, so a button found before the… [apps/desktop/src/modules/books/testkit.tsx]
@@ -26,6 +28,4 @@
 - a test module registered with `renderApp` needs a `nav` entry and a route other than `/`, or the shell renders an empty `<main>` [apps/desktop/src/app/testing.tsx]
 - rusqlite scalar functions (`create_scalar_function`) need the `functions` feature in crates/bookeeper-core/Cargo.toml [crates/bookeeper-core/Cargo.toml]
 - `ShelfForm.test.tsx` "validates with the limits of the core and sends the body" can fail on `aria-selected` when the whole… [apps/desktop/src/modules/shelves/ShelfForm.test.tsx]
-- a zustand store shared across tests (e.g. `useOverlays`) must be reset in `renderApp`, or an open palette from one test closes the next test's… [apps/desktop/src/app/testing.tsx]
-- a rejected optimistic write can restore the cache in the same batch as the optimistic render, so an effect keyed on the saved… [apps/desktop/src/modules/reading/PageField.tsx]
 
