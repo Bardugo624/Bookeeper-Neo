@@ -44,7 +44,8 @@
       "none": "Non collocato",
       "phrase": "{shelf} · ripiano {row} · posto {slot}",
       "button": "Dov'è?",
-      "row": "Ripiano {row}"
+      "row": "Ripiano {row}",
+      "unit": "Apri il mobile"
     },
     "loan": {
       "title": "Prestito",
@@ -158,5 +159,6 @@
       "discard": "Esci senza salvare"
     },
     "titleField": "Titolo"
-  }
+  },
+  "shelves": "Scaffali"
 }

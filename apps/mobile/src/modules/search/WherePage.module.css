@@ -23,12 +23,3 @@
   color: var(--bk-text-strong);
   overflow-wrap: anywhere;
 }
-
-/* The cabinet scrolls inside itself when wider than the screen; the page never does. */
-.cabinet {
-  max-width: 100%;
-  min-width: 0;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  padding-bottom: 4px;
-}

@@ -44,7 +44,8 @@
       "none": "Not shelved",
       "phrase": "{shelf} · shelf {row} · slot {slot}",
       "button": "Where is it?",
-      "row": "Shelf {row}"
+      "row": "Shelf {row}",
+      "unit": "Open the furniture"
     },
     "loan": {
       "title": "Loan",
@@ -158,5 +159,6 @@
       "discard": "Leave without saving"
     },
     "titleField": "Title"
-  }
+  },
+  "shelves": "Shelves"
 }

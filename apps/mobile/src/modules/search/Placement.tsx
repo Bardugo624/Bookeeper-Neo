@@ -31,6 +31,9 @@ export function WhereBlock({ book }: { book: BookOut }) {
           <Link to={`/books/${encodeURIComponent(book.id)}/where`} state={location.state} className={styles.whereButton}>
             {t('msearch.detail.where.button')}
           </Link>
+          <Link to={`/shelves/${encodeURIComponent(placement.shelf_id)}`} className={styles.unitLink}>
+            {t('msearch.detail.where.unit')}
+          </Link>
         </>
       ) : (
         <p className={styles.big}>{t('msearch.detail.where.none')}</p>
