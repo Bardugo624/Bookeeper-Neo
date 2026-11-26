@@ -7,6 +7,7 @@ import { createBody, patchBody, roomIdOf, type ShelfValues } from './formModel';
 import { NEW_ROOM, groupByRoom } from './roomModel';
 import { useRoomList, useRoomWrites } from './useRooms';
 import { useMoveWrites } from './useMoveWrites';
+import { inRow, isSamePlace } from './model';
 import { usePlacement } from './usePlacement';
 import { useWhere } from './useWhere';
 import { useShelfBooks, useShelfList, useUnshelved } from './useShelves';
@@ -66,6 +67,11 @@ export function useShelvesView() {
   /** From the "place in…" dialog: the end of the chosen row of the chosen unit. */
   const placeAtEnd = async (d: PlaceDialogState, target: ShelfOut, targetBooks: ShelfBook[], rowIndex: number) => {
     const index = targetBooks.filter((b) => b.row_index === rowIndex && b.book_id !== d.book.id).length;
+    // Confirming the place the book already has changes nothing: just close.
+    if (isSamePlace(inRow(targetBooks, rowIndex), d.book.id, index)) {
+      setDialog(null);
+      return;
+    }
     const ok = await placement.placeAt({ shelf: target, books: targetBooks, bookId: d.book.id, rowIndex, index }, d.fresh);
     if (ok) {
       setDialog(null);

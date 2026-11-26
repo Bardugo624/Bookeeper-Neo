@@ -4,6 +4,8 @@ import { useToast } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
 import { apiErrorMessage } from '../../kit';
 import { useClient } from '../../session';
+import { firstFreeSpot, takeFromOthers } from './crossMove';
+import { asShelfBook } from './model';
 import { useKeys } from './useShelves';
 
 type Snapshot = Array<[QueryKey, unknown]>;
@@ -23,9 +25,9 @@ export function useMoveWrites() {
   const toast = useToast();
   const t = useT();
 
-  const fail = (e: unknown, text?: string) =>
+  const fail = (e: unknown, text?: string, title = t('shelves.toast.failed')) =>
     toast.show({
-      title: t('shelves.toast.failed'),
+      title,
       description: text ?? apiErrorMessage(t, e, { slot_taken: t('shelves.toast.slotTaken'), row_full: t('shelves.toast.rowFull') }),
       tone: 'danger',
     });
@@ -52,7 +54,17 @@ export function useMoveWrites() {
    * until one does not answer `row_full`. Resolves to false when nothing was placed.
    */
   const placeFirstFree = async (bookId: string, shelf: ShelfOut, fresh?: BookOut): Promise<boolean> => {
-    const before: Snapshot = qc.getQueriesData({ queryKey: keys.unshelved });
+    const before: Snapshot = [
+      ...qc.getQueriesData({ queryKey: keys.unshelved }),
+      ...qc.getQueriesData({ queryKey: [...keys.shelves, 'books'] }),
+    ];
+    const target = keys.books(shelf.id);
+    const moved = fresh ? undefined : takeFromOthers(qc, [...keys.shelves, 'books'], target, bookId);
+    const spot = firstFreeSpot(qc.getQueryData<ShelfBookList>(target)?.items ?? [], shelf.rows, shelf.slots_per_row);
+    const joining = spot && (fresh ? asShelfBook(fresh, spot.row, spot.slot) : moved && { ...moved, row_index: spot.row, slot_index: spot.slot });
+    if (joining) {
+      qc.setQueryData<ShelfBookList>(target, (cur) => cur && { items: [...cur.items.filter((b) => b.book_id !== bookId), joining] });
+    }
     if (fresh) {
       qc.setQueriesData<BookList>({ queryKey: keys.unshelved }, (cur) =>
         cur && { ...cur, items: cur.items.filter((b) => b.id !== bookId), total: Math.max(0, cur.total - 1) },
@@ -92,7 +104,7 @@ export function useMoveWrites() {
     },
     onError: (e, _input, before) => {
       restore(before ?? []);
-      fail(e);
+      fail(e, undefined, t('shelves.toast.widthFailed'));
     },
     onSettled: settle,
   });

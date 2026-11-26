@@ -5,6 +5,7 @@ import { useT } from '../../app';
 import { apiErrorMessage } from '../../kit';
 import { useClient } from '../../session';
 import { applyMoves, asShelfBook, inRow, isSamePlace, planPlacement, type Move } from './model';
+import { takeFromOthers } from './crossMove';
 import { useKeys } from './useShelves';
 
 interface PlaceInput {
@@ -61,13 +62,16 @@ export function usePlacement() {
       await qc.cancelQueries({ queryKey: keys.shelves });
       const before: Snapshot = [
         ...qc.getQueriesData({ queryKey: keys.unshelved }),
-        ...qc.getQueriesData({ queryKey: keys.books(p.shelf.id) }),
+        ...qc.getQueriesData({ queryKey: [...keys.shelves, 'books'] }),
         ...qc.getQueriesData({ queryKey: keys.list }),
       ];
+      // A book of another cabinet leaves that cabinet's list and joins this one.
+      const moved = p.fresh ? undefined : takeFromOthers(qc, [...keys.shelves, 'books'], keys.books(p.shelf.id), p.bookId);
       qc.setQueryData<ShelfBookList>(keys.books(p.shelf.id), (cur) => {
         if (!cur) return cur;
         const known = cur.items.some((b) => b.book_id === p.bookId);
-        const items = known || !p.fresh ? cur.items : [...cur.items, asShelfBook(p.fresh, p.rowIndex, p.slot)];
+        const joining = p.fresh ? asShelfBook(p.fresh, p.rowIndex, p.slot) : moved && { ...moved, row_index: p.rowIndex, slot_index: p.slot };
+        const items = known || !joining ? cur.items : [...cur.items, joining];
         return { items: applyMoves(items, p.rowIndex, p.moves) };
       });
       if (p.fresh) {

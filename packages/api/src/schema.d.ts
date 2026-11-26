@@ -1575,7 +1575,7 @@ export interface components {
             slot_index?: number | null;
             /**
              * Format: int64
-             * @description 1–3; absent keeps the current value.
+             * @description 1–3 sets the width; absent keeps the current value; `null` clears it.
              */
             spine_width?: number | null;
         };

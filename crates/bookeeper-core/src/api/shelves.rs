@@ -171,8 +171,10 @@ pub struct PlaceIn {
     /// Absent: the book goes to the slot after the last occupied one of the
     /// row (0 when empty), or stays put if it is already on that row.
     pub slot_index: Option<i64>,
-    /// 1–3; absent keeps the current value.
-    pub spine_width: Option<i64>,
+    /// 1–3 sets the width; absent keeps the current value; `null` clears it.
+    #[serde(default, deserialize_with = "present")]
+    #[schema(value_type = Option<i64>)]
+    pub spine_width: Option<Option<i64>>,
     /// When true, books from `slot_index` onwards slide one slot right up to
     /// the first free slot, atomically. Defaults to false. Requires `slot_index`.
     #[serde(default)]
@@ -655,7 +657,11 @@ pub async fn place_book(
     ApiJson(body): ApiJson<PlaceIn>,
 ) -> ApiResult<Json<Placement>> {
     user.require(Role::Member)?;
-    let spine = check_spine(body.spine_width)?;
+    // `None` keeps the stored width, `Some(None)` clears it, `Some(Some(w))` sets it.
+    let spine = match body.spine_width {
+        Some(w) => Some(check_spine(w)?),
+        None => None,
+    };
     if body.shift && body.slot_index.is_none() {
         return Err(ApiError::validation("shift requires slot_index"));
     }
@@ -680,6 +686,14 @@ pub async fn place_book(
                     )
                     .optional()?;
                 if let Some(slot) = here {
+                    if let Some(w) = spine {
+                        tx.execute(
+                            "UPDATE shelf_books SET spine_width = ?1, updated_at = ?2 \
+                             WHERE book_id = ?3",
+                            params![w, now, id],
+                        )?;
+                        tx.commit()?;
+                    }
                     return Ok(Placement {
                         shelf_id: shelf.id,
                         row_index: body.row_index,
@@ -780,7 +794,7 @@ pub async fn place_book(
             tx.execute(
                 "INSERT INTO shelf_books (book_id, shelf_id, row_index, slot_index, spine_width, updated_at) \
                  VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-                params![id, shelf.id, body.row_index, slot_index, spine.or(old_spine), now],
+                params![id, shelf.id, body.row_index, slot_index, spine.unwrap_or(old_spine), now],
             )
             .map_err(slot_write)?;
             let detail = serde_json::json!({
@@ -811,9 +825,17 @@ pub async fn place_book(
              VALUES (?1, ?2, ?3, ?4, ?5, ?6) \
              ON CONFLICT(book_id) DO UPDATE SET shelf_id = excluded.shelf_id, \
                row_index = excluded.row_index, slot_index = excluded.slot_index, \
-               spine_width = COALESCE(excluded.spine_width, shelf_books.spine_width), \
+               spine_width = CASE WHEN ?7 THEN excluded.spine_width ELSE shelf_books.spine_width END, \
                updated_at = excluded.updated_at",
-            params![id, shelf.id, body.row_index, slot_index, spine, now],
+            params![
+                id,
+                shelf.id,
+                body.row_index,
+                slot_index,
+                spine.flatten(),
+                now,
+                spine.is_some()
+            ],
         )
         .map_err(slot_write)?;
         let detail = serde_json::json!({

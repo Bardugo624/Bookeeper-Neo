@@ -101,6 +101,18 @@ describe('"Sposta in…"', () => {
     await user.click(dialog.getByRole('button', { name: 'Colloca' }));
     await waitFor(() => expect(w.spots.b4).toEqual({ shelf: 's2', row: 0, slot: 1 }));
   });
+
+  it('closes when confirmed on the place the book already has', async () => {
+    const w = world();
+    const user = userEvent.setup();
+    renderShelves(w);
+    const menu = await openSpine('b3');
+    await user.click(menu.getByRole('button', { name: 'Sposta in…' }));
+    const dialog = within(await screen.findByRole('dialog'));
+    await user.click(dialog.getByRole('button', { name: 'Colloca' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(w.spots.b3).toEqual({ shelf: 's1', row: 0, slot: 2 });
+  });
 });
 
 describe('spine width', () => {
@@ -125,13 +137,16 @@ describe('spine width', () => {
     expect(menu.getByRole('radio', { name: 'Largo' })).toBeChecked();
     await userEvent.click(menu.getByRole('radio', { name: 'Dalle pagine' }));
     await waitFor(() => expect(placeBodies(platform)).toEqual([{ shelf_id: 's1', row_index: 0, slot_index: 1, spine_width: null }]));
+    // The width is really gone after the reload, and the radio stays on "Dalle pagine".
+    await waitFor(() => expect(w.widths?.b2).toBeUndefined());
+    await waitFor(() => expect(menu.getByRole('radio', { name: 'Dalle pagine' })).toBeChecked());
   });
 
   it('puts the choice back when the core refuses', async () => {
     renderShelves(world({ placeFails: 500, widths: { b2: 3 } }));
     const menu = await openSpine('b2');
     await userEvent.click(menu.getByRole('radio', { name: 'Sottile' }));
-    expect(await screen.findByText('Non è stato possibile spostare il libro')).toBeInTheDocument();
+    expect(await screen.findByText('Non è stato possibile cambiare la larghezza del dorso')).toBeInTheDocument();
     await waitFor(() => expect(menu.getByRole('radio', { name: 'Largo' })).toBeChecked());
   });
 });

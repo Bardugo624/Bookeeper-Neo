@@ -95,7 +95,8 @@
     "failed": "Couldn't move the book",
     "rowFull": "The shelf is full.",
     "slotTaken": "That place was taken in the meantime. The order was restored.",
-    "unitFull": "The cabinet is full."
+    "unitFull": "The cabinet is full.",
+    "widthFailed": "Couldn't change the spine width"
   },
   "colors": {
     "sage": "Sage",

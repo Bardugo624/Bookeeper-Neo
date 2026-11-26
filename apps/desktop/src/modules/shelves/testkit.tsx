@@ -172,7 +172,11 @@ export function shelvesPlatform(w: World): FakePlatform {
         const b = r.body as { shelf_id: string; row_index: number; slot_index?: number; shift?: boolean; spine_width?: number | null };
         const id = m[1]!;
         const shelfOf = w.shelves.find((s) => s.id === b.shelf_id)!;
-        if (b.spine_width) (w.widths ??= {})[id] = b.spine_width;
+        // Absent keeps the width, null removes it, 1..3 sets it.
+        if ('spine_width' in b) {
+          if (b.spine_width) (w.widths ??= {})[id] = b.spine_width;
+          else delete w.widths?.[id];
+        }
         if (b.slot_index === undefined) {
           // The core's "next place": after the last one of the row, or where the book already is.
           const here = w.spots[id];
