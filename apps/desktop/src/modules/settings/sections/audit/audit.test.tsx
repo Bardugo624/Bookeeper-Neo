@@ -70,6 +70,30 @@ describe('sentences', () => {
   });
 });
 
+describe('people sentences', () => {
+  it('has its own sentence for the actions of the people and invitations', async () => {
+    const entries = [
+      entry(1, { action: 'user.update', entity_type: 'user', detail: { role: 'guest' } }),
+      entry(2, { action: 'user.update', entity_type: 'user', detail: { display_name: 'Carlotta' } }),
+      entry(3, { action: 'user.update', entity_type: 'user', detail: { display_name: 'Carlotta', role: 'member' } }),
+      entry(4, { action: 'user.remove', entity_type: 'user', detail: { display_name: 'Dario' } }),
+      entry(5, { action: 'user.join', entity_type: 'user', detail: { display_name: 'Elena', role: 'member' } }),
+      entry(6, { action: 'library.owner', entity_type: 'library', detail: { from: 'a', to: 'b' } }),
+      entry(7, { action: 'invite.create', entity_type: 'invite', detail: { role: 'admin', expires_at: 1 } }),
+      entry(8, { action: 'invite.revoke', entity_type: 'invite', detail: null }),
+    ];
+    renderAudit({ entries });
+    expect(await screen.findByText('Ha cambiato il ruolo di una persona in ospite')).toBeInTheDocument();
+    expect(screen.getByText('Ha cambiato il nome di una persona in «Carlotta»')).toBeInTheDocument();
+    expect(screen.getByText('Ha modificato una persona')).toBeInTheDocument();
+    expect(screen.getByText('Ha rimosso «Dario» dalla libreria')).toBeInTheDocument();
+    expect(screen.getByText('«Elena» è entrato nella libreria come membro')).toBeInTheDocument();
+    expect(screen.getByText('Ha passato la libreria a un’altra persona')).toBeInTheDocument();
+    expect(screen.getByText('Ha creato un invito come amministratore')).toBeInTheDocument();
+    expect(screen.getByText('Ha revocato un invito')).toBeInTheDocument();
+  });
+});
+
 describe('detail', () => {
   it('shows the detail as text, never as HTML', async () => {
     const evil = '<script>alert(1)</script>';

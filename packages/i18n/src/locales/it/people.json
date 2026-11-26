@@ -1,0 +1,95 @@
+{
+  "title": "Persone",
+  "count": {
+    "one": "{count} persona",
+    "other": "{count} persone"
+  },
+  "loading": "Caricamento delle persone",
+  "error": {
+    "title": "Impossibile caricare le persone",
+    "text": "Controlla la connessione e riprova."
+  },
+  "you": "Tu",
+  "roles": {
+    "owner": "Proprietario",
+    "admin": "Admin",
+    "member": "Membro",
+    "guest": "Ospite"
+  },
+  "devices": {
+    "one": "{count} dispositivo",
+    "other": "{count} dispositivi"
+  },
+  "lastSeen": "Ultimo accesso: {when}",
+  "neverSeen": "Mai entrato",
+  "menu": {
+    "open": "Azioni per {name}",
+    "role": "Cambia ruolo",
+    "rename": "Rinomina",
+    "remove": "Rimuovi",
+    "owner": "Rendi proprietario",
+    "leave": "Esci dalla libreria"
+  },
+  "role": {
+    "title": "Cambia il ruolo di {name}",
+    "legend": "Ruolo"
+  },
+  "rename": {
+    "title": "Rinomina la persona",
+    "field": "Nome",
+    "errors": {
+      "required": "Scrivi un nome.",
+      "tooLong": "Il nome può avere al massimo {max} caratteri."
+    }
+  },
+  "remove": {
+    "title": "Rimuovere {name}?",
+    "intro": "{name} non potrà più entrare nella libreria. Questo succede:",
+    "effects": {
+      "1": "I suoi dispositivi vengono scollegati.",
+      "2": "Il suo stato di lettura e la sua lista dei desideri vengono cancellati.",
+      "3": "I libri e i prestiti restano dove sono."
+    },
+    "confirm": "Rimuovi"
+  },
+  "leave": {
+    "title": "Uscire dalla libreria?",
+    "intro": "Se esci, questo succede:",
+    "effects": {
+      "1": "I tuoi dispositivi vengono scollegati e qui verrai disconnesso.",
+      "2": "Il tuo stato di lettura e la tua lista dei desideri vengono cancellati.",
+      "3": "I libri e i prestiti restano dove sono."
+    },
+    "confirm": "Esci dalla libreria"
+  },
+  "owner": {
+    "title": "Rendere {name} proprietario?",
+    "intro": "Il proprietario della libreria può essere una persona sola.",
+    "effects": {
+      "1": "{name} diventa il proprietario della libreria.",
+      "2": "Tu diventi amministratore."
+    },
+    "confirm": "Rendi {name} proprietario"
+  },
+  "invite": {
+    "open": "Invita una persona",
+    "title": "Invita una persona",
+    "create": "Crea l’invito",
+    "role": "Ruolo",
+    "days": "Validità",
+    "dayCount": {
+      "one": "{count} giorno",
+      "other": "{count} giorni"
+    },
+    "codeTitle": "Invito come {role}",
+    "qrLabel": "Codice QR per unirsi dal telefono",
+    "how": "Sul computer: Unisciti, poi il codice. Sul telefono: inquadra il QR."
+  },
+  "pending": {
+    "title": "Inviti in attesa",
+    "empty": "Nessun invito in attesa.",
+    "by": "Creato da {name}",
+    "expires": "scade il {date}",
+    "revoke": "Revoca"
+  }
+}
