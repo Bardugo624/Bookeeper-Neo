@@ -2,7 +2,8 @@ import { useSyncExternalStore } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ApiError, type BookOut, type Metadata } from '@bookeeper/api';
 import { usePlatform } from '../../platform';
-import { useClient, useSession, type Client } from '../../session';
+import { useClient, type Client } from '../../session';
+import { useLibraryId } from './useLibraryId';
 import type { Isbn } from './isbn';
 import { libraryIndexFor, type IndexEntry } from './libraryIndex';
 
@@ -40,7 +41,7 @@ async function resolve(client: Client, isbn: Isbn): Promise<Lookup> {
 
 /** The phone's own copy first: it answers at once and without the network. */
 function useLocalEntry(isbn: Isbn | null) {
-  const libraryId = useSession((s) => s.me?.library.id);
+  const libraryId = useLibraryId();
   return useQuery({
     queryKey: ['scan', libraryId, 'local', isbn?.isbn13],
     enabled: isbn !== null && libraryId !== undefined,
@@ -69,7 +70,7 @@ export function useIsbnLookup(isbn: Isbn | null) {
   const client = useClient();
   const { network } = usePlatform();
   const online = useSyncExternalStore(network.subscribe, network.online, () => true);
-  const libraryId = useSession((s) => s.me?.library.id);
+  const libraryId = useLibraryId();
   const local = useLocalEntry(isbn);
   const remote = useQuery({
     queryKey: ['scan', libraryId, isbn?.isbn13],

@@ -44,7 +44,13 @@ export function idbIndex(libraryId: string): LibraryIndex {
       const tx = (await connect()).transaction([ITEMS, META], 'readwrite');
       const store = tx.objectStore(ITEMS);
       store.clear();
-      for (const e of items) store.add(e).onerror = (ev) => ev.preventDefault(); // a second copy keeps the first
+      for (const e of items) {
+        // A second copy of an ISBN keeps the first, and is no failure of the whole write.
+        store.add(e).onerror = (ev) => {
+          ev.preventDefault();
+          ev.stopPropagation();
+        };
+      }
       tx.objectStore(META).put({ version, syncedAt } satisfies IndexMeta, META_KEY);
       await done(tx);
     },

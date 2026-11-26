@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { usePlatform } from '../../platform';
-import { useClient, useSession } from '../../session';
+import { useClient } from '../../session';
+import { useLibraryId } from './useLibraryId';
 import { libraryIndexFor, syncIndex } from './libraryIndex';
 
 export const SYNC_EVERY_MS = 10 * 60 * 1000;
@@ -13,7 +14,7 @@ export const SYNC_EVERY_MS = 10 * 60 * 1000;
 export function useIndexSync(): void {
   const client = useClient();
   const { network } = usePlatform();
-  const libraryId = useSession((s) => s.me?.library.id);
+  const libraryId = useLibraryId();
   const { refetch } = useQuery({
     queryKey: ['books', libraryId, 'isbn-index'],
     enabled: libraryId !== undefined,

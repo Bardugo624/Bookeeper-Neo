@@ -71,3 +71,20 @@ describe('not known to the phone', () => {
     expect(lookups(platform).some((c) => c.path.includes('/lookup/'))).toBe(true);
   });
 });
+
+describe('cold start without a network', () => {
+  it('answers from the local copy when /me cannot be read', async () => {
+    const index = memoryIndex();
+    await index.replace('v1', [entry()], new Date(2026, 0, 5, 14, 32).getTime());
+    const { platform } = scanPlatform(
+      { extra: (c) => (c.path === '/api/v1/me' ? { status: 503, body: { error_code: 'x', message: 'x' } } : undefined) },
+      { online: false },
+    );
+    platform.storage.set('bookeeper.scan.libraryId', 'l1');
+    renderScan(platform, '/scan', index);
+    await screen.findByText('Inquadra il codice a barre sul retro del libro');
+    read(platform);
+    const dialog = await screen.findByRole('dialog');
+    expect(await within(dialog).findByText('È nella tua libreria')).toBeInTheDocument();
+  });
+});
