@@ -17,15 +17,6 @@ export function RestoreBlock({ ops }: { ops: BackupOps }) {
 
   return (
     <DangerZone title={t('settings.danger.title')} headingLevel="h2">
-      <FilePicker
-        key={restore.inputKey}
-        label={t('common.file.choose')}
-        inputLabel={t('backup.restore.file')}
-        accept=".zip,application/zip"
-        fileName={restore.file?.name}
-        disabled={ops.busy}
-        onPick={restore.pick}
-      />
       <DangerAction
         title={t('settings.danger.restore.title')}
         consequence={t('settings.danger.restore.consequence')}
@@ -41,12 +32,24 @@ export function RestoreBlock({ ops }: { ops: BackupOps }) {
           </Button>
         }
       />
-      {restore.error ? (
-        <p className={styles.error} role="alert">
-          {restore.error}
-        </p>
-      ) : null}
-      {restore.report ? <RestoreReportView report={restore.report} /> : null}
+      <div className={styles.restoreBody}>
+        <FilePicker
+          key={restore.inputKey}
+          label={t('common.file.choose')}
+          inputLabel={t('backup.restore.file')}
+          accept=".zip,application/zip"
+          fileName={restore.file?.name}
+          disabled={ops.busy}
+          onPick={restore.pick}
+        />
+        {restore.file ? null : <p className={styles.note}>{t('backup.restore.needFile')}</p>}
+        {restore.error ? (
+          <p className={styles.error} role="alert">
+            {restore.error}
+          </p>
+        ) : null}
+        {restore.report ? <RestoreReportView report={restore.report} /> : null}
+      </div>
       {restore.asking && restore.file ? (
         <RestoreDialog libraryName={libraryName} fileName={restore.file.name} onConfirm={() => void restore.start()} onCancel={() => restore.setAsking(false)} />
       ) : null}
