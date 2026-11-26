@@ -40,16 +40,16 @@ describe('quick filters', () => {
     const user = userEvent.setup();
     const { router, platform } = renderSearch({ api: api({ books: [tagged(1, 't1', 't2'), tagged(2), tagged(3)].map((b, i) => (i === 0 ? { ...b, on_loan: true } : b)) , reading: { b1: 'read', b2: 'read' } }) });
     await screen.findByRole('link', { name: /Libro 1/ });
-    await user.click(screen.getByRole('tab', { name: 'Letti' }));
+    await user.click(screen.getByRole('button', { name: 'Letti' }));
     expect(router.state.location.search).toBe('?reading=read');
     await waitFor(() => expect(rows()).toHaveLength(2));
-    await user.click(screen.getByRole('tab', { name: 'In prestito' }));
+    await user.click(screen.getByRole('button', { name: 'In prestito' }));
     expect(router.state.location.search).toBe('?reading=read&filter=loan');
-    expect(screen.getByRole('tab', { name: 'Letti' })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByRole('tab', { name: 'In prestito' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('button', { name: 'Letti' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'In prestito' })).toHaveAttribute('aria-pressed', 'true');
     await waitFor(() => expect(last(platform)).toContain('on_loan=true'));
     expect(last(platform)).toContain('reading=read');
-    await user.click(screen.getByRole('tab', { name: 'Tutti' }));
+    await user.click(screen.getByRole('button', { name: 'Tutti' }));
     expect(router.state.location.search).toBe('');
   });
 });
@@ -129,5 +129,41 @@ describe('active filters', () => {
     await user.click(await screen.findByRole('link', { name: "Torna all'elenco" }));
     expect(router.state.location.search).toBe('?tag=t2&reading=to_read');
     expect(await screen.findByRole('link', { name: /Libro 2/ })).toBeInTheDocument();
+  });
+});
+
+describe('the sheet when the server fails', () => {
+  const fail = (path: string) => ({
+    ...api(),
+    override: (call: { path: string }) =>
+      call.path.includes(path) ? { status: 500, body: { error_code: 'internal', message: 'x' } } : undefined,
+  });
+
+  it('keeps the five reading states and shows the error with "Riprova" in the tags section', async () => {
+    const user = userEvent.setup();
+    renderSearch({ api: fail('/books/facets') });
+    await user.click(await screen.findByRole('button', { name: 'Filtri' }));
+    const dialog = await screen.findByRole('dialog');
+    for (const name of ['Da leggere', 'In lettura', 'Letti', 'Abbandonato', 'Senza stato']) {
+      expect(await within(dialog).findByRole('button', { name })).toBeInTheDocument();
+    }
+    expect(await within(dialog).findByRole('button', { name: 'Riprova' })).toBeInTheDocument();
+  });
+
+  it('shows the room error with "Riprova"', async () => {
+    const user = userEvent.setup();
+    renderSearch({ api: fail('/rooms') });
+    await user.click(await screen.findByRole('button', { name: 'Filtri' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(await within(dialog).findByRole('button', { name: 'Riprova' })).toBeInTheDocument();
+  });
+});
+
+describe('the result count', () => {
+  it('titles the list "Ultimi libri aggiunti" only with no text and no filter', async () => {
+    renderSearch({ api: api(), route: '/search?reading=read' });
+    await screen.findByRole('searchbox');
+    await waitFor(() => expect(rows().length).toBeGreaterThan(0));
+    expect(screen.queryByText(/Ultimi libri aggiunti/)).toBeNull();
   });
 });

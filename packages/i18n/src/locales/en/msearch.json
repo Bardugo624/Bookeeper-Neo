@@ -84,6 +84,7 @@
     "tags": "Tags",
     "room": "Room",
     "reset": "Reset",
+    "retry": "Retry",
     "show": "Show books",
     "showCount": {
       "one": "Show {count} book",
