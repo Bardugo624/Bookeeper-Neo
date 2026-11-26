@@ -77,7 +77,7 @@ export function WishSheet({ wish, onClose }: { wish: WishOut; onClose: () => voi
             title={t('mwishlist.danger.delete')}
             consequence={t('mwishlist.danger.consequence')}
             action={
-              <Button variant="danger" icon="trash" onClick={() => goTo('delete')} disabled={busy}>
+              <Button variant="danger" icon="trash" className={styles.touch} onClick={() => goTo('delete')} disabled={busy}>
                 {t('mwishlist.delete.button')}
               </Button>
             }
@@ -98,10 +98,10 @@ export function WishSheet({ wish, onClose }: { wish: WishOut; onClose: () => voi
         closeLabel={t('mobile.close')}
         footer={
           <>
-            <Button variant="secondary" onClick={back} disabled={busy}>
+            <Button variant="secondary" className={styles.touch} onClick={back} disabled={busy}>
               {t('mwishlist.delete.cancel')}
             </Button>
-            <Button variant="danger" onClick={() => void doDelete()} loading={remove.isPending} loadingLabel={t('mwishlist.delete.working')}>
+            <Button variant="danger" className={styles.touch} onClick={() => void doDelete()} loading={remove.isPending} loadingLabel={t('mwishlist.delete.working')}>
               {t('mwishlist.delete.confirm')}
             </Button>
           </>

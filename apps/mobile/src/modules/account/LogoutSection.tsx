@@ -4,6 +4,7 @@ import { ApiError } from '@bookeeper/api';
 import { Button, DangerAction, DangerZone } from '@bookeeper/ui/base';
 import { Dialog, useToast } from '@bookeeper/ui/overlays';
 import { useT } from '../../app/i18n';
+import styles from './Account.module.css';
 import { useClient, useSession } from '../../session';
 
 /** Only a request that never reached the server leaves the device registered there. */
@@ -40,7 +41,7 @@ export function LogoutSection() {
           title={t('maccount.logout.title')}
           consequence={t('maccount.logout.text')}
           action={
-            <Button variant="danger" onClick={() => setOpen(true)}>
+            <Button variant="danger" className={styles.touch} onClick={() => setOpen(true)}>
               {t('maccount.logout.action')}
             </Button>
           }
@@ -57,10 +58,10 @@ export function LogoutSection() {
         closeLabel={t('mobile.close')}
         footer={
           <>
-            <Button variant="ghost" onClick={() => setOpen(false)} disabled={busy}>
+            <Button variant="ghost" className={styles.touch} onClick={() => setOpen(false)} disabled={busy}>
               {t('maccount.logout.cancel')}
             </Button>
-            <Button variant="danger" onClick={() => void confirm()} loading={busy} loadingLabel={t('maccount.logout.busy')}>
+            <Button variant="danger" className={styles.touch} onClick={() => void confirm()} loading={busy} loadingLabel={t('maccount.logout.busy')}>
               {t('maccount.logout.confirm')}
             </Button>
           </>
