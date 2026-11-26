@@ -28,6 +28,18 @@ describe('stylesheets', () => {
     expect(px(rule('BookRow.module.css', 'row'), 'min-height')).toBeGreaterThanOrEqual(44);
   });
 
+  it('keeps every result row as tall: the title always holds two lines, the author one', () => {
+    const title = rule('BookRow.module.css', 'title');
+    // room for two lines in em, which grow with the text, whether the title takes one or two
+    const lineHeight = Number(/line-height:\s*([\d.]+)\s*;/.exec(title)?.[1]);
+    const minHeight = Number(/min-height:\s*([\d.]+)em\s*;/.exec(title)?.[1]);
+    expect(minHeight).toBeCloseTo(2 * lineHeight);
+    expect(title).toMatch(/-webkit-line-clamp:\s*2;/);
+    expect(rule('BookRow.module.css', 'author')).toMatch(/white-space:\s*nowrap;/);
+    // a row without an author keeps the author's line
+    expect(read('BookRow.tsx')).toMatch(/className=\{styles\.author\}[^>]*>\s*\{author \|\| '\\u00a0'\}/);
+  });
+
   it('makes the tap targets at least 44px', () => {
     const field = read('SearchField.module.css');
     expect(px(rule('SearchField.module.css', 'clear'), 'width')).toBeGreaterThanOrEqual(44);
