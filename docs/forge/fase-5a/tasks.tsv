@@ -1,0 +1,7 @@
+# id	deps	difficulty	files	dwarf	qa	title
+core-append	-	high	crates/bookeeper-core/src/api,crates/bookeeper-core/tests/shelves_api.rs,packages/api/openapi.json,packages/api/src/schema.d.ts,packages/api/src/resources/shelves.ts,packages/api/src/resources.test.ts	-	-	Core: collocare nel posto successivo
+ui-pull	-	medium	packages/ui/src/shelf	-	-	Kit: il dorso che si sfila
+d-where	ui-pull	high	apps/desktop/src/modules/shelves,apps/desktop/src/modules/books,apps/desktop/src/modules/palette,packages/i18n/src/locales/it/shelves.json,packages/i18n/src/locales/en/shelves.json,packages/i18n/src/locales/it/books.json,packages/i18n/src/locales/en/books.json,packages/i18n/src/locales/it/palette.json,packages/i18n/src/locales/en/palette.json	-	-	Desktop: Dov'è? completo
+d-move	d-where,core-append	high	apps/desktop/src/modules/shelves,packages/i18n/src/locales/it/shelves.json,packages/i18n/src/locales/en/shelves.json	-	-	Desktop: spostare tra mobili e larghezza del dorso
+m-where	ui-pull	medium	apps/mobile/src/modules/search,packages/i18n/src/locales/it/msearch.json,packages/i18n/src/locales/en/msearch.json	-	-	PWA: Dov'è? e un difetto dei filtri
+m-shelfscan	core-append	high	apps/mobile/src/modules/scan,packages/i18n/src/locales/it/mscan.json,packages/i18n/src/locales/en/mscan.json	-	-	PWA: scan-a-scaffale
