@@ -94,6 +94,7 @@ export function TagRow({ tag, canWrite, onDelete }: TagRowProps) {
           value={tag.color}
           label={t('tags.manage.color', { name: tag.name })}
           onChange={(color) => color !== tag.color && patch({ color })}
+          disabled={update.isPending}
         />
         <span className={styles.count}>{count}</span>
       </div>
