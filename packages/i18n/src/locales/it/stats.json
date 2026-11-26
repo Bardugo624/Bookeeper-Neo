@@ -36,10 +36,6 @@
     "text": "Aggiungi dei libri alla libreria per vedere i numeri.",
     "action": "Vai ai libri"
   },
-  "error": {
-    "title": "Impossibile caricare le statistiche",
-    "text": "Non riesco a calcolare i numeri: il server non risponde. Controlla la connessione e riprova; se non cambia, chiedi a chi gestisce il server."
-  },
   "formatLabel": {
     "paperback": "Brossura",
     "hardcover": "Rilegato",
@@ -64,10 +60,6 @@
     "year": "Anno",
     "yearLabel": "Anno di lettura",
     "loading": "Caricamento della lettura",
-    "error": {
-      "title": "Impossibile caricare la lettura",
-      "text": "Non riesco a leggere i dati di lettura: il server non risponde. Controlla la connessione e riprova; se non cambia, chiedi a chi gestisce il server."
-    },
     "empty": {
       "title": "Nessuna lettura nel {year}",
       "text": "Segna un libro come letto per vederlo qui.",

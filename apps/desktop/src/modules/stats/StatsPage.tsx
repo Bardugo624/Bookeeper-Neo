@@ -3,7 +3,7 @@ import { PillTabs } from '@bookeeper/ui/overlays';
 import { Button, EmptyState, Skeleton } from '@bookeeper/ui/base';
 import { StatCard } from '@bookeeper/ui/book';
 import { useT } from '../../app';
-import { PageHeader, intParam, oneOfParam, useListParams } from '../../kit';
+import { PageHeader, intParam, oneOfParam, useListParams, ErrorState } from '../../kit';
 import { DistributionCard } from './DistributionCard';
 import { DISTRIBUTIONS, FORMAT_CODES, LANGUAGE_CODES, TOTALS, toRows, type Overview } from './model';
 import { ReadingTab } from './ReadingTab';
@@ -19,7 +19,7 @@ export function StatsPage() {
   const t = useT();
   const { values, set } = useListParams(SCHEMA);
   const navigate = useNavigate();
-  const { data, isPending, isError, refetch } = useStats(values.tab === 'library');
+  const { data, isPending, isError, error, refetch } = useStats(values.tab === 'library');
 
   let body;
   if (values.tab === 'reading') {
@@ -41,12 +41,7 @@ export function StatsPage() {
     );
   } else if (isError) {
     body = (
-      <EmptyState
-        icon="alert"
-        title={t('stats.error.title')}
-        text={t('stats.error.text')}
-        action={<Button onClick={() => void refetch()}>{t('common.retry')}</Button>}
-      />
+      <ErrorState error={error} onRetry={() => void refetch()} />
     );
   } else if (data.overview.total_books === 0) {
     body = (

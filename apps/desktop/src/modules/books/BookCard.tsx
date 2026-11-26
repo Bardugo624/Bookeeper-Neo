@@ -26,9 +26,6 @@ export function BookCard({ book, from, selection, index, cell }: BookCardProps) 
   const t = useT();
   const src = useCover(book.id, mayHaveCover(book.cover_color));
   const author = authorsOf(book);
-  // The name starts with the visible text, in reading order: title, author, then the "On loan" label.
-  const base = author ? t('books.list.cardName', { title: book.title, author }) : book.title;
-  const name = book.on_loan ? t('books.list.cardNameLoan', { name: base, loan: t('books.list.onLoan') }) : base;
   const state: FromList = { list: from };
   return (
     <li className={styles.item} data-index={index} style={cell ? { gridRow: cell.row, gridColumn: cell.column } : undefined}>
@@ -41,26 +38,29 @@ export function BookCard({ book, from, selection, index, cell }: BookCardProps) 
         />
       ) : null}
       <WhereLink book={book} className={styles.where} />
-      <Link to={detailPath(book.id)} state={state} aria-label={name} className={styles.card}>
-        <BookCover title={book.title} author={author || undefined} src={src} color={book.cover_color ?? undefined} lift>
-          {book.on_loan ? (
-            <Tag tone="warn" className={styles.loan}>
-              {t('books.list.onLoan')}
-            </Tag>
-          ) : null}
-          {book.reading?.status === 'reading' ? (
-            <span className={styles.ring}>
-              <ReadingRing reading={book.reading} pageCount={book.page_count} size={30} />
-            </span>
-          ) : null}
-          {book.reading?.status === 'read' ? (
-            <span className={styles.done} role="img" aria-label={t('reading.status.read')}>
-              <Icon name="check" size={12} />
-            </span>
-          ) : null}
-        </BookCover>
+      {/* The link is named by its content. Title, author, "On loan" and the reading state come first in the
+          DOM, in that order; the cover is placed above them by the grid, and its decoration is hidden. */}
+      <Link to={detailPath(book.id)} state={state} className={styles.card}>
         <span className={styles.title}>{book.title}</span>
         {author ? <span className={styles.author}>{author}</span> : null}
+        {book.on_loan ? (
+          <Tag tone="warn" className={styles.loan}>
+            {t('books.list.onLoan')}
+          </Tag>
+        ) : null}
+        {book.reading?.status === 'reading' ? (
+          <span className={styles.ring}>
+            <ReadingRing reading={book.reading} pageCount={book.page_count} size={30} />
+          </span>
+        ) : null}
+        {book.reading?.status === 'read' ? (
+          <span className={styles.done} role="img" aria-label={t('reading.status.read')}>
+            <Icon name="check" size={12} />
+          </span>
+        ) : null}
+        <span className={styles.cover} aria-hidden="true">
+          <BookCover title={book.title} author={author || undefined} src={src} color={book.cover_color ?? undefined} lift />
+        </span>
       </Link>
     </li>
   );

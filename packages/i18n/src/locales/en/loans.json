@@ -43,7 +43,8 @@
   "empty": {
     "active": {
       "title": "No active loans",
-      "text": "Books you lend show up here until they come back."
+      "text": "Books you lend show up here until they come back.",
+      "textReadOnly": "No book is on loan right now."
     },
     "overdue": {
       "title": "No overdue loans",
@@ -57,7 +58,8 @@
     },
     "all": {
       "title": "No loans",
-      "text": "You haven't lent any book yet. When you do, the loan shows up here."
+      "text": "You haven't lent any book yet. When you do, the loan shows up here.",
+      "textReadOnly": "No book has been lent yet."
     },
     "mine": {
       "title": "No loans to you",

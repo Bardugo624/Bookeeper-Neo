@@ -60,8 +60,9 @@ export function LoansPage() {
   } else if (items.length === 0) {
     const key = mine ? 'mine' : filter;
     // Every empty list says what it is for and offers the next step: lend a book, or look where the loans are.
+    const lendsHere = key === 'active' || key === 'all';
     const next =
-      key === 'active' || key === 'all' ? (
+      lendsHere ? (
         writable ? (
           <Button variant="primary" icon="plus" onClick={() => dialogs.open({ kind: 'new' })}>
             {t('loans.new.button')}
@@ -70,7 +71,7 @@ export function LoansPage() {
       ) : (
         <Button onClick={() => params.pickFilter('active')}>{t(`loans.empty.${key}.action`)}</Button>
       );
-    body = <EmptyState icon="loans" title={t(`loans.empty.${key}.title`)} text={t(`loans.empty.${key}.text`)} action={next} />;
+    body = <EmptyState icon="loans" title={t(`loans.empty.${key}.title`)} text={t(`loans.empty.${key}.${lendsHere && !writable ? 'textReadOnly' : 'text'}`)} action={next} />;
   } else {
     const actions = writable ? dialogs.actions : undefined;
     body = (

@@ -43,7 +43,7 @@ describe('list', () => {
 
   it('shows an error with a retry', async () => {
     renderDevices({ devices, listFails: true });
-    expect(await screen.findByText('Impossibile caricare i dispositivi')).toBeInTheDocument();
+    expect(await screen.findByText('Qualcosa non ha funzionato')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Riprova' })).toBeInTheDocument();
   });
 

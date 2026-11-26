@@ -43,7 +43,8 @@
   "empty": {
     "active": {
       "title": "Nessun prestito in corso",
-      "text": "I libri che presti compaiono qui finché non tornano a casa."
+      "text": "I libri che presti compaiono qui finché non tornano a casa.",
+      "textReadOnly": "Nessun libro è in prestito al momento."
     },
     "overdue": {
       "title": "Nessun prestito in ritardo",
@@ -57,7 +58,8 @@
     },
     "all": {
       "title": "Nessun prestito",
-      "text": "Non hai ancora prestato nessun libro. Quando lo fai, il prestito compare qui."
+      "text": "Non hai ancora prestato nessun libro. Quando lo fai, il prestito compare qui.",
+      "textReadOnly": "Nessun libro è stato ancora prestato."
     },
     "mine": {
       "title": "Nessun prestito a te",
