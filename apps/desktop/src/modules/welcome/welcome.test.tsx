@@ -22,6 +22,8 @@ const fail = (status: number, code: string, retryAfter?: number): Reply => ({
   body: { error_code: code, message: 'x' },
   ...(retryAfter === undefined ? {} : { retryAfter }),
 });
+const DEVICE_CODE = { kind: 'device', library_name: 'Casa Rossi', expires_at: 9999999999, user_display_name: 'Anna' };
+const INVITE_CODE = { kind: 'invite', library_name: 'Casa Rossi', role: 'member', expires_at: 9999999999 };
 const SETUP_OPEN = { needs_setup: true, code_required: false };
 const PHRASE = 'alba bosco campo dado erba fiore';
 
@@ -39,7 +41,10 @@ function probeOut(over: Partial<ProbeOut> = {}): ProbeOut {
 }
 
 function platformWith(routes: Routes = {}, opts: Parameters<typeof fakePlatform>[0] = {}): FakePlatform {
-  const table: Routes = { 'GET /api/v1/setup': { status: 200, body: SETUP_OPEN }, 'GET /api/v1/me': { status: 200, body: ME }, ...routes };
+  const table: Routes = { 'GET /api/v1/setup': { status: 200, body: SETUP_OPEN }, 'GET /api/v1/me': { status: 200, body: ME },
+    'POST /api/v1/pairing/inspect': { status: 200, body: DEVICE_CODE },
+    ...routes,
+  };
   return fakePlatform({
     ...opts,
     handler: async (r) => {
@@ -346,6 +351,90 @@ describe('certificato non fidato', () => {
     await u.click(await screen.findByRole('button', { name: 'Coincidono' }));
     await ready();
     expect(p.state.items.find((c) => c.id === p.state.active)?.fingerprint).toBe('ab'.repeat(32));
+  });
+});
+
+describe('Unisciti con un invito', () => {
+  const joinButton = () => screen.getAllByRole('button', { name: 'Unisciti' }).find((b) => b.getAttribute('type') === 'submit')!;
+  async function start(p: FakePlatform) {
+    p.setProbe(probeOut());
+    show(p);
+    const u = user();
+    await openCard(u, /Unisciti/);
+    await type(u, 'Indirizzo del server', 'https://casa.example');
+    await type(u, 'Codice di abbinamento', 'INVITO1');
+    await u.click(joinButton());
+    return u;
+  }
+  const invitePlatform = (extra: Routes = {}) =>
+    platformWith({ 'POST /api/v1/pairing/inspect': { status: 200, body: INVITE_CODE }, 'POST /api/v1/pairing/redeem': { status: 200, body: AUTH }, ...extra });
+
+  it('asks for a name with the library and role, and refuses an empty one', async () => {
+    const p = invitePlatform();
+    const u = await start(p);
+    expect(await screen.findByText(/Sei stato invitato in «Casa Rossi» come Membro/)).toBeInTheDocument();
+    expect(posts(p, '/pairing/redeem')).toHaveLength(0);
+    expect(p.state.items).toHaveLength(0);
+    await u.click(screen.getByRole('button', { name: 'Entra' }));
+    expect(await findAlert()).toHaveTextContent('Compila questo campo');
+    expect(screen.getByRole('textbox', { name: 'Il tuo nome' })).toHaveFocus();
+    expect(posts(p, '/pairing/redeem')).toHaveLength(0);
+  });
+
+  it('redeems with the name and opens the session', async () => {
+    const p = invitePlatform();
+    const u = await start(p);
+    await type(u, 'Il tuo nome', '  Luca ');
+    await u.click(await screen.findByRole('button', { name: 'Entra' }));
+    await ready();
+    expect(posts(p, '/pairing/redeem')[0]?.body).toEqual({
+      code: 'INVITO1',
+      device_kind: 'desktop',
+      device_name: 'Test device',
+      display_name: 'Luca',
+    });
+    expect(p.state.items.find((c) => c.id === p.state.active)).toMatchObject({ kind: 'remote', url: 'https://casa.example' });
+  });
+
+  it('goes back to the code without losing the address', async () => {
+    const p = invitePlatform();
+    const u = await start(p);
+    await u.click(await screen.findByRole('button', { name: 'Indietro' }));
+    expect(screen.getByRole('textbox', { name: 'Indirizzo del server' })).toHaveValue('https://casa.example');
+    expect(screen.getByRole('textbox', { name: 'Codice di abbinamento' })).toHaveValue('INVITO1');
+    expect(p.state.items).toHaveLength(0);
+  });
+
+  it('returns to the code field when the invitation was used meanwhile', async () => {
+    const p = invitePlatform({ 'POST /api/v1/pairing/redeem': fail(401, 'pairing_code_invalid') });
+    const u = await start(p);
+    await type(u, 'Il tuo nome', 'Luca');
+    await u.click(await screen.findByRole('button', { name: 'Entra' }));
+    expect(await findAlert()).toHaveTextContent('Il codice non è corretto oppure è scaduto');
+    expect(screen.getByRole('textbox', { name: 'Codice di abbinamento' })).toBeInvalid();
+  });
+
+  it('redeems a device code with no extra step', async () => {
+    const p = platformWith({ 'POST /api/v1/pairing/redeem': { status: 200, body: AUTH } });
+    await start(p);
+    await ready();
+    expect(screen.queryByRole('textbox', { name: 'Il tuo nome' })).not.toBeInTheDocument();
+    expect(posts(p, '/pairing/redeem')[0]?.body).not.toHaveProperty('display_name');
+  });
+
+  it('shows an invalid code on the field and too many attempts as its own message', async () => {
+    const p = platformWith({ 'POST /api/v1/pairing/inspect': fail(401, 'pairing_code_invalid') });
+    await start(p);
+    expect(await findAlert()).toHaveTextContent('Il codice non è corretto oppure è scaduto');
+    expect(screen.getByRole('textbox', { name: 'Codice di abbinamento' })).toBeInvalid();
+    expect(p.state.items).toHaveLength(0);
+  });
+
+  it('says how long to wait after too many attempts', async () => {
+    const p = platformWith({ 'POST /api/v1/pairing/inspect': fail(429, 'rate_limited', 30) });
+    await start(p);
+    expect(await findAlert()).toHaveTextContent('30');
+    expect(p.state.items).toHaveLength(0);
   });
 });
 

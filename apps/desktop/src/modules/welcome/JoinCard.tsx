@@ -1,6 +1,7 @@
 import { Button, Tag, Icon } from '@bookeeper/ui/base';
 import { PillTabs } from '@bookeeper/ui/overlays';
 import { useT } from '../../app/i18n';
+import { InviteStep } from './InviteStep';
 import { FingerprintDialog } from './FingerprintDialog';
 import { Notice } from './Notice';
 import { PathCard } from './PathCard';
@@ -29,7 +30,9 @@ export function JoinCard({ open, onOpen, found, goTo }: JoinCardProps) {
 
   return (
     <PathCard id="join" icon="link" title={t('welcome.join.title')} text={t('welcome.join.text')} badge={badge} open={open} onOpen={onOpen}>
-      {s.choice ? (
+      {s.invite ? (
+        <InviteStep s={s} info={s.invite} />
+      ) : s.choice ? (
         <div className={styles.form}>
           <p className={styles.hint}>{t('welcome.join.chooseTitle')}</p>
           <ul className={styles.list}>
