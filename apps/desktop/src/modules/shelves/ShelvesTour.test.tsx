@@ -81,6 +81,16 @@ describe('«Dagli un posto»', () => {
     expect(await screen.findByRole('region', { name: 'La tua libreria è pronta' })).toBeInTheDocument();
   });
 
+  it('does not pause when «Crea il primo mobile» is pressed in the empty state', async () => {
+    show(world());
+    await screen.findByRole('button', { name: 'Crea il primo mobile' });
+    atPlace();
+    await waitFor(() => lampOn('shelves.new'));
+    await userEvent.click(screen.getByRole('button', { name: 'Crea il primo mobile' }));
+    await screen.findByRole('dialog', { name: 'Nuovo mobile' });
+    expect(state().status).toBe('running');
+  });
+
   it('skips the mobile when one already exists', async () => {
     show(world({ shelves: [shelf(1)] }));
     await screen.findByText('Libro u1');

@@ -69,7 +69,7 @@ export function ShelvesPage() {
         text={t(canWrite ? 'shelves.empty.text' : 'shelves.empty.textReadOnly')}
         action={
           canWrite ? (
-            <Button variant="primary" icon="plus" onClick={create}>
+            <Button {...tourAnchor('shelves.new')} variant="primary" icon="plus" onClick={create}>
               {t('shelves.empty.create')}
             </Button>
           ) : undefined
