@@ -40,7 +40,7 @@ export function BooksPage() {
   });
   // Whether the panel was opened on an empty library: the list is already refreshed when a save ends.
   const session = useRef<{ empty: boolean; first: BookOut | null }>({ empty: false, first: null });
-  const flight = useCoverFlight(items);
+  const flight = useCoverFlight();
   const selection = useSelection(items.map((b) => b.id));
   const selecting = canWrite && selection.active;
   const { selectAll } = selection;
