@@ -965,6 +965,15 @@
             }
           },
           {
+            "name": "owner_id",
+            "in": "query",
+            "description": "Books of this owner: a person id, me, or none for books without an owner",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "year_from",
             "in": "query",
             "description": "published_year >= value; must not exceed year_to",
@@ -1129,6 +1138,16 @@
           },
           "403": {
             "description": "forbidden: guests cannot write",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: owner_user_id is not a person of the library",
             "content": {
               "application/json": {
                 "schema": {
@@ -1520,7 +1539,7 @@
             }
           },
           "404": {
-            "description": "not_found: unknown book",
+            "description": "not_found: unknown book or owner_user_id",
             "content": {
               "application/json": {
                 "schema": {
@@ -2044,6 +2063,62 @@
           },
           "403": {
             "description": "forbidden: role too low",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: unknown book",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/books/{id}/readers": {
+      "get": {
+        "tags": [
+          "reading"
+        ],
+        "operationId": "list_readers",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Who of the library has a reading state for the book: reading, to_read, read (most recent first), abandoned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReaderList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
             "content": {
               "application/json": {
                 "schema": {
@@ -3054,6 +3129,15 @@
             }
           },
           {
+            "name": "borrower_user_id",
+            "in": "query",
+            "description": "Only the loans to this person: an id or me",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "limit",
             "in": "query",
             "description": "1 to 200, default 50",
@@ -3169,7 +3253,7 @@
             }
           },
           "404": {
-            "description": "not_found: unknown book",
+            "description": "not_found: unknown book or borrower_user_id",
             "content": {
               "application/json": {
                 "schema": {
@@ -3411,7 +3495,7 @@
             }
           },
           "404": {
-            "description": "not_found: unknown loan",
+            "description": "not_found: unknown loan or borrower_user_id",
             "content": {
               "application/json": {
                 "schema": {
@@ -5730,9 +5814,20 @@
           "wishlist"
         ],
         "operationId": "list_wishlist",
+        "parameters": [
+          {
+            "name": "scope",
+            "in": "query",
+            "description": "mine (default): the caller's wishes; family: everyone's, the caller's first, then by person name",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "The caller's wishlist",
+            "description": "The wishlist",
             "content": {
               "application/json": {
                 "schema": {
@@ -5743,6 +5838,16 @@
           },
           "401": {
             "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation: invalid scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -6553,6 +6658,17 @@
           "on_loan": {
             "type": "boolean"
           },
+          "owner": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PersonRef",
+                "description": "Who the book belongs to; `null` when nobody."
+              }
+            ]
+          },
           "page_count": {
             "type": [
               "integer",
@@ -6846,6 +6962,13 @@
               "null"
             ]
           },
+          "owner_user_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Person of the library the book belongs to."
+          },
           "page_count": {
             "type": [
               "integer",
@@ -6895,15 +7018,25 @@
         "type": "object",
         "description": "Body of `POST /loans`.",
         "required": [
-          "book_id",
-          "borrower_name"
+          "book_id"
         ],
         "properties": {
           "book_id": {
             "type": "string"
           },
           "borrower_name": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Required unless `borrower_user_id` is given."
+          },
+          "borrower_user_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A person of the library; the loan stores their current name."
           },
           "due_at": {
             "type": [
@@ -7311,7 +7444,9 @@
           "tags",
           "rooms",
           "shelves",
-          "reading"
+          "reading",
+          "owners",
+          "owner_none"
         ],
         "properties": {
           "formats": {
@@ -7333,6 +7468,18 @@
               "$ref": "#/components/schemas/ValueCount"
             },
             "description": "Same rules as `genres`."
+          },
+          "owner_none": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Books without an owner."
+          },
+          "owners": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OwnerFacet"
+            },
+            "description": "People who own at least one book, most books first, then by name."
           },
           "reading": {
             "$ref": "#/components/schemas/ReadingFacet"
@@ -7781,6 +7928,13 @@
             ],
             "description": "`asc` or `desc`; default `desc` for `created_at`, `asc` otherwise."
           },
+          "owner_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Books of this owner: a person id, `me` or `none` (no owner)."
+          },
           "q": {
             "type": [
               "string",
@@ -7849,6 +8003,13 @@
               "null"
             ]
           },
+          "borrower_user_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Loans to this person: an id or `me`."
+          },
           "limit": {
             "type": [
               "integer",
@@ -7869,6 +8030,19 @@
               "null"
             ],
             "description": "`active` (default), `returned`, `overdue` or `all`."
+          }
+        }
+      },
+      "ListWishQuery": {
+        "type": "object",
+        "description": "Query of `GET /wishlist`.",
+        "properties": {
+          "scope": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`mine` (default) or `family`."
           }
         }
       },
@@ -7936,6 +8110,17 @@
           },
           "book_title": {
             "type": "string"
+          },
+          "borrower": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PersonRef",
+                "description": "The person lent to, with their current name; `null` for a free-text borrower."
+              }
+            ]
           },
           "borrower_name": {
             "type": "string"
@@ -8295,6 +8480,26 @@
           }
         }
       },
+      "OwnerFacet": {
+        "type": "object",
+        "required": [
+          "id",
+          "display_name",
+          "count"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          }
+        }
+      },
       "PairingCode": {
         "type": "object",
         "required": [
@@ -8404,6 +8609,13 @@
               "null"
             ]
           },
+          "owner_user_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Person of the library; `null` removes the owner."
+          },
           "page_count": {
             "type": [
               "integer",
@@ -8467,6 +8679,13 @@
               "string",
               "null"
             ]
+          },
+          "borrower_user_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A person of the library (the stored name becomes theirs); `null` removes the link."
           },
           "due_at": {
             "type": [
@@ -8645,6 +8864,22 @@
           }
         }
       },
+      "PersonRef": {
+        "type": "object",
+        "description": "A person of the library as other records show them.",
+        "required": [
+          "id",
+          "display_name"
+        ],
+        "properties": {
+          "display_name": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          }
+        }
+      },
       "PlaceIn": {
         "type": "object",
         "required": [
@@ -8805,6 +9040,56 @@
           "count": {
             "type": "integer",
             "format": "int64"
+          }
+        }
+      },
+      "Reader": {
+        "type": "object",
+        "description": "What the family sees of someone's reading: state and dates only. Rating,\nnote and current page stay private to their author.",
+        "required": [
+          "user",
+          "is_me",
+          "status"
+        ],
+        "properties": {
+          "finished_at": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "is_me": {
+            "type": "boolean",
+            "description": "True for the caller."
+          },
+          "started_at": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "status": {
+            "type": "string",
+            "description": "`to_read`, `reading`, `read` or `abandoned`."
+          },
+          "user": {
+            "$ref": "#/components/schemas/PersonRef"
+          }
+        }
+      },
+      "ReaderList": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Reader"
+            }
           }
         }
       },
@@ -9875,6 +10160,7 @@
         "required": [
           "id",
           "user_id",
+          "user",
           "title",
           "priority",
           "created_at"
@@ -9917,6 +10203,10 @@
           },
           "title": {
             "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/PersonRef",
+            "description": "Whose wish it is."
           },
           "user_id": {
             "type": "string"

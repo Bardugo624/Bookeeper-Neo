@@ -18,7 +18,15 @@ pub fn routes() -> axum::Router<AppState> {
 #[derive(utoipa::OpenApi)]
 #[openapi(
     paths(facets),
-    components(schemas(Facets, ValueCount, YearRange, TagFacet, NamedFacet, ReadingFacet))
+    components(schemas(
+        Facets,
+        ValueCount,
+        YearRange,
+        TagFacet,
+        NamedFacet,
+        ReadingFacet,
+        OwnerFacet
+    ))
 )]
 pub struct Doc;
 
@@ -76,6 +84,17 @@ pub struct Facets {
     pub rooms: Vec<NamedFacet>,
     pub shelves: Vec<NamedFacet>,
     pub reading: ReadingFacet,
+    /// People who own at least one book, most books first, then by name.
+    pub owners: Vec<OwnerFacet>,
+    /// Books without an owner.
+    pub owner_none: i64,
+}
+
+#[derive(Debug, Serialize, ToSchema)]
+pub struct OwnerFacet {
+    pub id: String,
+    pub display_name: String,
+    pub count: i64,
 }
 
 /// Groups a column by its lowercase form (the same one `genre` and `language`
@@ -235,6 +254,27 @@ pub async fn facets(State(state): State<AppState>, who: AuthUser) -> ApiResult<J
             }
             reading.none = total - with_state;
 
+            let owners = conn
+                .prepare(
+                    "SELECT u.id, u.display_name, COUNT(*) AS n FROM users u \
+                     JOIN books b ON b.owner_user_id = u.id AND b.library_id = u.library_id \
+                     WHERE u.library_id = ?1 \
+                     GROUP BY u.id ORDER BY n DESC, u.display_name COLLATE NOCASE, u.id",
+                )?
+                .query_map(params![lib], |r| {
+                    Ok(OwnerFacet {
+                        id: r.get(0)?,
+                        display_name: r.get(1)?,
+                        count: r.get(2)?,
+                    })
+                })?
+                .collect::<rusqlite::Result<Vec<_>>>()?;
+            let owner_none: i64 = conn.query_row(
+                "SELECT COUNT(*) FROM books WHERE library_id = ?1 AND owner_user_id IS NULL",
+                params![lib],
+                |r| r.get(0),
+            )?;
+
             Ok(Facets {
                 genres,
                 languages,
@@ -244,6 +284,8 @@ pub async fn facets(State(state): State<AppState>, who: AuthUser) -> ApiResult<J
                 rooms,
                 shelves,
                 reading,
+                owners,
+                owner_none,
             })
         })
         .await?;

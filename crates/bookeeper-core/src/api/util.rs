@@ -2,9 +2,41 @@ use axum::extract::{FromRequestParts, Query};
 use axum::http::request::Parts;
 use axum::http::{header, StatusCode};
 use axum::response::{IntoResponse, Response};
-use serde::{de::DeserializeOwned, Deserialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use utoipa::ToSchema;
 
 use crate::error::{ApiError, ApiResult};
+
+/// A person of the library as other records show them.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct PersonRef {
+    pub id: String,
+    pub display_name: String,
+}
+
+impl PersonRef {
+    /// Both columns, in that order, starting at `idx`; `None` when the id is `NULL`.
+    pub fn from_row(row: &rusqlite::Row<'_>, idx: usize) -> rusqlite::Result<Option<Self>> {
+        let id: Option<String> = row.get(idx)?;
+        let name: Option<String> = row.get(idx + 1)?;
+        Ok(id
+            .zip(name)
+            .map(|(id, display_name)| Self { id, display_name }))
+    }
+}
+
+/// True when `user_id` is a person of the library.
+pub fn user_in_library(
+    conn: &rusqlite::Connection,
+    library_id: &str,
+    user_id: &str,
+) -> rusqlite::Result<bool> {
+    conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM users WHERE id = ?1 AND library_id = ?2)",
+        rusqlite::params![user_id, library_id],
+        |r| r.get(0),
+    )
+}
 
 pub fn now_secs() -> i64 {
     chrono::Utc::now().timestamp()
