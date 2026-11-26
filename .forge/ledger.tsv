@@ -409,3 +409,5 @@
 2026-11-25T23:49:38Z	bookeeper-fase-4b	filters-ui	qa	opus	PASS	-	-	-	70
 2026-11-25T23:52:08Z	bookeeper-fase-4b	fmt-4b	dwarf	sonnet	-	-	-	-	69
 2026-11-25T23:53:25Z	bookeeper-fase-4b	fmt-4b	qa	opus	PASS	-	-	-	71
+2026-11-26T00:04:53Z	bookeeper-fase-4b	guards-4b	dwarf	sonnet	-	-	-	-	46
+2026-11-26T00:05:32Z	bookeeper-fase-4b	guards-4b	qa	opus	PASS	-	-	-	34
