@@ -14,11 +14,12 @@ export function TourOverlay() {
   useTourStart();
   usePhoneReady();
   const { status, current, step, total, pause, skip, note, clearNote } = useTour();
+  const wander = useTourStore((s) => s.wander);
   const running = status === 'running' && current !== null;
   const seen = useTourStore((s) => s.seen);
   const target = useTarget(running ? current : null, seen);
   const reduced = useReducedMotion();
-  usePauseTriggers(running, target.el, pause);
+  usePauseTriggers(running, target.el, pause, wander);
   if (running && current) {
     return (
       <>

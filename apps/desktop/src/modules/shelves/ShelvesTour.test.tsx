@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderApp } from '../../app/testing';
 import type { AppModule } from '../../app/types';
+import { explore } from '../tour/explore';
 import { firstBook } from '../tour/firstBook';
 import { module as tour } from '../tour/routes';
 import { resetTourForTest, tourSignal, useTourStore } from '../tour/store';
@@ -134,5 +135,25 @@ describe('«Dagli un posto»', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: 'Salva' }));
     await within(dialog).findByRole('alert');
     expect(state().seen).not.toContain('shelf-created');
+  });
+});
+
+describe('«Dove si trova»', () => {
+  const stepTwo = async () => {
+    await waitFor(() => expect(state().connectionId).toBe('c1'));
+    act(() => state().start(explore));
+    act(() => tourSignal('book-opened'));
+  };
+
+  it('where-shown comes when the shelves show the placed book', async () => {
+    show(world({ shelves: [shelf(1)], books: [book('u1')], spots: { u1: { shelf: 's1', row: 0, slot: 0 } } }), '/shelves?unit=s1&book=u1');
+    await stepTwo();
+    await waitFor(() => expect(state().step).toBe(2));
+  });
+
+  it('an unplaced book is told so and the step is done all the same', async () => {
+    show(world({ shelves: [shelf(1)], books: [book('u1')], spots: {} }), '/shelves?unit=s1&book=u1');
+    await stepTwo();
+    await waitFor(() => expect(state().step).toBe(2));
   });
 });

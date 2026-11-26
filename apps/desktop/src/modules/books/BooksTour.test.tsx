@@ -58,18 +58,19 @@ describe('start', () => {
     expect(isTourPending('c1')).toBe(false);
   });
 
-  it('does not start for a guest, and keeps the mark', async () => {
+  it('does not start firstBook for a guest: explore starts instead, and the mark goes', async () => {
     show({ role: 'guest' });
     await screen.findByText('Nessun libro');
-    expect(state().status).toBe('idle');
-    expect(isTourPending('c1')).toBe(true);
+    await waitFor(() => expect(state().status).toBe('running'));
+    expect(state().pathId).toBe('explore');
+    expect(isTourPending('c1')).toBe(false);
   });
 
-  it('does not start when the library already has books, and keeps the mark', async () => {
+  it('does not start firstBook when the library already has books: explore starts instead', async () => {
     show({ books: [book(1)] });
     await screen.findByRole('link', { name: 'Libro 1 Autore 1' });
-    expect(state().status).toBe('idle');
-    expect(isTourPending('c1')).toBe(true);
+    await waitFor(() => expect(state().pathId).toBe('explore'));
+    expect(isTourPending('c1')).toBe(false);
   });
 
   it('does not start without the mark', async () => {

@@ -84,5 +84,40 @@
   "finale": {
     "title": "Your library is ready",
     "text": "Your first book has its place. Happy reading."
+  },
+  "explore": {
+    "find": {
+      "title": "Find a book",
+      "text": "Type a title or an author in «Search and commands», then open a book."
+    },
+    "where": {
+      "title": "Where it is",
+      "text": "«Show on the shelf» takes you to the cabinet and the shelf."
+    },
+    "whereBack": {
+      "title": "Where it is",
+      "text": "Search for a book and open it: «Show on the shelf» is there."
+    },
+    "whereNone": {
+      "title": "Where it is",
+      "text": "This book is on no shelf, so there is no place to show. For other books, «Show on the shelf» takes you to the cabinet and the shelf."
+    },
+    "reading": {
+      "title": "Mark what you read",
+      "text": "Say whether a book is to read, in progress or finished: only you see it."
+    },
+    "readingBack": {
+      "title": "Mark what you read",
+      "text": "Search for a book and open it: that's where you mark your progress."
+    }
+  },
+  "exploreFinale": {
+    "title": "Now you can find books",
+    "text": "You search, see where it is and mark what you read. Happy reading."
+  },
+  "replay": {
+    "title": "The tutorial",
+    "description": "Starts again from the first step, with the path that fits your library.",
+    "action": "Replay the tutorial"
   }
 }

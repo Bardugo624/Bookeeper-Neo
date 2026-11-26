@@ -84,5 +84,40 @@
   "finale": {
     "title": "La tua libreria è pronta",
     "text": "Il tuo primo libro ha il suo posto. Buona lettura."
+  },
+  "explore": {
+    "find": {
+      "title": "Trova un libro",
+      "text": "Scrivi un titolo o un autore in «Cerca e comandi», poi apri un libro."
+    },
+    "where": {
+      "title": "Dove si trova",
+      "text": "«Mostra sullo scaffale» ti porta al mobile e al ripiano."
+    },
+    "whereBack": {
+      "title": "Dove si trova",
+      "text": "Cerca un libro e aprilo: lì trovi «Mostra sullo scaffale»."
+    },
+    "whereNone": {
+      "title": "Dove si trova",
+      "text": "Questo libro non è su nessuno scaffale, quindi non c'è un posto da mostrare. Per gli altri libri, «Mostra sullo scaffale» ti porta al mobile e al ripiano."
+    },
+    "reading": {
+      "title": "Segna cosa leggi",
+      "text": "Dici se il libro è da leggere, in corso o finito: lo vedi solo tu."
+    },
+    "readingBack": {
+      "title": "Segna cosa leggi",
+      "text": "Cerca un libro e aprilo: lì segni a che punto sei."
+    }
+  },
+  "exploreFinale": {
+    "title": "Ora sai trovare i libri",
+    "text": "Cerchi, vedi dov'è e segni cosa leggi. Buona lettura."
+  },
+  "replay": {
+    "title": "Il tutorial",
+    "description": "Riparte dal primo passo, con il percorso adatto alla tua libreria.",
+    "action": "Rivedi il tutorial"
   }
 }

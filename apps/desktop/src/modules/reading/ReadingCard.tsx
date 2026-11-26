@@ -9,6 +9,7 @@ import { ReadingStatusMenu } from './ReadingStatusMenu';
 import { StarRating } from './StarRating';
 import { fieldError } from './fieldError';
 import { bodyFrom, isStatus } from './readingModel';
+import { tourAnchor } from '../tour';
 import { useReading, useSetReading } from './useReading';
 import styles from './ReadingCard.module.css';
 
@@ -98,7 +99,7 @@ export function ReadingCard({ book }: { book: BookOut }) {
     );
   }
   return (
-    <section className={styles.card} aria-labelledby={`reading-${book.id}`}>
+    <section className={styles.card} aria-labelledby={`reading-${book.id}`} {...tourAnchor('book.reading')}>
       <h2 id={`reading-${book.id}`} className={styles.heading}>
         <Icon name="book" size={14} />
         {t('reading.card.title')}
