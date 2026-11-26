@@ -29,16 +29,14 @@ export function canInvite(actor: Role | null): boolean {
 
 /**
  * "Chi gestisce chi" (contract 6A): the owner manages everybody but themself, an admin manages
- * members and guests, nobody manages the owner. Everybody renames themself. Leaving (everybody but
- * the owner) and handing the library over (the owner) are `PersonAction`s too, but they are offered
- * by the danger zone, not by the row menus.
+ * members and guests, nobody manages the owner. Everybody renames themself; everybody but the owner
+ * can leave. Only the owner hands the library over.
  */
 export function personActions(actor: Actor | null, person: Pick<PersonOut, 'id' | 'role'>): PersonAction[] {
   if (!actor) return [];
-  // Leaving and handing the library over live in the danger zone of the page, not in a menu.
-  if (person.id === actor.id) return ['rename'];
+  if (person.id === actor.id) return actor.role === 'owner' ? ['rename'] : ['rename', 'leave'];
   if (person.role === 'owner') return [];
-  if (actor.role === 'owner') return ['role', 'rename', 'remove'];
+  if (actor.role === 'owner') return ['role', 'rename', 'remove', 'owner'];
   if (actor.role === 'admin' && (person.role === 'member' || person.role === 'guest')) return ['role', 'rename', 'remove'];
   return [];
 }

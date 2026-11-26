@@ -22,7 +22,9 @@
     "open": "Azioni per {name}",
     "role": "Cambia ruolo",
     "rename": "Rinomina",
-    "remove": "Rimuovi"
+    "remove": "Rimuovi",
+    "owner": "Rendi proprietario",
+    "leave": "Esci dalla libreria"
   },
   "role": {
     "title": "Cambia il ruolo di {name}",
@@ -90,19 +92,5 @@
     "revokeLabel": "Revoca l’invito per un {role}, scade il {date}",
     "error": "Non riesco a leggere gli inviti in attesa. Riprova tra poco.",
     "retry": "Riprova"
-  },
-  "danger": {
-    "title": "Zona pericolosa",
-    "leave": {
-      "title": "Esci dalla libreria",
-      "consequence": "Esci da questa libreria: i tuoi dispositivi vengono scollegati, qui verrai disconnesso e il tuo stato di lettura e la tua lista dei desideri vengono cancellati."
-    },
-    "owner": {
-      "title": "Trasferisci la proprietà",
-      "consequence": "Un’altra persona diventa il proprietario e tu diventi Admin: non puoi annullarlo da solo.",
-      "pickTitle": "Chi diventa proprietario?",
-      "legend": "Nuovo proprietario",
-      "next": "Continua"
-    }
   }
 }

@@ -1,4 +1,4 @@
-import { Button, Icon, IconButton, Tag } from '@bookeeper/ui/base';
+import { Icon, IconButton, Tag } from '@bookeeper/ui/base';
 import type { DeviceOut } from '@bookeeper/api';
 import { useLocale, useT } from '../../app';
 import { formatDate, formatRelativeDays } from '../../kit';
@@ -40,11 +40,7 @@ export function DeviceCard({ device, actions }: DeviceCardProps) {
       {actions && !revoked ? (
         <div className={styles.actions}>
           <IconButton icon="pencil" size="sm" label={t('devices.card.rename', { name: device.name })} onClick={actions.onRename} />
-          <span className={styles.revoke}>
-            <Button size="sm" variant="ghost" tone="danger" icon="trash" aria-label={t('devices.card.revoke', { name: device.name })} onClick={actions.onRevoke}>
-              {t('devices.card.revokeShort')}
-            </Button>
-          </span>
+          <IconButton icon="trash" size="sm" label={t('devices.card.revoke', { name: device.name })} onClick={actions.onRevoke} />
         </div>
       ) : null}
     </li>
