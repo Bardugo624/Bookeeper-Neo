@@ -134,5 +134,18 @@
     "search": "Search by person or title",
     "noMatch": "No loan matches the search.",
     "monthList": "Returned loans, {month}"
+  },
+  "badge": {
+    "one": "{count} overdue loan",
+    "other": "{count} overdue loans"
+  },
+  "notify": {
+    "title": "Overdue loans",
+    "line": "“{title}” · {name} · {since}",
+    "since": {
+      "one": "for {count} day",
+      "other": "for {count} days"
+    },
+    "more": "and {count} more"
   }
 }

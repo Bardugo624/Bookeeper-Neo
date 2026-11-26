@@ -62,3 +62,22 @@ export function useHasLoansToMe(): boolean {
   });
   return (data?.total ?? 0) > 0;
 }
+
+const OVERDUE_REFRESH_MS = 5 * 60 * 1000;
+
+/**
+ * Total of overdue loans, for the sidebar badge (`null` until known). It refreshes every five
+ * minutes, when the window regains focus and after any write on the loans (they invalidate the root key).
+ */
+export function useOverdueCount(): number | null {
+  const client = useClient();
+  const key = useLoansKey();
+  const { data } = useQuery({
+    queryKey: [...key, 'overdueCount'],
+    retry: false,
+    refetchInterval: OVERDUE_REFRESH_MS,
+    refetchOnWindowFocus: true,
+    queryFn: () => client.listLoans({ status: 'overdue', limit: 1 }),
+  });
+  return data?.total ?? null;
+}
