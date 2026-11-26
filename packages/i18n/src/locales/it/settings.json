@@ -83,6 +83,7 @@
     "tls": {
       "local": "Solo su questo computer",
       "off": "Rete locale, senza cifratura",
+      "proxy": "Cifrata da un proxy, con indirizzo pubblico",
       "self": "Cifrata, con certificato proprio",
       "acme": "Cifrata, con indirizzo pubblico"
     },

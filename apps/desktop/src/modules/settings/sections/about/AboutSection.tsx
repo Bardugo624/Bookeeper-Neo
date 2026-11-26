@@ -1,7 +1,9 @@
 import { Icon } from '@bookeeper/ui/base';
 import { useT } from '../../../../app/i18n';
+import { useSession } from '../../../../session';
 import { APP_VERSION } from '../../appVersion';
 import { Fact, FactList, SettingsBlock } from '../../SettingsBlock';
+import { serverMode } from './serverMode';
 import { useAbout } from './useAbout';
 import styles from './AboutSection.module.css';
 
@@ -10,6 +12,7 @@ export function AboutSection() {
   const { health, server } = useAbout();
   const unknown = health.isError ? t('settings.about.unavailable') : t('settings.about.loading');
   const phoneReady = server.data?.phone_ready;
+  const connectionUrl = useSession((s) => s.connection?.url);
 
   return (
     <>
@@ -17,7 +20,7 @@ export function AboutSection() {
         <FactList>
           <Fact label={t('settings.about.app')}>{APP_VERSION}</Fact>
           <Fact label={t('settings.about.server')}>{health.data?.version ?? unknown}</Fact>
-          <Fact label={t('settings.about.mode')}>{server.data ? t(`settings.about.tls.${server.data.tls}`) : unknown}</Fact>
+          <Fact label={t('settings.about.mode')}>{server.data ? t(`settings.about.tls.${serverMode(server.data.tls, server.data.public_url, connectionUrl)}`) : unknown}</Fact>
         </FactList>
       </SettingsBlock>
       {phoneReady !== undefined ? (

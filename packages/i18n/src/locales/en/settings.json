@@ -83,6 +83,7 @@
     "tls": {
       "local": "Only on this computer",
       "off": "Local network, not encrypted",
+      "proxy": "Encrypted by a proxy, with a public address",
       "self": "Encrypted, with its own certificate",
       "acme": "Encrypted, with a public address"
     },

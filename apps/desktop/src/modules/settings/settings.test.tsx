@@ -169,6 +169,17 @@ describe('about', () => {
     expect(await screen.findByText('Cifrata, con indirizzo pubblico')).toBeInTheDocument();
   });
 
+  it('calls a server behind an HTTPS proxy encrypted', async () => {
+    renderSettings({ server: { phone_ready: true, public_url: 'https://libri.example.org', tls: 'off' } }, '/settings/about');
+    expect(await screen.findByText('Cifrata da un proxy, con indirizzo pubblico')).toBeInTheDocument();
+    expect(screen.queryByText('Rete locale, senza cifratura')).not.toBeInTheDocument();
+  });
+
+  it('keeps a server without a secure address unencrypted', async () => {
+    renderSettings({ server: { phone_ready: false, public_url: null, tls: 'off' } }, '/settings/about');
+    expect(await screen.findByText('Rete locale, senza cifratura')).toBeInTheDocument();
+  });
+
   it('explains why a phone cannot connect yet', async () => {
     renderSettings({ server: { phone_ready: false, public_url: null } }, '/settings/about');
     expect(await screen.findByText('Il telefono ha bisogno di un indirizzo sicuro')).toBeInTheDocument();
