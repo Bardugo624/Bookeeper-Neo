@@ -1,4 +1,5 @@
 import type { LoanOut } from '@bookeeper/api';
+import { borrowerLabel } from './loanStatus';
 
 export const DAY_SECONDS = 86_400;
 
@@ -57,10 +58,10 @@ export function summarize(loans: LoanOut[]): HistorySummary {
   const total = closed.reduce((n, l) => n + durationDays(l), 0);
   const counts = new Map<string, { name: string; count: number }>();
   for (const l of closed) {
-    const k = sameName(l.borrower_name);
+    const k = sameName(borrowerLabel(l));
     const e = counts.get(k);
     if (e) e.count += 1;
-    else counts.set(k, { name: l.borrower_name, count: 1 });
+    else counts.set(k, { name: borrowerLabel(l), count: 1 });
   }
   const top = [...counts.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))[0] ?? null;
   return { closed: closed.length, averageDays: Math.round(total / closed.length), topBorrower: top };
@@ -72,8 +73,8 @@ export function sameName(name: string): string {
 }
 
 /** Search by person or title over the loaded loans. */
-export function matchesText(loan: Pick<LoanOut, 'borrower_name' | 'book_title'>, text: string): boolean {
+export function matchesText(loan: Pick<LoanOut, 'borrower' | 'borrower_name' | 'book_title'>, text: string): boolean {
   const q = text.trim().toLocaleLowerCase();
   if (!q) return true;
-  return loan.borrower_name.toLocaleLowerCase().includes(q) || loan.book_title.toLocaleLowerCase().includes(q);
+  return borrowerLabel(loan).toLocaleLowerCase().includes(q) || loan.book_title.toLocaleLowerCase().includes(q);
 }

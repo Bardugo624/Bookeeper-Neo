@@ -9,7 +9,8 @@
     "active": "Active",
     "overdue": "Overdue",
     "returned": "Returned",
-    "all": "All"
+    "all": "All",
+    "mine": "Lent to me"
   },
   "bookFilter": {
     "text": "Only the loans of one book.",
@@ -55,6 +56,10 @@
     "all": {
       "title": "No loans",
       "text": "You haven't lent any book yet."
+    },
+    "mine": {
+      "title": "No loans to you",
+      "text": "The books lent to you show up here."
     }
   },
   "error": {
@@ -92,7 +97,8 @@
       "lentAfterReturn": "The lending date can't be after the return date.",
       "notesLong": "At most {max} characters."
     },
-    "borrowerSuggestions": "Names already used"
+    "borrowerSuggestions": "Names already used",
+    "me": "You"
   },
   "return": {
     "title": "Mark as returned",

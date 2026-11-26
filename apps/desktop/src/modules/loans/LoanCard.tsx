@@ -4,7 +4,8 @@ import { Button } from '@bookeeper/ui/base';
 import { BookCover } from '@bookeeper/ui/book';
 import { useLocale, useT } from '../../app';
 import { StatusTag, formatDate } from '../../kit';
-import { STATUS_TONES, authorsOf, bookPath, loanStatus } from './loanStatus';
+import { PersonIcon } from './PersonIcon';
+import { STATUS_TONES, authorsOf, bookPath, borrowerLabel, loanStatus } from './loanStatus';
 import { useLoanCover } from './useLoanCover';
 import styles from './LoanCard.module.css';
 
@@ -33,6 +34,14 @@ export function LoanCard({ loan, actions, busy = false, onBorrower, extra }: Loa
   const status = loanStatus(loan);
   const labels = { active: t('loans.status.active'), overdue: t('loans.status.overdue'), returned: t('loans.status.returned') };
   const authors = authorsOf(loan);
+  const who = borrowerLabel(loan);
+  const toWho = (
+    <>
+      {loan.borrower ? <PersonIcon /> : null}
+      {loan.borrower ? ' ' : null}
+      {t('loans.card.to', { name: who })}
+    </>
+  );
   const dates = [
     t('loans.card.since', { date: formatDate(locale, loan.lent_at) }),
     loan.returned_at != null
@@ -57,13 +66,13 @@ export function LoanCard({ loan, actions, busy = false, onBorrower, extra }: Loa
             <button
               type="button"
               className={styles.borrowerButton}
-              aria-label={t('loans.card.byBorrower', { name: loan.borrower_name })}
-              onClick={() => onBorrower(loan.borrower_name)}
+              aria-label={t('loans.card.byBorrower', { name: who })}
+              onClick={() => onBorrower(who)}
             >
-              {t('loans.card.to', { name: loan.borrower_name })}
+              {toWho}
             </button>
           ) : (
-            t('loans.card.to', { name: loan.borrower_name })
+            toWho
           )}
         </p>
         <p className={styles.dates}>{dates.join(' · ')}</p>

@@ -170,3 +170,49 @@ describe('permissions', () => {
     expect(screen.getByRole('button', { name: 'Riapri' })).toBeInTheDocument();
   });
 });
+
+describe('loans to members', () => {
+  const people = [
+    { id: 'u1', display_name: 'Anna', is_me: true },
+    { id: 'u2', display_name: 'Marta Rossi' },
+  ];
+
+  it('shows the current name of the person with an icon, and the written name otherwise', async () => {
+    renderLoans(
+      store({
+        people,
+        loans: [
+          loan(1, { borrower_name: 'Marta', borrower_user_id: 'u2', borrower: { id: 'u2', display_name: 'Marta Rossi' } }),
+          loan(2, { borrower_name: 'Luca' }),
+        ],
+      }),
+    );
+    const person = await screen.findByRole('button', { name: 'Mostra i prestiti di Marta Rossi' });
+    expect(person).toHaveTextContent('A Marta Rossi');
+    expect(person.querySelector('svg')).not.toBeNull();
+    const plain = screen.getByRole('button', { name: 'Mostra i prestiti di Luca' });
+    expect(plain.querySelector('svg')).toBeNull();
+  });
+
+  it('has the "Prestati a me" tab only when a loan was made to the caller, open or closed', async () => {
+    const mine = loan(3, { borrower_user_id: 'u1', returned_at: 1_700_100_000, borrower: { id: 'u1', display_name: 'Anna' } });
+    const user = userEvent.setup();
+    const { platform, unmount } = renderLoans(store({ people, loans: [loan(1), mine] }));
+    const tab = await screen.findByRole('tab', { name: 'Prestati a me' });
+    await user.click(tab);
+    await waitFor(() => expect(cards()).toHaveLength(1));
+    expect(screen.getByText('Libro 3')).toBeInTheDocument();
+    expect(loanListCalls(platform).some((q) => q.get('borrower_user_id') === 'me')).toBe(true);
+    unmount();
+    renderLoans(store({ people, loans: [loan(1)] }));
+    await screen.findByText('Libro 1');
+    expect(screen.queryByRole('tab', { name: 'Prestati a me' })).toBeNull();
+  });
+
+  it('opens /loans?mine=1 on the loans to the caller', async () => {
+    const mine = loan(3, { borrower_user_id: 'u1', borrower: { id: 'u1', display_name: 'Anna' } });
+    renderLoans(store({ people, loans: [loan(1), mine] }), '/loans?mine=1');
+    expect(await screen.findByText('Libro 3')).toBeInTheDocument();
+    expect(screen.queryByText('Libro 1')).toBeNull();
+  });
+});
