@@ -1,3 +1,4 @@
+import type { ComponentType } from 'react';
 import type { RouteObject } from 'react-router';
 import type { IconName } from '@bookeeper/ui/base';
 
@@ -18,4 +19,6 @@ export interface MobileModule {
   tab?: TabItem;
   /** Mounted outside the shell (pairing). */
   public?: RouteObject[];
+  /** Mounted once inside the shell while the session is open; draws nothing of its own. */
+  background?: ComponentType;
 }

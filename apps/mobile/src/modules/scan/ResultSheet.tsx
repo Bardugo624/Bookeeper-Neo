@@ -6,7 +6,9 @@ import { AddWishSheet } from '../wishlist';
 import type { Isbn } from './isbn';
 import { AddedBody } from './AddedBody';
 import { FoundBody } from './FoundBody';
+import { LocalBody } from './LocalBody';
 import { NoneBody } from './NoneBody';
+import { OfflineBody } from './OfflineBody';
 import { OwnedBody } from './OwnedBody';
 import { useAddBook } from './useAddBook';
 import { useIsbnLookup } from './useIsbnLookup';
@@ -55,6 +57,12 @@ export function ResultSheet({ isbn, canWrite, onClose, onAdded }: ResultSheetPro
     if (data.kind === 'owned') {
       title = data.book.title;
       body = <OwnedBody book={data.book} />;
+    } else if (data.kind === 'local') {
+      title = data.entry.title;
+      body = <LocalBody entry={data.entry} />;
+    } else if (data.kind === 'offline') {
+      title = t('mscan.sheet.offline.title');
+      body = <OfflineBody isbn13={isbn.isbn13} syncedAt={data.syncedAt} />;
     } else if (data.kind === 'found') {
       title = data.meta.title ?? '';
       body = (
