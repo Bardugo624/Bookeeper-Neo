@@ -125,35 +125,25 @@ describe('add and edit', () => {
 });
 
 describe('delete', () => {
-  it('marks the card trash as dangerous', async () => {
-    renderWishlist({ items: [wish(1, { title: 'Rosso' })] });
-    expect((await screen.findByRole('button', { name: 'Elimina Rosso' })).className).toContain('toneDanger');
+  it('keeps the card trash neutral', async () => {
+    renderWishlist({ items: [wish(1, { title: 'Neutro' })] });
+    expect((await screen.findByRole('button', { name: 'Elimina Neutro' })).className).not.toContain('toneDanger');
   });
 
-  it('puts delete in a danger zone of the edit dialog only', async () => {
-    const { platform } = renderWishlist({ items: [wish(1, { title: 'Dal modulo' })] });
-    await userEvent.click(await screen.findByRole('button', { name: 'Aggiungi' }));
-    expect(within(await screen.findByRole('dialog')).queryByRole('region', { name: 'Zona pericolosa' })).toBeNull();
-    await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Annulla' }));
-    await userEvent.click(await screen.findByRole('button', { name: 'Modifica Dal modulo' }));
-    const zone = within(await screen.findByRole('dialog')).getByRole('region', { name: 'Zona pericolosa' });
-    await userEvent.click(within(zone).getByRole('button', { name: 'Elimina' }));
-    const confirm = await screen.findByRole('dialog', { name: 'Eliminare dalla wishlist?' });
-    await userEvent.click(within(confirm).getByRole('button', { name: 'Elimina' }));
-    await waitFor(() => expect(screen.queryByText('Dal modulo')).toBeNull());
-    expect(platform.calls.filter((c) => c.method === 'DELETE').map((c) => c.path)).toEqual(['/api/v1/wishlist/w1']);
-  });
-
-  it('Annulla on the confirmation returns to the form with unsaved edits intact', async () => {
+  it('has no danger zone or delete in the edit dialog', async () => {
     renderWishlist({ items: [wish(1, { title: 'Dal modulo' })] });
     await userEvent.click(await screen.findByRole('button', { name: 'Modifica Dal modulo' }));
-    const title = within(await screen.findByRole('dialog')).getByLabelText(/Titolo/);
-    await userEvent.type(title, ' bis');
-    await userEvent.click(within(screen.getByRole('region', { name: 'Zona pericolosa' })).getByRole('button', { name: 'Elimina' }));
-    const confirm = await screen.findByRole('dialog', { name: 'Eliminare dalla wishlist?' });
-    await userEvent.click(within(confirm).getByRole('button', { name: 'Annulla' }));
-    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Eliminare dalla wishlist?' })).toBeNull());
-    expect(screen.getByLabelText(/Titolo/)).toHaveValue('Dal modulo bis');
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).queryByRole('region', { name: 'Zona pericolosa' })).toBeNull();
+    expect(within(dialog).queryByRole('button', { name: 'Elimina' })).toBeNull();
+  });
+
+  it('confirms in red and states the consequence', async () => {
+    renderWishlist({ items: [wish(1, { title: 'Rosso' })] });
+    await userEvent.click(await screen.findByRole('button', { name: 'Elimina Rosso' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Eliminare dalla wishlist?' });
+    expect(within(dialog).getByText(/non si può annullare/)).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Elimina' }).className).toMatch(/danger/i);
   });
 
   it('asks first and names the item', async () => {
