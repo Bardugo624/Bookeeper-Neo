@@ -134,5 +134,18 @@
     "search": "Cerca per persona o titolo",
     "noMatch": "Nessun prestito corrisponde alla ricerca.",
     "monthList": "Prestiti restituiti, {month}"
+  },
+  "badge": {
+    "one": "{count} prestito scaduto",
+    "other": "{count} prestiti scaduti"
+  },
+  "notify": {
+    "title": "Prestiti scaduti",
+    "line": "«{title}» · {name} · {since}",
+    "since": {
+      "one": "da {count} giorno",
+      "other": "da {count} giorni"
+    },
+    "more": "e altri {count}"
   }
 }

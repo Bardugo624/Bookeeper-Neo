@@ -9,6 +9,10 @@ export interface NavItem {
   to: string;
   group: 'main' | 'bottom';
   order: number;
+  /** Number shown next to the label when above zero (a hook: the sidebar calls it once per item). */
+  useBadge?: () => number | null;
+  /** i18n key (with plural forms on `count`) of the badge's accessible name. */
+  badgeLabelKey?: string;
 }
 
 export interface AppModule {

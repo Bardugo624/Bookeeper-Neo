@@ -1,7 +1,7 @@
 import type { BookOut, LoanOut, RawResponse } from '@bookeeper/api';
 import type { AppModule } from '../../app';
 import { renderApp } from '../../app/testing';
-import { fakeConnection, fakePlatform, type FakePlatform } from '../../platform/testing';
+import { fakeConnection, fakePlatform, type FakePlatform, type FakePlatformOptions } from '../../platform/testing';
 import { ME, ok } from '../../session/fixtures';
 import { book } from '../books/testkit';
 import { module } from './routes';
@@ -117,8 +117,9 @@ export function loansHandler(store: Store) {
   };
 }
 
-export function loansPlatform(store: Store): FakePlatform {
+export function loansPlatform(store: Store, notifications?: FakePlatformOptions['notifications']): FakePlatform {
   const platform = fakePlatform({
+    notifications,
     connections: { active: 'c1', items: [fakeConnection()] },
     handler: loansHandler(store),
   });
@@ -134,8 +135,8 @@ export function loansPlatform(store: Store): FakePlatform {
   return platform;
 }
 
-export function renderLoans(store: Store, route = '/loans', extra: AppModule[] = []) {
-  const platform = loansPlatform(store);
+export function renderLoans(store: Store, route = '/loans', extra: AppModule[] = [], notifications?: FakePlatformOptions['notifications']) {
+  const platform = loansPlatform(store, notifications);
   return { ...renderApp({ platform, modules: [module, ...extra], route }), platform, store };
 }
 
