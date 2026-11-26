@@ -393,8 +393,8 @@ jobs:
 
   publish-updates:
     needs: [check, desktop, release]
-    if: ${{ github.ref_type == 'tag' }}
-    # One publisher at a time across all tags, so manifests are never written concurrently.
+    if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish) }}
+    # One publisher at a time across all runs, so manifests are never written concurrently.
     concurrency:
       group: publish-updates
       cancel-in-progress: false

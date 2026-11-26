@@ -46,7 +46,8 @@ describe('new cabinet', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: 'Salva' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(body(platform, 'POST')).toEqual({ name: 'Studio', color: 'plum', rows: 5, slots_per_row: 30 });
-    expect(await screen.findByRole('tab', { name: 'Studio' })).toHaveAttribute('aria-selected', 'true');
+    // The address that opens the new cabinet changes in a transition, a frame after the dialog closes.
+    await waitFor(() => expect(screen.getByRole('tab', { name: 'Studio' })).toHaveAttribute('aria-selected', 'true'));
   });
 
   it('moves the colour choice with the arrow keys', async () => {
