@@ -1,5 +1,6 @@
 import { useRef, type ReactNode } from 'react';
 import { Dialog as RadixDialog } from 'radix-ui';
+import { useDialogMotion } from './useDialogMotion';
 import { IconButton } from '../base/IconButton';
 import { cx } from '../base/cx';
 import styles from './Dialog.module.css';
@@ -15,10 +16,17 @@ export interface DialogProps {
   footer?: ReactNode;
   /** Accessible name of the close button (already translated by the caller). */
   closeLabel: string;
+  /** Width of the panel; `wide` is for forms that grow as they are filled in. */
+  size?: 'default' | 'wide';
+  /** The element that opened the dialog: the panel is born from its centre. */
+  origin?: HTMLElement | null;
 }
 
-interface PanelProps extends DialogProps {
+interface PanelProps extends Omit<DialogProps, 'size' | 'origin'> {
   panelClassName?: string;
+  origin?: HTMLElement | null;
+  /** Dialog only: birth from `origin` and height following the content. The Drawer stays still. */
+  motion?: boolean;
 }
 
 const FOCUSABLE = 'a[href],button,input,select,textarea,[tabindex]:not([tabindex="-1"])';
@@ -61,7 +69,10 @@ export function DialogPanel({
   footer,
   closeLabel,
   panelClassName,
+  origin,
+  motion = false,
 }: PanelProps) {
+  const panelRef = useDialogMotion(origin, motion);
   // The dialog is controlled and has no Radix Trigger, so remember who had focus when it opened
   // (captured during render, before focus moves into the panel) and give focus back on close.
   const candidates = useRef<Element[]>([]);
@@ -81,6 +92,7 @@ export function DialogPanel({
         <RadixDialog.Overlay className={styles.overlay} />
         {/* Without a description Radix would warn; opting out of aria-describedby is explicit. */}
         <RadixDialog.Content
+          ref={panelRef}
           className={cx(styles.panel, panelClassName)}
           onCloseAutoFocus={restoreFocus}
           {...(description ? {} : { 'aria-describedby': undefined })}
@@ -96,7 +108,9 @@ export function DialogPanel({
               <IconButton icon="close" label={closeLabel} size="sm" />
             </RadixDialog.Close>
           </header>
-          {children ? <div className={styles.body}>{children}</div> : null}
+          {children ? <div className={styles.body}>
+              <div data-dialog-content>{children}</div>
+            </div> : null}
           {footer ? <footer className={styles.footer}>{footer}</footer> : null}
         </RadixDialog.Content>
       </RadixDialog.Portal>
@@ -104,6 +118,6 @@ export function DialogPanel({
   );
 }
 
-export function Dialog(props: DialogProps) {
-  return <DialogPanel {...props} panelClassName={styles.dialog} />;
+export function Dialog({ size = 'default', ...props }: DialogProps) {
+  return <DialogPanel {...props} motion panelClassName={cx(styles.dialog, size === 'wide' && styles.wide)} />;
 }
