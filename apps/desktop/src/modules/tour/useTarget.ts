@@ -12,9 +12,8 @@ export interface Target {
 const NONE: Target = { anchorId: null, el: null, rect: null };
 
 const selector = (id: string) => `[data-tour="${id.replace(/["\\]/g, '\\$&')}"]`;
-const ctx: TourContext = { has: (id) => document.querySelector(selector(id)) !== null };
-
-function find(step: TourStep): Target {
+function find(step: TourStep, seen: readonly string[]): Target {
+  const ctx: TourContext = { has: (id) => document.querySelector(selector(id)) !== null, saw: (name) => seen.includes(name) };
   const anchorId = resolveTarget(step, ctx);
   const el = anchorId ? document.querySelector(selector(anchorId)) : null;
   if (!anchorId || !el) return { anchorId, el: null, rect: null };
@@ -35,10 +34,12 @@ function same(a: Target, b: Target): boolean {
  * Finds the step's anchor and keeps its box up to date: on resize, scroll (anywhere), size changes,
  * DOM changes and finished transitions, with at most one measurement per frame.
  */
-export function useTarget(step: TourStep | null): Target {
+export function useTarget(step: TourStep | null, seen: readonly string[] = []): Target {
   const [target, setTarget] = useState<Target>(NONE);
   const stepRef = useRef(step);
   stepRef.current = step;
+  const seenRef = useRef(seen);
+  seenRef.current = seen;
   const observed = useRef<Element | null>(null);
 
   useLayoutEffect(() => {
@@ -51,7 +52,7 @@ export function useTarget(step: TourStep | null): Target {
     const measure = () => {
       const s = stepRef.current;
       if (!s) return;
-      const next = find(s);
+      const next = find(s, seenRef.current);
       if (observed.current !== next.el && ro) {
         ro.disconnect();
         ro.observe(document.documentElement);
@@ -84,7 +85,7 @@ export function useTarget(step: TourStep | null): Target {
       document.removeEventListener('transitionend', schedule, true);
       document.removeEventListener('animationend', schedule, true);
     };
-  }, [step]);
+  }, [step, seen]);
 
   return target;
 }

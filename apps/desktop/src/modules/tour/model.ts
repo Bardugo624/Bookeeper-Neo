@@ -8,6 +8,8 @@ export type TourStatus = 'idle' | 'running' | 'paused' | 'done' | 'skipped';
 export interface TourContext {
   /** Whether an anchor with this id is on the page right now. */
   has(anchorId: string): boolean;
+  /** Whether a signal other than the step's own came in while the step has been on (a moment of the step). */
+  saw(signal: string): boolean;
 }
 
 export interface TourStep {
@@ -28,7 +30,10 @@ export interface TourStep {
 
 export interface TourPath {
   id: string;
+  /** May change over time (e.g. a step that needs a phone to pair); read it each time, never keep it. */
   steps: readonly TourStep[];
+  /** Said by the card for a few seconds when the last step is done. */
+  finale?: TourNote;
 }
 
 /** What is remembered per connection. */

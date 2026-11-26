@@ -1,8 +1,9 @@
 import { CoachCard } from './CoachCard';
 import { Spotlight } from './Spotlight';
 import { tellStep } from './model';
-import { useTour, useTourBinding } from './store';
+import { useTour, useTourBinding, useTourStore } from './store';
 import { usePauseTriggers } from './usePauseTriggers';
+import { usePhoneReady } from './usePhoneReady';
 import { useReducedMotion } from './useReducedMotion';
 import { useTarget } from './useTarget';
 import { useTourStart } from './useTourStart';
@@ -11,9 +12,11 @@ import { useTourStart } from './useTourStart';
 export function TourOverlay() {
   useTourBinding();
   useTourStart();
+  usePhoneReady();
   const { status, current, step, total, pause, skip, note, clearNote } = useTour();
   const running = status === 'running' && current !== null;
-  const target = useTarget(running ? current : null);
+  const seen = useTourStore((s) => s.seen);
+  const target = useTarget(running ? current : null, seen);
   const reduced = useReducedMotion();
   usePauseTriggers(running, target.el, pause);
   if (running && current) {

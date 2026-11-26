@@ -44,5 +44,45 @@
       "title": "Your first book",
       "text": "{title} is the first book in your library."
     }
+  },
+  "place": {
+    "nav": {
+      "title": "Give it a place",
+      "text": "Open Shelves: that's where the book finds its spot."
+    },
+    "new": {
+      "title": "Give it a place",
+      "text": "Create the unit where you keep your books: a name and how many shelves."
+    },
+    "form": {
+      "title": "Give it a place",
+      "text": "Pick a name and how many shelves the unit has, then save."
+    },
+    "unplaced": {
+      "title": "Give it a place",
+      "text": "Drag the book onto a shelf, or use “Place”."
+    },
+    "confirm": {
+      "title": "Give it a place",
+      "text": "Choose the unit and the shelf, then confirm."
+    }
+  },
+  "phone": {
+    "nav": {
+      "title": "Take it in your pocket",
+      "text": "Open Devices: that's where you connect your phone."
+    },
+    "add": {
+      "title": "Take it in your pocket",
+      "text": "Press “Add a phone” to carry your library with you."
+    },
+    "qr": {
+      "title": "Take it in your pocket",
+      "text": "Point your phone's camera at it."
+    }
+  },
+  "finale": {
+    "title": "Your library is ready",
+    "text": "Your first book has its place. Happy reading."
   }
 }

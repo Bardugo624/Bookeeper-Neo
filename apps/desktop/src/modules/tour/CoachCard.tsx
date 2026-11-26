@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@bookeeper/ui/base';
 import { useT } from '../../app/i18n';
@@ -9,6 +9,9 @@ import { grow, placeCard, type Rect } from './placement';
 import { SPOTLIGHT_MARGIN } from './Spotlight';
 import { CARD_ATTR } from './usePauseTriggers';
 import type { Target } from './useTarget';
+
+/** How long the closing card stays when nobody clicks it away. */
+export const FINALE_MS = 6000;
 
 export interface CoachCardProps {
   step: TourStep;
@@ -32,6 +35,15 @@ export function CoachCard({ step, index, total, target, onLater, onSkip, note, c
   const ref = useRef<HTMLElement>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
   const host = target.el?.closest('[role="dialog"]') ?? null;
+
+  // The closing card goes away by itself; reduced motion changes nothing here, there is no animation.
+  const later = useRef(onLater);
+  later.current = onLater;
+  useEffect(() => {
+    if (!closing) return;
+    const id = setTimeout(() => later.current(), FINALE_MS);
+    return () => clearTimeout(id);
+  }, [closing]);
 
   // Measured after every render; the state only moves when the box does.
   useLayoutEffect(() => {
@@ -69,7 +81,11 @@ export function CoachCard({ step, index, total, target, onLater, onSkip, note, c
     >
       {place.side !== 'none' ? <span className={styles.arrow} data-vertical={vertical ? '' : undefined} aria-hidden="true" /> : null}
       {lead ? <p className={styles.note}>{t(lead.textKey, lead.params)}</p> : null}
-      {closing ? null : (
+      {closing ? (
+        <div className={styles.progress}>
+          <Bookmarks total={total} current={total} />
+        </div>
+      ) : (
         <div className={styles.progress}>
           <Bookmarks total={total} current={index} />
           <span className={styles.count}>{t('tour.card.step', { n: index + 1, total })}</span>

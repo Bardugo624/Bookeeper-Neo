@@ -11,6 +11,8 @@ interface TourStore extends TourSnapshot {
   registryVersion: number;
   /** Something the card says once; not remembered. */
   note: TourNote | null;
+  /** Signals seen during the current step that were not the step's own; not remembered. */
+  seen: readonly string[];
   setNote(note: TourNote | null): void;
   bind(connectionId: string | null): void;
   start(path: TourPath, options?: { replay?: boolean }): void;
@@ -33,7 +35,12 @@ export function registerTourPath(path: TourPath): void {
   if (isNew) useTourStore.setState((s) => ({ registryVersion: s.registryVersion + 1 }));
 }
 
-const INITIAL = { ...EMPTY_SNAPSHOT, connectionId: null as string | null, registryVersion: 0, note: null as TourNote | null };
+const INITIAL = { ...EMPTY_SNAPSHOT, connectionId: null as string | null, registryVersion: 0, note: null as TourNote | null, seen: [] as readonly string[] };
+
+/** Wakes the viewers of paths after something a path depends on changed (e.g. a phone can be paired). */
+export function touchTourPaths(): void {
+  useTourStore.setState((s) => ({ registryVersion: s.registryVersion + 1 }));
+}
 
 export const useTourStore = create<TourStore>((set, get) => {
   /** Applies a change and remembers it for the connection. */
@@ -66,6 +73,7 @@ export const useTourStore = create<TourStore>((set, get) => {
       if (s.status === 'running' || s.status === 'paused') {
         if (s.pathId === path.id) return;
       }
+      set({ seen: [] });
       commit({ pathId: path.id, step: 0, status: 'running' });
     },
 
@@ -84,12 +92,18 @@ export const useTourStore = create<TourStore>((set, get) => {
     signal(name, data) {
       const s = get();
       const step = currentStep(s);
-      if (s.status !== 'running' || !step || step.signal !== name) return;
+      if (s.status !== 'running' || !step) return;
+      if (step.signal !== name) {
+        // Not the step's end, but the step may move its light because of it.
+        if (!s.seen.includes(name)) set({ seen: [...s.seen, name] });
+        return;
+      }
       if (step.accept && !step.accept(data)) return;
       const path = s.pathId ? paths.get(s.pathId) : undefined;
       if (path) {
-        set({ note: null });
+        set({ note: null, seen: [] });
         commit(advance(s, path.steps.length));
+        if (get().status === 'done' && path.finale) set({ note: path.finale });
       }
     },
   };
