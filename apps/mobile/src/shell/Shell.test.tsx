@@ -99,3 +99,28 @@ describe('empty shell', () => {
     expect(screen.queryByRole('navigation')).toBeNull();
   });
 });
+
+describe('background components', () => {
+  const Bg = () => {
+    bgMounts.push(1);
+    return null;
+  };
+  const bgMounts: number[] = [];
+  const withBg: MobileModule = { ...tab('search', 10, 'search'), background: Bg };
+
+  it('is mounted once once the session is open', async () => {
+    bgMounts.length = 0;
+    renderMobile({ platform: paired(), modules: [withBg], route: '/search' });
+    await screen.findByText('vista search');
+    expect(bgMounts.length).toBeGreaterThan(0);
+  });
+
+  it('is not mounted while unpaired', async () => {
+    bgMounts.length = 0;
+    const platform = fakePlatform({ handler: () => ok(ME) });
+    renderMobile({ platform, modules: [withBg], route: '/search' });
+    await screen.findByText('Niente da mostrare').catch(() => undefined);
+    await act(async () => {});
+    expect(bgMounts).toHaveLength(0);
+  });
+});

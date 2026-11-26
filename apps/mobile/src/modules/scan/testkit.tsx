@@ -4,6 +4,7 @@ import { renderMobile } from '../../app/testing';
 import { fakePlatform, type FakePlatform, type Handler, type RecordedCall } from '../../platform/testing';
 import type { CameraSession } from '../../platform';
 import { ME, ok, pair } from '../../session/fixtures';
+import { memoryIndex, setIndexFactoryForTest, type IndexEntry, type LibraryIndex } from './libraryIndex';
 import { module } from './routes';
 
 export const ISBN13 = '9780306406157';
@@ -31,6 +32,8 @@ export interface Server {
   lookup?: Metadata | ReturnType<typeof err>;
   create?: (body: unknown) => ReturnType<typeof ok> | ReturnType<typeof err>;
   role?: string;
+  /** What the ISBN index answers; without it the call fails. */
+  index?: (version: string | null) => ReturnType<typeof ok> | ReturnType<typeof err>;
   /** Answers first; `undefined` falls through to the defaults. */
   extra?: (call: RecordedCall) => ReturnType<typeof ok> | ReturnType<typeof err> | undefined;
 }
@@ -43,6 +46,7 @@ export function server(s: Server = {}): Handler {
     const own = s.extra?.(call);
     if (own) return own;
     if (p === '/api/v1/me') return ok({ ...ME, user: { ...ME.user, role: s.role ?? 'owner' } });
+    if (p === '/api/v1/books/isbn-index' && s.index) return s.index(url.searchParams.get('version'));
     if (p === '/api/v1/shelves') return ok({ items: [{ id: 's1', name: 'Salotto' }], total: 1 });
     if (p === '/api/v1/books' && call.method === 'GET') {
       const q = url.searchParams.get('q') ?? '';
@@ -64,7 +68,7 @@ export interface Opened {
 }
 
 /** A platform whose camera counts the tracks it opened and stopped. */
-export function scanPlatform(s: Server = {}, over: Partial<FakePlatform> = {}) {
+export function scanPlatform(s: Server = {}, over: Partial<FakePlatform> & { online?: boolean } = {}) {
   const platform = fakePlatform({ handler: server(s), ...over });
   const stops: ReturnType<typeof vi.fn>[] = [];
   if (!over.camera) {
@@ -77,7 +81,20 @@ export function scanPlatform(s: Server = {}, over: Partial<FakePlatform> = {}) {
   return { platform, stops };
 }
 
-export function renderScan(platform: FakePlatform, route = '/scan') {
+export const entry = (over: Partial<IndexEntry> = {}): IndexEntry => ({
+  isbn: ISBN13,
+  book_id: 'b1',
+  title: 'Dune',
+  authors: ['Frank Herbert'],
+  shelf: { id: 's1', name: 'Salotto' },
+  row_index: 1,
+  slot_index: 0,
+  ...over,
+});
+
+/** Every render starts with its own in-memory index, which a test may fill beforehand. */
+export function renderScan(platform: FakePlatform, route = '/scan', index: LibraryIndex = memoryIndex()) {
+  setIndexFactoryForTest(() => index);
   // jsdom has no media playback.
   window.HTMLMediaElement.prototype.play = vi.fn(async () => undefined);
   pair(platform.storage);
