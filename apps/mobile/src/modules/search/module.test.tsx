@@ -11,6 +11,7 @@ const sources = readdirSync(dir).filter((f) => /\.tsx?$/.test(f) && !/\.test\.ts
 const keys = new Set(sources.flatMap((f) => [...read(f).matchAll(/['"`](msearch\.[\w.]+)['"`]/g)].map((m) => m[1]!)));
 // Keys built from a filter id.
 for (const id of ['all', 'loan', 'unshelved']) keys.add(`msearch.filters.${id}`);
+for (const id of ['to_read', 'reading', 'read', 'abandoned', 'none']) keys.add(`msearch.reading.${id}`);
 
 describe('translations', () => {
   it.each(LOCALES.flatMap((l) => [...keys].map((k) => [l, k] as const)))('%s has %s', (locale, key) => {
@@ -34,7 +35,9 @@ describe('stylesheets', () => {
     expect(px(/\.field \.input\s*\{([^}]*)\}/.exec(field)?.[1] ?? '', 'min-height')).toBeGreaterThanOrEqual(44);
     expect(px(rule('Description.module.css', 'toggle'), 'min-height')).toBeGreaterThanOrEqual(44);
     expect(px(rule('BookDetailPage.module.css', 'back'), 'height')).toBeGreaterThanOrEqual(44);
-    expect(px(/\.filters \[role='tab'\]\s*\{([^}]*)\}/.exec(read('SearchPage.module.css'))?.[1] ?? '', 'min-height')).toBeGreaterThanOrEqual(44);
+    expect(px(/\.chip\s*\{([^}]*)\}/.exec(read('FilterBar.module.css'))?.[1] ?? '', 'min-height')).toBeGreaterThanOrEqual(44);
+    expect(px(rule('SearchPage.module.css', 'open'), 'min-height')).toBeGreaterThanOrEqual(44);
+    expect(px(rule('ActiveFilters.module.css', 'remove'), 'width')).toBeGreaterThanOrEqual(44);
   });
 
   it('keeps the search text at 16px so the phone does not zoom', () => {

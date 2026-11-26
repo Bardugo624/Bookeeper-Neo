@@ -28,6 +28,9 @@ export function useBookSearch(state: SearchState) {
     q: q || undefined,
     on_loan: state.filter === 'loan' ? true : undefined,
     unshelved: state.filter === 'unshelved' ? true : undefined,
+    reading: state.reading ?? undefined,
+    tag_id: state.tags.length > 0 ? state.tags : undefined,
+    room_id: state.room ?? undefined,
   };
   const query = useInfiniteQuery({
     queryKey: ['books', libraryId, 'search', params],

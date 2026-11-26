@@ -21,6 +21,11 @@ export const book = (n: number, over: Partial<BookOut> = {}): BookOut =>
 export interface Api {
   books: BookOut[];
   shelves?: { id: string; name: string }[];
+  rooms?: { id: string; name: string }[];
+  /** Answer of `GET /books/facets`; absent means an empty library. */
+  facets?: { tags?: { id: string; name: string; color: string; count: number }[]; reading?: Partial<Record<string, number>> };
+  /** Reading state of each book, by id, for the `reading` filter. */
+  reading?: Record<string, string>;
   /** Replaces the answer of the list or detail endpoints. */
   override?: (call: RecordedCall) => TransportResponse | undefined | Promise<TransportResponse | undefined>;
 }
@@ -32,6 +37,15 @@ export function apiHandler(api: Api): Handler {
     if (own) return own;
     const url = new URL(call.path, 'http://x');
     if (url.pathname === '/api/v1/me') return ok(ME);
+    if (url.pathname === '/api/v1/rooms') {
+      const items = (api.rooms ?? []).map((r) => ({ ...r, shelf_count: 0, created_at: 1 }));
+      return ok({ items, total: items.length });
+    }
+    if (url.pathname === '/api/v1/books/facets') {
+      const f = api.facets ?? {};
+      const reading = { to_read: 0, reading: 0, read: 0, abandoned: 0, none: 0, ...f.reading };
+      return ok({ formats: [], genres: [], languages: [], rooms: [], shelves: [], years: {}, tags: f.tags ?? [], reading });
+    }
     if (url.pathname === '/api/v1/shelves') return ok({ items: api.shelves ?? [], total: 0 });
     const one = /^\/api\/v1\/books\/([^/]+)$/.exec(url.pathname);
     if (one) {
@@ -46,6 +60,10 @@ export function apiHandler(api: Api): Handler {
       if (q) list = list.filter((b) => b.title.toLowerCase().includes(q));
       if (url.searchParams.get('on_loan') === 'true') list = list.filter((b) => b.on_loan);
       if (url.searchParams.get('unshelved') === 'true') list = list.filter((b) => !b.placement);
+      const reading = url.searchParams.get('reading');
+      if (reading) list = list.filter((b) => (api.reading?.[b.id] ?? 'none') === reading);
+      const tagIds = url.searchParams.getAll('tag_id');
+      if (tagIds.length) list = list.filter((b) => tagIds.every((id) => (b.tags ?? []).some((x) => x.id === id)));
       const offset = Number(url.searchParams.get('offset') ?? 0);
       const limit = Number(url.searchParams.get('limit') ?? 50);
       return ok({ items: list.slice(offset, offset + limit), total: list.length, limit, offset });
