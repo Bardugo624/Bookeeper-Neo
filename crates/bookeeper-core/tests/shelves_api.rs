@@ -1195,3 +1195,76 @@ async fn append_is_scoped_to_the_library() {
     assert_eq!(st, 404);
     assert!(layout(&s, &mine).await.is_empty());
 }
+
+#[tokio::test]
+async fn spine_width_has_three_states() {
+    let s = seed(Role::Owner, None, None).await;
+    let sh = insert_shelf(&s.state, &s.library_id, "A", 2, 5).await;
+    let b = books(&s, 1).await;
+    let put = |body: Value| {
+        let s = &s;
+        let id = b[0].clone();
+        async move {
+            call(
+                &s.state,
+                "PUT",
+                &format!("/api/v1/books/{id}/placement"),
+                Some(&tok(s)),
+                Some(body),
+            )
+            .await
+            .0
+        }
+    };
+    let width = || async {
+        let (_, l) = get(&s, &format!("/api/v1/shelves/{sh}/books")).await;
+        l["items"][0]["spine_width"].clone()
+    };
+    assert_eq!(
+        put(json!({"shelf_id": sh, "row_index": 0, "slot_index": 0, "spine_width": 3})).await,
+        200
+    );
+    assert_eq!(width().await, 3);
+    // Absent keeps.
+    assert_eq!(
+        put(json!({"shelf_id": sh, "row_index": 0, "slot_index": 0})).await,
+        200
+    );
+    assert_eq!(width().await, 3);
+    // A move that does not name it keeps it.
+    assert_eq!(
+        put(json!({"shelf_id": sh, "row_index": 1, "slot_index": 2})).await,
+        200
+    );
+    assert_eq!(width().await, 3);
+    // Appending (no slot_index) on the same row keeps it too.
+    assert_eq!(put(json!({"shelf_id": sh, "row_index": 1})).await, 200);
+    assert_eq!(width().await, 3);
+    // null clears, also with shift and without slot_index.
+    assert_eq!(
+        put(json!({"shelf_id": sh, "row_index": 1, "slot_index": 2, "spine_width": null})).await,
+        200
+    );
+    assert_eq!(width().await, Value::Null);
+    assert_eq!(
+        put(json!({"shelf_id": sh, "row_index": 0, "slot_index": 0, "spine_width": 2})).await,
+        200
+    );
+    assert_eq!(put(json!({"shelf_id": sh, "row_index": 0, "slot_index": 1, "shift": true, "spine_width": null})).await, 200);
+    assert_eq!(width().await, Value::Null);
+    assert_eq!(
+        put(json!({"shelf_id": sh, "row_index": 0, "slot_index": 1, "spine_width": 2})).await,
+        200
+    );
+    assert_eq!(
+        put(json!({"shelf_id": sh, "row_index": 0, "spine_width": null})).await,
+        200
+    );
+    assert_eq!(width().await, Value::Null);
+    for bad in [0, 4] {
+        assert_eq!(
+            put(json!({"shelf_id": sh, "row_index": 0, "slot_index": 1, "spine_width": bad})).await,
+            422
+        );
+    }
+}

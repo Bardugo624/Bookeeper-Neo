@@ -43,3 +43,20 @@ export function startDrag(el: Element): FakeDataTransfer {
   fireEvent(el, createEvent.dragStart(el, { dataTransfer: dt }));
   return dt;
 }
+
+/** Fires a drag event of a book over a cabinet's tab. */
+export function dragOverTab(name: string, bookId: string): HTMLElement {
+  const tab = screen.getByRole('tab', { name });
+  const dt = new FakeDataTransfer();
+  dt.setData(BOOK_MIME, bookId);
+  fireEvent(tab, createEvent.dragOver(tab, { dataTransfer: dt }));
+  return tab;
+}
+
+/** Drops a book on a cabinet's tab. */
+export function dropOnTab(name: string, bookId: string): void {
+  const tab = screen.getByRole('tab', { name });
+  const dt = new FakeDataTransfer();
+  dt.setData(BOOK_MIME, bookId);
+  fireEvent(tab, createEvent.drop(tab, { dataTransfer: dt }));
+}
