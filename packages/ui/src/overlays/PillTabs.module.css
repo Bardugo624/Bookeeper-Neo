@@ -76,7 +76,7 @@
 .pill .indicator {
     height: 100%;
     border-radius: 999px;
-    background: var(--bk-accent-control);
+    background: var(--bk-primary-fill);
 }
 
 /* segmented: inset track, raised active segment */

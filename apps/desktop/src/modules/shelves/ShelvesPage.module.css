@@ -42,7 +42,7 @@
   justify-content: center;
   height: 38px;
   border-radius: var(--bk-radius-sm);
-  background: var(--bk-accent-control);
+  background: var(--bk-primary-fill);
   color: var(--bk-on-primary);
   font-size: 13px;
   font-weight: 500;

@@ -20,6 +20,10 @@ body {
     padding: 0;
 }
 
+html {
+    scrollbar-color: var(--bk-border-strong) transparent;
+}
+
 body {
     font-family: var(--bk-font-ui);
     font-size: 14px;
@@ -28,7 +32,6 @@ body {
     background: var(--bk-bg);
     -webkit-font-smoothing: antialiased;
     caret-color: var(--bk-accent-control);
-    scrollbar-color: var(--bk-border-strong) transparent;
     accent-color: var(--bk-accent-control);
 }
 
