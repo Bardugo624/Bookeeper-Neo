@@ -21,26 +21,31 @@
   display: flex;
 }
 
+/* One overlay with the cover's own box: it takes the cover's transform, so the centre is the same and the labels stay put on it. */
+.labels {
+  grid-row: 1;
+  grid-column: 1;
+  z-index: 1;
+  display: grid;
+  /* The pointer goes through to the cover, so the lift never lets go while it is over a label. */
+  pointer-events: none;
+}
+
 .loan,
 .ring,
 .done {
   grid-row: 1;
   grid-column: 1;
-  z-index: 1;
   margin: 8px;
-  /* The pointer goes through to the cover, so the lift never lets go while it is over a label. */
-  pointer-events: none;
 }
 
-/* The labels travel with the cover (same motion as `.lift:hover` in the kit). */
+/* Same motion as `.lift:hover` in the kit, on the same box. */
 @media (prefers-reduced-motion: no-preference) {
-  .loan,
-  .ring,
-  .done {
+  .labels {
     transition: transform var(--bk-dur) var(--bk-ease);
   }
 
-  .card:has(.cover:hover) :is(.loan, .ring, .done) {
+  .card:has(.cover:hover) .labels {
     transform: translateY(-3px) rotate(-0.5deg);
   }
 }
