@@ -3,6 +3,9 @@ import type { PutReading, ReadingOut } from '@bookeeper/api';
 import { useClient, useSession } from '../../session';
 import { optimisticReading } from './readingModel';
 
+/** Order number of the last write started, per connection and book: an answer counts only if no later write started. */
+const lastWrite = new Map<string, number>();
+
 export function useReading(bookId: string) {
   const client = useClient();
   const connectionId = useSession((s) => s.connection?.id);
@@ -27,7 +30,7 @@ function useRefreshReading() {
     ]);
 }
 
-type Context = { previous: ReadingOut | null | undefined };
+type Context = { previous: ReadingOut | null | undefined; order?: number };
 
 /**
  * Replaces the caller's state. The screen changes before the answer; an error puts the old state back.
@@ -40,25 +43,28 @@ export function useSetReading(bookId: string, pageCount?: number | null) {
   const refresh = useRefreshReading();
   const key = ['reading', connectionId, bookId];
   const mutationKey = ['reading-set', connectionId, bookId];
-  // This write is still counted while its own callbacks run: more than one means a newer write is on its way.
-  const superseded = () => queryClient.isMutating({ mutationKey }) > 1;
+  const orderKey = JSON.stringify(mutationKey);
+  // Every write gets a growing number; an answer is applied only while no write with a higher number has started.
+  const superseded = (order: number | undefined) => (lastWrite.get(orderKey) ?? 0) > (order ?? 0);
   return useMutation<ReadingOut, unknown, PutReading, Context>({
     mutationKey,
     mutationFn: (body) => client.setReading(bookId, body),
     onMutate: async (body) => {
+      const order = (lastWrite.get(orderKey) ?? 0) + 1;
+      lastWrite.set(orderKey, order);
       await queryClient.cancelQueries({ queryKey: key });
       const previous = queryClient.getQueryData<ReadingOut | null>(key);
       queryClient.setQueryData<ReadingOut | null>(key, optimisticReading(bookId, body, pageCount));
-      return { previous };
+      return { previous, order };
     },
     // The answer of a write that a newer one has passed must not undo what the screen shows already.
-    onSuccess: (saved) => {
-      if (!superseded()) queryClient.setQueryData<ReadingOut | null>(key, saved);
+    onSuccess: (saved, _body, context) => {
+      if (!superseded(context?.order)) queryClient.setQueryData<ReadingOut | null>(key, saved);
     },
     onError: (_error, _body, context) => {
-      if (context && !superseded()) queryClient.setQueryData<ReadingOut | null>(key, context.previous ?? null);
+      if (context && !superseded(context.order)) queryClient.setQueryData<ReadingOut | null>(key, context.previous ?? null);
     },
-    onSettled: () => (superseded() ? undefined : refresh()),
+    onSettled: (_data, _error, _body, context) => (superseded(context?.order) ? undefined : refresh()),
   });
 }
 

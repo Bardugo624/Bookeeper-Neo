@@ -25,7 +25,12 @@ export function NoteField({ reading }: { reading: ReadingOut }) {
     // Only spaces is the same as no note.
     if (text.trim() === saved.trim()) return;
     before.current = saved;
-    set.mutate(bodyFrom(reading, { note: text.trim() === '' ? null : text }));
+    set.mutate(bodyFrom(reading, { note: text.trim() === '' ? null : text }), {
+      // From now on the saved value is the reference: a later, different value from the server replaces the text.
+      onSuccess: (done) => {
+        before.current = done.note ?? '';
+      },
+    });
   };
   const error = fieldError(t, set.error);
   return (

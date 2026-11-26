@@ -3,7 +3,6 @@
   "title": "Activity log",
   "description": "Who did what in the library, most recent first.",
   "system": "System",
-  "unknownBook": "a book",
   "loadMore": "Load more",
   "loadingMore": "Loading…",
   "table": "Log entries",

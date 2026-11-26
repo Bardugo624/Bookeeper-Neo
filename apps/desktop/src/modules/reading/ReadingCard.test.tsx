@@ -199,6 +199,25 @@ describe('p3 fixes', () => {
     expect(field.value).toBe('314');
   });
 
+  it('keeps the newer page when the answers come back in reverse order', async () => {
+    const releases: Array<() => void> = [];
+    renderReading(reading(), { gate: () => new Promise<void>((r) => releases.push(r)) });
+    const c = await card();
+    const more = await c.findByRole('button', { name: 'Una pagina in più' });
+    const field = c.getByRole('spinbutton', { name: 'Aggiorna la pagina' }) as HTMLInputElement;
+    await userEvent.click(more);
+    await waitFor(() => expect(field.value).toBe('313'));
+    await userEvent.click(more);
+    await waitFor(() => expect(field.value).toBe('314'));
+    await waitFor(() => expect(releases).toHaveLength(2));
+    releases[1]!();
+    await new Promise((r) => setTimeout(r, 100));
+    expect(field.value).toBe('314');
+    releases[0]!();
+    await new Promise((r) => setTimeout(r, 100));
+    expect(field.value).toBe('314');
+  });
+
   it('writes the percentage through the translations', async () => {
     renderReading(reading());
     expect(await screen.findByText('62%')).toBeTruthy();
