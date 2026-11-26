@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -41,5 +42,23 @@ describe('CoverPicker color swatches', () => {
   it('appear once the cover is removed in the form', () => {
     render(<CoverPicker {...base} color="#123456" plan={{ kind: 'remove' }} storedStatus="loading" />);
     expect(swatches()).not.toBeNull();
+  });
+});
+
+describe('CoverPicker column', () => {
+  it('puts the controls after the cover, not beside it', () => {
+    const { container } = render(<CoverPicker {...base} color={null} />);
+    const wrap = container.querySelector('fieldset > div')!;
+    const [preview, actions] = Array.from(wrap.children);
+    expect(preview!.compareDocumentPosition(actions!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(actions!.querySelector('[role="radiogroup"]')).not.toBeNull();
+  });
+
+  it('stacks the controls under the cover, full column width, in the stylesheet', () => {
+    const css = readFileSync('src/modules/books/BookForm.module.css', 'utf8');
+    const block = (name: string) => new RegExp(`\\.${name}\\s*\\{([^}]*)\\}`).exec(css)?.[1] ?? '';
+    expect(block('cover')).toMatch(/flex-direction:\s*column/);
+    expect(block('cover')).toMatch(/min-width:\s*0/);
+    expect(block('coverActions')).toMatch(/align-items:\s*stretch/);
   });
 });

@@ -30,6 +30,7 @@ function useOpenGroups(editor: UseBookEditor, editing: boolean) {
   const { form } = editor;
   const [open, setOpen] = useState<OpenGroups>(() => groupsWithValues(form.values, editing ? [] : ['progressive']));
   const pending = useRef<string | null>(null);
+  const lastValues = useRef(form.values);
   const wanted = (Object.keys(form.values) as Array<keyof typeof form.values>).filter((key) => form.errors[key]);
   const hidden = wanted.filter((key) => {
     const group = groupOf(key);
@@ -37,7 +38,9 @@ function useOpenGroups(editor: UseBookEditor, editing: boolean) {
   });
   const first = wanted[0];
   useEffect(() => {
-    if (hidden.length === 0) return;
+    // Only a submit opens a group and moves the focus. Clearing an error comes with a change of the values
+    // (typing, removing an author); a submit or a server error (a clash) leaves the values as they were.
+    if (form.values !== lastValues.current || hidden.length === 0) return;
     // The first invalid field is the one that takes the focus, once its group has rendered.
     if (first !== undefined && hidden.includes(first)) pending.current = first;
     setOpen((prev) => {
@@ -48,6 +51,9 @@ function useOpenGroups(editor: UseBookEditor, editing: boolean) {
     // Runs when the errors change (a submit), not when the user folds a group that still has one.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.errors]);
+  useEffect(() => {
+    lastValues.current = form.values;
+  });
   useEffect(() => {
     if (!pending.current) return;
     document.querySelector<HTMLElement>(`[name="${CSS.escape(pending.current)}"]`)?.focus();
