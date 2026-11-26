@@ -173,7 +173,11 @@
       "date": "Invalid date.",
       "progressiveTaken": "Another book already uses this number."
     },
-    "owner": "Whose is it"
+    "owner": "Whose is it",
+    "filled": {
+      "one": "1 filled in",
+      "other": "{count} filled in"
+    }
   },
   "cover": {
     "title": "Cover",

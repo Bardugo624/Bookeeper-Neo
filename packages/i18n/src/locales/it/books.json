@@ -173,7 +173,11 @@
       "date": "Data non valida.",
       "progressiveTaken": "Questo numero è già usato da un altro libro."
     },
-    "owner": "Di chi è"
+    "owner": "Di chi è",
+    "filled": {
+      "one": "1 compilato",
+      "other": "{count} compilati"
+    }
   },
   "cover": {
     "title": "Copertina",

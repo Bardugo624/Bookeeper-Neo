@@ -5,7 +5,7 @@ import { useT } from '../../app';
 import { usePermission } from '../../kit';
 import { ManageTagsDialog } from '../tags';
 import { FirstBookHint, useFirstBook } from '../onboarding';
-import { BookDrawer } from './BookDrawer';
+import { BookDialog } from './BookDialog';
 import { BookGrid, GridSkeleton } from './BookGrid';
 import { BookTable, TableSkeleton } from './BookTable';
 import { BooksHeader } from './BooksHeader';
@@ -30,8 +30,13 @@ export function BooksPage() {
   const canWrite = permission.can('write');
   const active = useActiveFilters(params.filters);
   const [adding, setAdding] = useState(false);
+  // The button that opened "New book"; absent when it comes from the palette (`?new=1`).
+  const [origin, setOrigin] = useState<HTMLElement | null>(null);
   const [managingTags, setManagingTags] = useState(false);
-  const firstBook = useFirstBook(() => setAdding(true));
+  const firstBook = useFirstBook(() => {
+    setOrigin(null);
+    setAdding(true);
+  });
   // Whether the panel was opened on an empty library: the list is already refreshed when a save ends.
   const session = useRef<{ empty: boolean; first: BookOut | null }>({ empty: false, first: null });
   const selection = useSelection(items.map((b) => b.id));
@@ -54,7 +59,8 @@ export function BooksPage() {
   const filtered = params.q.trim() !== '' || active.length > 0;
   const noResults = filtered && !query.isPending && !query.isError && items.length === 0;
 
-  const openAdd = () => {
+  const openAdd = (from?: HTMLElement | null) => {
+    setOrigin(from ?? null);
     session.current = { empty: !query.isPending && !query.isError && items.length === 0 && !filtered, first: null };
     setAdding(true);
   };
@@ -146,8 +152,9 @@ export function BooksPage() {
         />
       ) : null}
       {canWrite ? <ManageTagsDialog open={managingTags} onClose={() => setManagingTags(false)} /> : null}
-      <BookDrawer
+      <BookDialog
         open={adding}
+        origin={origin}
         onClose={closeAdd}
         onCreated={(created) => {
           // The first book saved in this session of the panel, even when "Save and add another" kept it open.

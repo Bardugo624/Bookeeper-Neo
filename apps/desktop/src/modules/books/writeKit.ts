@@ -64,6 +64,12 @@ export async function openNewBook() {
   return screen.findByRole('dialog', { name: 'Nuovo libro' });
 }
 
+/** Opens a folded group of the book sheet ("Edizione", "Raccolta", "Note"). */
+export async function openGroup(name: string) {
+  const toggle = screen.getByRole('button', { name: new RegExp(`^${name}`) });
+  if (toggle.getAttribute('aria-expanded') !== 'true') await userEvent.click(toggle);
+}
+
 export async function lookUp(isbn = ISBN) {
   await userEvent.type(screen.getByRole('textbox', { name: 'ISBN' }), isbn);
   await userEvent.click(screen.getByRole('button', { name: 'Cerca' }));
