@@ -5,3 +5,4 @@ d-where	ui-pull	high	apps/desktop/src/modules/shelves,apps/desktop/src/modules/b
 d-move	d-where,core-append	high	apps/desktop/src/modules/shelves,packages/i18n/src/locales/it/shelves.json,packages/i18n/src/locales/en/shelves.json,crates/bookeeper-core/src/api/shelves.rs,crates/bookeeper-core/tests/shelves_api.rs,packages/api/openapi.json,packages/api/src/schema.d.ts,packages/api/src/resources.test.ts	-	-	Desktop: spostare tra mobili e larghezza del dorso
 m-where	ui-pull	medium	apps/mobile/src/modules/search,packages/i18n/src/locales/it/msearch.json,packages/i18n/src/locales/en/msearch.json	-	-	PWA: Dov'è? e un difetto dei filtri
 m-shelfscan	core-append	high	apps/mobile/src/modules/scan,packages/i18n/src/locales/it/mscan.json,packages/i18n/src/locales/en/mscan.json	-	-	PWA: scan-a-scaffale
+guards-5a	d-move,m-shelfscan,m-where	low	apps/mobile/src/modules/scan	-	-	PWA: nome di un file di test
