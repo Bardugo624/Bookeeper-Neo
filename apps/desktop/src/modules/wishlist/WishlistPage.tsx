@@ -2,7 +2,7 @@ import { Button, EmptyState, Skeleton } from '@bookeeper/ui/base';
 import { PillTabs, type PillTabItem } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
 import { ConfirmDialog, PageHeader, useListParams, usePermission } from '../../kit';
-import { WishCard } from './WishCard';
+import { WishItems } from './WishItems';
 import { WishFormDialog } from './WishFormDialog';
 import { PARAM_SCHEMA, applyView, type WishParams } from './listParams';
 import { useWishActions } from './useWishActions';
@@ -14,7 +14,9 @@ export function WishlistPage() {
   const { can } = usePermission();
   const canWrite = can('write');
   const params = useListParams<WishParams>(PARAM_SCHEMA);
-  const { query } = useWishlist();
+  // A guest has no list of their own: they only see the family's.
+  const family = !canWrite || params.values.scope === 'family';
+  const { query, meId } = useWishlist(family ? 'family' : 'mine');
   const a = useWishActions();
   const all = query.data?.items ?? [];
   const items = applyView(all, params.values);
@@ -24,6 +26,10 @@ export function WishlistPage() {
     { id: '2', label: t('wishlist.priority.high') },
     { id: '1', label: t('wishlist.priority.medium') },
     { id: '0', label: t('wishlist.priority.low') },
+  ];
+  const scopes: PillTabItem[] = [
+    { id: 'mine', label: t('wishlist.scope.mine') },
+    { id: 'family', label: t('wishlist.scope.family') },
   ];
   const sorts: PillTabItem[] = [
     { id: 'priority', label: t('wishlist.sort.priority') },
@@ -68,25 +74,7 @@ export function WishlistPage() {
     );
   } else {
     body = (
-      <ul className={styles.list} aria-label={t('wishlist.title')}>
-        {items.map((wish) => (
-          <WishCard
-            key={wish.id}
-            wish={wish}
-            actions={
-              canWrite
-                ? {
-                    onEdit: () => a.setDialog({ kind: 'form', wish }),
-                    onDelete: () => a.setDialog({ kind: 'delete', wish }),
-                    onConvert: () => void a.convertWish(wish),
-                    converting: a.convertingId === wish.id,
-                    locked: a.convertingId !== undefined,
-                  }
-                : null
-            }
-          />
-        ))}
-      </ul>
+      <WishItems items={items} family={family} canWrite={canWrite} meId={meId} view={params.values} actions={a} />
     );
   }
 
@@ -98,6 +86,9 @@ export function WishlistPage() {
         count={query.data ? t('wishlist.count', { count: all.length }) : undefined}
         actions={canWrite ? <Button variant="primary" icon="plus" onClick={() => a.setDialog({ kind: 'form' })}>{t('wishlist.add')}</Button> : undefined}
       />
+      {canWrite ? (
+        <PillTabs items={scopes} value={family ? 'family' : 'mine'} onChange={(id) => params.set({ scope: id as WishParams['scope'] })} variant="segmented" label={t('wishlist.scope.label')} />
+      ) : null}
       {all.length > 0 ? (
         <div className={styles.tools}>
           <PillTabs items={filters} value={params.values.priority} onChange={(id) => params.set({ priority: id as WishParams['priority'] })} label={t('wishlist.filters.label')} />

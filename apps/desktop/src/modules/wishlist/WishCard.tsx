@@ -8,12 +8,14 @@ import styles from './WishCard.module.css';
 export interface WishCardProps {
   wish: WishOut;
   /** Write actions, or null for a read-only role. */
+  /** Level of the title, one below the heading of its group. */
+  titleLevel?: 'h2' | 'h3';
   actions: { onEdit(): void; onDelete(): void; onConvert(): void; converting: boolean; locked: boolean } | null;
 }
 
 const TONES = { low: 'neutral', medium: 'warn', high: 'danger' } as const;
 
-export function WishCard({ wish, actions }: WishCardProps) {
+export function WishCard({ wish, actions, titleLevel: Title = 'h2' }: WishCardProps) {
   const t = useT();
   const locale = useLocale();
   const key = priorityKey(wish.priority);
@@ -23,7 +25,7 @@ export function WishCard({ wish, actions }: WishCardProps) {
   return (
     <li className={`${styles.card} ${key === 'high' ? styles.high : ''}`}>
       <div className={styles.top}>
-        <h2 className={styles.title}>{wish.title}</h2>
+        <Title className={styles.title}>{wish.title}</Title>
         <StatusTag status={key} tones={TONES} labels={labels} />
       </div>
       {wish.authors ? <p className={styles.author}>{wish.authors}</p> : null}
