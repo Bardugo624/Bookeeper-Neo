@@ -168,4 +168,17 @@ describe('creation', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: 'Inserisci a mano' }));
     expect(title()).toHaveValue('');
   });
+
+  it('"Salva e aggiungi un altro" keeps the focus inside the same dialog', async () => {
+    renderWithWrites({ books: [] });
+    await openNewBook();
+    await userEvent.click(screen.getByRole('button', { name: 'Inserisci a mano' }));
+    await userEvent.type(title(), 'Dune');
+    await userEvent.click(screen.getByRole('button', { name: 'Salva e aggiungi un altro' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Nuovo libro' });
+    const isbn = await within(dialog).findByRole('textbox', { name: 'ISBN' });
+    await new Promise((r) => setTimeout(r, 50));
+    expect(dialog.contains(document.activeElement)).toBe(true);
+    expect(isbn).toHaveFocus();
+  });
 });

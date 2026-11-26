@@ -34,7 +34,6 @@ function useOpenGroups(editor: UseBookEditor, editing: boolean) {
     return group !== undefined && !open[group];
   });
   const first = wanted[0];
-  const errored = hidden.join(',');
   useEffect(() => {
     if (hidden.length === 0) return;
     // The first invalid field is the one that takes the focus, once its group has rendered.
@@ -44,9 +43,9 @@ function useOpenGroups(editor: UseBookEditor, editing: boolean) {
       for (const key of hidden) next[groupOf(key)!] = true;
       return next;
     });
-    // `hidden` is derived from `errored`.
+    // Runs when the errors change (a submit), not when the user folds a group that still has one.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [errored]);
+  }, [form.errors]);
   useEffect(() => {
     if (!pending.current) return;
     document.querySelector<HTMLElement>(`[name="${CSS.escape(pending.current)}"]`)?.focus();

@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import type { BookOut } from '@bookeeper/api';
 import { Button } from '@bookeeper/ui/base';
 import { Dialog, useToast } from '@bookeeper/ui/overlays';
@@ -24,19 +24,18 @@ export interface BookDialogProps {
 
 /** "New book" (ISBN step, then the book sheet) or "Edit book" (form). Mounted only while open. */
 export function BookDialog(props: BookDialogProps) {
-  const [round, setRound] = useState(0);
   if (!props.open) return null;
-  // A new `key` empties the dialog for "Save and add another".
-  return <BookEditor key={round} {...props} onAnother={() => setRound((n) => n + 1)} />;
+  return <BookEditor {...props} />;
 }
 
-function BookEditor({ book, origin, onClose, onSaved, onCreated, onAnother }: BookDialogProps & { onAnother(): void }) {
+function BookEditor({ book, origin, onClose, onSaved, onCreated }: BookDialogProps) {
   const t = useT();
   const toast = useToast();
   const formId = useId();
   const [step, setStep] = useState<'isbn' | 'form'>(book ? 'form' : 'isbn');
   const { src: stored, status: storedStatus } = useCoverState(book?.id ?? '', mayHaveCover(book?.cover_color));
 
+  const resetRef = useRef<() => void>(() => {});
   const done = (result: SaveResult | null, another: boolean) => {
     if (result) {
       toast.show({
@@ -53,10 +52,14 @@ function BookEditor({ book, origin, onClose, onSaved, onCreated, onAnother }: Bo
       if (book) onSaved?.(result.book);
       else onCreated?.(result.book, another);
     }
-    if (another) onAnother();
-    else onClose();
+    if (another) {
+      // The same dialog goes back to the ISBN step: remounting it would lose the focus.
+      resetRef.current();
+      setStep('isbn');
+    } else onClose();
   };
   const editor = useBookEditor(book, done, Boolean(stored) || storedStatus === 'failed');
+  resetRef.current = editor.reset;
   const title = book ? t('books.edit.title') : t('books.new.title');
 
   const sheet = step === 'form';

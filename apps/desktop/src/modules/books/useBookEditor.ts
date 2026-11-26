@@ -27,6 +27,8 @@ export interface UseBookEditor {
   saving: boolean;
   /** Fills the form from a lookup (or leaves it empty with the ISBN typed in). */
   start(result: { isbn: string; outcome: LookupOutcome | null }): void;
+  /** Empties everything for the next book, in place. */
+  reset(): void;
   /** A form `onSubmit`; `another` keeps the panel open afterwards. */
   save(another: boolean): (event?: FormEvent) => Promise<void>;
 }
@@ -73,6 +75,16 @@ export function useBookEditor(
     }
   };
 
+  const { reset: resetForm } = form;
+  const reset = () => {
+    resetForm();
+    setOutcome(null);
+    setPlan({ kind: 'keep' });
+    setColor(undefined);
+    setTagIds([]);
+    proposed.current = false;
+  };
+
   const save = (another: boolean) =>
     form.submit(async (values) => {
       try {
@@ -110,6 +122,7 @@ export function useBookEditor(
     setTagIds,
     saving: form.submitting,
     start,
+    reset,
     save,
   };
 }
