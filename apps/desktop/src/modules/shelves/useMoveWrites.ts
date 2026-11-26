@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react';
 import { useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query';
 import { ApiError, type BookList, type BookOut, type ShelfBook, type ShelfBookList, type ShelfOut } from '@bookeeper/api';
 import { useToast } from '@bookeeper/ui/overlays';
@@ -24,6 +25,8 @@ export function useMoveWrites() {
   const qc = useQueryClient();
   const toast = useToast();
   const t = useT();
+  const inFlight = useRef(false);
+  const [moving, setMoving] = useState(false);
 
   const fail = (e: unknown, text?: string, title = t('shelves.toast.failed')) =>
     toast.show({
@@ -54,6 +57,20 @@ export function useMoveWrites() {
    * until one does not answer `row_full`. Resolves to false when nothing was placed.
    */
   const placeFirstFree = async (bookId: string, shelf: ShelfOut, fresh?: BookOut): Promise<boolean> => {
+    if (inFlight.current) return false;
+    inFlight.current = true;
+    setMoving(true);
+    try {
+      return await placeFree(bookId, shelf, fresh);
+    } finally {
+      inFlight.current = false;
+      setMoving(false);
+    }
+  };
+
+  const placeFree = async (bookId: string, shelf: ShelfOut, fresh?: BookOut): Promise<boolean> => {
+    // Reads in flight must not land over the optimistic writes below.
+    await Promise.all([qc.cancelQueries({ queryKey: keys.shelves }), qc.cancelQueries({ queryKey: keys.unshelved })]);
     const before: Snapshot = [
       ...qc.getQueriesData({ queryKey: keys.unshelved }),
       ...qc.getQueriesData({ queryKey: [...keys.shelves, 'books'] }),
@@ -110,6 +127,7 @@ export function useMoveWrites() {
   });
 
   return {
+    busy: moving,
     placeFirstFree,
     isPlaced,
     setWidth: (input: WidthInput) => width.mutateAsync(input).then(() => true, () => false),

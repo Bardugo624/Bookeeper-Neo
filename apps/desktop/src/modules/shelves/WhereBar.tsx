@@ -32,7 +32,11 @@ export function WhereBar({ state, shelf, onPlace, onDone, blocked }: WhereBarPro
   const text =
     state.kind === 'here'
       ? wherePhrase(t, { ...state, shelfName: shelf.name }, state.title)
-      : t('shelves.where.none', { title: state.book.title });
+      : state.kind === 'unplaced'
+        ? t('shelves.where.none', { title: state.book.title })
+        : state.kind === 'gone'
+          ? t('shelves.where.gone')
+          : t('shelves.where.error');
   return (
     <div className={styles.bar}>
       <p role="status" className={styles.text}>
@@ -40,6 +44,7 @@ export function WhereBar({ state, shelf, onPlace, onDone, blocked }: WhereBarPro
         {text}
       </p>
       {state.kind === 'unplaced' && onPlace ? <Button onClick={onPlace}>{t('shelves.where.place')}</Button> : null}
+      {state.kind === 'error' ? <Button onClick={state.retry}>{t('common.retry')}</Button> : null}
       <Button variant="secondary" onClick={onDone}>
         {t('shelves.where.done')}
       </Button>
