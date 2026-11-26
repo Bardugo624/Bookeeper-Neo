@@ -2,6 +2,7 @@ import { useLocale, useT } from '../../app';
 import { useSession } from '../../session';
 import { formatDate, toUnixSeconds } from '../../kit';
 import type { Filters } from './filterModel';
+import { usePeople } from './usePeople';
 import { useFacets, useShelfRooms } from './useFacets';
 
 export interface ActiveFilter {
@@ -17,6 +18,7 @@ export function useActiveFilters(f: Filters): ActiveFilter[] {
   const locale = useLocale();
   const facets = useFacets().data;
   const shelves = useShelfRooms();
+  const people = usePeople();
   const meId = useSession((s) => s.me?.user.id);
   const day = (d: string) => {
     const s = toUnixSeconds(d);
@@ -52,7 +54,9 @@ export function useActiveFilters(f: Filters): ActiveFilter[] {
       ? t('books.panel.ownerMe')
       : f.owner === 'none'
         ? t('books.panel.ownerNone')
-        : (facets?.owners.find((x) => x.id === f.owner)?.display_name ?? f.owner);
+        : (facets?.owners.find((x) => x.id === f.owner)?.display_name ??
+          people.find((x) => x.id === f.owner)?.display_name ??
+          f.owner);
     add('owner', t('books.active.owner', { name }), { owner: null });
   }
   if (f.yearFrom !== null || f.yearTo !== null) {

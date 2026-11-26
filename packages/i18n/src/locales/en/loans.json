@@ -98,7 +98,8 @@
       "notesLong": "At most {max} characters."
     },
     "borrowerSuggestions": "Names already used",
-    "me": "You"
+    "me": "You",
+    "meObject": "you"
   },
   "return": {
     "title": "Mark as returned",

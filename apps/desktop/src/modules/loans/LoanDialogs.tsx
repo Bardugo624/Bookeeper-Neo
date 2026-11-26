@@ -1,7 +1,7 @@
 import { useT } from '../../app';
 import { ConfirmDialog } from '../../kit';
 import { LoanFormDialog } from './LoanFormDialog';
-import { borrowerLabel } from './loanStatus';
+import { useBorrowerLabel } from './useBorrowerLabel';
 import { ReturnDialog } from './ReturnDialog';
 import type { LoanDialog } from './useLoanDialogs';
 import type { LoanOut } from '@bookeeper/api';
@@ -15,6 +15,7 @@ export interface LoanDialogsProps {
 
 export function LoanDialogs({ dialog, deleting, onClose, onConfirmDelete }: LoanDialogsProps) {
   const t = useT();
+  const labelOf = useBorrowerLabel();
   if (!dialog) return null;
   switch (dialog.kind) {
     case 'new':
@@ -30,7 +31,7 @@ export function LoanDialogs({ dialog, deleting, onClose, onConfirmDelete }: Loan
           tone="danger"
           busy={deleting}
           title={t('loans.delete.title')}
-          description={t('loans.delete.description', { title: dialog.loan.book_title, name: borrowerLabel(dialog.loan) })}
+          description={t('loans.delete.description', { title: dialog.loan.book_title, name: labelOf(dialog.loan, true) })}
           confirmLabel={t('common.delete')}
           onConfirm={() => onConfirmDelete(dialog.loan)}
           onCancel={onClose}
