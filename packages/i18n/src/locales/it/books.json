@@ -104,7 +104,16 @@
       "retry": "Riprova"
     },
     "lend": "Presta",
-    "more": "Altro"
+    "more": "Altro",
+    "owner": "Di chi è: {name}",
+    "readers": {
+      "title": "Chi lo legge",
+      "reading": "{name} · sta leggendo",
+      "to_read": "{name} · da leggere",
+      "read": "{name} · l’ha letto",
+      "readOn": "{name} · l’ha letto a {date}",
+      "abandoned": "{name} · l’ha lasciato"
+    }
   },
   "new": {
     "button": "Aggiungi",
@@ -164,7 +173,8 @@
       "price": "Un importo come 12,50.",
       "date": "Data non valida.",
       "progressiveTaken": "Questo numero è già usato da un altro libro."
-    }
+    },
+    "owner": "Di chi è"
   },
   "cover": {
     "title": "Copertina",
@@ -256,7 +266,8 @@
       "both": "Acquistato dal {from} al {to}",
       "from": "Acquistato dal {from}",
       "to": "Acquistato fino al {to}"
-    }
+    },
+    "owner": "Di chi è: {name}"
   },
   "facets": {
     "reading": {
@@ -299,7 +310,10 @@
     "yearTo": "Anno a",
     "acquired": "Data d’acquisto",
     "acquiredFrom": "Acquistato dal",
-    "acquiredTo": "Acquistato al"
+    "acquiredTo": "Acquistato al",
+    "owner": "Di chi è",
+    "ownerMe": "I miei",
+    "ownerNone": "Di tutti"
   },
   "sort": {
     "button": "Ordina per: {name}",
@@ -328,5 +342,9 @@
     "rename": "Rinomina {name}",
     "delete": "Elimina {name}",
     "saved": "Vista “{name}” salvata"
+  },
+  "owner": {
+    "everyone": "Di tutti",
+    "me": "Tu"
   }
 }

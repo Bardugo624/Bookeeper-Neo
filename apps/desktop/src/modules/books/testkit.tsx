@@ -67,6 +67,10 @@ export interface Library {
   role?: 'owner' | 'member' | 'guest';
   /** Answer of `GET /books/facets`. */
   facets?: BookFacets;
+  /** Answer of `GET /users`. */
+  people?: Array<{ id: string; display_name: string; is_me?: boolean }>;
+  /** Answer of `GET /books/:id/readers`, by book id. */
+  readers?: Record<string, unknown[]>;
   /** Answer of `GET /shelves`; one shelf by default. */
   shelves?: unknown[];
   /** Answers first; return undefined to fall through to the in-memory library. */
@@ -84,6 +88,11 @@ export function libraryHandler(lib: Library) {
     const p = url.pathname;
     const q = url.searchParams;
     if (p === '/api/v1/me') return ok({ ...ME, user: { ...ME.user, role: lib.role ?? 'owner' } });
+    if (p === '/api/v1/users') {
+      return ok({ items: (lib.people ?? []).map((x) => ({ role: 'member', created_at: 0, devices: 1, is_me: false, ...x })) });
+    }
+    const rd = /^\/api\/v1\/books\/([^/]+)\/readers$/.exec(p);
+    if (rd) return ok({ items: lib.readers?.[decodeURIComponent(rd[1]!)] ?? [] });
     if (p === '/api/v1/shelves') return ok({ items: lib.shelves ?? [{ id: 's1', name: 'Salotto', color: '#888' }] });
     if (p === '/api/v1/books/facets') return ok(lib.facets ?? FACETS);
     if (p === '/api/v1/books') {
@@ -92,6 +101,9 @@ export function libraryHandler(lib: Library) {
       if (q.get('on_loan') === 'true') rows = rows.filter((b) => b.on_loan);
       if (q.get('reading')) rows = rows.filter((b) => b.reading?.status === q.get('reading'));
       for (const id of q.getAll('tag_id')) rows = rows.filter((b) => b.tags.some((tag) => tag.id === id));
+      const owner = q.get('owner_id');
+      if (owner === 'none') rows = rows.filter((b) => !b.owner);
+      else if (owner) rows = rows.filter((b) => b.owner?.id === (owner === 'me' ? 'u1' : owner));
       if (q.get('unshelved') === 'true') rows = rows.filter((b) => !b.placement);
       const text = q.get('q');
       if (text) rows = rows.filter((b) => [b.title, b.isbn_13, b.isbn_10].some((f) => f?.toLowerCase().includes(text.toLowerCase())));

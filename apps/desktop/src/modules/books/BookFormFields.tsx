@@ -3,6 +3,7 @@ import { Select } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
 import type { FormState } from '../../kit';
 import { AuthorsField } from './AuthorsField';
+import { OwnerField } from './OwnerField';
 import { FORMATS, type BookFormValues } from './bookFormModel';
 import styles from './BookForm.module.css';
 
@@ -84,6 +85,7 @@ export function BookFormFields({ form }: { form: Form }) {
           {text('acquired', { type: 'date' })}
           {text('price', { inputMode: 'decimal' })}
         </div>
+        <OwnerField value={form.values.owner} onChange={(id) => form.setValue('owner', id)} />
       </fieldset>
       <fieldset className={styles.group}>
         <legend className={styles.legend}>{t('books.form.groups.notes')}</legend>

@@ -2,6 +2,7 @@ import { useId, type ReactNode } from 'react';
 import { Input } from '@bookeeper/ui/base';
 import { useT } from '../../app';
 import { FacetSelect } from './FacetSelect';
+import { OwnerFilter } from './OwnerFilter';
 import { MAX_TAGS, READING_STATES, badRanges, validDate, type Filters } from './filterModel';
 import { useFacets, useShelfRooms } from './useFacets';
 import styles from './FiltersDrawer.module.css';
@@ -96,6 +97,7 @@ export function FilterGroups({ draft, set }: FilterGroupsProps) {
           onChange={(shelf) => set(shelf ? { shelf, unshelved: false } : { shelf })}
         />
       </Group>
+      <OwnerFilter owner={draft.owner} onChange={(owner) => set({ owner })} />
       <Group title={t('books.panel.edition')}>
         <FacetSelect
           label={t('books.panel.genre')}
