@@ -5,6 +5,7 @@ import { BookCover } from '@bookeeper/ui/book';
 import { useLocale, useT } from '../../app';
 import { StatusTag, formatDate } from '../../kit';
 import { PersonIcon } from './PersonIcon';
+import { useBorrowerLabel } from './useBorrowerLabel';
 import { STATUS_TONES, authorsOf, bookPath, borrowerLabel, loanStatus } from './loanStatus';
 import { useLoanCover } from './useLoanCover';
 import styles from './LoanCard.module.css';
@@ -31,10 +32,12 @@ export function LoanCard({ loan, actions, busy = false, onBorrower, extra }: Loa
   const t = useT();
   const locale = useLocale();
   const src = useLoanCover(loan.book_id);
+  const labelOf = useBorrowerLabel();
   const status = loanStatus(loan);
   const labels = { active: t('loans.status.active'), overdue: t('loans.status.overdue'), returned: t('loans.status.returned') };
   const authors = authorsOf(loan);
-  const who = borrowerLabel(loan);
+  const who = labelOf(loan);
+  const rawWho = borrowerLabel(loan);
   const toWho = (
     <>
       {loan.borrower ? <PersonIcon /> : null}
@@ -67,7 +70,7 @@ export function LoanCard({ loan, actions, busy = false, onBorrower, extra }: Loa
               type="button"
               className={styles.borrowerButton}
               aria-label={t('loans.card.byBorrower', { name: who })}
-              onClick={() => onBorrower(who)}
+              onClick={() => onBorrower(rawWho)}
             >
               {toWho}
             </button>

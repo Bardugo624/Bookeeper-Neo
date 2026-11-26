@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { BookOut, ShelfBook, ShelfOut } from '@bookeeper/api';
 import type { SlotDrop, SpineBook } from '@bookeeper/ui/shelf';
 import { useT } from '../../app';
@@ -44,11 +44,20 @@ export function useShelvesView() {
   const books = useShelfBooks(shelf?.id);
   const [search, setSearch] = useState('');
   const unshelved = useUnshelved(useDebounced(search));
-  const where = useWhere(params.values.book, shelf, books.data?.items, (unit) =>
+  const bookParam = params.values.book;
+  const where = useWhere(bookParam, shelf, books.data?.items, (unit) =>
     // "Where is it?" wins over the room filter: a filter that hides the unit is lifted.
     params.set({ unit, ...(roomId && !shelves.some((s) => s.id === unit) ? { room: '' } : {}) }),
     !shelf && !list.isPending && !list.isError,
   );
+  // A room filter that leaves no unit open must not hide the answer: with a book in the address it is
+  // lifted, whatever the book turns out to be (unplaced, gone, unreadable).
+  const roomEmpty = Boolean(roomId) && bookParam !== '' && !shelf && !list.isPending && !list.isError;
+  const dropRoom = roomEmpty ? '' : null;
+  useEffect(() => {
+    if (dropRoom !== null) params.set({ room: '' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dropRoom]);
   const doneWhere = useCallback(() => params.set({ book: '' }), [params]);
   const placement = usePlacement();
   const moves = useMoveWrites();

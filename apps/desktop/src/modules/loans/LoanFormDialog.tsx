@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import type { LoanOut } from '@bookeeper/api';
 import { Field, Input, Textarea } from '@bookeeper/ui/base';
 import { useT } from '../../app';
+import { useSession } from '../../session';
 import { FormDialog, apiErrorMessage, useFormState } from '../../kit';
 import { BorrowerInput } from './BorrowerInput';
 import { BookPicker, type PickedBook } from './BookPicker';
@@ -22,13 +23,14 @@ export interface LoanFormDialogProps {
 /** "New loan" and "Edit loan". Mount it only while open: every opening starts from a clean form. */
 export function LoanFormDialog({ mode, onClose }: LoanFormDialogProps) {
   const t = useT();
+  const meId = useSession((s) => s.me?.user.id);
   const { create, update } = useLoanMutations();
   const editing = mode.kind === 'edit';
   const fixedBook = mode.kind === 'create' ? (mode.book ?? null) : null;
   const [picked, setPicked] = useState<PickedBook | null>(fixedBook);
   const editedLoan = mode.kind === 'edit' ? mode.loan : undefined;
   const validate = useMemo(() => validateLoan(t, editedLoan), [t, editedLoan]);
-  const form = useFormState(editing ? valuesOf(mode.loan) : emptyValues(fixedBook?.id ?? ''), validate);
+  const form = useFormState(editing ? valuesOf(mode.loan, { meId, label: t('loans.form.me') }) : emptyValues(fixedBook?.id ?? ''), validate);
   const { values, errors } = form;
 
   const choose = (book: PickedBook | null) => {

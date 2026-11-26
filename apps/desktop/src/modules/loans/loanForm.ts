@@ -25,10 +25,10 @@ export function emptyValues(bookId: string, now?: Date): LoanFormValues {
   return { book_id: bookId, borrower_name: '', borrower_user_id: null, lent_at: todayInput(now), due_at: '', notes: '' };
 }
 
-export function valuesOf(loan: LoanOut): LoanFormValues {
+export function valuesOf(loan: LoanOut, you?: Parameters<typeof borrowerLabel>[1]): LoanFormValues {
   return {
     book_id: loan.book_id,
-    borrower_name: borrowerLabel(loan),
+    borrower_name: borrowerLabel(loan, you),
     borrower_user_id: loan.borrower_user_id ?? null,
     lent_at: toDateInputValue(loan.lent_at),
     due_at: loan.due_at == null ? '' : toDateInputValue(loan.due_at),
