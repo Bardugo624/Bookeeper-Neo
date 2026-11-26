@@ -53,7 +53,9 @@ export function ReadingTab({ year, onYear }: { year: number; onYear: (year: numb
   return (
     <div className={styles.stack}>
       <div className={styles.toolbar}>
-        <Select aria-label={t('stats.reading.yearLabel')} options={options} value={String(y.year)} onValueChange={(v) => onYear(Number(v))} />
+        <div className={styles.year}>
+          <Select aria-label={t('stats.reading.yearLabel')} options={options} value={String(y.year)} onValueChange={(v) => onYear(Number(v))} />
+        </div>
         {y.books > 0 ? (
           <Button variant="primary" onClick={() => setPosterOpen(true)}>
             {t('stats.poster.open')}

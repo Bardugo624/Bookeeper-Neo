@@ -53,6 +53,13 @@ describe('units and panel', () => {
     expect(screen.getByRole('progressbar', { name: 'Riempimento di Mobile 2' })).toHaveAttribute('data-tone', 'warn');
   });
 
+  it('writes the layout with plural forms for shelves and places', async () => {
+    renderShelves(world({ shelves: [shelf(1, { rows: 1, slots_per_row: 6 }), shelf(2, { rows: 3, slots_per_row: 1 })], spots: {} }), '/shelves?unit=s1');
+    expect(await screen.findByText('1 ripiano da 6 posti')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('tab', { name: 'Mobile 2' }));
+    expect(await screen.findByText('3 ripiani da 1 posto')).toBeInTheDocument();
+  });
+
   it('leaves out free places and the bar when the core gives no capacity', async () => {
     renderShelves(world({ shelves: [shelf(1, { capacity: 0, book_count: 0 })], spots: {} }));
     expect(await screen.findByText('0 libri')).toBeInTheDocument();

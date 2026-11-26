@@ -26,7 +26,7 @@ export function RoomRow({ room, busy, rename, onDelete }: RoomRowProps) {
     event.preventDefault();
     if (draft === null) return;
     const problem = roomNameProblem(draft);
-    if (problem) return setError(t(`shelves.rooms.errors.${problem}`, { max: ROOM_NAME_MAX }));
+    if (problem) return setError(t(`shelves.rooms.errors.${problem}`, { count: ROOM_NAME_MAX }));
     if (draft.trim() === room.name) return stop();
     try {
       await rename(room, draft.trim());

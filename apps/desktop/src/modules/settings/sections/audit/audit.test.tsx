@@ -63,6 +63,7 @@ describe('sentences', () => {
     expect(screen.getByText('Ha eliminato una stanza')).toBeInTheDocument();
     expect(screen.getByText('Ha revocato un dispositivo')).toBeInTheDocument();
     const link = await screen.findByRole('link', { name: 'Iperione' });
+    expect(link.className).toMatch(/link/);
     expect(link.parentElement?.textContent).toBe('Ha impostato lo stato di lettura di «Iperione»: letto');
     expect(screen.getAllByText('mystery.thing').length).toBeGreaterThan(0);
     expect(screen.getByText('Sistema')).toBeInTheDocument();
