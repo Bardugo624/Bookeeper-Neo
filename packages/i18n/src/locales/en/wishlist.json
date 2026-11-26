@@ -1,6 +1,8 @@
 {
   "title": "Wishlist",
   "count": { "one": "{count} wished book", "other": "{count} wished books" },
+  "scope": { "label": "List", "mine": "Mine", "family": "Family" },
+  "family": { "me": "You" },
   "add": "Add",
   "loading": "Loading the wishlist",
   "priority": { "low": "Low", "medium": "Medium", "high": "High" },
