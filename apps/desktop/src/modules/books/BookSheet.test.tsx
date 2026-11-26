@@ -35,4 +35,18 @@ describe('BookSheet folded groups', () => {
     expect(group('Raccolta')).toHaveAttribute('aria-expanded', 'false');
     expect(pages).toHaveFocus();
   });
+
+  it('opens a folded group with an error on «Salva e aggiungi un altro» and focuses the field', async () => {
+    renderWithWrites({ books: [] });
+    await openNewBook();
+    await userEvent.click(screen.getByRole('button', { name: 'Inserisci a mano' }));
+    await userEvent.type(await screen.findByRole('textbox', { name: 'Titolo' }), 'Dune');
+    await openGroup('Edizione');
+    await userEvent.type(screen.getByRole('textbox', { name: 'Pagine' }), '0');
+    await userEvent.click(group('Edizione'));
+    expect(group('Edizione')).toHaveAttribute('aria-expanded', 'false');
+    await userEvent.click(screen.getByRole('button', { name: 'Salva e aggiungi un altro' }));
+    await waitFor(() => expect(group('Edizione')).toHaveAttribute('aria-expanded', 'true'));
+    expect(screen.getByRole('textbox', { name: 'Pagine' })).toHaveFocus();
+  });
 });
