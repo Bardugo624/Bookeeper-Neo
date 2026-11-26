@@ -534,3 +534,5 @@
 2026-11-26T14:13:54Z	bookeeper-fase-6b1	p3-6b-mobile-b	qa	opus	FAIL	-	-	-	59
 2026-11-26T14:15:53Z	bookeeper-fase-6b1	p3-6b-mobile-b	dwarf	sonnet	-	-	-	-	115
 2026-11-26T14:16:48Z	bookeeper-fase-6b1	p3-6b-mobile-b	qa	opus	PASS	-	-	-	48
+2026-11-26T14:22:21Z	bookeeper-fase-6b1	p3-6b-desktop-a	dwarf	sonnet	-	-	-	-	13
+2026-11-26T14:23:01Z	bookeeper-fase-6b1	p3-6b-desktop-a	qa	opus	PASS	-	-	-	33
