@@ -5,7 +5,7 @@ Valgono per intero `docs/forge/fase-2a/CONTRATTO.md`, `docs/forge/fase-2a/MOCKUP
 ## Regole aggiunte
 
 - **Dipendenze**: solo `d-notify` ne aggiunge, ed esattamente due: `tauri-plugin-notification` (Rust, versione 2, in `apps/desktop/src-tauri/Cargo.toml`) e `@tauri-apps/plugin-notification` (npm, versione 2, in `apps/desktop/package.json`). Nessun'altra task tocca `Cargo.toml`, `Cargo.lock`, `package.json` o `package-lock.json`.
-- Nessuna modifica al core, a `packages/api`, a `packages/ui`. Se manca qualcosa, la task si ferma e lo dice.
+- Nessuna modifica al core, a `packages/api`, a `packages/ui`, tranne `p3-6a-client`, che aggiunge al client il parametro `scope` della wishlist. Se manca qualcosa, la task si ferma e lo dice.
 - Un modulo tocca solo la propria cartella e i propri file i18n. Da un altro modulo importa solo ciò che quello esporta dal suo `index.ts`; se serve un'esportazione nuova, la task che la aggiunge ha quel file tra i dichiarati.
 - Le task che toccano la stessa cartella vanno in fila (`d-loans-members` → `d-overdue`; `m-book-edit` → `m-loans` → `m-shelves`; `m-wishlist` → `m-isbn-index`): ognuna parte dal lavoro della precedente e non riscrive ciò che funziona.
 - **Permessi**: nel desktop `usePermission().can('write' | 'admin' | 'owner')` di `apps/desktop/src/kit`; nella PWA il modo in cui il modulo `tags` legge il ruolo. Chi non ha il permesso non vede il comando: nessun bottone disattivato senza spiegazione.

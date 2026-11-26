@@ -467,3 +467,14 @@
 2026-11-26T03:15:58Z	bookeeper-fase-5a1	p3-5a-desktop	dwarf	sonnet	-	-	-	-	137
 2026-11-26T03:16:07Z	bookeeper-fase-5a1	p3-5a-mobile	qa	opus	PASS	-	-	-	38
 2026-11-26T03:18:04Z	bookeeper-fase-5a1	p3-5a-desktop	qa	opus	PASS	-	-	-	119
+2026-11-26T12:21:20Z	bookeeper-fase-6a	people-api	dwarf	sonnet	-	trap	the auth guard rewrites devices last seen on any request older than 60s so a test that reads a person s last seen must list with a	the auth guard rewrites `devices.last_seen` on any request older than 60s, so a test that reads a person's `last_seen` must list with a… [crates/bookeeper-core/src/auth/guard.rs]	650	1
+2026-11-26T12:21:20Z	bookeeper-fase-6a	people-api	dwarf	sonnet	-	trap	ratelimiter outcome succeeded clears every failure of the shared redeem key so a read only lookup on that key must use	`RateLimiter` outcome `succeeded()` clears every failure of the shared "redeem" key, so a read-only lookup on that key must use… [crates/bookeeper-core/src/auth/limit.rs]	650	1
+2026-11-26T12:24:14Z	bookeeper-fase-6a	people-api	qa	opus	PASS	-	-	-	165
+2026-11-26T12:29:39Z	bookeeper-fase-6a	family-api	dwarf	sonnet	-	trap	update openapi 1 cargo test test openapi does nothing without include ignored the updater is an ignored test	`UPDATE_OPENAPI=1 cargo test --test openapi` does nothing without `-- --include-ignored`; the updater is an ignored test [packages/api/openapi.json]	318	1
+2026-11-26T12:31:41Z	bookeeper-fase-6a	family-api	qa	opus	PASS	-	-	-	116
+2026-11-26T12:33:30Z	bookeeper-fase-6a	isbn-index-api	dwarf	sonnet	-	-	-	-	105
+2026-11-26T12:34:53Z	bookeeper-fase-6a	isbn-index-api	qa	opus	PASS	-	-	-	76
+2026-11-26T12:36:38Z	bookeeper-fase-6a	client-6a	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npm run gen w bookeeper api works	a fresh worktree needs `npm ci --offline` at the root before `npm run gen -w @bookeeper/api` works [packages/api/package.json]	101	1
+2026-11-26T12:37:46Z	bookeeper-fase-6a	client-6a	qa	opus	PASS	-	-	-	62
+2026-11-26T12:40:10Z	bookeeper-fase-6a	apps-compat-6a	dwarf	sonnet	-	-	-	-	140
+2026-11-26T12:41:14Z	bookeeper-fase-6a	apps-compat-6a	qa	opus	PASS	-	-	-	58
