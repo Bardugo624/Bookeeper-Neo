@@ -51,6 +51,16 @@ pub struct IsbnIndex {
     pub items: Vec<IsbnEntry>,
 }
 
+#[doc(hidden)]
+pub const ISBN_INDEX_SQL: &str = "SELECT b.id, b.isbn_13, b.isbn_10, b.title, b.authors_json,
+                        s.id, s.name, sb.row_index, sb.slot_index
+                 FROM books b
+                 LEFT JOIN shelf_books sb ON sb.book_id = b.id
+                 LEFT JOIN shelves s ON s.id = sb.shelf_id
+                 WHERE b.library_id = ?1
+                   AND ((b.isbn_13 IS NOT NULL AND b.isbn_13 <> '')
+                        OR (b.isbn_10 IS NOT NULL AND b.isbn_10 <> ''))";
+
 /// Every book of the library with an ISBN, for the duplicate-purchase check.
 #[utoipa::path(
     get,
@@ -72,16 +82,7 @@ pub async fn isbn_index(
     let mut items = state
         .db
         .run(move |conn| {
-            let mut stmt = conn.prepare(
-                "SELECT b.id, b.isbn_13, b.isbn_10, b.title, b.authors_json,
-                        s.id, s.name, sb.row_index, sb.slot_index
-                 FROM books b
-                 LEFT JOIN shelf_books sb ON sb.book_id = b.id
-                 LEFT JOIN shelves s ON s.id = sb.shelf_id
-                 WHERE b.library_id = ?1
-                   AND ((b.isbn_13 IS NOT NULL AND b.isbn_13 <> '')
-                        OR (b.isbn_10 IS NOT NULL AND b.isbn_10 <> ''))",
-            )?;
+            let mut stmt = conn.prepare(ISBN_INDEX_SQL)?;
             let rows = stmt
                 .query_map([who.library_id.as_str()], |r| {
                     let isbn13: Option<String> = r.get(1)?;

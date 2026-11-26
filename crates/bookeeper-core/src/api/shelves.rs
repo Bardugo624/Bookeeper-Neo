@@ -594,6 +594,14 @@ pub async fn delete_shelf(
     Ok(StatusCode::NO_CONTENT)
 }
 
+#[doc(hidden)]
+pub const SHELF_BOOKS_SQL: &str =
+    "SELECT b.id, b.title, b.authors_json, b.progressive_number, b.cover_color, \
+                    sb.row_index, sb.slot_index, sb.spine_width \
+             FROM shelf_books sb JOIN books b ON b.id = sb.book_id \
+             WHERE sb.shelf_id = ?1 AND b.library_id = ?2 \
+             ORDER BY sb.row_index, sb.slot_index";
+
 #[utoipa::path(
     get, path = "/api/v1/shelves/{id}/books", tag = "shelves", security(("bearer" = [])),
     params(("id" = String, Path, description = "Shelf id")),
@@ -610,13 +618,7 @@ pub async fn shelf_books(
 ) -> ApiResult<Json<ShelfBookList>> {
     let items = run(&state, move |conn| {
         find_shelf(conn, &user.library_id, &id)?;
-        let mut stmt = conn.prepare(
-            "SELECT b.id, b.title, b.authors_json, b.progressive_number, b.cover_color, \
-                    sb.row_index, sb.slot_index, sb.spine_width \
-             FROM shelf_books sb JOIN books b ON b.id = sb.book_id \
-             WHERE sb.shelf_id = ?1 AND b.library_id = ?2 \
-             ORDER BY sb.row_index, sb.slot_index",
-        )?;
+        let mut stmt = conn.prepare(SHELF_BOOKS_SQL)?;
         let rows = stmt.query_map(params![id, user.library_id], |r| {
             let authors: String = r.get(2)?;
             Ok(ShelfBook {
