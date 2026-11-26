@@ -116,5 +116,5 @@
   align-self: stretch;
   width: 1px;
   margin-inline: 8px;
-  background: var(--bk-danger);
+  background: var(--bk-border);
 }

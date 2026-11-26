@@ -178,6 +178,19 @@ describe('restore', () => {
   });
 });
 
+describe('restore layout', () => {
+  it('puts the action and its consequence before the file picker, and says what is missing', async () => {
+    renderBackup({});
+    const input = await screen.findByLabelText('File di backup (.zip)');
+    const title = screen.getByText('Ripristina da file');
+    expect(title.compareDocumentPosition(input) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByText(/solo il proprietario/)).toBeTruthy();
+    expect(screen.getByText('Scegli prima un file di backup.')).toBeTruthy();
+    await userEvent.upload(input as HTMLInputElement, zip());
+    expect(screen.queryByText('Scegli prima un file di backup.')).toBeNull();
+  });
+});
+
 describe('one operation at a time', () => {
   it('blocks the restore while a backup is running', async () => {
     let release!: () => void;

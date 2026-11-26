@@ -305,3 +305,12 @@ describe('Dialog tone', () => {
     expect(dialog.querySelector('[class*="alertIcon"] svg')).toBeNull();
   });
 });
+
+it('makes the close button at least 44px with a coarse pointer, unchanged otherwise', async () => {
+  const { readFileSync } = await import('node:fs');
+  const css = readFileSync('src/overlays/Dialog.module.css', 'utf8');
+  const media = css.match(/@media \(pointer: coarse\)\s*\{([\s\S]*?\n\})/)?.[1] ?? '';
+  expect(media).toMatch(/\.header > button\s*\{[^}]*width:\s*44px/);
+  expect(media).toMatch(/\.header > button\s*\{[^}]*height:\s*44px/);
+  expect(css.replace(/@media[\s\S]*?\n\}\n/g, '')).not.toMatch(/44px/);
+});

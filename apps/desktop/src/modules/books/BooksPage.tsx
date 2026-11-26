@@ -3,6 +3,7 @@ import type { BookOut } from '@bookeeper/api';
 import { Button, EmptyState } from '@bookeeper/ui/base';
 import { useT } from '../../app';
 import { usePermission } from '../../kit';
+import { useSession } from '../../session';
 import { ManageTagsDialog } from '../tags';
 import { FirstBookHint, useFirstBook } from '../onboarding';
 import { tourExpects, tourNote, tourSignal } from '../tour';
@@ -21,6 +22,15 @@ import { useCoverFlight } from './useCoverFlight';
 import { useNewBookParam } from './useNewBookParam';
 import styles from './BooksPage.module.css';
 
+/** Same mark the celebration leaves (`useFirstBook`), written when the tour has taken its place. */
+function markFirstBookSeen(connectionId: string) {
+  try {
+    localStorage.setItem(`bookeeper.onboarding.firstBook.${connectionId}`, '1');
+  } catch {
+    // Without storage the celebration may come back: harmless.
+  }
+}
+
 export function BooksPage() {
   const t = useT();
   const params = useListParams();
@@ -35,6 +45,7 @@ export function BooksPage() {
   // The button that opened "New book"; absent when it comes from the palette (`?new=1`).
   const [origin, setOrigin] = useState<HTMLElement | null>(null);
   const [managingTags, setManagingTags] = useState(false);
+  const connectionId = useSession((s) => s.connection?.id);
   const firstBook = useFirstBook(() => {
     setOrigin(null);
     setAdding(true);
@@ -164,12 +175,18 @@ export function BooksPage() {
           // The tour tells the person when the cover has landed; asked before the signal moves it on.
           const guiding = tourExpects('book-created');
           tourSignal('book-created', { title: created.title });
-          if (guiding) session.current.toured = true;
-          const landed = () => guiding && tourNote({ titleKey: 'tour.firstBook.landed.title', textKey: 'tour.firstBook.landed.text', params: { title: created.title } });
+          // «First book of the library» only when the library was empty when the panel opened.
+          const isFirst = session.current.empty && !session.current.first;
+          if (guiding) {
+            session.current.toured = true;
+            // The tour takes the celebration's place for good: it must not open later.
+            if (isFirst && connectionId) markFirstBookSeen(connectionId);
+          }
+          const landed = () => guiding && isFirst && tourNote({ titleKey: 'tour.firstBook.landed.title', textKey: 'tour.firstBook.landed.text', params: { title: created.title } });
           if (cover && !another) flight.start(created.id, cover, landed);
           else landed();
           // The first book saved in this session of the panel, even when "Save and add another" kept it open.
-          if (session.current.empty && !session.current.first) session.current.first = created;
+          if (isFirst) session.current.first = created;
         }}
       />
       {firstBook.element}

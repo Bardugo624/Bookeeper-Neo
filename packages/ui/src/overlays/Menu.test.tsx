@@ -64,3 +64,26 @@ it('adds no divider when there are no dangerous items', async () => {
   await screen.findByRole('menu');
   expect(screen.queryByRole('separator')).not.toBeInTheDocument();
 });
+
+async function menuShape(items: Parameters<typeof Menu>[0]['items']) {
+  const user = userEvent.setup();
+  render(<Menu trigger={<button>Actions</button>} items={items} />);
+  await user.click(screen.getByRole('button', { name: 'Actions' }));
+  const menu = await screen.findByRole('menu');
+  return [...menu.children].map((e) => e.textContent || e.getAttribute('role'));
+}
+
+const item = (id: string, danger = false) => ({ id, label: id, danger, onSelect: () => {} });
+const sep = (id: string) => ({ type: 'separator' as const, id });
+
+it('has no divider when every item is dangerous', async () => {
+  expect(await menuShape([item('A', true), item('B', true)])).toEqual(['A', 'B']);
+});
+
+it('does not leave two dividers in a row around a dangerous item', async () => {
+  expect(await menuShape([item('Edit'), sep('s1'), item('Delete', true), sep('s2'), item('Share')])).toEqual(['Edit', 'separator', 'Share', 'separator', 'Delete']);
+});
+
+it('drops leading, trailing and doubled separators', async () => {
+  expect(await menuShape([sep('a'), item('X'), sep('b'), sep('c'), item('Y'), sep('d')])).toEqual(['X', 'separator', 'Y']);
+});

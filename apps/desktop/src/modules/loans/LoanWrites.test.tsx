@@ -191,6 +191,8 @@ describe('return, reopen, edit, delete', () => {
     expect((await screen.findAllByRole('button', { name: 'Elimina' }))[0]!.className).toContain('toneDanger');
     await user.click(screen.getAllByRole('button', { name: 'Elimina' })[0]!);
     expect(dialog()).toHaveTextContent('Il prestito di «Libro 1» a Persona 1');
+    expect(dialog()).toHaveTextContent('dallo storico. L\'operazione non si può annullare.');
+    expect(screen.getAllByRole('button', { name: 'Elimina' })[0]).not.toHaveAttribute('title');
     await user.click(within(dialog()).getByRole('button', { name: 'Annulla' }));
     expect(writes(platform)).toHaveLength(0);
     await user.click(screen.getAllByRole('button', { name: 'Elimina' })[0]!);

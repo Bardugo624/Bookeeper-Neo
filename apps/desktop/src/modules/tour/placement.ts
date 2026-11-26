@@ -55,3 +55,33 @@ export function placeCard(target: Rect | null, card: { width: number; height: nu
   const arrow = side === 'bottom' || side === 'top' ? clamp(cx - x, ARROW_INSET, card.width - ARROW_INSET) : clamp(cy - y, ARROW_INSET, card.height - ARROW_INSET);
   return { side, x, y, arrow };
 }
+
+/**
+ * Where the card goes when the anchor lives in a dialog: beside the dialog's panel, never over it, so the
+ * controls the step asks for stay clickable. Right, then left, aligned with the anchor; above or below when
+ * the window is too narrow for either side; against the anchor when no side has room.
+ */
+export function placeBesidePanel(anchor: Rect, panel: Rect, card: { width: number; height: number }, view: { width: number; height: number }, gap = 14): Placement {
+  const room = {
+    right: view.width - (panel.x + panel.width) - gap - MARGIN,
+    left: panel.x - gap - MARGIN,
+    top: panel.y - gap - MARGIN,
+    bottom: view.height - (panel.y + panel.height) - gap - MARGIN,
+  };
+  const fits = (s: keyof typeof room) => room[s] >= (s === 'left' || s === 'right' ? card.width : card.height);
+  const side = (['right', 'left', 'top', 'bottom'] as const).find(fits);
+  // Nowhere beside the panel: lay the card against the anchor itself, which at least keeps it off the control.
+  if (!side) return placeCard(anchor, card, view, gap);
+  const cx = anchor.x + anchor.width / 2;
+  const cy = anchor.y + anchor.height / 2;
+  const maxX = Math.max(MARGIN, view.width - card.width - MARGIN);
+  const maxY = Math.max(MARGIN, view.height - card.height - MARGIN);
+  if (side === 'left' || side === 'right') {
+    const y = clamp(cy - card.height / 2, MARGIN, maxY);
+    const x = clamp(side === 'right' ? panel.x + panel.width + gap : panel.x - gap - card.width, MARGIN, maxX);
+    return { side, x, y, arrow: clamp(cy - y, ARROW_INSET, card.height - ARROW_INSET) };
+  }
+  const x = clamp(cx - card.width / 2, MARGIN, maxX);
+  const y = clamp(side === 'bottom' ? panel.y + panel.height + gap : panel.y - gap - card.height, MARGIN, maxY);
+  return { side, x, y, arrow: clamp(cx - x, ARROW_INSET, card.width - ARROW_INSET) };
+}

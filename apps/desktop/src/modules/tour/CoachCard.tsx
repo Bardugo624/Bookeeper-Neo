@@ -5,7 +5,7 @@ import { useT } from '../../app/i18n';
 import { Bookmarks } from './Bookmarks';
 import styles from './CoachCard.module.css';
 import type { TourNote, TourStep } from './model';
-import { grow, placeCard, type Rect } from './placement';
+import { grow, placeBesidePanel, placeCard, type Rect } from './placement';
 import { SPOTLIGHT_MARGIN } from './Spotlight';
 import { CARD_ATTR } from './usePauseTriggers';
 import type { Target } from './useTarget';
@@ -54,9 +54,14 @@ export function CoachCard({ step, index, total, target, onLater, onSkip, note, c
   });
 
   const lit: Rect | null = target.rect ? grow(target.rect, SPOTLIGHT_MARGIN) : null;
-  const place = placeCard(lit, size, { width: window.innerWidth, height: window.innerHeight });
+  const view = { width: window.innerWidth, height: window.innerHeight };
   // Inside a dialog (which may move with a transform) coordinates are relative to it.
   const origin = host ? host.getBoundingClientRect() : null;
+  // Beside the dialog's panel, never over its controls.
+  const place =
+    lit && origin
+      ? placeBesidePanel(lit, { x: origin.left, y: origin.top, width: origin.width, height: origin.height }, size, view)
+      : placeCard(lit, size, view);
   const x = place.x - (origin?.left ?? 0);
   const y = place.y - (origin?.top ?? 0);
   const lead = closing ? null : note;

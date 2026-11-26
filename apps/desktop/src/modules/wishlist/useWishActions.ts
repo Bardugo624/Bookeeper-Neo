@@ -7,7 +7,7 @@ import { apiErrorMessage } from '../../kit';
 import { createBody, patchBody, type WishValues } from './model';
 import { useWishlist } from './useWishlist';
 
-export type Dialog = { kind: 'form'; wish?: WishOut } | { kind: 'delete'; wish: WishOut } | null;
+export type Dialog = { kind: 'form'; wish?: WishOut } | { kind: 'delete'; wish: WishOut; fromForm?: boolean } | null;
 
 /** Dialog state and the write actions of the list, with one place for the error banner. */
 export function useWishActions() {

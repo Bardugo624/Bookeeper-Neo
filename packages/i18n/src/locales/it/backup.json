@@ -27,9 +27,6 @@
     "empty": "Non c'è ancora nessun backup automatico."
   },
   "restore": {
-    "title": "Ripristino",
-    "description": "Riporta la libreria allo stato di un backup. Solo il proprietario può farlo.",
-    "warning": "Attenzione: il ripristino sostituisce tutti i dati attuali della libreria (libri, scaffali, prestiti, lista dei desideri e copertine) con quelli del backup. I dati che non sono nel backup andranno persi e l'operazione non si può annullare.",
     "file": "File di backup (.zip)",
     "action": "Ripristina da file…",
     "working": "Ripristino in corso",
@@ -57,6 +54,7 @@
       "unsupportedVersion": "Questo backup è di una versione che questa app non sa leggere.",
       "payload_too_large": "Il file è troppo grande per essere ripristinato.",
       "busy": "Un'altra operazione è in corso: riprova quando è finita."
-    }
+    },
+    "needFile": "Scegli prima un file di backup."
   }
 }
