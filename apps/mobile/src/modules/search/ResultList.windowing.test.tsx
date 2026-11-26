@@ -115,14 +115,18 @@ describe('windowed result list', () => {
     });
     await screen.findByRole('link', { name: /^Libro 1 / });
     expect(screen.getByRole('link', { name: /^Libro 2, una storia lunga/ })).toBeInTheDocument();
-    for (let y = 0; y <= 2000 * 105; y += 3700) {
+    // Each step replaces every row, so a new row comes first and is watched; odd ones have long titles.
+    const longFirst = new Set<boolean>();
+    for (let y = 0; y <= 2000 * 105; y += 22_200) {
       await scrollTo(y);
       // the row at the top of the view is the one 105px rows put there, six rows of margin above it
       await waitFor(() => expect(firstShown()).toBe(Math.max(0, Math.floor(y / 105) - 6)));
+      longFirst.add(firstShown() % 2 === 1);
       expect(parseFloat(list().style.paddingTop)).toBe(firstShown() * 105);
       expect(total(105)).toBe(2000 * 105);
       expect(rows().length).toBeLessThanOrEqual(80);
     }
+    expect([...longFirst].sort()).toEqual([false, true]);
     expect(resize.observed()).toBe(1);
   });
 
