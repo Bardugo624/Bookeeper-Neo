@@ -644,3 +644,13 @@
 2026-11-26T22:18:07Z	bookeeper-fase-8a	tour-explore	qa	opus	FAIL	finding	a tour step whose real action sits outside its data tour anchor is paused by usepausetriggers on the press and	a tour step whose real action sits outside its `data-tour` anchor is paused by `usePauseTriggers` on the press, and… [apps/desktop/src/modules/tour/usePauseTriggers.ts]	90	1
 2026-11-26T22:25:22Z	bookeeper-fase-8a	tour-explore	dwarf	opus	-	trap	coachcard s pi tardi button is labelled lo faccio dopo tour later so tests must look it up by that name	`CoachCard`'s «Più tardi» button is labelled «Lo faccio dopo» (`tour.later`), so tests must look it up by that name [packages/i18n/src/locales/it/tour.json]	160	1
 2026-11-26T22:26:30Z	bookeeper-fase-8a	tour-explore	qa	opus	PASS	-	-	-	61
+2026-11-26T22:28:18Z	bookeeper-fase-8a	danger-settings	dwarf	sonnet	-	-	-	-	100
+2026-11-26T22:29:04Z	bookeeper-fase-8a	danger-people	dwarf	sonnet	-	-	-	-	145
+2026-11-26T22:29:39Z	bookeeper-fase-8a	danger-settings	qa	opus	PASS	-	-	-	73
+2026-11-26T22:30:34Z	bookeeper-fase-8a	danger-people	qa	opus	FAIL	-	-	-	83
+2026-11-26T22:31:22Z	bookeeper-fase-8a	danger-people	dwarf	sonnet	-	-	-	-	42
+2026-11-26T22:31:55Z	bookeeper-fase-8a	danger-books	dwarf	sonnet	-	-	-	-	129
+2026-11-26T22:32:14Z	bookeeper-fase-8a	danger-people	qa	opus	PASS	-	-	-	45
+2026-11-26T22:33:37Z	bookeeper-fase-8a	danger-books	qa	opus	PASS	-	-	-	95
+2026-11-26T22:34:52Z	bookeeper-fase-8a	danger-shelves	dwarf	sonnet	-	-	-	-	151
+2026-11-26T22:36:15Z	bookeeper-fase-8a	danger-shelves	qa	opus	PASS	-	-	-	77
