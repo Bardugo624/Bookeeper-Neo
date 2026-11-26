@@ -23,9 +23,13 @@ export function ShelfFormDialog({ shelf, rooms, save, onClose }: ShelfFormDialog
   const t = useT();
   const form = useFormState<ShelfValues>(shelf ? valuesOf(shelf) : EMPTY_VALUES, validateShelf);
   const { values, errors, touched } = form;
-  const vars = { max: LIMITS.name, roomMax: ROOM_NAME_MAX, minRows: LIMITS.minRows, maxRows: LIMITS.maxRows, minSlots: LIMITS.minSlots, maxSlots: LIMITS.maxSlots };
-  const message = (name: keyof ShelfValues) =>
-    touched[name] && errors[name] ? t(`shelves.form.errors.${errors[name]}`, vars) : undefined;
+  const vars = { minRows: LIMITS.minRows, minSlots: LIMITS.minSlots };
+  // The number a message pluralizes on (`count`) is the limit it names last.
+  const counts: Record<string, number> = { tooLong: LIMITS.name, roomTooLong: ROOM_NAME_MAX, rows: LIMITS.maxRows, slots: LIMITS.maxSlots };
+  const message = (name: keyof ShelfValues) => {
+    const code = errors[name];
+    return touched[name] && code ? t(`shelves.form.errors.${code}`, { ...vars, count: counts[code] ?? 0 }) : undefined;
+  };
   const text = (name: 'name' | 'rows' | 'slots_per_row') => ({
     name,
     value: values[name],

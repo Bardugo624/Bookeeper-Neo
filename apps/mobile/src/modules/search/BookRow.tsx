@@ -4,6 +4,7 @@ import type { BookOut } from '@bookeeper/api';
 import { Tag } from '@bookeeper/ui/base';
 import { BookCover } from '@bookeeper/ui/book';
 import { useT } from '../../app/i18n';
+import { ReadingBadge } from '../reading';
 import { detailPath, type FromList } from './searchState';
 import { mayHaveCover, useCover } from './useCover';
 import styles from './BookRow.module.css';
@@ -17,9 +18,11 @@ export interface BookRowProps {
 export function BookRow({ book, from }: BookRowProps) {
   const t = useT();
   const loanId = useId();
+  const readingId = useId();
   const src = useCover(book.id, mayHaveCover(book.cover_color));
   const author = book.authors.join(', ');
   const name = author ? t('msearch.list.rowName', { title: book.title, author }) : book.title;
+  const hasBadge = book.reading?.status === 'reading' || book.reading?.status === 'read';
   const state: FromList = { list: from };
   return (
     <li className={styles.item}>
@@ -28,7 +31,7 @@ export function BookRow({ book, from }: BookRowProps) {
         state={state}
         className={styles.row}
         aria-label={name}
-        aria-describedby={book.on_loan ? loanId : undefined}
+        aria-describedby={[book.on_loan ? loanId : null, hasBadge ? readingId : null].filter(Boolean).join(' ') || undefined}
       >
         <BookCover title={book.title} src={src} color={book.cover_color ?? undefined} width={56} />
         <span className={styles.text}>
@@ -40,6 +43,7 @@ export function BookRow({ book, from }: BookRowProps) {
             {t('msearch.list.onLoan')}
           </Tag>
         ) : null}
+        <ReadingBadge id={readingId} reading={book.reading} pageCount={book.page_count} />
       </Link>
     </li>
   );

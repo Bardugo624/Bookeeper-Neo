@@ -4,13 +4,25 @@
   "tabs": "Mobili",
   "row": "Ripiano {n}",
   "count": {
-    "units": { "one": "{count} mobile", "other": "{count} mobili" },
-    "placed": { "one": "{count} libro collocato", "other": "{count} libri collocati" }
+    "units": {
+      "one": "{count} mobile",
+      "other": "{count} mobili"
+    },
+    "placed": {
+      "one": "{count} libro collocato",
+      "other": "{count} libri collocati"
+    }
   },
   "loading": "Caricamento degli scaffali",
   "loadingBooks": "Caricamento dei libri del mobile",
-  "error": { "title": "Impossibile caricare gli scaffali", "text": "Controlla la connessione e riprova." },
-  "booksError": { "title": "Impossibile caricare i libri del mobile", "text": "Controlla la connessione e riprova." },
+  "error": {
+    "title": "Impossibile caricare gli scaffali",
+    "text": "Controlla la connessione e riprova."
+  },
+  "booksError": {
+    "title": "Impossibile caricare i libri del mobile",
+    "text": "Controlla la connessione e riprova."
+  },
   "empty": {
     "title": "Nessun mobile",
     "text": "Crea un mobile per dire dove stanno i tuoi libri.",
@@ -24,12 +36,26 @@
     "label": "Dettagli di {name}",
     "edit": "Modifica {name}",
     "delete": "Elimina {name}",
-    "layout": "{rows} ripiani da {slots} posti",
+    "layout": "{rows} da {slots}",
     "fill": "Riempimento di {name}",
-    "books": { "one": "{count} libro", "other": "{count} libri" },
-    "free": { "one": "circa {count} posto libero", "other": "circa {count} posti liberi" },
+    "books": {
+      "one": "{count} libro",
+      "other": "{count} libri"
+    },
+    "free": {
+      "one": "circa {count} posto libero",
+      "other": "circa {count} posti liberi"
+    },
     "room": "Stanza: {name}",
-    "booksFree": "{books} · {free}"
+    "booksFree": "{books} · {free}",
+    "layoutRows": {
+      "one": "{count} ripiano",
+      "other": "{count} ripiani"
+    },
+    "layoutSlots": {
+      "one": "{count} posto",
+      "other": "{count} posti"
+    }
   },
   "unshelved": {
     "title": "Non collocati",
@@ -84,17 +110,32 @@
     "newRoomName": "Nome della nuova stanza",
     "errors": {
       "required": "Campo obbligatorio",
-      "tooLong": "Al massimo {max} caratteri",
-      "rows": "Da {minRows} a {maxRows} ripiani",
-      "slots": "Da {minSlots} a {maxSlots} posti",
+      "tooLong": {
+        "one": "Al massimo {count} carattere",
+        "other": "Al massimo {count} caratteri"
+      },
+      "rows": {
+        "one": "Da {minRows} a {count} ripiano",
+        "other": "Da {minRows} a {count} ripiani"
+      },
+      "slots": {
+        "one": "Da {minSlots} a {count} posto",
+        "other": "Da {minSlots} a {count} posti"
+      },
       "tooSmall": "Un libro collocato resterebbe fuori dal mobile. Sposta prima i libri dei ripiani o dei posti da togliere.",
       "exists": "Esiste già una stanza con questo nome",
-      "roomTooLong": "Al massimo {roomMax} caratteri"
+      "roomTooLong": {
+        "one": "Al massimo {count} carattere",
+        "other": "Al massimo {count} caratteri"
+      }
     }
   },
   "delete": {
     "title": "Eliminare il mobile?",
-    "withBooks": { "one": "Il mobile «{name}» sarà eliminato. Il libro collocato resta in biblioteca, ma risulta non collocato. L'operazione non si può annullare.", "other": "Il mobile «{name}» sarà eliminato. I {count} libri collocati restano in biblioteca, ma risultano non collocati. L'operazione non si può annullare." },
+    "withBooks": {
+      "one": "Il mobile «{name}» sarà eliminato. Il libro collocato resta in biblioteca, ma risulta non collocato. L'operazione non si può annullare.",
+      "other": "Il mobile «{name}» sarà eliminato. I {count} libri collocati restano in biblioteca, ma risultano non collocati. L'operazione non si può annullare."
+    },
     "empty": "Il mobile «{name}» sarà eliminato. L'operazione non si può annullare."
   },
   "rooms": {
@@ -116,9 +157,15 @@
     "deleteText": "La stanza «{name}» sarà eliminata. I suoi mobili restano, ma senza stanza.",
     "errors": {
       "required": "Campo obbligatorio",
-      "tooLong": "Al massimo {max} caratteri",
+      "tooLong": {
+        "one": "Al massimo {count} carattere",
+        "other": "Al massimo {count} caratteri"
+      },
       "exists": "Esiste già una stanza con questo nome",
-      "invalid": "Il nome deve avere da 1 a {max} caratteri"
+      "invalid": {
+        "one": "Il nome deve avere da 1 a {count} carattere",
+        "other": "Il nome deve avere da 1 a {count} caratteri"
+      }
     },
     "filter": "Solo i mobili della stanza «{name}».",
     "showAll": "Mostra tutti",

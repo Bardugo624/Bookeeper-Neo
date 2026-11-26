@@ -78,3 +78,31 @@ describe('app stylesheets', () => {
     expect(used.filter((v) => !defined.has(v))).toEqual([]);
   });
 });
+
+describe('look of the run 4B fixes', () => {
+  const css = (rel: string) => read(join(srcDir, rel));
+
+  it('puts the "on loan" label on the solid surface, in the warning tone', () => {
+    const block = /\.item \.loan\s*\{([^}]*)\}/.exec(css('modules/books/BookCard.module.css'))?.[1] ?? '';
+    expect(block).toContain('background: var(--bk-surface)');
+    expect(block).toContain('color: var(--bk-warn-strong)');
+  });
+
+  it('styles the audit links like text links: thin underline, accent on hover and focus', () => {
+    const sheet = css('modules/settings/sections/audit/AuditSection.module.css');
+    expect(sheet).toMatch(/\.link\s*\{[^}]*color: var\(--bk-text\)[^}]*text-decoration-thickness: 1px/);
+    expect(sheet).toMatch(/\.link:hover,\s*\.link:focus-visible\s*\{[^}]*color: var\(--bk-primary-600\)/);
+  });
+
+  it('sizes the year select to its content and wraps below 560px', () => {
+    const sheet = css('modules/stats/ReadingTab.module.css');
+    expect(sheet).toMatch(/\.year\s*\{[^}]*width: 160px/);
+    expect(sheet).toMatch(/@media \(max-width: 560px\)/);
+  });
+
+  it('lays the audit filters on one grid of equal-height fields', () => {
+    const sheet = css('modules/settings/sections/audit/AuditSection.module.css');
+    expect(sheet).toMatch(/\.filters\s*\{[^}]*display: grid[^}]*align-items: end/);
+    expect(sheet).toMatch(/\.field input\s*\{[^}]*height: 38px/);
+  });
+});

@@ -32,7 +32,9 @@
   "none": {
     "title": "No results",
     "text": "No book matches this search.",
-    "textFor": "No book matches “{q}”."
+    "textFor": "No book matches “{q}”.",
+    "filtered": "No book matches these filters.",
+    "reset": "Reset filters"
   },
   "detail": {
     "back": "Back to the list",
@@ -67,5 +69,32 @@
       "title": "Book not found",
       "text": "This book no longer exists or was removed from the library."
     }
+  },
+  "reading": {
+    "to_read": "To read",
+    "reading": "Reading",
+    "read": "Read",
+    "abandoned": "Abandoned",
+    "none": "No status"
+  },
+  "sheet": {
+    "open": "Filters",
+    "title": "Filters",
+    "reading": "Reading status",
+    "tags": "Tags",
+    "room": "Room",
+    "reset": "Reset",
+    "show": "Show books",
+    "showCount": {
+      "one": "Show {count} book",
+      "other": "Show {count} books"
+    }
+  },
+  "active": {
+    "label": "Active filters",
+    "reading": "Status: {value}",
+    "tag": "Tag: {name}",
+    "room": "Room: {name}",
+    "remove": "Remove the filter {label}"
   }
 }

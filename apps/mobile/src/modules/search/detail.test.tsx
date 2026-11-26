@@ -55,10 +55,10 @@ describe('book page', () => {
     expect(within(details).queryByText('Anno')).toBeNull();
   });
 
-  it('is read only: no edit button', async () => {
+  it('does not edit the book itself (only its tags and reading state)', async () => {
     open(book(1));
     await screen.findByRole('region', { name: 'Prestito' });
-    expect(screen.queryByRole('button', { name: /modific|edit/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /^(?!modifica tag$)(modific|edit)/i })).toBeNull();
   });
 
   it('shows a dedicated state for a book that does not exist', async () => {

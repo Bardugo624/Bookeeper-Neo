@@ -12,9 +12,9 @@ const MARK = '\u0001';
 export function AuditWhat({ entry }: { entry: AuditOut }) {
   const t = useT();
   const describe = useDescribe();
-  const book = useAuditBook(bookIdOf(entry));
+  const { book, gone } = useAuditBook(bookIdOf(entry));
   const phrase = phraseOf(entry);
-  const sentence = describe(entry, book ? MARK : undefined);
+  const sentence = describe(entry, book ? MARK : undefined, gone);
   const [before, after] = sentence.split(MARK);
 
   return (
@@ -23,7 +23,7 @@ export function AuditWhat({ entry }: { entry: AuditOut }) {
         {book && after !== undefined ? (
           <>
             {before}
-            <Link to={`/books/${encodeURIComponent(book.id)}`}>{book.title}</Link>
+            <Link className={styles.link} to={`/books/${encodeURIComponent(book.id)}`}>{book.title}</Link>
             {after}
           </>
         ) : (

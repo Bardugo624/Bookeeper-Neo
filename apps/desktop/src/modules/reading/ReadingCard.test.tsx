@@ -152,3 +152,55 @@ describe('status', () => {
     await waitFor(() => expect(puts(view)).toHaveLength(1));
   });
 });
+
+describe('p3 fixes', () => {
+  it('does not save a note of only spaces over an empty one', async () => {
+    const view = renderReading(reading());
+    const note = await (await card()).findByRole('textbox', { name: 'Nota' });
+    await userEvent.type(note, '   ');
+    await userEvent.tab();
+    expect(puts(view)).toHaveLength(0);
+  });
+
+  it('keeps the typed note in the field when the save fails', async () => {
+    const view = renderReading(reading({ note: 'Prima' }), { refuse: () => ({ status: 500, body: { error_code: 'internal', message: 'boom' } }) });
+    const note = await (await card()).findByRole('textbox', { name: 'Nota' });
+    await userEvent.clear(note);
+    await userEvent.type(note, 'Nuova');
+    await userEvent.tab();
+    await waitFor(() => expect(puts(view)).toHaveLength(1));
+    await new Promise((r) => setTimeout(r, 100));
+    expect((note as HTMLTextAreaElement).value).toBe('Nuova');
+  });
+
+  it('hides "Mark as read" while the state failed to load', async () => {
+    renderReading(reading(), { failGet: true });
+    await screen.findByRole('region', { name: 'Lettura' });
+    await new Promise((r) => setTimeout(r, 100));
+    expect(screen.queryByRole('button', { name: 'Segna come letto' })).toBeNull();
+  });
+
+  it('does not let the answer of an older save pull the page back', async () => {
+    const releases: Array<() => void> = [];
+    renderReading(reading(), { gate: () => new Promise<void>((r) => releases.push(r)) });
+    const c = await card();
+    const more = await c.findByRole('button', { name: 'Una pagina in più' });
+    const field = c.getByRole('spinbutton', { name: 'Aggiorna la pagina' }) as HTMLInputElement;
+    await userEvent.click(more);
+    await waitFor(() => expect(field.value).toBe('313'));
+    await userEvent.click(more);
+    await waitFor(() => expect(field.value).toBe('314'));
+    await waitFor(() => expect(releases).toHaveLength(2));
+    releases[0]!();
+    await new Promise((r) => setTimeout(r, 100));
+    expect(field.value).toBe('314');
+    releases[1]!();
+    await new Promise((r) => setTimeout(r, 100));
+    expect(field.value).toBe('314');
+  });
+
+  it('writes the percentage through the translations', async () => {
+    renderReading(reading());
+    expect(await screen.findByText('62%')).toBeTruthy();
+  });
+});

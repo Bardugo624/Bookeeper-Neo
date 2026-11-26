@@ -57,6 +57,6 @@ export function isRoomExists(error: unknown): boolean {
 export function roomErrorMessage(t: Translate, error: unknown): string {
   return apiErrorMessage(t, error, {
     room_exists: t('shelves.rooms.errors.exists'),
-    validation: t('shelves.rooms.errors.invalid', { max: ROOM_NAME_MAX }),
+    validation: t('shelves.rooms.errors.invalid', { count: ROOM_NAME_MAX }),
   });
 }

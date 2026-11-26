@@ -6731,7 +6731,7 @@
             "items": {
               "$ref": "#/components/schemas/ValueCount"
             },
-            "description": "Grouped ignoring ASCII case, showing the most frequent spelling; at most 200."
+            "description": "Grouped ignoring Unicode case, showing the most frequent spelling; at most 200."
           },
           "languages": {
             "type": "array",

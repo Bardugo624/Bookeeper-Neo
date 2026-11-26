@@ -34,7 +34,10 @@
   "error": "The log could not be loaded.",
   "forbidden": "Only the owner and admins can see the log.",
   "retry": "Try again",
-  "total": "{count} entries",
+  "total": {
+    "one": "{count} entry",
+    "other": "{count} entries"
+  },
   "export": {
     "button": "Download CSV",
     "busy": "Preparing the file…",
@@ -165,5 +168,47 @@
       "revoke": "Revoked a device"
     }
   },
-  "loading": "Loading…"
+  "loading": "Loading…",
+  "whatUntitled": {
+    "book": {
+      "create": "Added a book",
+      "update": "Edited a book",
+      "cover": "Changed the cover of a book",
+      "cover_delete": "Removed the cover of a book",
+      "tags": "Changed the tags of a book"
+    },
+    "reading": {
+      "set": "Set the reading status of a book: {status}",
+      "delete": "Removed the reading status of a book"
+    },
+    "shelf": {
+      "place": "Placed a book on a shelf",
+      "unplace": "Took a book off its shelf"
+    },
+    "wishlist": {
+      "create": "Added a wish to the wishlist",
+      "convert": "Turned a wish into a book"
+    }
+  },
+  "whatGone": {
+    "book": {
+      "create": "Added a book that no longer exists",
+      "update": "Edited a book that no longer exists",
+      "cover": "Changed the cover of a book that no longer exists",
+      "cover_delete": "Removed the cover of a book that no longer exists",
+      "tags": "Changed the tags of a book that no longer exists"
+    },
+    "reading": {
+      "set": "Set the reading status of a book that no longer exists: {status}",
+      "delete": "Removed the reading status of a book that no longer exists"
+    },
+    "shelf": {
+      "place": "Placed a book that no longer exists on a shelf",
+      "unplace": "Took a book that no longer exists off its shelf"
+    },
+    "wishlist": {
+      "create": "Added a wish to the wishlist",
+      "convert": "Turned a wish into a book that no longer exists"
+    }
+  }
 }
