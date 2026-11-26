@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { BookOut } from '@bookeeper/api';
 import { Button, Skeleton, Spinner } from '@bookeeper/ui/base';
 import { useT } from '../../app/i18n';
@@ -22,6 +23,66 @@ export function ResultSkeletons() {
   );
 }
 
+/** Height of one row: its minimum height plus the 1px divider. */
+export const ROW_HEIGHT = 89;
+const OVERSCAN = 6;
+
+const scrollParent = (el: HTMLElement): HTMLElement | null => {
+  for (let p = el.parentElement; p; p = p.parentElement) {
+    const y = getComputedStyle(p).overflowY;
+    if (y === 'auto' || y === 'scroll') return p;
+  }
+  return null;
+};
+
+/** Which rows [start, end) are near the viewport; the page's own scrolling is only listened to. */
+function useWindow(count: number) {
+  const listRef = useRef<HTMLUListElement>(null);
+  const [range, setRange] = useState<[number, number]>([0, Math.min(count, 2 * OVERSCAN + 10)]);
+  const measure = useCallback(() => {
+    const list = listRef.current;
+    if (!list) return;
+    const parent = scrollParent(list);
+    const listTop = list.getBoundingClientRect().top;
+    let offset: number;
+    let height: number;
+    if (parent) {
+      offset = parent.getBoundingClientRect().top - listTop;
+      height = parent.clientHeight || window.innerHeight;
+    } else {
+      offset = -listTop;
+      height = window.innerHeight;
+    }
+    const start = Math.max(0, Math.floor(offset / ROW_HEIGHT) - OVERSCAN);
+    const end = Math.min(count, Math.max(start, Math.ceil((offset + height) / ROW_HEIGHT) + OVERSCAN));
+    setRange((r) => (r[0] === start && r[1] === end ? r : [start, end]));
+  }, [count]);
+  useLayoutEffect(() => {
+    measure();
+  }, [measure]);
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    const target: HTMLElement | Window = scrollParent(list) ?? window;
+    let frame = 0;
+    const onScroll = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        measure();
+      });
+    };
+    target.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      target.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [measure]);
+  return { listRef, start: Math.min(range[0], count), end: Math.min(range[1], count) };
+}
+
 export interface ResultListProps {
   items: BookOut[];
   from: string;
@@ -36,10 +97,17 @@ export interface ResultListProps {
 export function ResultList({ items, from, busy, hasNext, fetchingNext, nextFailed, onEnd }: ResultListProps) {
   const t = useT();
   const endRef = useEndReached(onEnd, hasNext && !fetchingNext && !nextFailed, items.length);
+  const { listRef, start, end } = useWindow(items.length);
   return (
     <>
-      <ul className={styles.list} aria-label={t('msearch.list.label')} aria-busy={busy}>
-        {items.map((book) => (
+      <ul
+        ref={listRef}
+        className={styles.list}
+        aria-label={t('msearch.list.label')}
+        aria-busy={busy}
+        style={{ paddingTop: start * ROW_HEIGHT, paddingBottom: (items.length - end) * ROW_HEIGHT }}
+      >
+        {items.slice(start, end).map((book) => (
           <BookRow key={book.id} book={book} from={from} />
         ))}
       </ul>
