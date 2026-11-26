@@ -30,3 +30,23 @@ it('shows a DangerAction with title, consequence and a working command', async (
   await userEvent.setup().click(screen.getByRole('button', { name: 'Delete' }));
   expect(onClick).toHaveBeenCalledTimes(1);
 });
+
+it('insets loose children like a row, without touching DangerAction rows', async () => {
+  const { readFileSync } = await import('node:fs');
+  const css = readFileSync('src/base/DangerZone.module.css', 'utf8');
+  const actions = css.match(/\.actions\s*\{([^}]*)\}/)?.[1] ?? '';
+  expect(actions).not.toMatch(/padding|border/);
+  const loose = css.match(/\.actions > :not\(\.row\)\s*\{([^}]*)\}/)?.[1] ?? '';
+  expect(loose).toMatch(/padding:\s*12px 16px/);
+  const gap = css.match(/\.actions > :not\(\.row\) \+ :not\(\.row\)\s*\{([^}]*)\}/)?.[1] ?? '';
+  expect(gap).toMatch(/margin-top:\s*12px/);
+  const { container } = render(
+    <DangerZone title="Zone">
+      <input type="file" aria-label="File" />
+      <DangerAction title="T" consequence="C" action={<button>Go</button>} />
+    </DangerZone>,
+  );
+  const actionsEl = container.querySelector('[class*="actions"]')!;
+  expect(actionsEl.contains(screen.getByLabelText('File'))).toBe(true);
+  expect(actionsEl.querySelector('[class*="row"]')).not.toBeNull();
+});

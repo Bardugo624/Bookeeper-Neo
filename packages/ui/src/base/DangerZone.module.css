@@ -25,6 +25,20 @@
     color: var(--bk-text-muted);
 }
 
+.actions {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Loose content (not a DangerAction row) gets the same inset as a row. */
+.actions > :not(.row) {
+    padding: 12px 16px;
+}
+
+.actions > :not(.row) + :not(.row) {
+    margin-top: 12px;
+}
+
 .row {
     display: flex;
     align-items: center;
