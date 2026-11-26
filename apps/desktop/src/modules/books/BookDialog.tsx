@@ -3,6 +3,7 @@ import type { BookOut } from '@bookeeper/api';
 import { Button } from '@bookeeper/ui/base';
 import { Dialog, useToast } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
+import { tourAnchor } from '../tour';
 import { BookSheet } from './BookSheet';
 import { IsbnStep } from './IsbnStep';
 import type { SaveResult } from './useBookWrites';
@@ -87,7 +88,7 @@ function BookEditor({ book, origin, onClose, onSaved, onCreated }: BookDialogPro
                 {t('books.new.saveAnother')}
               </Button>
             )}
-            <Button type="submit" form={formId} variant="primary" loading={editor.saving} loadingLabel={t('common.saving')}>
+            <Button {...(book ? {} : tourAnchor('book.save'))} type="submit" form={formId} variant="primary" loading={editor.saving} loadingLabel={t('common.saving')}>
               {t('common.save')}
             </Button>
           </>

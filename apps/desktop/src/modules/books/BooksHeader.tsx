@@ -1,6 +1,7 @@
 import { Button, IconButton } from '@bookeeper/ui/base';
 import { Menu, PillTabs, type PillTabItem } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
+import { tourAnchor } from '../tour';
 import { SearchField } from './SearchField';
 import type { ListParams, ViewMode } from './listParams';
 import styles from './BooksHeader.module.css';
@@ -44,7 +45,7 @@ export function BooksHeader({ params, total, onLoan, actions }: BooksHeaderProps
             <Button variant="secondary" aria-pressed={actions.selecting} onClick={actions.onToggleSelect}>
               {t('books.selection.toggle')}
             </Button>
-            <Button variant="primary" icon="plus" onClick={(e) => actions.onAdd(e.currentTarget)}>
+            <Button {...tourAnchor('books.add')} variant="primary" icon="plus" onClick={(e) => actions.onAdd(e.currentTarget)}>
               {t('books.new.button')}
             </Button>
             <Menu

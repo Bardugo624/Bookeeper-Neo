@@ -4,7 +4,7 @@ import { Button } from '@bookeeper/ui/base';
 import { useT } from '../../app/i18n';
 import { Bookmarks } from './Bookmarks';
 import styles from './CoachCard.module.css';
-import type { TourStep } from './model';
+import type { TourNote, TourStep } from './model';
 import { grow, placeCard, type Rect } from './placement';
 import { SPOTLIGHT_MARGIN } from './Spotlight';
 import { CARD_ATTR } from './usePauseTriggers';
@@ -18,13 +18,16 @@ export interface CoachCardProps {
   target: Target;
   onLater(): void;
   onSkip(): void;
+  /** Said once on top of the step, or alone when `closing` (the path is over). */
+  note?: TourNote | null;
+  closing?: boolean;
 }
 
 /**
  * The card of the step: what to do, where we are, and the two ways out. A region, not a dialog.
  * When the anchor sits inside an open dialog the card is drawn inside it, so it stays usable.
  */
-export function CoachCard({ step, index, total, target, onLater, onSkip }: CoachCardProps) {
+export function CoachCard({ step, index, total, target, onLater, onSkip, note, closing = false }: CoachCardProps) {
   const t = useT();
   const ref = useRef<HTMLElement>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -44,7 +47,9 @@ export function CoachCard({ step, index, total, target, onLater, onSkip }: Coach
   const origin = host ? host.getBoundingClientRect() : null;
   const x = place.x - (origin?.left ?? 0);
   const y = place.y - (origin?.top ?? 0);
-  const title = t(step.titleKey, step.params);
+  const lead = closing ? null : note;
+  const shown = closing && note ? { ...step, ...note } : step;
+  const title = t(shown.titleKey, shown.params);
   const vertical = place.side === 'top' || place.side === 'bottom';
 
   const card = (
@@ -63,24 +68,35 @@ export function CoachCard({ step, index, total, target, onLater, onSkip }: Coach
       }}
     >
       {place.side !== 'none' ? <span className={styles.arrow} data-vertical={vertical ? '' : undefined} aria-hidden="true" /> : null}
-      <div className={styles.progress}>
-        <Bookmarks total={total} current={index} />
-        <span className={styles.count}>{t('tour.card.step', { n: index + 1, total })}</span>
-      </div>
+      {lead ? <p className={styles.note}>{t(lead.textKey, lead.params)}</p> : null}
+      {closing ? null : (
+        <div className={styles.progress}>
+          <Bookmarks total={total} current={index} />
+          <span className={styles.count}>{t('tour.card.step', { n: index + 1, total })}</span>
+        </div>
+      )}
       <h2 id="tour-card-title" className={styles.title}>
         {title}
       </h2>
-      <p className={styles.text}>{t(step.textKey, step.params)}</p>
+      <p className={styles.text}>{t(shown.textKey, shown.params)}</p>
       <div className={styles.actions}>
-        <Button variant="secondary" size="sm" onClick={onLater}>
-          {t('tour.later')}
-        </Button>
-        <Button variant="ghost" size="sm" onClick={onSkip}>
-          {t('tour.skip')}
-        </Button>
+        {closing ? (
+          <Button variant="secondary" size="sm" onClick={onLater}>
+            {t('tour.gotIt')}
+          </Button>
+        ) : (
+          <>
+            <Button variant="secondary" size="sm" onClick={onLater}>
+              {t('tour.later')}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onSkip}>
+              {t('tour.skip')}
+            </Button>
+          </>
+        )}
       </div>
       <div className={styles.sr} aria-live="polite" role="status">
-        {t('tour.card.announce', { n: index + 1, total, title })}
+        {closing ? title : t('tour.card.announce', { n: index + 1, total, title })}
       </div>
     </section>
   );

@@ -2,7 +2,7 @@ import { useRef, useState, type FormEvent } from 'react';
 import { usePlatform } from '../../platform';
 import { useSession } from '../../session';
 import { useT } from '../../app/i18n';
-import { authenticate, deviceInfo, newRemoteConnection } from './connections';
+import { asNewcomer, authenticate, deviceInfo, newRemoteConnection } from './connections';
 import { apiErrors, hasErrors, probeErrors, type Errors } from './errors';
 import { collect, emailError, focusFirstError, nameError, passwordError, requiredError } from './validate';
 import { useBusy } from './useBusy';
@@ -52,15 +52,21 @@ export function useCreateOnServer() {
           return setRedirect({ text: t('welcome.server.alreadySet'), to: 'join', action: t('welcome.server.goJoin') });
         }
         const device = await deviceInfo(platform);
-        await authenticate(platform, signIn, newRemoteConnection(probed.url, probed.fingerprint), (client) =>
-          client.setup({
-            setup_code: values.setupCode.trim(),
-            library_name: values.libraryName.trim(),
-            display_name: values.displayName.trim(),
-            email: values.email.trim(),
-            password: values.password,
-            ...device,
-          }),
+        const connection = newRemoteConnection(probed.url, probed.fingerprint);
+        await authenticate(
+          platform,
+          signIn,
+          connection,
+          asNewcomer(connection, (client) =>
+            client.setup({
+              setup_code: values.setupCode.trim(),
+              library_name: values.libraryName.trim(),
+              display_name: values.displayName.trim(),
+              email: values.email.trim(),
+              password: values.password,
+              ...device,
+            }),
+          ),
         );
       },
       (e) => setErrors(apiErrors(e, t)),

@@ -18,6 +18,8 @@ export interface TourStep {
   params?: Record<string, string | number>;
   /** The anchor to light up, or a function that picks it (a step may guide through several places). */
   target: string | ((ctx: TourContext) => string | null);
+  /** What the card says when the step points at one of these anchors instead (a step may guide through several places). */
+  variants?: Readonly<Record<string, Pick<TourStep, 'titleKey' | 'textKey' | 'params'>>>;
   /** The name of the signal that completes the step. */
   signal: string;
   /** Narrows the signal by its data; every signal with the right name counts when absent. */
@@ -53,4 +55,17 @@ export function advance(s: TourSnapshot, total: number): TourSnapshot {
 /** The anchor id a step points at right now, if any. */
 export function resolveTarget(step: TourStep, ctx: TourContext): string | null {
   return typeof step.target === 'string' ? step.target : step.target(ctx);
+}
+
+/** The step as the card should tell it, given the anchor it points at now. */
+export function tellStep(step: TourStep, anchorId: string | null): TourStep {
+  const variant = anchorId ? step.variants?.[anchorId] : undefined;
+  return variant ? { ...step, ...variant } : step;
+}
+
+/** A line the card says once, on top of the step (or alone, when the path is over). */
+export interface TourNote {
+  titleKey: string;
+  textKey: string;
+  params?: Record<string, string | number>;
 }

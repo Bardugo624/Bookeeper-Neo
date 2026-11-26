@@ -29,6 +29,8 @@ interface Flight {
   rect: DOMRect;
   animation?: Animation;
   card?: HTMLElement;
+  /** Runs when the cover has landed (or left). */
+  landed?: () => void;
 }
 
 const inView = (r: DOMRect) =>
@@ -55,12 +57,16 @@ export function useCoverFlight() {
     flight.animation?.cancel();
     flight.node.remove();
     if (flight.card) flight.card.style.visibility = "";
+    flight.landed?.();
   }, []);
 
   const start = useCallback(
-    (id: string, cover: CoverHandoff) => {
+    (id: string, cover: CoverHandoff, landed?: () => void) => {
       end();
-      if (reducedMotion() || typeof cover.node.animate !== "function") return;
+      if (reducedMotion() || typeof cover.node.animate !== "function") {
+        landed?.();
+        return;
+      }
       const { node, rect } = cover;
       Object.assign(node.style, {
         position: "fixed",
@@ -74,7 +80,7 @@ export function useCoverFlight() {
       node.setAttribute("aria-hidden", "true");
       node.dataset.coverFlight = "";
       document.body.append(node);
-      current.current = { id, node, rect };
+      current.current = { id, node, rect, landed };
       setTick((n) => n + 1);
     },
     [end],

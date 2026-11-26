@@ -3,7 +3,7 @@ import { ApiError, type CodeInfo, type LibraryOut } from '@bookeeper/api';
 import { usePlatform } from '../../platform';
 import { useSession } from '../../session';
 import { useT } from '../../app/i18n';
-import { authenticate, deviceInfo, newRemoteConnection } from './connections';
+import { asNewcomer, authenticate, deviceInfo, newRemoteConnection } from './connections';
 import { apiErrors, hasErrors, probeErrors, type Errors } from './errors';
 import { collect, emailError, focusFirstError, inviteNameError, passwordError, requiredError } from './validate';
 import { useBusy } from './useBusy';
@@ -116,8 +116,12 @@ export function useJoin() {
       const device = await deviceInfo(platform);
       const { target, code } = invite;
       try {
-        await authenticate(platform, signIn, newRemoteConnection(target.url, target.fingerprint), (client) =>
-          client.redeemPairingCode({ code, ...device, display_name: displayName.trim() }),
+        const connection = newRemoteConnection(target.url, target.fingerprint);
+        await authenticate(
+          platform,
+          signIn,
+          connection,
+          asNewcomer(connection, (client) => client.redeemPairingCode({ code, ...device, display_name: displayName.trim() })),
         );
       } catch (err) {
         // The invitation was used or has expired meanwhile: back to the code, with the message there.

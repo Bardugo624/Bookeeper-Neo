@@ -79,6 +79,16 @@
   color: var(--bk-text-strong);
 }
 
+.note {
+  margin: 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--bk-border);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--bk-accent-text);
+}
+
 .text {
   margin: 0;
   font-size: 14px;

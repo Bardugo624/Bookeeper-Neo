@@ -115,3 +115,8 @@
   line-height: 20px;
   text-align: center;
 }
+
+/* «Primi passi» sits between the navigation and the person; it takes no room while it is absent. */
+.steps:not(:empty) {
+  margin: 12px 0;
+}
