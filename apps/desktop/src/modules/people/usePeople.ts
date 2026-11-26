@@ -1,20 +1,32 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { InviteRole, PatchPerson } from '@bookeeper/api';
+import type { InviteRole, PatchPerson, PersonOut } from '@bookeeper/api';
 import { useClient, useSession } from '../../session';
 import { TOUCHED_KEYS } from './model';
+
+/** The one query of the people list: its cache entry holds the array, whoever reads it. */
+function usePeopleQuery(opts: { enabled?: boolean; staleTime?: number } = {}) {
+  const client = useClient();
+  const connectionId = useSession((s) => s.connection?.id);
+  return useQuery({
+    queryKey: ['people', connectionId, 'list'],
+    retry: false,
+    ...opts,
+    queryFn: async () => (await client.listUsers()).items,
+  });
+}
+
+/** The people of the library as an array (empty while loading or on error). */
+export function usePeopleList(enabled = true): PersonOut[] {
+  return usePeopleQuery({ enabled, staleTime: 30_000 }).data ?? [];
+}
 
 /** The people of the library and their writes. Components never touch the client. */
 export function usePeople() {
   const client = useClient();
-  const connectionId = useSession((s) => s.connection?.id);
   const signOut = useSession((s) => s.signOut);
   const qc = useQueryClient();
 
-  const query = useQuery({
-    queryKey: ['people', connectionId, 'list'],
-    retry: false,
-    queryFn: async () => (await client.listUsers()).items,
-  });
+  const query = usePeopleQuery();
   /** The write already succeeded: a failed re-read must not turn it into an error the user would retry. */
   const reloadMe = async () => {
     try {
