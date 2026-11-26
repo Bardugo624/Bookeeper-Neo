@@ -1,0 +1,34 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  padding-bottom: 8px;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--bk-font-serif);
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--bk-text-strong);
+  overflow-wrap: anywhere;
+}
+
+.phrase {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--bk-text-strong);
+  overflow-wrap: anywhere;
+}
+
+/* The cabinet scrolls inside itself when wider than the screen; the page never does. */
+.cabinet {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding-bottom: 4px;
+}

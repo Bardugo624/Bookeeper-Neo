@@ -21,3 +21,25 @@ export function useShelfNames(enabled: boolean): Map<string, string> {
   });
   return new Map((data?.items ?? []).map((s) => [s.id, s.name]));
 }
+
+/** One piece of furniture with its size and color. */
+export function useShelf(id: string, enabled: boolean) {
+  const client = useClient();
+  const libraryId = useSession((s) => s.me?.library.id);
+  return useQuery({
+    queryKey: ['shelves', libraryId, 'detail', id],
+    enabled,
+    queryFn: () => client.getShelf(id),
+  });
+}
+
+/** The books on one piece of furniture, with row and slot. */
+export function useShelfBooks(id: string, enabled: boolean) {
+  const client = useClient();
+  const libraryId = useSession((s) => s.me?.library.id);
+  return useQuery({
+    queryKey: ['shelves', libraryId, 'books', id],
+    enabled,
+    queryFn: async () => (await client.listShelfBooks(id)).items,
+  });
+}

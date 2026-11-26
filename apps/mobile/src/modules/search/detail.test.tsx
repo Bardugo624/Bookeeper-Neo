@@ -17,17 +17,24 @@ describe('book page', () => {
   it('puts where the book is first: furniture and shelf', async () => {
     open(book(1, { placement: placed }));
     const where = await screen.findByRole('region', { name: 'Dove si trova' });
-    expect(await within(where).findByText('Libreria del salotto')).toBeInTheDocument();
-    expect(within(where).getByText('Ripiano 2')).toBeInTheDocument();
+    expect(await within(where).findByText(/^Libreria del salotto · /)).toBeInTheDocument();
+    expect(within(where).getByText('Libreria del salotto · ripiano 2 · posto 4')).toBeInTheDocument();
     // First block after the title and authors.
     const regions = screen.getAllByRole('region').map((r) => r.getAttribute('aria-labelledby'));
     expect(regions[1]).toBe('where-title');
+  });
+
+  it('offers "Dov\'è?" only for a shelved book, going to its page', async () => {
+    open(book(1, { placement: placed }));
+    const where = await screen.findByRole('region', { name: 'Dove si trova' });
+    expect(within(where).getByRole('link', { name: "Dov'è?" })).toHaveAttribute('href', '/books/b1/where');
   });
 
   it('says so when the book is not shelved', async () => {
     open(book(1));
     const where = await screen.findByRole('region', { name: 'Dove si trova' });
     expect(within(where).getByText('Non collocato')).toBeInTheDocument();
+    expect(within(where).queryByRole('link', { name: "Dov'è?" })).toBeNull();
   });
 
   it('shows the title in the serif heading and the authors', async () => {
