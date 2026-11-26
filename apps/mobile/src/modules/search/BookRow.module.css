@@ -39,6 +39,8 @@
   font-size: 16px;
   font-weight: 500;
   line-height: 1.3;
+  /* Always the room of two lines (2 x line-height, in em so it grows with the text): every row is as tall. */
+  min-height: 2.6em;
   color: var(--bk-text-strong);
 }
 
