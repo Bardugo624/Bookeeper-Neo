@@ -11,10 +11,12 @@ export interface UnshelvedRowProps {
   book: BookOut;
   /** Null without write permission: no handle, no dragging, no "place in" button. */
   onPlace: (() => void) | null;
+  /** Position in the list, used by the window to keep the row that has the focus. */
+  index?: number;
 }
 
 /** One unplaced book: handle, small cover, title and author. Draggable onto a shelf. */
-export function UnshelvedRow({ book, onPlace }: UnshelvedRowProps) {
+export function UnshelvedRow({ book, onPlace, index }: UnshelvedRowProps) {
   const t = useT();
   const src = useThumb(book.id, Boolean(book.cover_color));
   const author = book.authors.join(', ');
@@ -23,7 +25,13 @@ export function UnshelvedRow({ book, onPlace }: UnshelvedRowProps) {
     event.dataTransfer.effectAllowed = 'move';
   };
   return (
-    <li className={styles.row} draggable={onPlace !== null} onDragStart={onPlace ? start : undefined} data-book-id={book.id}>
+    <li
+      className={styles.row}
+      draggable={onPlace !== null}
+      onDragStart={onPlace ? start : undefined}
+      data-book-id={book.id}
+      data-index={index}
+    >
       {onPlace ? (
         <span className={styles.handle} aria-hidden="true">
           <Icon name="grip" size={16} />

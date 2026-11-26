@@ -17,16 +17,19 @@ export interface BookCardProps {
   from: string;
   /** Present while the list is in selection mode. */
   selection?: Selection;
+  /** Position in the list, and, in a windowed grid, the cell (1-based) the card is placed in. */
+  index?: number;
+  cell?: { row: number; column: number };
 }
 
-export function BookCard({ book, from, selection }: BookCardProps) {
+export function BookCard({ book, from, selection, index, cell }: BookCardProps) {
   const t = useT();
   const src = useCover(book.id, mayHaveCover(book.cover_color));
   const author = authorsOf(book);
   const name = author ? t('books.list.cardName', { title: book.title, author }) : book.title;
   const state: FromList = { list: from };
   return (
-    <li className={styles.item}>
+    <li className={styles.item} data-index={index} style={cell ? { gridRow: cell.row, gridColumn: cell.column } : undefined}>
       {selection ? (
         <SelectionCheckbox
           label={t('books.selection.select', { title: book.title })}
