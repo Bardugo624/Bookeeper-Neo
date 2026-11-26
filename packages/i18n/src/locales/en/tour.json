@@ -98,6 +98,10 @@
       "title": "Where it is",
       "text": "Search for a book and open it: «Show on the shelf» is there."
     },
+    "whereNone": {
+      "title": "Where it is",
+      "text": "This book is on no shelf, so there is no place to show. For other books, «Show on the shelf» takes you to the cabinet and the shelf."
+    },
     "reading": {
       "title": "Mark what you read",
       "text": "Say whether a book is to read, in progress or finished: only you see it."

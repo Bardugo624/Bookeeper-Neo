@@ -15,9 +15,11 @@ const state = () => useTourStore.getState();
 const lampOn = (id: string) =>
   expect((document.querySelector('[data-tour-spotlight] > div') as HTMLElement | null)?.style.transform).toBe(`translate(${X[id]! - 8}px, 92px)`);
 
+let puts = 0;
 function show(lib: Partial<Library> = {}, route = '/books') {
+  puts = 0;
   const put = (r: { method: string; path: string }) =>
-    r.method === 'PUT' && r.path.endsWith('/reading')
+    r.method === 'PUT' && r.path.endsWith('/reading') && ++puts
       ? { status: 200, body: { book_id: 'b1', status: 'reading', started_at: 1, finished_at: null, rating: null, note: null, current_page: null, updated_at: 1 } }
       : undefined;
   const platform = booksPlatform({ extra: put, books: [book(1, { placement: { shelf_id: 's1', row_index: 0, slot_index: 0 } })], ...lib });
@@ -89,6 +91,18 @@ describe('explore', () => {
     await screen.findByRole('heading', { level: 1, name: 'Libro 1' });
     await waitFor(() => expect(state().step).toBe(2));
     await waitFor(() => lampOn('book.reading'));
+    // The card says why the step went by: this book has no place to show.
+    expect(await screen.findByText(/Questo libro non è su nessuno scaffale/)).toBeInTheDocument();
+  });
+
+  it('a book on no shelf says nothing when the tour is not on «Dove si trova»', async () => {
+    show({ books: [book(1, { placement: null })] });
+    await waitFor(() => expect(state().pathId).toBe('explore'));
+    act(() => state().skip());
+    await userEvent.click(await screen.findByRole('link', { name: 'Libro 1 Autore 1' }));
+    await screen.findByRole('heading', { level: 1, name: 'Libro 1' });
+    expect(state().note).toBeNull();
+    expect(screen.queryByText(/Questo libro non è su nessuno scaffale/)).not.toBeInTheDocument();
   });
 
   it('«Segna come letto» under the cover completes the reading step even though the press pauses the tour', async () => {
@@ -106,9 +120,25 @@ describe('explore', () => {
     await userEvent.click(await screen.findByRole('link', { name: 'Libro 1 Autore 1' }));
     await screen.findByRole('heading', { level: 1, name: 'Libro 1' });
     await waitFor(() => lampOn('book.where'));
-    act(() => state().pause());
+    act(() => state().wander());
     act(() => tourSignal('where-shown'));
     await waitFor(() => expect(state().step).toBe(2));
     expect(state().status).toBe('running');
+  });
+
+  it('after «Più tardi» the step stays put: a change of reading elsewhere does not bring the tour back', async () => {
+    show();
+    await userEvent.click(await screen.findByRole('link', { name: 'Libro 1 Autore 1' }));
+    await screen.findByRole('heading', { level: 1, name: 'Libro 1' });
+    act(() => tourSignal('where-shown'));
+    await waitFor(() => lampOn('book.reading'));
+    await userEvent.click(screen.getByRole('button', { name: 'Lo faccio dopo' }));
+    expect(state().status).toBe('paused');
+    await userEvent.click(await screen.findByRole('button', { name: 'Inizia a leggere' }));
+    await waitFor(() => expect(puts).toBe(1));
+    await new Promise((r) => setTimeout(r, 0));
+    expect(state().status).toBe('paused');
+    expect(state().step).toBe(2);
+    expect(tourSignal('reading-changed')).toBe(false);
   });
 });

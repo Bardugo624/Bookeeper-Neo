@@ -13,13 +13,18 @@ interface TourStore extends TourSnapshot {
   note: TourNote | null;
   /** Signals seen during the current step that were not the step's own; not remembered. */
   seen: readonly string[];
+  /** The pause came from a press elsewhere, not from «Più tardi» or Escape; not remembered. */
+  wandered: boolean;
   setNote(note: TourNote | null): void;
   bind(connectionId: string | null): void;
   start(path: TourPath, options?: { replay?: boolean }): void;
   pause(): void;
+  /** Pauses because the person pressed elsewhere: a step's own signal may still bring it back. */
+  wander(): void;
   resume(): void;
   skip(): void;
-  signal(name: string, data?: unknown): void;
+  /** Returns whether the signal completed the current step. */
+  signal(name: string, data?: unknown): boolean;
 }
 
 // Paths hold functions, so only their id is stored; whoever offers a path registers it.
@@ -35,7 +40,7 @@ export function registerTourPath(path: TourPath): void {
   if (isNew) useTourStore.setState((s) => ({ registryVersion: s.registryVersion + 1 }));
 }
 
-const INITIAL = { ...EMPTY_SNAPSHOT, connectionId: null as string | null, registryVersion: 0, note: null as TourNote | null, seen: [] as readonly string[] };
+const INITIAL = { ...EMPTY_SNAPSHOT, connectionId: null as string | null, registryVersion: 0, note: null as TourNote | null, seen: [] as readonly string[], wandered: false };
 
 /** Wakes the viewers of paths after something a path depends on changed (e.g. a phone can be paired). */
 export function touchTourPaths(): void {
@@ -60,7 +65,7 @@ export const useTourStore = create<TourStore>((set, get) => {
 
     bind(connectionId) {
       if (get().connectionId === connectionId && connectionId !== null) return;
-      set({ connectionId, ...(connectionId ? loadTour(connectionId) : EMPTY_SNAPSHOT) });
+      set({ connectionId, wandered: false, ...(connectionId ? loadTour(connectionId) : EMPTY_SNAPSHOT) });
     },
 
     start(path, options) {
@@ -73,15 +78,23 @@ export const useTourStore = create<TourStore>((set, get) => {
       if (s.status === 'running' || s.status === 'paused') {
         if (s.pathId === path.id && !options?.replay) return;
       }
-      set({ seen: [] });
+      set({ seen: [], wandered: false });
       commit({ pathId: path.id, step: 0, status: 'running' });
     },
 
     pause() {
-      set({ note: null });
+      set({ note: null, wandered: false });
       toStatus('running', 'paused');
     },
-    resume: () => toStatus('paused', 'running'),
+    wander() {
+      if (get().status !== 'running') return;
+      set({ note: null, wandered: true });
+      toStatus('running', 'paused');
+    },
+    resume() {
+      set({ wandered: false });
+      toStatus('paused', 'running');
+    },
 
     skip() {
       const { status } = get();
@@ -92,26 +105,27 @@ export const useTourStore = create<TourStore>((set, get) => {
     signal(name, data) {
       const s = get();
       const step = currentStep(s);
-      if (!step) return;
-      // A signal the step takes while paused brings the tour back first.
-      if (s.status === 'paused' && step.whilePaused && step.signal === name && (!step.accept || step.accept(data))) {
+      if (!step) return false;
+      // A press elsewhere may be the way to the step's action: its signal brings the tour back.
+      // A pause asked for («Più tardi», Escape) stays until «Primi passi».
+      if (s.status === 'paused' && s.wandered && step.whilePaused && step.signal === name && (!step.accept || step.accept(data))) {
+        set({ wandered: false });
         commit({ status: 'running' });
-        get().signal(name, data);
-        return;
+        return get().signal(name, data);
       }
-      if (s.status !== 'running') return;
+      if (s.status !== 'running') return false;
       if (step.signal !== name) {
         // Not the step's end, but the step may move its light because of it.
         if (!s.seen.includes(name)) set({ seen: [...s.seen, name] });
-        return;
+        return false;
       }
-      if (step.accept && !step.accept(data)) return;
+      if (step.accept && !step.accept(data)) return false;
       const path = s.pathId ? paths.get(s.pathId) : undefined;
-      if (path) {
-        set({ note: null, seen: [] });
-        commit(advance(s, path.steps.length));
-        if (get().status === 'done' && path.finale) set({ note: path.finale });
-      }
+      if (!path) return false;
+      set({ note: null, seen: [] });
+      commit(advance(s, path.steps.length));
+      if (get().status === 'done' && path.finale) set({ note: path.finale });
+      return true;
     },
   };
 });
@@ -120,9 +134,9 @@ function currentStep(s: TourSnapshot): TourStep | null {
   return (s.pathId ? paths.get(s.pathId)?.steps[s.step] : null) ?? null;
 }
 
-/** Tells the tour that something happened. Safe from any module at any time: nothing waits, nothing happens. */
-export function tourSignal(name: string, data?: unknown): void {
-  useTourStore.getState().signal(name, data);
+/** Tells the tour that something happened; says whether it completed the step. Safe from any module at any time. */
+export function tourSignal(name: string, data?: unknown): boolean {
+  return useTourStore.getState().signal(name, data);
 }
 
 /** Whether the running tour waits for this signal right now. */

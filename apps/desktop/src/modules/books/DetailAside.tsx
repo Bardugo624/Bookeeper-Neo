@@ -7,7 +7,7 @@ import { formatDate } from '../../kit';
 import { useActiveLoan } from '../loans';
 import { ReadingCard } from '../reading';
 import { wherePhrase } from '../shelves';
-import { tourAnchor, tourSignal, useTour } from '../tour';
+import { tourAnchor, tourNote, tourSignal, useTour } from '../tour';
 import { OwnerLine, ReadersBlock } from './DetailPeople';
 import { DetailTags } from './DetailTags';
 import { useShelfNames } from './useBook';
@@ -34,7 +34,9 @@ export function DetailAside({ book }: { book: BookOut }) {
   const asksWhere = useTour().current?.signal === 'where-shown';
   const unplaced = !placement;
   useEffect(() => {
-    if (unplaced && asksWhere) tourSignal('where-shown');
+    if (unplaced && asksWhere && tourSignal('where-shown')) {
+      tourNote({ titleKey: 'tour.explore.whereNone.title', textKey: 'tour.explore.whereNone.text' });
+    }
   }, [unplaced, asksWhere]);
   const shelfName = placement ? shelves.get(placement.shelf_id) : undefined;
   return (

@@ -98,6 +98,10 @@
       "title": "Dove si trova",
       "text": "Cerca un libro e aprilo: lì trovi «Mostra sullo scaffale»."
     },
+    "whereNone": {
+      "title": "Dove si trova",
+      "text": "Questo libro non è su nessuno scaffale, quindi non c'è un posto da mostrare. Per gli altri libri, «Mostra sullo scaffale» ti porta al mobile e al ripiano."
+    },
     "reading": {
       "title": "Segna cosa leggi",
       "text": "Dici se il libro è da leggere, in corso o finito: lo vedi solo tu."
