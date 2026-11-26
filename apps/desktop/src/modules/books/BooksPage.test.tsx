@@ -191,7 +191,9 @@ describe('card', () => {
   it('has an accessible name, goes to the detail and shows the loan label only when on loan', async () => {
     const books = [book(1, { authors: ['Ada', 'Bo'], on_loan: true }), book(2)];
     const { router } = renderBooks({ books });
-    const link = await screen.findByRole('link', { name: 'Libro 1, Ada, Bo' });
+    const link = await screen.findByRole('link', { name: 'Libro 1, Ada, Bo, In prestito' });
+    // 2.5.3: the name starts with the title and holds every visible word.
+    expect(link.getAttribute('aria-label')?.startsWith('Libro 1')).toBe(true);
     expect(within(link).getByText('Ada, Bo')).toBeInTheDocument();
     expect(within(link).getByText('In prestito')).toBeInTheDocument();
     expect(within(screen.getByRole('link', { name: 'Libro 2, Autore 2' })).queryByText('In prestito')).toBeNull();

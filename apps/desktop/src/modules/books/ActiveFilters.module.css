@@ -18,6 +18,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  min-height: 24px;
+  max-width: 100%;
   padding: 3px 8px 3px 10px;
   border: 1px solid var(--bk-accent-surface-strong);
   border-radius: 999px;
@@ -26,6 +28,13 @@
   font: inherit;
   font-size: 12px;
   cursor: pointer;
+}
+
+.chip > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .chip:hover {

@@ -8,7 +8,7 @@
   "card": {
     "title": "Lettura",
     "loading": "Caricamento dello stato di lettura",
-    "error": "Non riesco a leggere lo stato di lettura.",
+    "error": "Non riesco a leggere lo stato di lettura. Controlla la connessione e riprova.",
     "retry": "Riprova",
     "invite": "Lo stai leggendo?",
     "toRead": "Da leggere",

@@ -24,7 +24,7 @@
     "count": "{count} di {max} tag",
     "limit": "Hai raggiunto il limite di {max} tag.",
     "loading": "Caricamento dei tag…",
-    "failed": "Non riesco a leggere i tag.",
+    "failed": "Non riesco a leggere i tag. Controlla la connessione e riprova.",
     "none": "Nessun tag corrisponde.",
     "create": "Crea «{name}»",
     "newColor": "Colore del nuovo tag"
@@ -45,7 +45,7 @@
   "manage": {
     "title": "Gestisci tag",
     "loading": "Caricamento dei tag",
-    "error": "Non riesco a leggere i tag. Riprova più tardi.",
+    "error": "Non riesco a leggere i tag. Controlla la connessione e riapri questa finestra.",
     "empty": "Non ci sono ancora tag. Si creano dal modulo di un libro.",
     "list": "Tag della libreria",
     "name": "Nome di «{name}»",
