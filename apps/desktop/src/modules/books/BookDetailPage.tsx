@@ -7,7 +7,6 @@ import { useT } from '../../app';
 import { usePermission } from '../../kit';
 import { tourSignal } from '../tour';
 import { DetailAside } from './DetailAside';
-import { BookDangerZone } from './BookDangerZone';
 import { DetailToolbar } from './DetailToolbar';
 import { MarkReadButton } from '../reading';
 import { LendButton } from './LendButton';
@@ -84,7 +83,7 @@ export function BookDetailPage() {
     <div className={styles.page}>
       <div className={styles.bar}>
         {back}
-        {canWrite ? <DetailToolbar book={book} /> : null}
+        {canWrite ? <DetailToolbar book={book} listPath={listPath} /> : null}
       </div>
       <article className={styles.layout}>
         <div className={styles.cover}>
@@ -121,7 +120,6 @@ export function BookDetailPage() {
         </div>
         <DetailAside book={book} />
       </article>
-      {canWrite ? <BookDangerZone book={book} listPath={listPath} /> : null}
     </div>
   );
 }
