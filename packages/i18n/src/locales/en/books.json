@@ -33,8 +33,6 @@
     "onLoan": "On loan",
     "available": "At home",
     "unplaced": "Unshelved",
-    "cardName": "{title}, {author}",
-    "cardNameLoan": "{name}, {loan}",
     "columns": {
       "title": "Title",
       "author": "Author",

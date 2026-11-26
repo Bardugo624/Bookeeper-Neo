@@ -26,6 +26,7 @@
   "empty": {
     "title": "Nessun mobile",
     "text": "Crea un mobile per dire dove stanno i tuoi libri.",
+    "textReadOnly": "Nessun mobile ancora. Compariranno qui quando qualcuno con il permesso di scrivere li crea.",
     "create": "Crea il primo mobile"
   },
   "emptyUnit": {

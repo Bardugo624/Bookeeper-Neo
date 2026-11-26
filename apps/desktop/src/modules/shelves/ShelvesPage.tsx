@@ -65,7 +65,7 @@ export function ShelvesPage() {
       <EmptyState
         icon="library"
         title={t('shelves.empty.title')}
-        text={t('shelves.empty.text')}
+        text={t(canWrite ? 'shelves.empty.text' : 'shelves.empty.textReadOnly')}
         action={
           canWrite ? (
             <Button variant="primary" icon="plus" onClick={create}>

@@ -132,5 +132,5 @@ it('invites to mark a book as read when the year is empty', async () => {
 
 it('shows an error with retry', async () => {
   renderStats({ stats: stats(), readingFails: true }, 'it', '/stats?tab=reading');
-  expect(await screen.findByText('Impossibile caricare la lettura')).toBeInTheDocument();
+  expect(await screen.findByText('Qualcosa non ha funzionato')).toBeInTheDocument();
 });

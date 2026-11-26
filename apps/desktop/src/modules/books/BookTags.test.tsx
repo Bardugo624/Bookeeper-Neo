@@ -64,7 +64,7 @@ describe('list', () => {
   it('reads ?tag= and sends it as tag_id', async () => {
     const other = book(2, { title: 'Altro' });
     const { platform } = renderBooks({ books: [tagged(1), other] }, '/books?tag=t1');
-    await screen.findByRole('link', { name: 'Dune, Autore 1' });
+    await screen.findByRole('link', { name: 'Dune Autore 1' });
     expect(screen.queryByRole('link', { name: /Altro/ })).toBeNull();
     expect(listCalls(platform).filter((p) => p.get('limit') === '60').map((p) => p.getAll('tag_id'))).toEqual([['t1']]);
   });
@@ -76,7 +76,7 @@ describe('list', () => {
     expect(within(table).getByRole('link', { name: 'Fantasy' })).toBeInTheDocument();
     unmount();
     renderBooks({ books: [tagged()] }, '/books?view=grid');
-    await screen.findByRole('link', { name: 'Dune, Autore 1' });
+    await screen.findByRole('link', { name: 'Dune Autore 1' });
     expect(screen.queryByRole('link', { name: 'Fantasy' })).toBeNull();
   });
 });
@@ -141,7 +141,7 @@ describe('manage tags', () => {
 
   it('has no entry point without write permission', async () => {
     renderBooks({ books: makeDb(1), role: 'guest', extra: tagHandler({ tags: [...TAGS] }) });
-    await screen.findByRole('link', { name: 'Libro 1, Autore 1' });
+    await screen.findByRole('link', { name: 'Libro 1 Autore 1' });
     expect(screen.queryByRole('button', { name: 'Altro' })).toBeNull();
   });
 });

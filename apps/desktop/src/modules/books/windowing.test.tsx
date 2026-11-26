@@ -40,7 +40,7 @@ async function loadAll(platform: Parameters<typeof listCalls>[0], n: number) {
 }
 
 const cards = () => within(screen.getByRole('list', { name: 'Libri' })).getAllByRole('listitem');
-const titles = (items: HTMLElement[]) => items.map((li) => li.querySelector('a')?.getAttribute('aria-label') ?? '');
+const titles = (items: HTMLElement[]) => items.map((li) => [...(li.querySelector('a')?.querySelectorAll('span') ?? [])].filter((s) => !s.closest('[aria-hidden]')).map((s) => s.textContent).join(' ').trim());
 
 describe('visibleRows', () => {
   it('keeps a margin of rows around the viewport and stays inside the list', () => {
@@ -53,43 +53,43 @@ describe('visibleRows', () => {
 describe('long grid', () => {
   it('renders only the cards near the viewport, wherever the page is scrolled', async () => {
     const { platform } = renderBooks({ books: makeDb(2000) });
-    await screen.findByRole('link', { name: 'Libro 1, Autore 1' });
+    await screen.findByRole('link', { name: 'Libro 1 Autore 1' });
     await loadAll(platform, 2000);
     // 1000px wide: 6 cards per row, 334 rows.
     expect(cards().length).toBeLessThanOrEqual(200);
-    expect(screen.getByRole('link', { name: 'Libro 1, Autore 1' })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Libro 2000, Autore 2000' })).toBeNull();
+    expect(screen.getByRole('link', { name: 'Libro 1 Autore 1' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Libro 2000 Autore 2000' })).toBeNull();
     const list = screen.getByRole('list', { name: 'Libri' });
     expect(parseFloat(list.style.height)).toBe(334 * CARD_HEIGHT + 333 * 28);
 
     scrollTo(100 * (CARD_HEIGHT + 28));
     expect(cards().length).toBeLessThanOrEqual(200);
-    expect(screen.getByRole('link', { name: 'Libro 601, Autore 601' })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Libro 1, Autore 1' })).toBeNull();
+    expect(screen.getByRole('link', { name: 'Libro 601 Autore 601' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Libro 1 Autore 1' })).toBeNull();
 
     scrollTo(333 * (CARD_HEIGHT + 28));
     expect(cards().length).toBeLessThanOrEqual(200);
-    expect(screen.getByRole('link', { name: 'Libro 2000, Autore 2000' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Libro 2000 Autore 2000' })).toBeInTheDocument();
   });
 
   it('keeps the card that has the focus, even far from the window', async () => {
     const { platform } = renderBooks({ books: makeDb(2000) });
-    await screen.findByRole('link', { name: 'Libro 1, Autore 1' });
+    await screen.findByRole('link', { name: 'Libro 1 Autore 1' });
     await loadAll(platform, 2000);
-    const first = screen.getByRole('link', { name: 'Libro 1, Autore 1' });
+    const first = screen.getByRole('link', { name: 'Libro 1 Autore 1' });
     act(() => first.focus());
     scrollTo(300 * (CARD_HEIGHT + 28));
-    expect(screen.getByRole('link', { name: 'Libro 1, Autore 1' })).toBe(first);
+    expect(screen.getByRole('link', { name: 'Libro 1 Autore 1' })).toBe(first);
     expect(document.activeElement).toBe(first);
     expect(cards().length).toBeLessThanOrEqual(200);
-    expect(titles(cards())).toContain('Libro 1801, Autore 1801');
+    expect(titles(cards())).toContain('Libro 1801 Autore 1801');
     act(() => first.blur());
-    expect(screen.queryByRole('link', { name: 'Libro 1, Autore 1' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Libro 1 Autore 1' })).toBeNull();
   });
 
   it('selects a range across rows that are not rendered', async () => {
     const { platform } = renderBooks({ books: makeDb(2000) });
-    await screen.findByRole('link', { name: 'Libro 1, Autore 1' });
+    await screen.findByRole('link', { name: 'Libro 1 Autore 1' });
     await loadAll(platform, 2000);
     await userEvent.click(screen.getByRole('button', { name: 'Seleziona' }));
     await userEvent.click(screen.getByRole('checkbox', { name: 'Seleziona «Libro 1»' }));

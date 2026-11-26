@@ -31,7 +31,7 @@ describe('active filters', () => {
 
   it('removes one filter at a time, then everything', async () => {
     const { platform, router } = renderBooks(lib(), '/books?genre=Giallo&language=it&format=paperback');
-    await screen.findByRole('link', { name: 'Libro 1, Autore 1' });
+    await screen.findByRole('link', { name: 'Libro 1 Autore 1' });
     await userEvent.click(screen.getByRole('button', { name: 'Togli il filtro: Genere: Giallo' }));
     await waitFor(() => expect(last(platform).get('genre')).toBeNull());
     expect(last(platform).get('language')).toBe('it');
@@ -73,13 +73,13 @@ describe('active filters', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Togli il filtro: Tag: Preferiti' }));
     expect(new URLSearchParams(router.state.location.search).get('q')).toBeNull();
     expect(new URLSearchParams(router.state.location.search).get('genre')).toBe('Giallo');
-    await screen.findByRole('link', { name: 'Libro 1, Autore 1' });
+    await screen.findByRole('link', { name: 'Libro 1 Autore 1' });
   });
 
   it('"Clear search and filters" empties the address', async () => {
     const { router } = renderBooks(lib(), '/books?q=zzz&genre=Giallo&sort=title');
     await userEvent.click(await screen.findByRole('button', { name: 'Azzera ricerca e filtri' }));
-    await screen.findByRole('link', { name: 'Libro 1, Autore 1' });
+    await screen.findByRole('link', { name: 'Libro 1 Autore 1' });
     expect(router.state.location.search).toBe('?sort=title');
   });
 });
@@ -100,7 +100,7 @@ describe('address', () => {
 
   it('ignores invalid values without an error', async () => {
     const { platform } = renderBooks(lib(), '/books?reading=zzz&year_from=abc&acquired_to=32-13-2024&sort=bogus&order=up&tag=');
-    await screen.findByRole('link', { name: 'Libro 1, Autore 1' });
+    await screen.findByRole('link', { name: 'Libro 1 Autore 1' });
     const p = last(platform);
     for (const k of ['reading', 'year_from', 'acquired_to', 'sort', 'order', 'tag_id']) expect(p.has(k)).toBe(false);
     expect(screen.getByRole('button', { name: 'Filtri' })).toBeInTheDocument();
@@ -114,7 +114,7 @@ describe('address', () => {
 
   it('does not open "New book" for a guest, but still drops the parameter', async () => {
     const { router } = renderBooks({ ...lib(), role: 'guest' }, '/books?new=1');
-    await screen.findByRole('link', { name: 'Libro 1, Autore 1' });
+    await screen.findByRole('link', { name: 'Libro 1 Autore 1' });
     await waitFor(() => expect(router.state.location.search).toBe(''));
     expect(screen.queryByRole('dialog')).toBeNull();
   });

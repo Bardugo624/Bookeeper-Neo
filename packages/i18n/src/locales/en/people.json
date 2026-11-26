@@ -5,10 +5,6 @@
     "other": "{count} people"
   },
   "loading": "Loading people",
-  "error": {
-    "title": "Couldn't load the people",
-    "text": "The list couldn’t be read because the server didn’t respond. Check your connection and try again; if it keeps happening, ask whoever runs the server."
-  },
   "you": "You",
   "roles": {
     "owner": "Owner",
@@ -93,7 +89,7 @@
     "by": "Created by {name}",
     "expires": "expires on {date}",
     "revoke": "Revoke",
-    "revokeLabel": "Revoke the invitation as {role}",
+    "revokeLabel": "Revoke the {role} invitation, expires {date}",
     "error": "The pending invitations couldn’t be loaded. Try again in a moment.",
     "retry": "Try again"
   }

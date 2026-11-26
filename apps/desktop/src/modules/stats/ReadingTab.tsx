@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Button, EmptyState, Skeleton } from '@bookeeper/ui/base';
+import { ErrorState } from '../../kit';
 import { StatCard } from '@bookeeper/ui/book';
 import { Select } from '@bookeeper/ui/overlays';
 import { useLocale, useT } from '../../app';
@@ -19,7 +20,7 @@ export function ReadingTab({ year, onYear }: { year: number; onYear: (year: numb
   const locale = useLocale();
   const navigate = useNavigate();
   const [posterOpen, setPosterOpen] = useState(false);
-  const { data, isPending, isError, refetch } = useReadingStats(year || undefined);
+  const { data, isPending, isError, error, refetch } = useReadingStats(year || undefined);
 
   if (isPending) {
     return (
@@ -35,12 +36,7 @@ export function ReadingTab({ year, onYear }: { year: number; onYear: (year: numb
   }
   if (isError) {
     return (
-      <EmptyState
-        icon="alert"
-        title={t('stats.reading.error.title')}
-        text={t('stats.reading.error.text')}
-        action={<Button onClick={() => void refetch()}>{t('common.retry')}</Button>}
-      />
+      <ErrorState error={error} onRetry={() => void refetch()} />
     );
   }
 

@@ -61,7 +61,7 @@ export function DetailAside({ book }: { book: BookOut }) {
         </h2>
         {book.on_loan ? (
           <>
-            <Tag tone="warn">{t('books.detail.loans.onLoan')}</Tag>
+            <Tag tone="warn" className={styles.tag}>{t('books.detail.loans.onLoan')}</Tag>
             <LoanLine bookId={book.id} />
             <Link className={styles.link} to={`/loans?book=${encodeURIComponent(book.id)}`}>
               {t('books.detail.loans.open')}

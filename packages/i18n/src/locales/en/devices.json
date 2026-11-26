@@ -2,7 +2,6 @@
   "title": "Devices",
   "count": { "one": "{count} connected device", "other": "{count} connected devices" },
   "loading": "Loading devices",
-  "error": { "title": "Couldn't load the devices", "text": "The list couldn’t be read because the server didn’t respond. Check your connection and try again; if it keeps happening, ask whoever runs the server." },
   "revokedSection": "Revoked ({count})",
   "kind": { "desktop": "Computer", "mobile": "Phone" },
   "card": {
