@@ -83,9 +83,10 @@ I dati stanno nel volume `bookeeper-data`. `docker compose down` li lascia; `doc
 
 ## Con il binario
 
-Scarica l'archivio del tuo sistema dalla [pagina delle release](https://github.com/Bardugo624/Bookeeper-Neo/releases), scompattalo e avvia:
+Scarica l'archivio del tuo sistema dalla [pagina delle release](https://github.com/Bardugo624/Bookeeper-Neo/releases), scompattalo, entra nella cartella `bookeeper-server-<versione>-<sistema>/` e avvia:
 
 ```bash
+cd bookeeper-server-*/
 ./bookeeper-server
 ```
 
@@ -96,20 +97,20 @@ Codice di setup: Z968-7D4R-VEWU
 Bookeeper 2.0.0-beta.1 in ascolto su http://0.0.0.0:7842
 ```
 
-Altri comandi utili:
+Altri comandi utili. `setup-code` e `fingerprint` leggono la cartella dati da `--data-dir` (o da `BOOKEEPER_DATA`): deve essere quella del server in esecuzione, altrimenti usano un altro database.
 
 ```bash
 ./bookeeper-server --version
 ./bookeeper-server --help
 ./bookeeper-server --data-dir /var/lib/bookeeper --port 8080
 ./bookeeper-server healthcheck      # esce con 0 se il server risponde
-./bookeeper-server setup-code       # stampa un nuovo codice di setup
-./bookeeper-server fingerprint      # impronta del certificato `self`
+./bookeeper-server setup-code --data-dir ./data   # stampa un nuovo codice di setup
+./bookeeper-server fingerprint --data-dir ./data  # impronta del certificato `self`
 ```
 
-Nella cartella dati ci sono `bookeeper.sqlite` (i dati), `covers/` (le copertine) e `backups/` (i backup automatici). Con `--tls self` c'è anche `tls/`.
+Nella cartella dati ci sono `bookeeper.sqlite` (i dati), `covers/` (le copertine) e `backups/` (i backup automatici). Con `--tls self` c'è anche `tls/`; con `acme` la cache dei certificati sta in `tls/acme`.
 
-Con `acme` la porta 443 è privilegiata. Su Linux dai al binario il permesso con `sudo setcap cap_net_bind_service=+ep /usr/local/bin/bookeeper-server`, oppure metti un proxy davanti.
+Con `acme` la porta 443 è privilegiata. Con il servizio systemd qui sotto aggiungi `AmbientCapabilities=CAP_NET_BIND_SERVICE` alla sezione `[Service]` (il permesso sul file con `setcap` non basta, perché `NoNewPrivileges=true` lo ignora). Oppure metti un proxy davanti.
 
 ### Come servizio di sistema (systemd)
 
@@ -173,11 +174,11 @@ Qualunque altro proxy va bene, purché giri le richieste a `127.0.0.1:7842` e se
 
 ## Primo avvio
 
-1. Avvia il server e leggi il **codice di setup** (nei log, o con `bookeeper-server setup-code`). Il codice compare all'avvio finché non esiste alcuna libreria.
+1. Avvia il server e leggi il **codice di setup** (nei log; con Docker `docker compose logs bookeeper`). Se serve un codice nuovo: `docker compose exec bookeeper /usr/local/bin/bookeeper-server setup-code`, oppure con il servizio systemd `sudo -u bookeeper bookeeper-server setup-code --data-dir /var/lib/bookeeper`. Il codice compare all'avvio finché non esiste alcuna libreria.
 2. Apri l'app desktop e scegli **Crea su un server**. Scrivi l'indirizzo, il codice di setup, il nome della libreria, il tuo nome, email e password. Il tuo computer è abbinato e tu sei il proprietario.
 3. **Aggiungere un dispositivo** (per te): nella sezione Dispositivi della barra laterale scegli «Aggiungi un computer» o «Aggiungi un telefono». Compare un codice di 8 caratteri, valido 10 minuti, usabile una volta. Per il telefono c'è anche il QR: apre la PWA e abbina senza digitare. Il pulsante del telefono compare solo se il server ha un HTTPS valido.
 4. **Aggiungere persone**: nella sezione Persone invita un familiare con un ruolo (admin, membro, ospite). Chi riceve l'invito sceglie nome, email e password.
-5. Con `--tls self`, la prima volta che un computer si unisce vede una **frase di verifica**. Deve essere uguale a quella che stampa il server con `bookeeper-server fingerprint`.
+5. Con `--tls self`, la prima volta che un computer si unisce vede una **frase di verifica**. Deve essere uguale a quella che stampa il server con `fingerprint` (con systemd: `sudo -u bookeeper bookeeper-server fingerprint --data-dir /var/lib/bookeeper`; con Docker: `docker compose exec bookeeper /usr/local/bin/bookeeper-server fingerprint`).
 
 ## Aggiornare il server
 
@@ -202,7 +203,7 @@ I dati restano nella cartella dati o nel volume. Fai un backup prima di una vers
 
 Il server fa da solo un **backup automatico** ogni 3 giorni e tiene gli ultimi 5, in `backups/` dentro la cartella dati. Intervallo e numero si cambiano dalla sezione Backup delle Impostazioni. Con intervallo 0 i backup automatici sono spenti.
 
-Dalla stessa sezione puoi anche creare un backup a mano: è un file `.zip` con libri, scaffali, prestiti, lista dei desideri e copertine. Conservalo fuori dal server.
+Dalla stessa sezione puoi anche creare un backup a mano: è un file `.zip` con libri, scaffali, stanze, etichette, prestiti, stato di lettura, lista dei desideri e copertine. Conservalo fuori dal server.
 
 Il **ripristino** si fa dalla stessa pagina («Ripristina da file…»). Lo può fare solo il proprietario e sostituisce tutti i dati attuali della libreria. Non si può annullare.
 

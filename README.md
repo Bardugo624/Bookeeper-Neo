@@ -14,7 +14,7 @@ Scarica tutto dalla [pagina delle release](https://github.com/Bardugo624/Bookeep
 
 - **App desktop**: scarica l'installatore del tuo sistema (`Bookeeper_*`), avvialo e scegli «Crea qui».
 - **Server con Docker**: `docker compose up -d`, poi apri `http://<indirizzo>:7842`. Il codice di setup si legge con `docker compose logs bookeeper`.
-- **Server come binario**: scarica `bookeeper-server-<versione>-<sistema>.tar.gz` (`.zip` su Windows), scompattalo e avvia `./bookeeper-server`.
+- **Server come binario**: scarica `bookeeper-server-<versione>-<sistema>.tar.gz` (`.zip` su Windows), scompattalo, entra nella cartella e avvia `./bookeeper-server`.
 
 Tutti i dettagli (HTTPS, proxy, servizio di sistema, backup, aggiornamenti) sono in [docs/deploy.md](docs/deploy.md).
 
