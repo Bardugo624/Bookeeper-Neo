@@ -135,12 +135,19 @@ approvati qui sotto). Regole:
 
 ## Zona pericolosa
 
-Le operazioni pericolose o irreversibili stanno in una **zona pericolosa** con
-contorni evidenti e tinte rosse, in ogni interfaccia, impostazioni comprese.
-Modalità Operate: evidente, non urlata; il rosso dice «attenzione», non «errore».
+Decisione del proprietario: il rosso non resta sempre in vista. Compare quando
+si preme per un'operazione pericolosa o irreversibile, nel pop-up di conferma.
+L'unica eccezione sono le impostazioni, dove le operazioni pericolose stanno
+fisse in una **zona pericolosa**. Modalità Operate: evidente, non urlata; il
+rosso dice «attenzione», non «errore».
 
-- **Dove**: in fondo alla superficie (sezione delle impostazioni, pagina di
-  dettaglio, pannello, foglio del telefono).
+- **Dove sta la zona fissa**: solo in fondo alle sezioni delle Impostazioni del
+  desktop (ripristino da file, esci da questo dispositivo, condivisione) e
+  dell'Account del telefono (scollega questo telefono).
+- **Altrove** (scheda del libro, selezione, mobili e stanze, prestiti,
+  wishlist, tag, persone, dispositivi) l'azione resta al suo posto, in un menu o
+  in un bottone normale, senza rosso; premendola si apre la conferma
+  `tone="danger"`, che dice la conseguenza.
 - **`DangerZone`** (`base`): `<section>` col nome dal titolo; contorno
   `1px solid --bk-danger`, fondo `--bk-danger-bg`, raggio `--bk-radius`; icona
   `alert` e titolo in `--bk-danger-strong`, descrizione facoltativa; livello del
@@ -155,7 +162,8 @@ Modalità Operate: evidente, non urlata; il rosso dice «attenzione», non «err
   tone="danger"` (contorno `2px --bk-danger`, icona `alert` prima del titolo) e
   dice la conseguenza. `ConfirmDialog` con `tone="danger"` lo fa da sé.
 - **Toni `danger`**: `Button` (`ghost`, `secondary`) e `IconButton` hanno
-  `tone="danger"` per i comandi leggeri pericolosi fuori dalla zona.
+  `tone="danger"`, ma i comandi che aprono una conferma restano neutri: il
+  rosso sta nella conferma.
 - **Quando NON si usa**: solo per ciò che distrugge, revoca, sostituisce o fa
   perdere l'accesso. Mai per azioni che si annullano senza danno.
 
