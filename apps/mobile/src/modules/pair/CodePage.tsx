@@ -16,7 +16,7 @@ export function CodePage() {
   const formId = useId();
   const [code, setCode] = useState('');
   const [name, setName] = useState(() => platform.deviceName());
-  const { loading, error, invite, submit, join } = usePairing();
+  const { loading, error, invite, submit, join, leaveInvite } = usePairing();
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -24,7 +24,7 @@ export function CodePage() {
   };
 
   if (invite) {
-    return <InviteStep info={invite} loading={loading} error={error} onJoin={(n) => void join(n, name)} />;
+    return <InviteStep info={invite} loading={loading} error={error} onJoin={(n) => void join(n, name)} onBack={leaveInvite} />;
   }
 
   return (

@@ -79,10 +79,16 @@ export function WishSheet({ wish, onClose }: { wish: WishOut; onClose: () => voi
         <Button variant="primary" icon="check" onClick={() => void doConvert()} loading={convert.isPending} loadingLabel={t('mwishlist.convert.working')}>
           {t('mwishlist.convert.button')}
         </Button>
-        <Button variant="secondary" icon="pencil" onClick={() => setStep('edit')} disabled={busy}>
+        <Button variant="secondary" icon="pencil" onClick={() => {
+            setError(null);
+            setStep('edit');
+          }} disabled={busy}>
           {t('mwishlist.edit.button')}
         </Button>
-        <Button variant="danger" icon="trash" onClick={() => setStep('delete')} disabled={busy}>
+        <Button variant="danger" icon="trash" onClick={() => {
+            setError(null);
+            setStep('delete');
+          }} disabled={busy}>
           {t('mwishlist.delete.button')}
         </Button>
       </div>

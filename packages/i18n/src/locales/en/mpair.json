@@ -48,7 +48,8 @@
     "label": "Your name",
     "hint": "This is the name the others in the library will see.",
     "action": "Join",
-    "busy": "Joining…"
+    "busy": "Joining…",
+    "back": "Back"
   },
   "roles": {
     "owner": "Owner",

@@ -48,7 +48,8 @@
     "label": "Il tuo nome",
     "hint": "È il nome che vedranno gli altri della libreria.",
     "action": "Entra",
-    "busy": "Accesso in corso…"
+    "busy": "Accesso in corso…",
+    "back": "Indietro"
   },
   "roles": {
     "owner": "Proprietario",
