@@ -42,12 +42,23 @@ export function ShelfBand(props: ShelfBandProps) {
     setLeft(at ? at.offsetLeft : last ? last.offsetLeft + last.offsetWidth : 0);
   }, [index, row.books, props.pickedId]);
 
-  // Bring the pulled spine into view when it changes.
+  // Bring the pulled spine into view when `pulledId` changes, or when its spine first appears
+  // (data arrived late). A reload of the same books must not scroll again.
+  const scrolledTo = useRef<string | undefined>(undefined);
+  const lastPulled = useRef<string | undefined>(undefined);
   useEffect(() => {
-    if (!props.pulledId || !strip.current) return;
+    if (lastPulled.current !== props.pulledId) {
+      // A new target (even one on another shelf) must scroll again when it comes back.
+      lastPulled.current = props.pulledId;
+      scrolledTo.current = undefined;
+    }
+    if (!props.pulledId) return;
+    if (!strip.current || scrolledTo.current === props.pulledId) return;
     const el = visibleSpines(strip.current, null).find((s) => s.dataset.spineId === props.pulledId);
+    if (!el) return;
+    scrolledTo.current = props.pulledId;
     const reduced = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    el?.scrollIntoView?.({ block: 'nearest', inline: 'nearest', behavior: reduced ? 'auto' : 'smooth' });
+    el.scrollIntoView?.({ block: 'nearest', inline: 'nearest', behavior: reduced ? 'auto' : 'smooth' });
   }, [props.pulledId, row.books]);
 
   const indexAt = (clientX: number) => {

@@ -190,6 +190,8 @@
     "unit": "Mobile",
     "none": "«{title}» · Non è su nessuno scaffale",
     "place": "Colloca in…",
+    "gone": "Questo libro non c'è più",
+    "error": "Impossibile trovare il libro",
     "done": "Fatto"
   }
 }

@@ -1,7 +1,7 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
-import { book, renderShelves, shelf, type World } from './testkit';
+import { book, renderShelves, room, shelf, type World } from './testkit';
 
 function world(over: Partial<World> = {}): World {
   return {
@@ -53,5 +53,24 @@ describe('where is it', () => {
     renderShelves(world({ role: 'guest' }), '/shelves?unit=s1&book=u1');
     expect(await screen.findByText('«Libro u1» · Non è su nessuno scaffale')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Colloca in…' })).toBeNull();
+  });
+
+  it('says so when the book no longer exists, and "Fatto" closes the line', async () => {
+    const { router } = renderShelves(world(), '/shelves?unit=s1&book=zz');
+    expect(await screen.findByText("Questo libro non c'è più")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Fatto' }));
+    expect(router.state.location.search).toBe('?unit=s1');
+    expect(screen.queryByText("Questo libro non c'è più")).toBeNull();
+  });
+
+  it('wins over a room filter: the filter is lifted and the right unit opens', async () => {
+    const w = world({
+      rooms: [room('r1', 'Salotto'), room('r2', 'Studio')],
+      shelves: [shelf(1, { room_id: 'r1' }), shelf(2, { room_id: 'r2' })],
+    });
+    const { router } = renderShelves(w, '/shelves?room=r1&unit=s2&book=c1');
+    expect(await screen.findByText('«Libro c1» · Mobile 2 · ripiano 1 · posto 4')).toBeInTheDocument();
+    expect(router.state.location.search).not.toContain('room=');
+    expect(router.state.location.search).toContain('unit=s2');
   });
 });

@@ -646,8 +646,8 @@ pub async fn shelf_books(
         (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
         (status = 403, description = "forbidden: role too low", body = ApiErrorBody),
         (status = 404, description = "not_found: unknown book or shelf", body = ApiErrorBody),
-        (status = 409, description = "slot_taken: slot occupied (without shift); row_full: shift has no free slot to the right", body = ApiErrorBody),
-        (status = 422, description = "validation: slot outside the shelf or bad spine_width", body = ApiErrorBody),
+        (status = 409, description = "slot_taken: slot occupied (without shift); row_full: shift has no free slot to the right, or appending to a row whose last slot is occupied", body = ApiErrorBody),
+        (status = 422, description = "validation: slot outside the shelf, bad spine_width, or shift without slot_index", body = ApiErrorBody),
     )
 )]
 pub async fn place_book(
@@ -677,21 +677,27 @@ pub async fn place_book(
             Some(slot) => slot,
             None => {
                 // Chosen inside the transaction that writes it.
-                let here: Option<i64> = tx
+                let here: Option<(i64, Option<i64>)> = tx
                     .query_row(
-                        "SELECT slot_index FROM shelf_books \
+                        "SELECT slot_index, spine_width FROM shelf_books \
                          WHERE book_id = ?1 AND shelf_id = ?2 AND row_index = ?3",
                         params![id, shelf.id, body.row_index],
-                        |r| r.get(0),
+                        |r| Ok((r.get(0)?, r.get(1)?)),
                     )
                     .optional()?;
-                if let Some(slot) = here {
-                    if let Some(w) = spine {
+                if let Some((slot, old_width)) = here {
+                    // The position stays; a width named in the request is applied.
+                    if let Some(w) = spine.filter(|w| *w != old_width) {
                         tx.execute(
                             "UPDATE shelf_books SET spine_width = ?1, updated_at = ?2 \
                              WHERE book_id = ?3",
                             params![w, now, id],
                         )?;
+                        let detail = serde_json::json!({
+                            "shelf_id": shelf.id, "row_index": body.row_index,
+                            "slot_index": slot
+                        });
+                        audit::record(&tx, &user, "shelf.place", "book", &id, Some(&detail), now)?;
                         tx.commit()?;
                     }
                     return Ok(Placement {

@@ -44,7 +44,10 @@ export function useShelvesView() {
   const books = useShelfBooks(shelf?.id);
   const [search, setSearch] = useState('');
   const unshelved = useUnshelved(useDebounced(search));
-  const where = useWhere(params.values.book, shelf, books.data?.items, (unit) => params.set({ unit }));
+  const where = useWhere(params.values.book, shelf, books.data?.items, (unit) =>
+    // "Where is it?" wins over the room filter: a filter that hides the unit is lifted.
+    params.set({ unit, ...(roomId && !shelves.some((s) => s.id === unit) ? { room: '' } : {}) }),
+  );
   const doneWhere = useCallback(() => params.set({ book: '' }), [params]);
   const placement = usePlacement();
   const moves = useMoveWrites();
@@ -83,6 +86,7 @@ export function useShelvesView() {
   const dropOnTab = async (bookId: string, unitId: string) => {
     const target = all.find((s) => s.id === unitId);
     if (!target) return;
+    if (moves.busy) return;
     const here = unitId === shelf?.id && books.data?.items.some((b) => b.book_id === bookId);
     if (here) return;
     const fresh = unshelved.data?.items.find((b) => b.id === bookId);
@@ -179,7 +183,7 @@ export function useShelvesView() {
     moveSpine,
     setWidth,
     widthOf: (id: string) => bookOf(id)?.spine_width ?? null,
-    placing: placement.busy,
+    placing: placement.busy || moves.busy,
     removeFromShelf,
     save,
     confirmDelete,

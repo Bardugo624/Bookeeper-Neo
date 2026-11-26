@@ -190,6 +190,8 @@
     "unit": "Unit",
     "none": "“{title}” · Not on any shelf",
     "place": "Place in…",
+    "gone": "This book no longer exists",
+    "error": "Could not find the book",
     "done": "Done"
   }
 }

@@ -56,6 +56,23 @@ describe('dragging onto a cabinet tab', () => {
     expect(await screen.findByRole('button', { name: 'Libro u1, Autore u1' })).toBeInTheDocument();
   });
 
+  it('takes no second drop while the first is being written', async () => {
+    let open!: () => void;
+    const w = world({ gate: new Promise<void>((r) => (open = r)) });
+    const { platform } = renderShelves(w, '/shelves?unit=s2');
+    await screen.findByRole('button', { name: 'Libro c1, Autore c1' });
+    dropOnTab('Mobile 1', 'u1');
+    await waitFor(() => expect(placeBodies(platform)).toHaveLength(1));
+    dropOnTab('Mobile 1', 'u1');
+    open();
+    await waitFor(() => expect(w.spots.u1).toBeDefined());
+    // One drop: the first row is full, so it asked the second; the second drop asked nothing.
+    expect(placeBodies(platform)).toEqual([
+      { shelf_id: 's1', row_index: 0 },
+      { shelf_id: 's1', row_index: 1 },
+    ]);
+  });
+
   it('moves a placed book of another cabinet the same way', async () => {
     const w = world();
     renderShelves(w, '/shelves?unit=s1');

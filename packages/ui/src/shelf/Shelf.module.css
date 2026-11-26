@@ -25,7 +25,8 @@
     display: flex;
     align-items: flex-end;
     gap: 2px;
-    height: 132px;
+    /* 6px top padding + 126px of spines + room for the pulled spine. */
+    height: calc(132px + var(--pull-room, 12px));
     padding: 6px 6px var(--pull-room, 12px);
     overflow-x: auto;
     overflow-y: hidden;
@@ -158,7 +159,7 @@
     }
 
     .spine[data-pulled]::after {
-        animation: spine-pulse 700ms var(--bk-ease) 3 both;
+        animation: spine-pulse calc(var(--bk-dur-slow) * 2.5) var(--bk-ease) 3 both;
     }
 
     @keyframes spine-pulse {

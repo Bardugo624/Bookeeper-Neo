@@ -1,7 +1,9 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { book, listCalls, renderSearch, type Api } from './testkit';
+
+afterEach(() => vi.restoreAllMocks());
 
 const tagged = (n: number, ...ids: string[]) =>
   book(n, { tags: ids.map((id) => ({ id, name: `Nome ${id}`, color: 'sage' })) } as never);
