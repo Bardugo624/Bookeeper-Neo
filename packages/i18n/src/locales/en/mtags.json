@@ -1,0 +1,16 @@
+{
+  "title": "Tags",
+  "none": "No tags.",
+  "edit": "Edit tags",
+  "sheet": {
+    "title": "Book tags",
+    "filter": "Filter or create a tag",
+    "list": "Library tags",
+    "loading": "Loading tags…",
+    "loadError": "Could not read the tags.",
+    "retry": "Retry",
+    "empty": "No tags.",
+    "create": "Create “{name}”",
+    "save": "Save"
+  }
+}
