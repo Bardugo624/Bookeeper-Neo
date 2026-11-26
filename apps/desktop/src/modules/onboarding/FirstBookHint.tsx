@@ -1,6 +1,7 @@
 import { Link } from 'react-router';
 import { Button, Icon } from '@bookeeper/ui/base';
 import { useT } from '../../app/i18n';
+import { tourAnchor } from '../tour';
 import styles from './FirstBookHint.module.css';
 
 export interface FirstBookHintProps {
@@ -29,7 +30,7 @@ export function FirstBookHint({ onAdd }: FirstBookHintProps) {
           <Link to="/devices">{t('onboarding.hint.steps.devices')}</Link>
         </li>
       </ol>
-      <Button variant="primary" onClick={(e) => onAdd(e.currentTarget)}>
+      <Button {...tourAnchor('books.addFirst')} variant="primary" onClick={(e) => onAdd(e.currentTarget)}>
         {t('onboarding.hint.add')}
       </Button>
     </section>

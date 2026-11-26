@@ -17,5 +17,32 @@
     "done": "done",
     "current": "current",
     "todo": "to do"
+  },
+  "gotIt": "Got it",
+  "firstBook": {
+    "nav": {
+      "title": "Add a book you have nearby",
+      "text": "Open Books: your library starts there."
+    },
+    "addFirst": {
+      "title": "Add a book you have nearby",
+      "text": "Press “Add the first book” and pick a book within reach."
+    },
+    "add": {
+      "title": "Add a book you have nearby",
+      "text": "Press “Add” at the top and pick a book within reach."
+    },
+    "isbn": {
+      "title": "Where is the ISBN",
+      "text": "The ISBN is on the back of the book, above the barcode. If you can't find it, you can also “Enter by hand”."
+    },
+    "save": {
+      "title": "Check the details and save",
+      "text": "Take a look at the book's details, then press “Save”."
+    },
+    "landed": {
+      "title": "Your first book",
+      "text": "{title} is the first book in your library."
+    }
   }
 }

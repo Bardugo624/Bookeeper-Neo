@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button, Field, Input } from '@bookeeper/ui/base';
 import { useT } from '../../app';
+import { tourAnchor } from '../tour';
 import { parseIsbn } from './isbn';
 import styles from './BookForm.module.css';
 import { useIsbnLookup, type LookupOutcome } from './useIsbnLookup';
@@ -34,7 +35,7 @@ export function IsbnStep({ onDone }: IsbnStepProps) {
       noValidate
     >
       <Field label={t('books.lookup.isbn')} description={t('books.lookup.hint')} error={invalid ? t('books.lookup.invalid') : undefined}>
-        <Input name="isbn" inputMode="numeric" value={raw} autoFocus onChange={(e) => setRaw(e.target.value)} />
+        <Input {...tourAnchor('book.isbn')} name="isbn" inputMode="numeric" value={raw} autoFocus onChange={(e) => setRaw(e.target.value)} />
       </Field>
       <div className={styles.actions}>
         <Button type="submit" variant="primary" loading={lookup.isPending} loadingLabel={t('books.lookup.searching')}>

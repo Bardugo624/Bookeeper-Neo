@@ -5,6 +5,7 @@ import { useT } from '../../app';
 import { usePermission } from '../../kit';
 import { ManageTagsDialog } from '../tags';
 import { FirstBookHint, useFirstBook } from '../onboarding';
+import { tourExpects, tourNote, tourSignal } from '../tour';
 import { BookDialog } from './BookDialog';
 import { BookGrid, GridSkeleton } from './BookGrid';
 import { BookTable, TableSkeleton } from './BookTable';
@@ -39,7 +40,7 @@ export function BooksPage() {
     setAdding(true);
   });
   // Whether the panel was opened on an empty library: the list is already refreshed when a save ends.
-  const session = useRef<{ empty: boolean; first: BookOut | null }>({ empty: false, first: null });
+  const session = useRef<{ empty: boolean; first: BookOut | null; toured: boolean }>({ empty: false, first: null, toured: false });
   const flight = useCoverFlight();
   const selection = useSelection(items.map((b) => b.id));
   const selecting = canWrite && selection.active;
@@ -63,7 +64,7 @@ export function BooksPage() {
 
   const openAdd = (from?: HTMLElement | null) => {
     setOrigin(from ?? null);
-    session.current = { empty: !query.isPending && !query.isError && items.length === 0 && !filtered, first: null };
+    session.current = { empty: !query.isPending && !query.isError && items.length === 0 && !filtered, first: null, toured: false };
     setAdding(true);
   };
 
@@ -71,10 +72,11 @@ export function BooksPage() {
 
   // The celebration comes when the panel closes, if the library went from 0 to 1 or more during its session.
   const closeAdd = () => {
-    const { empty, first } = session.current;
-    session.current = { empty: false, first: null };
+    const { empty, first, toured } = session.current;
+    session.current = { empty: false, first: null, toured: false };
     setAdding(false);
-    if (empty && first) firstBook.celebrate(first);
+    // With the tour guiding, its card takes the celebration's place.
+    if (empty && first && !toured) firstBook.celebrate(first);
   };
 
   let body;
@@ -159,7 +161,13 @@ export function BooksPage() {
         origin={origin}
         onClose={closeAdd}
         onCreated={(created, another, cover) => {
-          if (cover && !another) flight.start(created.id, cover);
+          // The tour tells the person when the cover has landed; asked before the signal moves it on.
+          const guiding = tourExpects('book-created');
+          tourSignal('book-created', { title: created.title });
+          if (guiding) session.current.toured = true;
+          const landed = () => guiding && tourNote({ titleKey: 'tour.firstBook.landed.title', textKey: 'tour.firstBook.landed.text', params: { title: created.title } });
+          if (cover && !another) flight.start(created.id, cover, landed);
+          else landed();
           // The first book saved in this session of the panel, even when "Save and add another" kept it open.
           if (session.current.empty && !session.current.first) session.current.first = created;
         }}

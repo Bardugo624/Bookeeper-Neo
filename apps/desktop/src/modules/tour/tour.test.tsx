@@ -75,14 +75,11 @@ describe('flow', () => {
 
 describe('leaving and coming back', () => {
   it('"Lo faccio dopo" pauses, and «Primi passi» resumes at the same step', async () => {
-    const { FirstStepsPill } = await import('./FirstStepsPill');
-    const { render } = await import('@testing-library/react');
     await START();
     act(() => tourSignal('one-done'));
     await userEvent.click(screen.getByRole('button', { name: 'Lo faccio dopo' }));
     expect(state().status).toBe('paused');
     expect(screen.queryByRole('region')).not.toBeInTheDocument();
-    render(<FirstStepsPill />);
     const pill = screen.getByRole('button', { name: 'Primi passi 2 di 3' });
     await userEvent.click(pill);
     expect(state().status).toBe('running');
@@ -103,8 +100,6 @@ describe('leaving and coming back', () => {
   });
 
   it('"Non mostrare più" and "Salta il tutorial" skip for good', async () => {
-    const { FirstStepsPill } = await import('./FirstStepsPill');
-    const { render } = await import('@testing-library/react');
     await START();
     await userEvent.click(screen.getByRole('button', { name: 'Salta il tutorial' }));
     expect(state().status).toBe('skipped');
@@ -114,7 +109,6 @@ describe('leaving and coming back', () => {
 
     act(() => state().start(PATH, { replay: true }));
     act(() => state().pause());
-    render(<FirstStepsPill />);
     await userEvent.click(screen.getByRole('button', { name: 'Altre azioni di Primi passi' }));
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Non mostrare più' }));
     expect(state().status).toBe('skipped');

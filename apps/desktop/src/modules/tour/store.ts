@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { create } from 'zustand';
 import { useSession } from '../../session';
-import { advance, EMPTY_SNAPSHOT, MAX_STEPS, type TourPath, type TourSnapshot, type TourStep } from './model';
+import { advance, EMPTY_SNAPSHOT, MAX_STEPS, type TourNote, type TourPath, type TourSnapshot, type TourStep } from './model';
 import { loadTour, saveTour } from './storage';
 
 interface TourStore extends TourSnapshot {
@@ -9,6 +9,9 @@ interface TourStore extends TourSnapshot {
   connectionId: string | null;
   /** Bumped when a new path is registered, so views of the path re-render. */
   registryVersion: number;
+  /** Something the card says once; not remembered. */
+  note: TourNote | null;
+  setNote(note: TourNote | null): void;
   bind(connectionId: string | null): void;
   start(path: TourPath, options?: { replay?: boolean }): void;
   pause(): void;
@@ -30,7 +33,7 @@ export function registerTourPath(path: TourPath): void {
   if (isNew) useTourStore.setState((s) => ({ registryVersion: s.registryVersion + 1 }));
 }
 
-const INITIAL = { ...EMPTY_SNAPSHOT, connectionId: null as string | null, registryVersion: 0 };
+const INITIAL = { ...EMPTY_SNAPSHOT, connectionId: null as string | null, registryVersion: 0, note: null as TourNote | null };
 
 export const useTourStore = create<TourStore>((set, get) => {
   /** Applies a change and remembers it for the connection. */
@@ -45,6 +48,8 @@ export const useTourStore = create<TourStore>((set, get) => {
 
   return {
     ...INITIAL,
+
+    setNote: (note) => set({ note }),
 
     bind(connectionId) {
       if (get().connectionId === connectionId && connectionId !== null) return;
@@ -64,11 +69,15 @@ export const useTourStore = create<TourStore>((set, get) => {
       commit({ pathId: path.id, step: 0, status: 'running' });
     },
 
-    pause: () => toStatus('running', 'paused'),
+    pause() {
+      set({ note: null });
+      toStatus('running', 'paused');
+    },
     resume: () => toStatus('paused', 'running'),
 
     skip() {
       const { status } = get();
+      set({ note: null });
       if (status === 'running' || status === 'paused') commit({ status: 'skipped' });
     },
 
@@ -78,7 +87,10 @@ export const useTourStore = create<TourStore>((set, get) => {
       if (s.status !== 'running' || !step || step.signal !== name) return;
       if (step.accept && !step.accept(data)) return;
       const path = s.pathId ? paths.get(s.pathId) : undefined;
-      if (path) commit(advance(s, path.steps.length));
+      if (path) {
+        set({ note: null });
+        commit(advance(s, path.steps.length));
+      }
     },
   };
 });
@@ -90,6 +102,17 @@ function currentStep(s: TourSnapshot): TourStep | null {
 /** Tells the tour that something happened. Safe from any module at any time: nothing waits, nothing happens. */
 export function tourSignal(name: string, data?: unknown): void {
   useTourStore.getState().signal(name, data);
+}
+
+/** Whether the running tour waits for this signal right now. */
+export function tourExpects(name: string): boolean {
+  const s = useTourStore.getState();
+  return s.status === 'running' && currentStep(s)?.signal === name;
+}
+
+/** Makes the card say something once (e.g. «your first book»), also when the path has ended. */
+export function tourNote(note: TourNote): void {
+  useTourStore.getState().setNote(note);
 }
 
 /** Props for the element the tour may light up: `<button {...tourAnchor('books.add')}>`. */
@@ -106,6 +129,9 @@ export interface TourApi extends TourSnapshot {
   pause: TourStore['pause'];
   resume: TourStore['resume'];
   skip: TourStore['skip'];
+  note: TourNote | null;
+  /** Dismisses the note. */
+  clearNote(): void;
 }
 
 export function useTour(): TourApi {
@@ -117,8 +143,10 @@ export function useTour(): TourApi {
   const pause = useTourStore((s) => s.pause);
   const resume = useTourStore((s) => s.resume);
   const skip = useTourStore((s) => s.skip);
+  const note = useTourStore((s) => s.note);
+  const setNote = useTourStore((s) => s.setNote);
   const path = (pathId ? paths.get(pathId) : null) ?? null;
-  return { pathId, step, status, path, current: path?.steps[step] ?? null, total: path?.steps.length ?? 0, start, pause, resume, skip };
+  return { note, clearNote: () => setNote(null), pathId, step, status, path, current: path?.steps[step] ?? null, total: path?.steps.length ?? 0, start, pause, resume, skip };
 }
 
 /** Ties the store to the active connection; idempotent, so every surface of the tour may call it. */
