@@ -13,7 +13,6 @@
   "priority": { "low": "Low", "medium": "Medium", "high": "High" },
   "add": { "button": "Add", "title": "Add to the wishlist", "submit": "Add to the wishlist" },
   "edit": { "button": "Edit", "title": "Edit the item", "submit": "Save" },
-  "danger": { "title": "Danger zone", "delete": "Delete this item", "consequence": "It disappears from the wishlist and cannot be recovered." },
   "delete": {
     "title": "Delete this item?",
     "button": "Delete",
