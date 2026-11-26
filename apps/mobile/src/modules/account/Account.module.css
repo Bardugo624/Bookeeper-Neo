@@ -103,6 +103,10 @@
   margin-inline: -12px;
 }
 
+.rows > :last-child {
+  border-bottom: 0;
+}
+
 .rename {
   min-width: 44px;
   min-height: 44px;

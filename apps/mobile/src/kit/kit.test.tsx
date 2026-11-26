@@ -47,13 +47,6 @@ describe('ListRow', () => {
   });
 });
 
-describe('ErrorState hint', () => {
-  it('says how to recover, next to the retry button', () => {
-    render(wrap(<ErrorState message="Server spento" onRetry={() => {}} />));
-    expect(screen.getByText(t('it', 'mobile.error.hint'))).toBeInTheDocument();
-  });
-});
-
 describe('ErrorState', () => {
   it('shows the message and retries', async () => {
     const onRetry = vi.fn();

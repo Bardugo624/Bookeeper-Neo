@@ -28,7 +28,6 @@
   "error": {
     "title": "Something went wrong",
     "text": "This page could not be shown.",
-    "hint": "Check your connection and tap Try again. If it keeps happening, close and reopen the app.",
     "retry": "Try again"
   }
 }

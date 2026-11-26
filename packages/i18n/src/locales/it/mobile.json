@@ -28,7 +28,6 @@
   "error": {
     "title": "Qualcosa è andato storto",
     "text": "Non è stato possibile mostrare questa pagina.",
-    "hint": "Controlla la connessione e tocca Riprova. Se succede ancora, chiudi e riapri l'app.",
     "retry": "Riprova"
   }
 }

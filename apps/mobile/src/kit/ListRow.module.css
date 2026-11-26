@@ -27,10 +27,6 @@ button.row {
   border-radius: var(--bk-radius-sm);
 }
 
-.row:last-child {
-  border-bottom: 0;
-}
-
 .leading {
   flex: none;
   display: flex;
