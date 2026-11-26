@@ -411,3 +411,12 @@
 2026-11-25T23:53:25Z	bookeeper-fase-4b	fmt-4b	qa	opus	PASS	-	-	-	71
 2026-11-26T00:04:53Z	bookeeper-fase-4b	guards-4b	dwarf	sonnet	-	-	-	-	46
 2026-11-26T00:05:32Z	bookeeper-fase-4b	guards-4b	qa	opus	PASS	-	-	-	34
+2026-11-26T00:29:08Z	bookeeper-fase-4c	p3-4b-core	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npm run gen test typecheck w bookeeper api works	a fresh worktree needs `npm ci --offline` at the root before `npm run gen/test/typecheck -w @bookeeper/api` works [packages/api/package.json]	85	1
+2026-11-26T00:30:40Z	bookeeper-fase-4c	p3-4b-core	qa	opus	PASS	-	-	-	86
+2026-11-26T00:34:29Z	bookeeper-fase-4c	p3-4b-app	dwarf	sonnet	-	trap	the books testkit extra handler is synchronous to delay a response in a test wrap the handler with platform handle and	the books testkit `extra` handler is synchronous; to delay a response in a test, wrap the handler with `platform.handle(...)` and… [apps/desktop/src/modules/reading/testkit.tsx]	405	1
+2026-11-26T00:35:08Z	bookeeper-fase-4c	m-reading	dwarf	sonnet	-	trap	a rejected optimistic write can restore the cache in the same batch as the optimistic render so an effect keyed on the saved value	a rejected optimistic write can restore the cache in the same batch as the optimistic render, so an effect keyed on the saved value… [apps/mobile/src/modules/reading/NoteField.tsx]	263	1
+2026-11-26T00:36:58Z	bookeeper-fase-4c	p3-4b-app	qa	opus	FAIL	-	-	-	143
+2026-11-26T00:37:01Z	bookeeper-fase-4c	m-reading	qa	opus	FAIL	-	-	-	106
+2026-11-26T00:37:51Z	bookeeper-fase-4c	m-reading	dwarf	sonnet	-	-	-	-	45
+2026-11-26T00:38:13Z	bookeeper-fase-4c	p3-4b-app	dwarf	sonnet	-	-	-	-	70
+2026-11-26T00:38:28Z	bookeeper-fase-4c	m-reading	qa	opus	PASS	-	-	-	31

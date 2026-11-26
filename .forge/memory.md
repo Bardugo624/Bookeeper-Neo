@@ -15,17 +15,17 @@
 
 ## Known traps
 - a fresh worktree has no node_modules; run `npm ci --offline` at the root, then `npx vitest run <path>` from apps/desktop [apps/desktop/package.json]
+- the books testkit `extra` handler is synchronous; to delay a response in a test, wrap the handler with `platform.handle(...)` and… [apps/desktop/src/modules/reading/testkit.tsx]
+- a fresh worktree needs `npm ci --offline` at the root before `npm run gen/test/typecheck -w @bookeeper/api` works [packages/api/package.json]
 - in the books tests, a list that ends up empty swaps the top active-filter chips for the NoResults ones, so a button found before the… [apps/desktop/src/modules/books/testkit.tsx]
+- the books page has two PillTabs tablists (filters and view), so `getAllByRole('tab', {selected:true})` counts the view tab too;… [apps/desktop/src/modules/books/FilterBar.tsx]
 - a new module folder with both `Foo.module.css` and `foo.test.tsx` trips `packages/ui/src/caseCollisions.test.ts`; name the test after a… [packages/ui/src/caseCollisions.test.ts]
+- Radix Dialog/Drawer close on Escape from a document capture listener, so a combobox inside one must intercept Escape with a… [apps/desktop/src/modules/loans/BorrowerInput.tsx]
 - `modules/loans/BorrowerInput.module.css` has a literal `rgb(` color, so `kit/styles.test.ts` fails on it until the loans task fixes it [apps/desktop/src/kit/styles.test.ts]
 - a test module registered with `renderApp` needs a `nav` entry and a route other than `/`, or the shell renders an empty `<main>` [apps/desktop/src/app/testing.tsx]
 - rusqlite scalar functions (`create_scalar_function`) need the `functions` feature in crates/bookeeper-core/Cargo.toml [crates/bookeeper-core/Cargo.toml]
 - `ShelfForm.test.tsx` "validates with the limits of the core and sends the body" can fail on `aria-selected` when the whole… [apps/desktop/src/modules/shelves/ShelfForm.test.tsx]
 - a zustand store shared across tests (e.g. `useOverlays`) must be reset in `renderApp`, or an open palette from one test closes the next test's… [apps/desktop/src/app/testing.tsx]
+- a rejected optimistic write can restore the cache in the same batch as the optimistic render, so an effect keyed on the saved… [apps/desktop/src/modules/reading/PageField.tsx]
 - the hand-maintained ROLE_GATED list in openapi_errors.rs can silently miss a new route; compare it against `grep -n… [crates/bookeeper-core/tests/openapi_errors.rs]
-- `ListBooksQuery` in the generated schema omits repeatable `tag_id`; the openapi-typed params in books.ts must add it by hand [packages/api/src/resources/books.ts]
-- SQLite `strftime(..., 'unixepoch')` returns NULL for timestamps outside years 0000–9999, and `finished_at` and similar epoch columns… [crates/bookeeper-core/src/api/reading.rs]
-- error bodies are `{"error_code","message"}` flat, not nested `error.code`; assert `b["error_code"]` in tests [crates/bookeeper-core/tests/common/mod.rs]
-- axum `Query` cannot deserialize repeated keys into a Vec; read them with a second `ApiQuery<Vec<(String, String)>>` extractor [crates/bookeeper-core/src/api/books_search.rs]
-- a fresh worktree needs `npm ci --offline` at the root before `npm test -w @bookeeper/mobile` works; without it vitest and vite plugins are not found [apps/mobile/package.json]
 
