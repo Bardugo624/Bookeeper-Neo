@@ -1,0 +1,52 @@
+.history {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+}
+
+.summary > div {
+  flex: 1 1 160px;
+  padding: 12px 14px;
+  border: 1px solid var(--bk-border);
+  border-radius: 12px;
+  background: var(--bk-surface);
+}
+
+.summary dt {
+  font-size: 12px;
+  color: var(--bk-text-faint);
+}
+
+.summary dd {
+  margin: 2px 0 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--bk-text-strong);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.month {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: capitalize;
+  color: var(--bk-text-muted);
+}
+
+.none {
+  margin: 0;
+  font-size: 13px;
+  color: var(--bk-text-faint);
+}

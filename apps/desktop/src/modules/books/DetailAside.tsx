@@ -4,6 +4,8 @@ import { Icon, Tag } from '@bookeeper/ui/base';
 import { useLocale, useT } from '../../app';
 import { formatDate } from '../../kit';
 import { useActiveLoan } from '../loans';
+import { ReadingCard } from '../reading';
+import { DetailTags } from './DetailTags';
 import { useShelfNames } from './useBook';
 import styles from './DetailAside.module.css';
 
@@ -27,6 +29,8 @@ export function DetailAside({ book }: { book: BookOut }) {
   const shelfName = placement ? shelves.get(placement.shelf_id) : undefined;
   return (
     <aside className={styles.aside}>
+      <ReadingCard book={book} />
+      <DetailTags book={book} />
       <section className={styles.card} aria-labelledby="book-where">
         <h2 id="book-where" className={styles.heading}>
           <Icon name="pin" size={14} />

@@ -9,12 +9,15 @@
     "label": "Cerca nei libri",
     "placeholder": "Cerca titolo, autore, ISBN",
     "clear": "Svuota la ricerca",
-    "hint": "Ctrl K",
-    "hintMac": "⌘K"
+    "hint": "/",
+    "hintMac": "/"
   },
   "filters": {
     "label": "Filtri",
     "all": "Tutti",
+    "to_read": "Da leggere",
+    "reading": "In lettura",
+    "read": "Letti",
     "loan": "In prestito",
     "unshelved": "Non collocati"
   },
@@ -36,6 +39,7 @@
       "author": "Autore",
       "year": "Anno",
       "placement": "Collocazione",
+      "reading": "Lettura",
       "status": "Prestito"
     },
     "sortBy": "Ordina per {column}"
@@ -226,6 +230,101 @@
     "updated": "«{title}» salvato",
     "deleted": "«{title}» eliminato",
     "coverFailed": "Il libro è stato salvato, ma la copertina no.",
-    "colorFailed": "Il libro è stato salvato, ma il colore del dorso no."
+    "colorFailed": "Il libro è stato salvato, ma il colore del dorso no.",
+    "tagsFailed": "Il libro è stato salvato, ma non i tag."
+  },
+  "active": {
+    "label": "Filtri attivi",
+    "remove": "Togli il filtro: {label}",
+    "clearAll": "Azzera tutto",
+    "q": "Ricerca: {q}",
+    "reading": "Lettura: {value}",
+    "tag": "Tag: {name}",
+    "room": "Stanza: {name}",
+    "shelf": "Scaffale: {name}",
+    "genre": "Genere: {name}",
+    "language": "Lingua: {name}",
+    "format": "Formato: {name}",
+    "years": {
+      "both": "Anno {from}–{to}",
+      "from": "Dal {from}",
+      "to": "Fino al {to}"
+    },
+    "acquired": {
+      "both": "Acquistato dal {from} al {to}",
+      "from": "Acquistato dal {from}",
+      "to": "Acquistato fino al {to}"
+    }
+  },
+  "facets": {
+    "reading": {
+      "to_read": "Da leggere",
+      "reading": "In lettura",
+      "read": "Letto",
+      "abandoned": "Abbandonato",
+      "none": "Senza stato"
+    }
+  },
+  "panel": {
+    "rangeError": "L’intervallo non è valido: il valore iniziale supera quello finale.",
+    "title": "Filtri",
+    "button": "Filtri",
+    "buttonCount": "Filtri ({count})",
+    "reset": "Azzera",
+    "show": {
+      "one": "Mostra {count} libro",
+      "other": "Mostra {count} libri"
+    },
+    "showAny": "Mostra i libri",
+    "withCount": "{name} ({count})",
+    "reading": "Stato di lettura",
+    "onLoan": "Solo i libri in prestito",
+    "tags": "Tag (il libro li ha tutti)",
+    "place": "Dove sono",
+    "room": "Stanza",
+    "anyRoom": "Tutte le stanze",
+    "shelf": "Scaffale",
+    "anyShelf": "Tutti gli scaffali",
+    "edition": "Edizione",
+    "genre": "Genere",
+    "anyGenre": "Tutti i generi",
+    "language": "Lingua",
+    "anyLanguage": "Tutte le lingue",
+    "format": "Formato",
+    "anyFormat": "Tutti i formati",
+    "years": "Anno di pubblicazione",
+    "yearFrom": "Anno da",
+    "yearTo": "Anno a",
+    "acquired": "Data d’acquisto",
+    "acquiredFrom": "Acquistato dal",
+    "acquiredTo": "Acquistato al"
+  },
+  "sort": {
+    "button": "Ordina per: {name}",
+    "relevance": "Rilevanza",
+    "label": "Ordina per",
+    "asc": "Crescente",
+    "desc": "Decrescente",
+    "created_at": "Data di inserimento",
+    "title": "Titolo",
+    "author": "Autore",
+    "published_year": "Anno di pubblicazione",
+    "acquired_at": "Data d’acquisto",
+    "page_count": "Pagine",
+    "progressive_number": "Numero progressivo",
+    "rating": "Voto"
+  },
+  "views": {
+    "button": "Viste",
+    "save": "Salva questa vista",
+    "full": "Limite di 10 viste raggiunto",
+    "manage": "Gestisci le viste",
+    "saveTitle": "Salva questa vista",
+    "name": "Nome della vista",
+    "manageTitle": "Viste salvate",
+    "none": "Nessuna vista salvata.",
+    "rename": "Rinomina {name}",
+    "delete": "Elimina {name}",
+    "saved": "Vista “{name}” salvata"
   }
 }

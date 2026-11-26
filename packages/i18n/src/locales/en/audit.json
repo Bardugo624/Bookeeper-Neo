@@ -1,0 +1,169 @@
+{
+  "section": "Activity log",
+  "title": "Activity log",
+  "description": "Who did what in the library, most recent first.",
+  "system": "System",
+  "unknownBook": "a book",
+  "loadMore": "Load more",
+  "loadingMore": "Loading…",
+  "table": "Log entries",
+  "columns": {
+    "when": "When",
+    "who": "Who",
+    "device": "Device",
+    "what": "What"
+  },
+  "filters": {
+    "label": "Log filters",
+    "user": "Person",
+    "device": "Device",
+    "action": "Action",
+    "to": "To",
+    "any": "All",
+    "anyDevice": "All",
+    "reset": "Clear filters",
+    "from": "From"
+  },
+  "detail": {
+    "summary": "Detail"
+  },
+  "empty": {
+    "title": "No entries",
+    "description": "No activity matches the chosen filters."
+  },
+  "error": "The log could not be loaded.",
+  "forbidden": "Only the owner and admins can see the log.",
+  "retry": "Try again",
+  "total": "{count} entries",
+  "export": {
+    "button": "Download CSV",
+    "busy": "Preparing the file…",
+    "saved": "File saved",
+    "limit": "The file will only contain the first {max} of {total} entries.",
+    "failed": "The file could not be prepared."
+  },
+  "csv": {
+    "id": "Number",
+    "at": "Date and time",
+    "person": "Person",
+    "device": "Device",
+    "action": "Action",
+    "what": "Description",
+    "entity_type": "Item type",
+    "entity_id": "Item",
+    "detail": "Detail",
+    "file": "activity-log"
+  },
+  "readingStatus": {
+    "to_read": "to read",
+    "reading": "reading",
+    "read": "read",
+    "abandoned": "abandoned"
+  },
+  "actions": {
+    "book": {
+      "create": "Book added",
+      "update": "Book edited",
+      "delete": "Book deleted",
+      "cover": "Cover changed",
+      "cover_delete": "Cover removed",
+      "tags": "Book tags changed"
+    },
+    "library": {
+      "backup": "Backup",
+      "import": "Import",
+      "restore": "Restore"
+    },
+    "loan": {
+      "create": "Loan recorded",
+      "update": "Loan edited",
+      "delete": "Loan deleted",
+      "return": "Return",
+      "reopen": "Loan reopened"
+    },
+    "reading": {
+      "set": "Reading status",
+      "delete": "Reading status removed"
+    },
+    "room": {
+      "create": "Room created",
+      "update": "Room edited",
+      "delete": "Room deleted"
+    },
+    "shelf": {
+      "create": "Shelf created",
+      "update": "Shelf edited",
+      "delete": "Shelf deleted",
+      "place": "Book placed",
+      "unplace": "Book taken off a shelf"
+    },
+    "tag": {
+      "create": "Tag created",
+      "update": "Tag edited",
+      "delete": "Tag deleted"
+    },
+    "wishlist": {
+      "create": "Wish added",
+      "update": "Wish edited",
+      "delete": "Wish removed",
+      "convert": "Wish turned into a book"
+    },
+    "device": {
+      "revoke": "Device revoked"
+    }
+  },
+  "what": {
+    "book": {
+      "create": "Added the book “{title}”",
+      "update": "Edited the book “{title}”",
+      "delete": "Deleted a book",
+      "cover": "Changed the cover of “{title}”",
+      "cover_delete": "Removed the cover of “{title}”",
+      "tags": "Changed the tags of “{title}”"
+    },
+    "library": {
+      "backup": "Downloaded a backup",
+      "import": "Imported books ({new} new, {duplicates} already present)",
+      "restore": "Restored the library from a backup",
+      "backupAuto": "Created a backup automatically"
+    },
+    "loan": {
+      "create": "Recorded a loan",
+      "update": "Edited a loan",
+      "delete": "Deleted a loan",
+      "return": "Recorded the return of a book",
+      "reopen": "Reopened a loan"
+    },
+    "reading": {
+      "set": "Set the reading status of “{title}”: {status}",
+      "delete": "Removed the reading status of “{title}”"
+    },
+    "room": {
+      "create": "Created a room",
+      "update": "Edited a room",
+      "delete": "Deleted a room"
+    },
+    "shelf": {
+      "create": "Created a shelf",
+      "update": "Edited a shelf",
+      "delete": "Deleted a shelf",
+      "place": "Placed “{title}” on a shelf",
+      "unplace": "Took “{title}” off its shelf"
+    },
+    "tag": {
+      "create": "Created the tag “{name}”",
+      "update": "Edited a tag",
+      "delete": "Deleted a tag"
+    },
+    "wishlist": {
+      "create": "Added “{title}” to the wishlist",
+      "update": "Edited a wish",
+      "delete": "Removed a wish from the list",
+      "convert": "Turned a wish into the book “{title}”"
+    },
+    "device": {
+      "revoke": "Revoked a device"
+    }
+  },
+  "loading": "Loading…"
+}

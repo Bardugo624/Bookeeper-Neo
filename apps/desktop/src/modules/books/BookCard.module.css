@@ -47,3 +47,27 @@
   right: 8px;
   z-index: 2;
 }
+
+.ring {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: inline-flex;
+  border-radius: 50%;
+  background: var(--bk-surface);
+  box-shadow: var(--bk-shadow-1);
+}
+
+.done {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--bk-ok);
+  color: var(--bk-on-primary);
+}

@@ -1,0 +1,77 @@
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--bk-text-muted, inherit);
+}
+
+.field select,
+.field input {
+  min-width: 140px;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 13px;
+  color: inherit;
+  background: var(--bk-surface, transparent);
+  border: 1px solid var(--bk-border);
+  border-radius: var(--bk-radius-sm);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.muted {
+  opacity: 0.7;
+  font-size: 12px;
+}
+
+.error {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: var(--bk-radius-sm);
+  background: var(--bk-danger-bg);
+  color: var(--bk-danger-strong);
+  font-size: 13px;
+}
+
+.skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.what {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-wrap: anywhere;
+}
+
+.detail summary {
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.detail pre {
+  margin: 4px 0 0;
+  padding: 8px;
+  max-height: 200px;
+  overflow: auto;
+  font-size: 12px;
+  border-radius: var(--bk-radius-sm);
+  background: var(--bk-border);
+  white-space: pre-wrap;
+}

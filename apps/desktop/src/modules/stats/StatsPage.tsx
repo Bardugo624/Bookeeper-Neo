@@ -1,21 +1,30 @@
 import { useNavigate } from 'react-router';
+import { PillTabs } from '@bookeeper/ui/overlays';
 import { Button, EmptyState, Skeleton } from '@bookeeper/ui/base';
 import { StatCard } from '@bookeeper/ui/book';
 import { useT } from '../../app';
-import { PageHeader } from '../../kit';
+import { PageHeader, intParam, oneOfParam, useListParams } from '../../kit';
 import { DistributionCard } from './DistributionCard';
 import { DISTRIBUTIONS, FORMAT_CODES, LANGUAGE_CODES, TOTALS, toRows, type Overview } from './model';
+import { ReadingTab } from './ReadingTab';
 import { ShelfFillCard } from './ShelfFillCard';
 import { useStats } from './useStats';
 import styles from './StatsPage.module.css';
 
+const TABS = ['library', 'reading'] as const;
+/** Tab and year live in the address: `?tab=reading&year=2024`. Year 0: the current one. */
+const SCHEMA = { tab: oneOfParam(TABS, 'library'), year: intParam(0) };
+
 export function StatsPage() {
   const t = useT();
+  const { values, set } = useListParams(SCHEMA);
   const navigate = useNavigate();
-  const { data, isPending, isError, refetch } = useStats();
+  const { data, isPending, isError, refetch } = useStats(values.tab === 'library');
 
   let body;
-  if (isPending) {
+  if (values.tab === 'reading') {
+    body = <ReadingTab year={values.year} onYear={(year) => set({ year })} />;
+  } else if (isPending) {
     body = (
       <div role="status" aria-label={t('stats.loading')} className={styles.stack}>
         <div className={styles.totals}>
@@ -86,6 +95,12 @@ export function StatsPage() {
   return (
     <div className={styles.page}>
       <PageHeader title={t('stats.title')} />
+      <PillTabs
+        label={t('stats.tabs.label')}
+        value={values.tab}
+        onChange={(tab) => set({ tab: tab as (typeof TABS)[number] })}
+        items={TABS.map((id) => ({ id, label: t(`stats.tabs.${id}`) }))}
+      />
       {body}
     </div>
   );

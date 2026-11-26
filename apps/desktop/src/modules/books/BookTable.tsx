@@ -2,18 +2,22 @@ import { Link } from 'react-router';
 import type { BookOut } from '@bookeeper/api';
 import { Icon, Skeleton, Tag } from '@bookeeper/ui/base';
 import { useT } from '../../app';
+import { TagChips } from '../tags';
 import { authorsOf, detailPath, type FromList } from './format';
 import type { ListParams, SortKey } from './listParams';
 import { SelectionCheckbox } from './SelectionCheckbox';
+import { ReadingCell } from './ReadingCell';
 import { useShelfNames } from './useBook';
 import type { Selection } from './useSelection';
 import styles from './BookTable.module.css';
 
-const SORTABLE: Array<{ key: SortKey | null; id: 'title' | 'author' | 'year' | 'placement' | 'status' }> = [
+const SORTABLE: Array<{ key: SortKey | null; id: 'title' | 'author' | 'year' | 'placement' | 'reading' | 'tags' | 'status' }> = [
   { key: 'title', id: 'title' },
   { key: 'author', id: 'author' },
-  { key: 'year', id: 'year' },
+  { key: 'published_year', id: 'year' },
   { key: null, id: 'placement' },
+  { key: null, id: 'reading' },
+  { key: null, id: 'tags' },
   { key: null, id: 'status' },
 ];
 
@@ -45,7 +49,7 @@ export function BookTable({ books, params, loadingMore, selection }: BookTablePr
             </th>
           ) : null}
           {SORTABLE.map(({ key, id }) => {
-            const column = t(`books.list.columns.${id}`);
+            const column = id === 'tags' ? t('tags.column') : t(`books.list.columns.${id}`);
             const active = key !== null && params.sort === key;
             return (
               <th
@@ -91,6 +95,12 @@ export function BookTable({ books, params, loadingMore, selection }: BookTablePr
             <td>{authorsOf(b)}</td>
             <td>{b.published_year ?? ''}</td>
             <td>{place(b)}</td>
+            <td>
+              <ReadingCell reading={b.reading} />
+            </td>
+            <td className={styles.tags}>
+              <TagChips tags={b.tags} />
+            </td>
             <td>{b.on_loan ? <Tag tone="warn">{t('books.list.onLoan')}</Tag> : t('books.list.available')}</td>
           </tr>
         ))}

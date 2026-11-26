@@ -1,19 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
 import type { BookOut } from '@bookeeper/api';
 import { Button, EmptyState } from '@bookeeper/ui/base';
-import { PillTabs, type PillTabItem } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
 import { usePermission } from '../../kit';
+import { ManageTagsDialog } from '../tags';
 import { FirstBookHint, useFirstBook } from '../onboarding';
 import { BookDrawer } from './BookDrawer';
 import { BookGrid, GridSkeleton } from './BookGrid';
 import { BookTable, TableSkeleton } from './BookTable';
 import { BooksHeader } from './BooksHeader';
+import { FilterBar } from './FilterBar';
+import { NoResults } from './NoResults';
 import { SelectionBar } from './SelectionBar';
 import { useSelection } from './useSelection';
-import type { Filter } from './listParams';
 import { useListParams } from './listParams';
+import { useActiveFilters } from './useActiveFilters';
 import { useBookList, useEndReached, useOnLoanCount } from './useBookList';
+import { useNewBookParam } from './useNewBookParam';
 import styles from './BooksPage.module.css';
 
 export function BooksPage() {
@@ -23,8 +26,11 @@ export function BooksPage() {
   const onLoan = useOnLoanCount();
   const more = query.hasNextPage && !query.isFetchingNextPage && !query.isFetchNextPageError;
   const sentinel = useEndReached(() => void query.fetchNextPage(), more, items.length);
-  const canWrite = usePermission().can('write');
+  const permission = usePermission();
+  const canWrite = permission.can('write');
+  const active = useActiveFilters(params.filters);
   const [adding, setAdding] = useState(false);
+  const [managingTags, setManagingTags] = useState(false);
   const firstBook = useFirstBook(() => setAdding(true));
   // Whether the panel was opened on an empty library: the list is already refreshed when a save ends.
   const session = useRef<{ empty: boolean; first: BookOut | null }>({ empty: false, first: null });
@@ -45,18 +51,15 @@ export function BooksPage() {
     return () => document.removeEventListener('keydown', onKey);
   }, [selecting, selectAll]);
   const picking = selecting ? selection : undefined;
-  const filtered = params.q.trim() !== '' || params.filter !== 'all';
-
-  const filters: PillTabItem[] = [
-    { id: 'all', label: t('books.filters.all') },
-    { id: 'loan', label: t('books.filters.loan') },
-    { id: 'unshelved', label: t('books.filters.unshelved') },
-  ];
+  const filtered = params.q.trim() !== '' || active.length > 0;
+  const noResults = filtered && !query.isPending && !query.isError && items.length === 0;
 
   const openAdd = () => {
     session.current = { empty: !query.isPending && !query.isError && items.length === 0 && !filtered, first: null };
     setAdding(true);
   };
+
+  useNewBookParam(openAdd, canWrite, permission.role !== null);
 
   // The celebration comes when the panel closes, if the library went from 0 to 1 or more during its session.
   const closeAdd = () => {
@@ -84,11 +87,12 @@ export function BooksPage() {
     );
   } else if (items.length === 0) {
     body = filtered ? (
-      <EmptyState
-        icon="search"
-        title={t('books.noResults.title')}
-        text={t('books.noResults.text')}
-        action={<Button onClick={params.reset}>{t('books.noResults.reset')}</Button>}
+      <NoResults
+        items={[
+          ...(params.q.trim() ? [{ id: 'q', label: t('books.active.q', { q: params.q.trim() }), remove: () => params.setQuery('') }] : []),
+          ...active.map((a) => ({ id: a.id, label: a.label, remove: () => params.setFilters(a.without) })),
+        ]}
+        onReset={params.reset}
       />
     ) : canWrite ? (
       <FirstBookHint onAdd={openAdd} />
@@ -127,18 +131,21 @@ export function BooksPage() {
                 selecting,
                 onAdd: openAdd,
                 onToggleSelect: () => (selecting ? selection.stop() : selection.start()),
+                onManageTags: () => setManagingTags(true),
               }
             : undefined
         }
       />
-      <PillTabs
-        items={filters}
-        value={params.filter}
-        onChange={(id) => params.setFilter(id as Filter)}
-        label={t('books.filters.label')}
-      />
+      <FilterBar params={params} active={active} hideActive={noResults} />
       {body}
-      {selecting ? <SelectionBar selected={selection.selected} onDone={selection.stop} /> : null}
+      {selecting ? (
+        <SelectionBar
+          selected={selection.selected}
+          books={items.filter((b) => selection.selected.has(b.id))}
+          onDone={selection.stop}
+        />
+      ) : null}
+      {canWrite ? <ManageTagsDialog open={managingTags} onClose={() => setManagingTags(false)} /> : null}
       <BookDrawer
         open={adding}
         onClose={closeAdd}

@@ -6,10 +6,6 @@
   padding-top: 16px;
 }
 
-.page > :nth-child(2) {
-  align-self: flex-start;
-}
-
 .sentinel {
   height: 1px;
 }

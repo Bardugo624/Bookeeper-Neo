@@ -1,8 +1,9 @@
 import { Link } from 'react-router';
 import type { BookOut } from '@bookeeper/api';
-import { Tag } from '@bookeeper/ui/base';
+import { Icon, Tag } from '@bookeeper/ui/base';
 import { BookCover } from '@bookeeper/ui/book';
 import { useT } from '../../app';
+import { ReadingRing } from '../reading';
 import { authorsOf, detailPath, type FromList } from './format';
 import { SelectionCheckbox } from './SelectionCheckbox';
 import { mayHaveCover, useCover } from './useCover';
@@ -39,6 +40,16 @@ export function BookCard({ book, from, selection }: BookCardProps) {
             <Tag tone="warn" className={styles.loan}>
               {t('books.list.onLoan')}
             </Tag>
+          ) : null}
+          {book.reading?.status === 'reading' ? (
+            <span className={styles.ring}>
+              <ReadingRing reading={book.reading} pageCount={book.page_count} size={30} />
+            </span>
+          ) : null}
+          {book.reading?.status === 'read' ? (
+            <span className={styles.done} role="img" aria-label={t('reading.status.read')}>
+              <Icon name="check" size={12} />
+            </span>
           ) : null}
         </BookCover>
         <span className={styles.title}>{book.title}</span>

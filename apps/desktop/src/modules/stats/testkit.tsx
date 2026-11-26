@@ -1,4 +1,4 @@
-import type { Stats } from '@bookeeper/api';
+import type { ReadingList, ReadingStats, Stats } from '@bookeeper/api';
 import { renderApp } from '../../app/testing';
 import { fakeConnection, fakePlatform, type FakePlatform } from '../../platform/testing';
 import { ME, ok } from '../../session/fixtures';
@@ -31,8 +31,21 @@ export function stats(over: Partial<Stats> = {}): Stats {
   };
 }
 
+export function readingYear(over: Partial<ReadingStats['year']> = {}): ReadingStats['year'] {
+  return { year: 2024, books: 0, pages: 0, by_month: Array(12).fill(0), by_genre: [], days: [], rated: { count: 0, average: null }, longest: null, ...over };
+}
+
+export function readingStats(year: Partial<ReadingStats['year']> = {}, years: ReadingStats['years'] = []): ReadingStats {
+  return { years, year: readingYear(year) };
+}
+
 export interface Backend {
   stats: Stats;
+  /** Answer of `GET /stats/reading`; the requested years are recorded in `readingYears`. */
+  reading?: ReadingStats;
+  readingList?: ReadingList;
+  readingYears?: (string | null)[];
+  readingFails?: boolean;
   fails?: boolean;
   /** The stats request never answers. */
   pending?: boolean;
@@ -44,6 +57,12 @@ export function statsPlatform(b: Backend): FakePlatform {
     handler: async (r) => {
       const p = r.path.split('?')[0]!;
       if (p === '/api/v1/me') return ok(ME);
+      if (p === '/api/v1/stats/reading') {
+        b.readingYears?.push(new URL(r.path, 'http://x').searchParams.get('year'));
+        if (b.readingFails) return { status: 500, body: { error_code: 'internal', message: 'x' } };
+        return ok(b.reading ?? readingStats());
+      }
+      if (p === '/api/v1/reading') return ok(b.readingList ?? { items: [], total: 0 });
       if (p === '/api/v1/stats') {
         if (b.pending) await new Promise(() => {});
         return b.fails ? { status: 500, body: { error_code: 'internal', message: 'x' } } : ok(b.stats);
@@ -72,7 +91,7 @@ const stubs: AppModule[] = [
   { id: 'shelves', routes: [{ path: '/shelves', element: <p>Scaffali</p> }] },
 ];
 
-export function renderStats(b: Backend, locale: 'it' | 'en' = 'it') {
+export function renderStats(b: Backend, locale: 'it' | 'en' = 'it', route = '/stats') {
   const platform = statsPlatform(b);
-  return { ...renderApp({ platform, modules: [module, ...stubs], route: '/stats', locale }), platform };
+  return { ...renderApp({ platform, modules: [module, ...stubs], route, locale }), platform };
 }

@@ -1,4 +1,4 @@
-import type { BookOut, ShelfOut } from '@bookeeper/api';
+import type { BookOut, RoomOut, ShelfOut } from '@bookeeper/api';
 import { renderApp } from '../../app/testing';
 import type { AppModule } from '../../app';
 import { fakeConnection, fakePlatform, type FakePlatform } from '../../platform/testing';
@@ -7,6 +7,13 @@ import { book as makeBook } from '../books/testkit';
 import { module } from './routes';
 
 // jsdom lacks ResizeObserver, which the tooltip of a spine needs.
+// Radix Select needs these.
+const proto = window.HTMLElement.prototype as unknown as Record<string, unknown>;
+proto.hasPointerCapture ??= () => false;
+proto.setPointerCapture ??= () => undefined;
+proto.releasePointerCapture ??= () => undefined;
+proto.scrollIntoView ??= () => undefined;
+
 globalThis.ResizeObserver ??= class {
   observe() {}
   unobserve() {}
@@ -24,6 +31,10 @@ export function book(id: string, over: Partial<BookOut> = {}): BookOut {
   return { ...makeBook(0), id, title: `Libro ${id}`, authors: [`Autore ${id}`], ...over };
 }
 
+export function room(id: string, name: string): RoomOut {
+  return { id, name, shelf_count: 0, created_at: 0 };
+}
+
 export interface Spot {
   shelf: string;
   row: number;
@@ -33,6 +44,7 @@ export interface Spot {
 export interface World {
   shelves: ShelfOut[];
   books: BookOut[];
+  rooms?: RoomOut[];
   /** Placement of each placed book id. */
   spots: Record<string, Spot>;
   role?: 'owner' | 'member' | 'guest';
@@ -52,7 +64,36 @@ export interface World {
 const err = (status: number, code: string) => ({ status, body: { error_code: code, message: 'x' } });
 
 function withCounts(w: World): ShelfOut[] {
-  return w.shelves.map((s) => ({ ...s, book_count: Object.values(w.spots).filter((p) => p.shelf === s.id).length }));
+  return w.shelves.map((s) => ({
+    ...s,
+    room: w.rooms?.find((r) => r.id === s.room_id) ? { id: s.room_id!, name: w.rooms.find((r) => r.id === s.room_id)!.name } : null,
+    book_count: Object.values(w.spots).filter((p) => p.shelf === s.id).length,
+  }));
+}
+
+function roomsRoute(w: World, method: string, path: string, body: unknown) {
+  const rooms = (w.rooms ??= []);
+  const count = (id: string) => w.shelves.filter((s) => s.room_id === id).length;
+  const out = (r: RoomOut) => ({ ...r, shelf_count: count(r.id) });
+  const name = (body as { name?: string } | undefined)?.name?.trim() ?? '';
+  const clash = (except?: string) => rooms.some((r) => r.id !== except && r.name.toLowerCase() === name.toLowerCase());
+  if (path === '/api/v1/rooms') {
+    if (method === 'GET') return ok({ items: rooms.map(out) });
+    if (clash()) return err(409, 'room_exists');
+    const made = room(`rnew${rooms.length + 1}`, name);
+    rooms.push(made);
+    return { status: 201, body: out(made) };
+  }
+  const found = rooms.find((r) => r.id === path.split('/').pop());
+  if (!found) return err(404, 'not_found');
+  if (method === 'PATCH') {
+    if (clash(found.id)) return err(409, 'room_exists');
+    found.name = name;
+    return ok(out(found));
+  }
+  w.rooms = rooms.filter((r) => r !== found);
+  w.shelves = w.shelves.map((s) => (s.room_id === found.id ? { ...s, room_id: null } : s));
+  return { status: 204, body: undefined };
 }
 
 /** An in-memory core: the shelf, book and placement routes the module uses. */
@@ -65,6 +106,7 @@ export function shelvesPlatform(w: World): FakePlatform {
       const q = new URLSearchParams(query);
       if (p === '/api/v1/me') return ok(me);
       if (w.refuse && r.method === w.refuse.method && p!.startsWith('/api/v1/shelves')) return err(w.refuse.status, w.refuse.code);
+      if (p === '/api/v1/rooms' || p!.startsWith('/api/v1/rooms/')) return roomsRoute(w, r.method, p!, r.body);
       if (p === '/api/v1/shelves' && r.method === 'GET') {
         if (w.listPending) await new Promise(() => {});
         return w.listFails ? err(500, 'internal') : ok({ items: withCounts(w) });

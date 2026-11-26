@@ -54,5 +54,62 @@
     "es": "Spagnolo",
     "pt": "Portoghese",
     "la": "Latino"
+  },
+  "tabs": {
+    "label": "Sezioni",
+    "library": "Libreria",
+    "reading": "Lettura"
+  },
+  "reading": {
+    "year": "Anno",
+    "yearLabel": "Anno di lettura",
+    "loading": "Caricamento della lettura",
+    "error": {
+      "title": "Impossibile caricare la lettura",
+      "text": "Controlla la connessione e riprova."
+    },
+    "empty": {
+      "title": "Nessuna lettura nel {year}",
+      "text": "Segna un libro come letto per vederlo qui.",
+      "action": "Vai ai libri"
+    },
+    "cards": {
+      "books": "Libri letti",
+      "pages": "Pagine",
+      "rating": "Valutazione media",
+      "noRating": "—"
+    },
+    "byMonth": {
+      "title": "Per mese",
+      "chart": "Libri letti per mese nel {year}",
+      "month": "Mese",
+      "count": "Libri"
+    },
+    "calendar": {
+      "title": "Calendario di lettura",
+      "label": "Giorni di lettura del {year}",
+      "cell": {
+        "one": "{count} libro il {date}",
+        "other": "{count} libri il {date}"
+      }
+    },
+    "genres": "Generi letti",
+    "longest": "Il libro più lungo",
+    "longestPages": "{count} pagine"
+  },
+  "poster": {
+    "open": "Il tuo anno in libri",
+    "title": "Il tuo anno in libri",
+    "description": "Anteprima dell'immagine da condividere.",
+    "preview": "Anteprima: il tuo {year} in libri",
+    "save": "Salva immagine",
+    "saved": "Immagine salvata",
+    "error": "Impossibile creare l'immagine.",
+    "heading": "Il tuo {year} in libri",
+    "books": "libri letti",
+    "pages": "pagine",
+    "busiestMonth": "Mese più intenso",
+    "topGenre": "Genere più letto",
+    "covers": "Alcuni dei tuoi libri"
   }
 }

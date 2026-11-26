@@ -1,0 +1,22 @@
+.canvas {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  max-height: 60vh;
+  margin: 0 auto;
+  aspect-ratio: 1080 / 1350;
+  object-fit: contain;
+  border: 1px solid var(--bk-border);
+  border-radius: var(--bk-radius-sm);
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.error {
+  margin: 0 0 8px;
+  color: var(--bk-danger-strong);
+}

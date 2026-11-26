@@ -1,0 +1,169 @@
+{
+  "section": "Registro attività",
+  "title": "Registro attività",
+  "description": "Chi ha fatto cosa nella libreria, dal più recente.",
+  "system": "Sistema",
+  "unknownBook": "un libro",
+  "loadMore": "Carica altri",
+  "loadingMore": "Carico…",
+  "table": "Voci del registro",
+  "columns": {
+    "when": "Quando",
+    "who": "Chi",
+    "device": "Dispositivo",
+    "what": "Cosa"
+  },
+  "filters": {
+    "label": "Filtri del registro",
+    "user": "Persona",
+    "device": "Dispositivo",
+    "action": "Azione",
+    "to": "Al",
+    "any": "Tutte",
+    "anyDevice": "Tutti",
+    "reset": "Azzera filtri",
+    "from": "Dal"
+  },
+  "detail": {
+    "summary": "Dettaglio"
+  },
+  "empty": {
+    "title": "Nessuna voce",
+    "description": "Nessuna attività corrisponde ai filtri scelti."
+  },
+  "error": "Non è stato possibile caricare il registro.",
+  "forbidden": "Solo il proprietario e gli amministratori possono vedere il registro.",
+  "retry": "Riprova",
+  "total": "{count} voci",
+  "export": {
+    "button": "Scarica CSV",
+    "busy": "Preparo il file…",
+    "saved": "File salvato",
+    "limit": "Il file conterrà solo le prime {max} voci su {total}.",
+    "failed": "Non è stato possibile preparare il file."
+  },
+  "csv": {
+    "id": "Numero",
+    "at": "Data e ora",
+    "person": "Persona",
+    "device": "Dispositivo",
+    "action": "Azione",
+    "what": "Descrizione",
+    "entity_type": "Tipo di elemento",
+    "entity_id": "Elemento",
+    "detail": "Dettaglio",
+    "file": "registro-attivita"
+  },
+  "readingStatus": {
+    "to_read": "da leggere",
+    "reading": "in lettura",
+    "read": "letto",
+    "abandoned": "abbandonato"
+  },
+  "actions": {
+    "book": {
+      "create": "Libro aggiunto",
+      "update": "Libro modificato",
+      "delete": "Libro eliminato",
+      "cover": "Copertina cambiata",
+      "cover_delete": "Copertina tolta",
+      "tags": "Tag del libro cambiati"
+    },
+    "library": {
+      "backup": "Copia di sicurezza",
+      "import": "Importazione",
+      "restore": "Ripristino"
+    },
+    "loan": {
+      "create": "Prestito registrato",
+      "update": "Prestito modificato",
+      "delete": "Prestito eliminato",
+      "return": "Restituzione",
+      "reopen": "Prestito riaperto"
+    },
+    "reading": {
+      "set": "Stato di lettura",
+      "delete": "Stato di lettura tolto"
+    },
+    "room": {
+      "create": "Stanza creata",
+      "update": "Stanza modificata",
+      "delete": "Stanza eliminata"
+    },
+    "shelf": {
+      "create": "Scaffale creato",
+      "update": "Scaffale modificato",
+      "delete": "Scaffale eliminato",
+      "place": "Libro sullo scaffale",
+      "unplace": "Libro tolto dallo scaffale"
+    },
+    "tag": {
+      "create": "Tag creato",
+      "update": "Tag modificato",
+      "delete": "Tag eliminato"
+    },
+    "wishlist": {
+      "create": "Desiderio aggiunto",
+      "update": "Desiderio modificato",
+      "delete": "Desiderio tolto",
+      "convert": "Desiderio diventato libro"
+    },
+    "device": {
+      "revoke": "Dispositivo revocato"
+    }
+  },
+  "what": {
+    "book": {
+      "create": "Ha aggiunto il libro «{title}»",
+      "update": "Ha modificato il libro «{title}»",
+      "delete": "Ha eliminato un libro",
+      "cover": "Ha cambiato la copertina del libro «{title}»",
+      "cover_delete": "Ha tolto la copertina del libro «{title}»",
+      "tags": "Ha cambiato i tag del libro «{title}»"
+    },
+    "library": {
+      "backup": "Ha scaricato una copia di sicurezza",
+      "import": "Ha importato dei libri ({new} nuovi, {duplicates} già presenti)",
+      "restore": "Ha ripristinato la libreria da una copia di sicurezza",
+      "backupAuto": "Ha creato automaticamente una copia di sicurezza"
+    },
+    "loan": {
+      "create": "Ha registrato un prestito",
+      "update": "Ha modificato un prestito",
+      "delete": "Ha eliminato un prestito",
+      "return": "Ha registrato la restituzione di un libro",
+      "reopen": "Ha riaperto un prestito"
+    },
+    "reading": {
+      "set": "Ha impostato lo stato di lettura di «{title}»: {status}",
+      "delete": "Ha tolto lo stato di lettura di «{title}»"
+    },
+    "room": {
+      "create": "Ha creato una stanza",
+      "update": "Ha modificato una stanza",
+      "delete": "Ha eliminato una stanza"
+    },
+    "shelf": {
+      "create": "Ha creato uno scaffale",
+      "update": "Ha modificato uno scaffale",
+      "delete": "Ha eliminato uno scaffale",
+      "place": "Ha collocato il libro «{title}» su uno scaffale",
+      "unplace": "Ha tolto dallo scaffale il libro «{title}»"
+    },
+    "tag": {
+      "create": "Ha creato il tag «{name}»",
+      "update": "Ha modificato un tag",
+      "delete": "Ha eliminato un tag"
+    },
+    "wishlist": {
+      "create": "Ha aggiunto «{title}» alla lista dei desideri",
+      "update": "Ha modificato un desiderio",
+      "delete": "Ha tolto un desiderio dalla lista",
+      "convert": "Ha trasformato un desiderio nel libro «{title}»"
+    },
+    "device": {
+      "revoke": "Ha revocato un dispositivo"
+    }
+  },
+  "loading": "Caricamento…"
+}

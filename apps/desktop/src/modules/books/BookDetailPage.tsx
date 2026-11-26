@@ -6,6 +6,7 @@ import { useT } from '../../app';
 import { usePermission } from '../../kit';
 import { DetailAside } from './DetailAside';
 import { DetailToolbar } from './DetailToolbar';
+import { MarkReadButton } from '../reading';
 import { LendButton } from './LendButton';
 import { authorsOf, type FromList } from './format';
 import { eyebrowOf, metaFields } from './detailFields';
@@ -86,6 +87,7 @@ export function BookDetailPage() {
             color={book.cover_color ?? undefined}
             pages={book.page_count ?? undefined}
           />
+          <MarkReadButton book={book} />
           {canWrite ? <LendButton book={book} /> : null}
         </div>
         <div className={styles.main}>

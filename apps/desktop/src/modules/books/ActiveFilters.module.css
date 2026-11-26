@@ -1,0 +1,38 @@
+.row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px 3px 10px;
+  border: 1px solid var(--bk-primary-200);
+  border-radius: 999px;
+  background: var(--bk-primary-50);
+  color: var(--bk-primary-800);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.chip:hover {
+  background: var(--bk-primary-100);
+}
+
+.chip:focus-visible {
+  outline: 2px solid var(--bk-focus);
+  outline-offset: 2px;
+}

@@ -20,9 +20,13 @@ export interface LoanCardProps {
   /** Present only for who may write: without it no action button is drawn. */
   actions?: LoanActions;
   busy?: boolean;
+  /** Touching the person's name calls it; without it the name is plain text. */
+  onBorrower?(name: string): void;
+  /** Extra line (e.g. duration and delay in the history). */
+  extra?: string;
 }
 
-export function LoanCard({ loan, actions, busy = false }: LoanCardProps) {
+export function LoanCard({ loan, actions, busy = false, onBorrower, extra }: LoanCardProps) {
   const t = useT();
   const locale = useLocale();
   const src = useLoanCover(loan.book_id);
@@ -48,8 +52,22 @@ export function LoanCard({ loan, actions, busy = false }: LoanCardProps) {
           <StatusTag status={status} tones={STATUS_TONES} labels={labels} />
         </div>
         {authors ? <p className={styles.authors}>{authors}</p> : null}
-        <p className={styles.borrower}>{t('loans.card.to', { name: loan.borrower_name })}</p>
+        <p className={styles.borrower}>
+          {onBorrower ? (
+            <button
+              type="button"
+              className={styles.borrowerButton}
+              aria-label={t('loans.card.byBorrower', { name: loan.borrower_name })}
+              onClick={() => onBorrower(loan.borrower_name)}
+            >
+              {t('loans.card.to', { name: loan.borrower_name })}
+            </button>
+          ) : (
+            t('loans.card.to', { name: loan.borrower_name })
+          )}
+        </p>
         <p className={styles.dates}>{dates.join(' · ')}</p>
+        {extra ? <p className={styles.dates}>{extra}</p> : null}
         {loan.notes ? <p className={styles.notes}>{loan.notes}</p> : null}
       </div>
       {actions ? (

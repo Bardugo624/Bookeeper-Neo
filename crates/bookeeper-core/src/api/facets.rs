@@ -99,7 +99,7 @@ fn grouped(
     let mut groups: HashMap<String, (i64, String, i64)> = HashMap::new();
     for (value, count) in rows {
         let e = groups
-            .entry(value.to_ascii_lowercase())
+            .entry(value.to_lowercase())
             .or_insert((0, value.clone(), 0));
         e.0 += count;
         if count > e.2 || (count == e.2 && value < e.1) {

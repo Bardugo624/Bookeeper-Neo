@@ -93,6 +93,9 @@ fn strip_ip(v: &mut serde_json::Value) {
 
 fn parse_detail(raw: Option<String>) -> Option<serde_json::Value> {
     let mut v: serde_json::Value = serde_json::from_str(&raw?).ok()?;
+    if !v.is_object() {
+        return None;
+    }
     strip_ip(&mut v);
     Some(v)
 }
@@ -121,7 +124,10 @@ pub async fn list_audit(
         offset: q.offset,
     }
     .resolve()?;
-    let opt_s = |v: Option<String>| v.map_or(Sql::Null, Sql::Text);
+    let opt_s = |v: Option<String>| match v {
+        Some(s) if !s.is_empty() => Sql::Text(s),
+        _ => Sql::Null,
+    };
     let opt_i = |v: Option<i64>| v.map_or(Sql::Null, Sql::Integer);
     let filter_params = vec![
         Sql::Text(who.library_id.clone()),

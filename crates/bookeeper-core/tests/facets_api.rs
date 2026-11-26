@@ -295,3 +295,13 @@ async fn needs_a_token_and_is_in_openapi() {
     let (_, _, doc) = call(&s.state, "GET", "/api/v1/openapi.json", None, None).await;
     assert!(doc["paths"]["/api/v1/books/facets"]["get"]["responses"]["401"].is_object());
 }
+
+#[tokio::test]
+async fn genres_group_unicode_case() {
+    let s = seed(Role::Owner, None, None).await;
+    for g in ["Ética", "ética", "ética"] {
+        create(&s, json!({"title": "x", "genre": g})).await;
+    }
+    let f = get_facets(&s, &s.session.access_token).await;
+    assert_eq!(pairs(&f["genres"]), [("ética".into(), 3)]);
+}

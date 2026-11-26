@@ -368,3 +368,10 @@ async fn put_and_delete_are_audited_without_the_note() {
         .unwrap();
     assert!(!details.contains("segreto"), "{details}");
 }
+
+#[tokio::test]
+async fn reading_with_finished_before_the_defaulted_start_is_422() {
+    let (s, b) = setup().await;
+    let (st, v) = put(&s, &b, json!({"status": "reading", "finished_at": 5})).await;
+    assert_eq!(st, 422, "{v}");
+}

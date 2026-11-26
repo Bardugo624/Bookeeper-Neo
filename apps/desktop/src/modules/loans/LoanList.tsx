@@ -3,11 +3,21 @@ import { Skeleton } from '@bookeeper/ui/base';
 import { LoanCard, type LoanActions } from './LoanCard';
 import styles from './LoanList.module.css';
 
-export function LoanList({ loans, label, actions, busyId }: { loans: LoanOut[]; label: string; actions?: LoanActions; busyId?: string }) {
+export interface LoanListProps {
+  loans: LoanOut[];
+  label: string;
+  actions?: LoanActions;
+  busyId?: string;
+  onBorrower?(name: string): void;
+  /** Extra line for a loan, by id. */
+  extras?: Record<string, string>;
+}
+
+export function LoanList({ loans, label, actions, busyId, onBorrower, extras }: LoanListProps) {
   return (
     <ul className={styles.list} aria-label={label}>
       {loans.map((loan) => (
-        <LoanCard key={loan.id} loan={loan} actions={actions} busy={busyId === loan.id} />
+        <LoanCard key={loan.id} loan={loan} actions={actions} busy={busyId === loan.id} onBorrower={onBorrower} extra={extras?.[loan.id]} />
       ))}
     </ul>
   );

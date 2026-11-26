@@ -12,6 +12,7 @@ export function useKeys() {
     list: ['shelves', id, 'list'] as const,
     books: (shelfId: string) => ['shelves', id, 'books', shelfId] as const,
     unshelved: ['shelves', id, 'unshelved'] as const,
+    rooms: ['shelves', id, 'rooms'] as const,
   };
 }
 
