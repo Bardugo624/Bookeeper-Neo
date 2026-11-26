@@ -21,6 +21,16 @@ describe('without a state', () => {
   });
 });
 
+describe('refused first choice', () => {
+  it('puts the choices back and says why', async () => {
+    renderBlock({ current: null, put: () => refuse });
+    const b = await block();
+    await userEvent.click(await b.findByRole('button', { name: 'Sto leggendo' }));
+    expect(await b.findByRole('alert')).toBeTruthy();
+    expect(await b.findByRole('button', { name: 'Letto' })).toBeTruthy();
+  });
+});
+
 describe('with a state', () => {
   it('shows the ring with the percent, the page and the start date', async () => {
     renderBlock({ current: reading() });
@@ -56,6 +66,15 @@ describe('with a state', () => {
     await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Togli lo stato' }));
     await waitFor(() => expect(calls(view).some((c) => c.method === 'DELETE')).toBe(true));
     expect(await (await block()).findByRole('button', { name: 'Sto leggendo' })).toBeTruthy();
+  });
+
+  it('keeps the state and says why when removing it is refused', async () => {
+    renderBlock({ current: reading(), failDelete: true });
+    const b = await block();
+    await userEvent.click(await b.findByRole('button', { name: 'Cambia stato' }));
+    await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Togli lo stato' }));
+    expect(await b.findByRole('alert')).toBeTruthy();
+    expect(await b.findByText('In lettura')).toBeTruthy();
   });
 
   it('"Mark as read" sends read', async () => {

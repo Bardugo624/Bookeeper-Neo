@@ -10,13 +10,12 @@ import { StarRating } from './StarRating';
 import { StatusChoices } from './StatusChoices';
 import { StatusSheet } from './StatusSheet';
 import { useReading } from './useReading';
-import { useStatusActions } from './useStatusActions';
+import { useStatusActions, type StatusActions } from './useStatusActions';
 import styles from './Reading.module.css';
 
-function WithState({ book, reading }: { book: BookOut; reading: ReadingOut }) {
+function WithState({ book, reading, actions }: { book: BookOut; reading: ReadingOut; actions: StatusActions }) {
   const t = useT();
   const [open, setOpen] = useState(false);
-  const actions = useStatusActions(book, reading);
   const finished = reading.status === 'read' || reading.status === 'abandoned';
   return (
     <>
@@ -24,11 +23,6 @@ function WithState({ book, reading }: { book: BookOut; reading: ReadingOut }) {
       <button type="button" className={styles.change} onClick={() => setOpen(true)}>
         {t('mreading.change')}
       </button>
-      {actions.error ? (
-        <p role="alert" className={styles.error}>
-          {apiErrorMessage(t, actions.error)}
-        </p>
-      ) : null}
       {reading.status === 'reading' ? (
         <>
           <PageField reading={reading} pageCount={book.page_count} />
@@ -53,6 +47,8 @@ export function ReadingBlock({ book }: { book: BookOut }) {
   const t = useT();
   const titleId = useId();
   const { data: reading, isPending, isError, error, refetch } = useReading(book.id);
+  // Held here, which stays mounted while an optimistic write swaps the body: a failure keeps its message.
+  const actions = useStatusActions(book, reading ?? null);
   let body;
   if (isPending) {
     body = (
@@ -72,8 +68,8 @@ export function ReadingBlock({ book }: { book: BookOut }) {
         </button>
       </>
     );
-  } else if (!reading) body = <StatusChoices book={book} />;
-  else body = <WithState book={book} reading={reading} />;
+  } else if (!reading) body = <StatusChoices actions={actions} />;
+  else body = <WithState book={book} reading={reading} actions={actions} />;
   return (
     <section className={`${styles.block}`} aria-labelledby={titleId}>
       <h2 id={titleId} className={styles.heading}>
@@ -81,6 +77,11 @@ export function ReadingBlock({ book }: { book: BookOut }) {
         {t('mreading.title')}
       </h2>
       {body}
+      {actions.error && !isError ? (
+        <p role="alert" className={styles.error}>
+          {apiErrorMessage(t, actions.error)}
+        </p>
+      ) : null}
     </section>
   );
 }

@@ -23,6 +23,8 @@ export interface ReadingServer {
   put?: (body: Record<string, unknown>, call: RecordedCall) => Answer | Promise<Answer> | undefined;
   /** Makes `GET` fail. */
   failGet?: boolean;
+  /** Makes `DELETE` fail. */
+  failDelete?: boolean;
 }
 
 export const isReading = (c: RecordedCall) => /\/books\/b1\/reading$/.test(c.path);
@@ -40,6 +42,7 @@ export function renderBlock(server: ReadingServer, over: Parameters<typeof book>
           return server.failGet ? { status: 500, body: { error_code: 'internal', message: 'x' } } : ok(server.current);
         }
         if (call.method === 'DELETE') {
+          if (server.failDelete) return { status: 500, body: { error_code: 'internal', message: 'x' } };
           server.current = null;
           return { status: 204, body: undefined };
         }

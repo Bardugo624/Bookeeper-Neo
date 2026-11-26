@@ -22,3 +22,5 @@ export function useStatusActions(book: BookOut, reading: ReadingOut | null) {
     },
   };
 }
+
+export type StatusActions = ReturnType<typeof useStatusActions>;
