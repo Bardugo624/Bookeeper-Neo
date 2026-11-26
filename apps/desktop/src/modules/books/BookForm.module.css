@@ -77,8 +77,10 @@
 
 .cover {
   display: flex;
-  align-items: flex-start;
-  gap: 16px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  min-width: 0;
 }
 
 .preview {
@@ -88,8 +90,9 @@
 .coverActions {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 8px;
+  min-width: 0;
 }
 
 .hidden {

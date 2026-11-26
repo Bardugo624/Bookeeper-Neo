@@ -30,6 +30,7 @@ function useOpenGroups(editor: UseBookEditor, editing: boolean) {
   const { form } = editor;
   const [open, setOpen] = useState<OpenGroups>(() => groupsWithValues(form.values, editing ? [] : ['progressive']));
   const pending = useRef<string | null>(null);
+  const submitted = useRef(false);
   const wanted = (Object.keys(form.values) as Array<keyof typeof form.values>).filter((key) => form.errors[key]);
   const hidden = wanted.filter((key) => {
     const group = groupOf(key);
@@ -37,7 +38,9 @@ function useOpenGroups(editor: UseBookEditor, editing: boolean) {
   });
   const first = wanted[0];
   useEffect(() => {
-    if (hidden.length === 0) return;
+    // Only a submit opens a group and moves the focus; clearing an error while typing does not.
+    // The flag lasts until the person types again, since a server error (a clash) arrives after the submit.
+    if (!submitted.current || hidden.length === 0) return;
     // The first invalid field is the one that takes the focus, once its group has rendered.
     if (first !== undefined && hidden.includes(first)) pending.current = first;
     setOpen((prev) => {
@@ -53,16 +56,17 @@ function useOpenGroups(editor: UseBookEditor, editing: boolean) {
     document.querySelector<HTMLElement>(`[name="${CSS.escape(pending.current)}"]`)?.focus();
     pending.current = null;
   }, [open]);
-  return { open, toggle: (group: GroupId, next: boolean) => setOpen((prev) => ({ ...prev, [group]: next })) };
+  return { open, onSubmit: () => void (submitted.current = true),
+    onTyping: () => void (submitted.current = false), toggle: (group: GroupId, next: boolean) => setOpen((prev) => ({ ...prev, [group]: next })) };
 }
 
 /** The book as a card: cover on the left, the essentials on the right, tags, then rows that open. */
 export function BookSheet({ id, editor, storedSrc, storedStatus, editing, coverRef }: BookSheetProps) {
   const t = useT();
   const { form } = editor;
-  const { open, toggle } = useOpenGroups(editor, editing);
+  const { open, toggle, onSubmit, onTyping } = useOpenGroups(editor, editing);
   return (
-    <form id={id} className={styles.sheet} onSubmit={editor.save(false)} noValidate>
+    <form id={id} className={styles.sheet} onSubmitCapture={onSubmit} onInputCapture={onTyping} onSubmit={editor.save(false)} noValidate>
       <div className={styles.top}>
         <div className={styles.cover}>
           <CoverPicker
