@@ -219,8 +219,8 @@
       "other": "Eliminare {count} libri?"
     },
     "confirmText": {
-      "one": "Il libro selezionato sarà eliminato con la sua copertina. L'operazione non si può annullare.",
-      "other": "I {count} libri selezionati saranno eliminati con le loro copertine. L'operazione non si può annullare."
+      "one": "Insieme al libro selezionato spariscono la copertina, il posto sullo scaffale, i prestiti, gli stati di lettura e i tag assegnati. L'operazione non si può annullare.",
+      "other": "Insieme ai {count} libri selezionati spariscono le copertine, il posto sullo scaffale, i prestiti, gli stati di lettura e i tag assegnati. L'operazione non si può annullare."
     },
     "confirmButton": {
       "one": "Elimina {count} libro",
