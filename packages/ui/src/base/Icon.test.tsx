@@ -4,7 +4,7 @@ import { Icon, ICON_NAMES, type IconName } from './Icon';
 
 const REQUIRED: IconName[] = ['book','library','loans','heart','chart','phone','settings','search','plus','filter',
   'grid','list','chevron-left','chevron-right','chevron-down','close','minimize','maximize','restore','check',
-  'pencil','trash','pin','wifi','server','monitor','link','grip','more','alert','info','logout','sun','moon'];
+  'pencil','trash','pin','wifi','server','monitor','link','grip','more','alert','info','logout','sun','moon','users','user','bell'];
 
 it('covers every required name', () => {
   for (const name of REQUIRED) expect(ICON_NAMES).toContain(name);

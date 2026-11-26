@@ -1,5 +1,6 @@
 import {
   ArrowLeftRight,
+  Bell,
   BookOpen,
   ChartColumn,
   Check,
@@ -31,6 +32,8 @@ import {
   Sun,
   Trash2,
   TriangleAlert,
+  User,
+  Users,
   Wifi,
   X,
   type LucideIcon,
@@ -71,6 +74,9 @@ const ICONS = {
   logout: LogOut,
   sun: Sun,
   moon: Moon,
+  users: Users,
+  user: User,
+  bell: Bell,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;
