@@ -46,6 +46,7 @@
     "person": "A chi lo presti",
     "people": "Persone della libreria",
     "names": "Nomi usati di recente",
+    "me": "{name} (tu)",
     "or": "Oppure scrivi un nome",
     "name": "Nome",
     "namePlaceholder": "Nome di chi lo prende",

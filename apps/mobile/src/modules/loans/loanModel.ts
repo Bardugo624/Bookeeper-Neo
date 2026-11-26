@@ -33,12 +33,12 @@ export function overdueDays(loan: Pick<LoanOut, 'due_at'>, nowSeconds: number): 
   return Math.max(1, Math.floor((nowSeconds - (loan.due_at ?? nowSeconds)) / DAY));
 }
 
-/** `YYYY-MM-DD` read in the local time zone at noon, so the day never slips with the offset. */
-export function toUnixSeconds(value: string): number | null {
+/** `YYYY-MM-DD` read in the local time zone at `hour` (noon by default), so the day never slips with the offset. */
+export function toUnixSeconds(value: string, hour = 12): number | null {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
   if (!m) return null;
   const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
-  const date = new Date(y, mo - 1, d, 12);
+  const date = new Date(y, mo - 1, d, hour);
   if (date.getFullYear() !== y || date.getMonth() !== mo - 1 || date.getDate() !== d) return null;
   return Math.floor(date.getTime() / 1000);
 }
@@ -81,7 +81,7 @@ export function toCreateBody(bookId: string, v: LendValues): CreateLoan {
   const body: CreateLoan = { book_id: bookId };
   if (v.userId) body.borrower_user_id = v.userId;
   else body.borrower_name = v.name.trim();
-  if (v.due) body.due_at = toUnixSeconds(v.due);
+  if (v.due) body.due_at = toUnixSeconds(v.due, 23);
   if (v.notes.trim()) body.notes = v.notes.trim();
   return body;
 }

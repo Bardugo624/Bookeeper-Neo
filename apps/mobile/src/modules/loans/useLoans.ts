@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { CreateLoan, LoanOut } from '@bookeeper/api';
 import { useClient, useSession } from '../../session';
@@ -37,8 +38,21 @@ export function useBookLoan(bookId: string, enabled: boolean) {
   return { loan: query.data ?? undefined, isError: query.isError, refetch: query.refetch };
 }
 
+const NAME_DELAY_MS = 250;
+
+/** The value once it stopped changing for `delay` ms. */
+function useSettled(value: string, delay: number): string {
+  const [settled, setSettled] = useState(value);
+  useEffect(() => {
+    const id = setTimeout(() => setSettled(value), delay);
+    return () => clearTimeout(id);
+  }, [value, delay]);
+  return settled;
+}
+
 /** People of the library first, then the names used before; the typed prefix narrows the names. */
-export function useBorrowerChoices(prefix: string) {
+export function useBorrowerChoices(typed: string) {
+  const prefix = useSettled(typed, NAME_DELAY_MS);
   const client = useClient();
   const libraryId = useSession((s) => s.me?.library.id);
   const people = useQuery({

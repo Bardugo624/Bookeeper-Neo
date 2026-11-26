@@ -21,7 +21,14 @@ describe('book page loan block', () => {
     await userEvent.click(within(sheet).getByRole('button', { name: 'Presta' }));
     await screen.findByText('Non in prestito');
     expect(platform.fake.calls.find(isLend)?.body).toEqual({ book_id: 'b1', borrower_user_id: 'u2', notes: 'Con la sovraccoperta' });
-    expect(within(sheet).queryByRole('button', { name: 'Anna' })).toBeNull();
+  });
+
+  it('lets a member lend to themselves, labelled "tu"', async () => {
+    const { platform, sheet } = await openLend();
+    await userEvent.click(await within(sheet).findByRole('button', { name: 'Anna (tu)' }));
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Presta' }));
+    await screen.findByText('Non in prestito');
+    expect((platform.fake.calls.find(isLend)?.body as { borrower_user_id: string }).borrower_user_id).toBe('u1');
   });
 
   it('lends to a free name, with a due date', async () => {

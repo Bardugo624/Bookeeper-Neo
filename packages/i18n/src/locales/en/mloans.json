@@ -46,6 +46,7 @@
     "person": "Who is borrowing it",
     "people": "People of the library",
     "names": "Recently used names",
+    "me": "{name} (you)",
     "or": "Or write a name",
     "name": "Name",
     "namePlaceholder": "Name of who takes it",
