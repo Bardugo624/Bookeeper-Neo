@@ -23,8 +23,8 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: var(--bk-primary-100);
-  color: var(--bk-primary-700);
+  background: var(--bk-accent-surface-strong);
+  color: var(--bk-on-accent-surface);
   font-size: 12px;
   font-weight: 600;
 }

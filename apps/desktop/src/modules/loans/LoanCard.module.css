@@ -1,6 +1,6 @@
 /* The status tints the whole border (never one side) and, when overdue, the background. */
 .card {
-  --loan-tone: var(--bk-primary-500);
+  --loan-tone: var(--bk-accent-control);
   display: flex;
   align-items: flex-start;
   gap: 16px;
@@ -12,7 +12,7 @@
 }
 
 .card[data-status='active'] {
-  border-color: color-mix(in srgb, var(--bk-primary-500) 45%, var(--bk-border));
+  border-color: color-mix(in srgb, var(--bk-accent-control) 45%, var(--bk-border));
 }
 
 .card[data-status='overdue'] {
@@ -33,7 +33,7 @@
 }
 
 .cover:focus-visible {
-  outline: 2px solid var(--bk-primary-400);
+  outline: 2px solid var(--bk-focus);
   outline-offset: 2px;
 }
 
@@ -99,11 +99,11 @@
 }
 
 .borrowerButton:hover {
-  color: var(--bk-primary-600);
+  color: var(--bk-accent-text);
 }
 
 .borrowerButton:focus-visible {
-  outline: 2px solid var(--bk-primary-400);
+  outline: 2px solid var(--bk-focus);
   outline-offset: 2px;
   border-radius: 2px;
 }

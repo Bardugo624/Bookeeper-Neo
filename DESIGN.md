@@ -20,6 +20,23 @@ micro-interazioni contemporanee. Il libro è il protagonista.
   ciascuno con `-bg` (velatura) e `-strong` (leggibile come testo su
   `--bk-surface`); `--bk-danger-fill` per i riempimenti, `--bk-on-primary`
   per il testo su primary, `--bk-focus` per l'anello di fuoco.
+- **Token semantici dell'accento** (valori propri di ogni tema; nel tema
+  scuro le superfici d'accento sono una tinta verde bassa sul fondo scuro):
+  `--bk-accent-surface` (fondo tenue), `--bk-accent-surface-strong` (elemento
+  selezionato o attivo), `--bk-on-accent-surface` (testo e icone su quei
+  due fondi), `--bk-accent-text` (testo, collegamenti, icone nel colore
+  d'accento), `--bk-accent-control` (`accent-color`, cursore, indicatori non
+  testuali), `--bk-primary-fill` / `--bk-primary-fill-hover` (bottoni e
+  controlli pieni: gradini 600 e 700 della scala verde, con `--bk-on-primary`
+  sopra), `--bk-focus` (anello di fuoco).
+- **Contrasto**: `--bk-text`, `--bk-text-muted`, `--bk-text-faint` e
+  `--bk-accent-text` raggiungono 4,5:1 su `--bk-bg`, `--bk-surface`,
+  `--bk-surface-raised`, `--bk-chrome` e `--bk-inset` in entrambi i temi;
+  lo verifica `tokens.contrast.test.ts`.
+- **Mai gradini grezzi nei moduli**: `--bk-primary-N` e `--bk-neutral-N`
+  si usano solo in `tokens.css`. Kit e moduli delle app usano i token
+  semantici (i test di stile lo vietano). Fanno eccezione i colori dei
+  mobili di `shelf/`, che sono dati.
 - **Strategia**: restrained — accento primario solo per azioni, selezione e
   stato; i colori pieni vivono nei legni degli scaffali (`SHELF_COLORS`:
   salvia, terracotta, notte, prugna, ambra, grafite) e nei dorsi/copertine
@@ -61,8 +78,10 @@ Token: `--bk-dur-fast` 150ms (feedback) · `--bk-dur` 200ms (stato) ·
 `cubic-bezier(0.34, 1.56, 0.64, 1)` (elastica, solo per i movimenti
 approvati qui sotto). Regole:
 
-- Solo `transform` e `opacity`. Unica eccezione: il riempimento di
-  `ProgressRing`. Le barre (`FillBar`) animano con `scaleX`, origin left.
+- Solo `transform` e `opacity`. Eccezioni, tutte nel codice: il
+  riempimento di `ProgressRing` (`stroke-dashoffset`), l'ombra di
+  `BookCover` al passaggio (`box-shadow`) e il colore delle etichette di
+  `PillTabs` (`color`). Le barre (`FillBar`) animano con `scaleX`, origin left.
 - Entrance condivisa `bk-rise` (fade + alza 6px); lo stagger si fa con `--i`.
   Il default è visibile: l'animazione parte da `from{}`.
 - Uscite più brevi delle entrate.
@@ -125,6 +144,10 @@ cambiare:
   `PillTabs`, `Tooltip` e dorso estratto in `ShelfUnit`; libro 3D, anello di
   avanzamento e sollevamento della copertina come descritti in Motion. Non
   vanno sostituiti con curve piatte.
+- **Scheda del libro**: il soprattitolo sta sotto il titolo.
+- **Bersagli**: minimo 24×24px sul desktop, 44×44px sul telefono. Eccezione
+  dichiarata: i dorsi dei mobili (`ShelfUnit`), perché la larghezza dice il
+  numero di pagine.
 - Registro product, direzione "biblioteca moderna", il libro protagonista.
 
 ## Anti-pattern (vietati qui)

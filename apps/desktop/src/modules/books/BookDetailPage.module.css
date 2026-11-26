@@ -27,7 +27,7 @@
   height: 38px;
   padding: 0 16px;
   border-radius: var(--bk-radius);
-  background: var(--bk-primary-500);
+  background: var(--bk-primary-fill);
   color: var(--bk-on-primary);
   font-size: 13px;
   font-weight: 500;

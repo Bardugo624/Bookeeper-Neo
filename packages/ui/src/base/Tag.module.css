@@ -16,8 +16,8 @@
 }
 
 .primary {
-    background: var(--bk-primary-50);
-    color: var(--bk-primary-700);
+    background: var(--bk-accent-surface);
+    color: var(--bk-on-accent-surface);
 }
 
 .ok {

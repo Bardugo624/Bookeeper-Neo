@@ -67,7 +67,7 @@
 }
 
 .notice a {
-  color: var(--bk-primary-600);
+  color: var(--bk-accent-text);
   font-weight: 500;
 }
 
@@ -129,7 +129,7 @@
 }
 
 .swatch:focus-visible {
-  outline: 2px solid var(--bk-primary-400);
+  outline: 2px solid var(--bk-focus);
   outline-offset: 3px;
 }
 

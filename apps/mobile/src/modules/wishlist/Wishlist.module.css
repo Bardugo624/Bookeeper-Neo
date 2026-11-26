@@ -30,7 +30,7 @@
 }
 
 .option[aria-checked='true'] {
-  background: var(--bk-primary-600);
+  background: var(--bk-primary-fill);
   color: var(--bk-on-primary);
 }
 

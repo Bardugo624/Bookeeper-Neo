@@ -77,12 +77,12 @@
 }
 
 .spine:focus-visible {
-    outline: 2px solid var(--bk-primary-400);
+    outline: 2px solid var(--bk-focus);
     outline-offset: 2px;
 }
 
 .spine[aria-pressed='true'] {
-    border-color: var(--bk-primary-300);
+    border-color: var(--bk-accent-control);
 }
 
 .spine[data-picked] {
@@ -91,13 +91,13 @@
 
 .spine[data-pulled] {
     z-index: 1;
-    outline: 2px solid var(--bk-primary-400);
+    outline: 2px solid var(--bk-focus);
     outline-offset: 1px;
 }
 
 .spine[data-pulled]::after {
-    background: var(--bk-primary-300);
-    box-shadow: 0 0 10px 2px var(--bk-primary-400);
+    background: var(--bk-accent-control);
+    box-shadow: 0 0 10px 2px var(--bk-focus);
 }
 
 .empty {
@@ -115,7 +115,7 @@
     width: 20px;
     height: 90%;
     box-sizing: border-box;
-    border: 1.5px dashed var(--bk-primary-300);
+    border: 1.5px dashed var(--bk-accent-control);
     border-radius: 2px 2px 0 0;
     pointer-events: none;
 }
@@ -184,7 +184,7 @@
     .spine[data-pulled],
     .spine[data-pulled]:hover {
         transform: none;
-        outline: 3px solid var(--bk-primary-400);
+        outline: 3px solid var(--bk-focus);
         outline-offset: 2px;
     }
 

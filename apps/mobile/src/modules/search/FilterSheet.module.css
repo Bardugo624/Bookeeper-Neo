@@ -48,8 +48,8 @@
 }
 
 .on {
-  border-color: var(--bk-primary-600);
-  background: var(--bk-primary-600);
+  border-color: var(--bk-primary-fill);
+  background: var(--bk-primary-fill);
   color: var(--bk-on-primary);
 }
 
@@ -73,7 +73,7 @@
   width: 24px;
   height: 24px;
   margin: 0;
-  accent-color: var(--bk-primary-600);
+  accent-color: var(--bk-accent-control);
 }
 
 .name {
@@ -108,8 +108,8 @@
 
 .apply {
   flex: 1;
-  border: 1px solid var(--bk-primary-600);
-  background: var(--bk-primary-600);
+  border: 1px solid var(--bk-primary-fill);
+  background: var(--bk-primary-fill);
   color: var(--bk-on-primary);
 }
 

@@ -12,7 +12,7 @@
 }
 
 .back:focus-visible {
-  outline: 2px solid var(--bk-primary-400);
+  outline: 2px solid var(--bk-focus);
   outline-offset: -2px;
 }
 
@@ -72,12 +72,12 @@
   border-radius: var(--bk-radius-sm);
   font-size: 16px;
   font-weight: 600;
-  color: var(--bk-primary-600);
+  color: var(--bk-accent-text);
   text-decoration: none;
   touch-action: manipulation;
 }
 
 .edit:focus-visible {
-  outline: 2px solid var(--bk-primary-400);
+  outline: 2px solid var(--bk-focus);
   outline-offset: -2px;
 }

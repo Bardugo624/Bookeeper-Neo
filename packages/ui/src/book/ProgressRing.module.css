@@ -17,7 +17,7 @@
 }
 
 .arc {
-    stroke: var(--bk-primary-500);
+    stroke: var(--bk-accent-control);
 }
 
 .center {

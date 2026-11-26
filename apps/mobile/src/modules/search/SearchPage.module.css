@@ -47,7 +47,7 @@
   min-width: 22px;
   padding: 0 6px;
   border-radius: 999px;
-  background: var(--bk-primary-600);
+  background: var(--bk-primary-fill);
   font-size: 13px;
   line-height: 22px;
   text-align: center;
@@ -79,6 +79,6 @@
 }
 
 .shelves:focus-visible {
-  outline: 2px solid var(--bk-primary-400);
+  outline: 2px solid var(--bk-focus);
   outline-offset: -2px;
 }
