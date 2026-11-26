@@ -22,6 +22,8 @@ Valgono per intero `docs/forge/fase-2a/CONTRATTO.md`, `docs/forge/fase-2a/MOCKUP
 
 Nel client: `PlaceIn.slot_index` facoltativo; nessun metodo nuovo.
 
+`PlaceIn.spine_width` (da `d-move`): assente mantiene la larghezza salvata; `null` la toglie (il dorso torna alla larghezza dalle pagine); 1–3 la imposta.
+
 ## `packages/ui/shelf` (da `ui-pull`)
 
 - `ShelfUnit` e `ShelfBand` accettano `pulledId?: string`: quel dorso si sfila verso chi guarda (traslazione verso il basso e leggera scala) e pulsa tre volte, poi resta sfilato. Indipendente da `selectedId`.

@@ -10,6 +10,15 @@ Leggi prima `docs/forge/fase-5a/CONTRATTO.md`, `docs/forge/fase-2b/CONTRATTO.md`
 4. Scritture ottimistiche con ripristino in caso d'errore; `slot_taken` e `row_full` hanno un messaggio proprio; dopo ogni scrittura si invalidano mobili, libri del mobile, vassoio, elenco e dettaglio dei libri.
 5. Chi non può modificare non vede né bersagli né voci di menu di scrittura.
 
+## Correzione del piano: togliere la larghezza
+
+Il piano dava per scontato che `spine_width: null` togliesse la larghezza. Non è così: il core tratta `null` come "mantieni". Questa task ora cambia anche il core.
+
+- `crates/bookeeper-core/src/api/shelves.rs`, `PlaceIn.spine_width`: tre stati, con lo stesso meccanismo (`present`) che il file usa già per `room_id`. Assente → mantiene. `null` → toglie. 1–3 → imposta. Vale in ogni ramo di `place_book` (con `slot_index`, senza, con `shift`). Uno spostamento che non nomina `spine_width` conserva la larghezza, come oggi.
+- Test in `crates/bookeeper-core/tests/shelves_api.rs`: imposta 3, poi `null` → la lettura dà nessuna larghezza; assente → resta 3; spostamento senza il campo → resta 3; 0 e 4 → errore di validazione.
+- Rigenera `packages/api/openapi.json` e `packages/api/src/schema.d.ts` con i comandi del repository.
+- Nel desktop, "Dalle pagine" manda `spine_width: null`; le altre scritture di posizione non mandano il campo. Il finto core di `testkit.tsx` segue la stessa regola dei tre stati, così il test "Dalle pagine" verifica che la larghezza sparisca davvero dopo il ricaricamento.
+
 ## Test
 
 - Sosta sulla linguetta: apre il mobile dopo il ritardo (orologio finto), non prima.
@@ -23,4 +32,5 @@ Leggi prima `docs/forge/fase-5a/CONTRATTO.md`, `docs/forge/fase-2b/CONTRATTO.md`
 - `npm run typecheck -w @bookeeper/desktop`, `npm test -w @bookeeper/desktop` e `npm run build -w @bookeeper/desktop` passano.
 - `npm test -w @bookeeper/i18n` e `npm test -w @bookeeper/ui` passano.
 - Nessun componente supera 250 righe. Nessun testo scritto nei componenti.
-- Cambiano solo: file sotto `apps/desktop/src/modules/shelves/`, i file i18n `shelves.json` (it e en).
+- `cargo fmt --check`, `cargo test -p bookeeper-core` e `cargo clippy -p bookeeper-core --all-targets -- -D warnings` passano. `npm test -w @bookeeper/api` passa. `npm run typecheck -w @bookeeper/mobile` passa.
+- Cambiano solo: file sotto `apps/desktop/src/modules/shelves/`, i file i18n `shelves.json` (it e en), `crates/bookeeper-core/src/api/shelves.rs`, `crates/bookeeper-core/tests/shelves_api.rs`, `packages/api/openapi.json`, `packages/api/src/schema.d.ts`, `packages/api/src/resources.test.ts`.

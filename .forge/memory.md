@@ -16,6 +16,9 @@
 ## Known traps
 - a rejected optimistic write can restore the cache in the same batch as the optimistic render, so an effect keyed on the saved value… [apps/mobile/src/modules/reading/NoteField.tsx]
 - a fresh worktree has no node_modules; run `npm ci --offline` at the root, then `npx vitest run <path>` from apps/desktop [apps/desktop/package.json]
+- the mobile barcode scanner (native detector and ZXing) reports the same code on every frame while it is in view, so any de-duplication of… [apps/mobile/src/platform/scanner.ts]
+- PUT placement upserts `spine_width` with COALESCE, so sending `null` keeps the stored width; the desktop shelves testkit fake does the… [crates/bookeeper-core/src/api/shelves.rs]
+- a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/mobile [apps/mobile/package.json]
 - `npm test -w @bookeeper/desktop` first needs `npm ci --offline` at the root in a fresh worktree, or tsc cannot find vite/vitest types [apps/desktop/package.json]
 - `Db` is one `Arc<Mutex<Connection>>`, so every `run` closure is serialised in-process and a concurrency test on the API cannot catch a… [crates/bookeeper-core/src/db/mod.rs]
 - `ApiError::validation(..).into()` inside a `run` closure is fine, but outside it (before `run`) clippy `-D warnings` flags it as a… [crates/bookeeper-core/src/api/shelves.rs]
@@ -25,7 +28,4 @@
 - turning an i18n string into a `{one, other}` plural makes any caller that doesn't pass a numeric `count` render the raw key; grep every `t('<key>'`… [packages/i18n/src/index.ts]
 - the books testkit `extra` handler is synchronous; to delay a response in a test, wrap the handler with `platform.handle(...)` and… [apps/desktop/src/modules/reading/testkit.tsx]
 - a fresh worktree needs `npm ci --offline` at the root before `npm run gen/test/typecheck -w @bookeeper/api` works [packages/api/package.json]
-- in the books tests, a list that ends up empty swaps the top active-filter chips for the NoResults ones, so a button found before the… [apps/desktop/src/modules/books/testkit.tsx]
-- the books page has two PillTabs tablists (filters and view), so `getAllByRole('tab', {selected:true})` counts the view tab too;… [apps/desktop/src/modules/books/FilterBar.tsx]
-- a new module folder with both `Foo.module.css` and `foo.test.tsx` trips `packages/ui/src/caseCollisions.test.ts`; name the test after a… [packages/ui/src/caseCollisions.test.ts]
 
