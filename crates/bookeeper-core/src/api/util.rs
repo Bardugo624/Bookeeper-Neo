@@ -126,6 +126,22 @@ pub fn normalize_isbn10(raw: &str) -> Option<String> {
     sum.is_multiple_of(11).then_some(s)
 }
 
+/// ISBN-13 (digits only) of an ISBN-13 or ISBN-10 with valid check digit;
+/// an ISBN-10 is converted with the `978` prefix.
+pub fn to_isbn13(raw: &str) -> Option<String> {
+    if let Some(v) = normalize_isbn13(raw) {
+        return Some(v);
+    }
+    let ten = normalize_isbn10(raw)?;
+    let body = format!("978{}", &ten[..9]);
+    let sum: u32 = body
+        .bytes()
+        .enumerate()
+        .map(|(i, b)| u32::from(b - b'0') * if i % 2 == 0 { 1 } else { 3 })
+        .sum();
+    Some(format!("{body}{}", (10 - sum % 10) % 10))
+}
+
 /// 200 response with the bytes, the given Content-Type and
 /// `Content-Disposition: attachment; filename="<name>"`.
 /// The name keeps only ASCII letters, digits, `-`, `_` and `.`; anything else becomes `_`.

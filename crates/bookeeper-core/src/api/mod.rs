@@ -13,6 +13,7 @@ pub mod devices;
 pub mod facets;
 pub mod health;
 pub mod invites;
+pub mod isbn_index;
 pub mod labels;
 pub mod loans;
 pub mod lookup;
@@ -52,6 +53,7 @@ pub fn router(state: AppState) -> Router {
         .merge(devices::routes())
         .merge(users::routes())
         .merge(invites::routes())
+        .merge(isbn_index::routes())
         .merge(books::routes())
         .merge(facets::routes())
         .merge(books_search::routes())

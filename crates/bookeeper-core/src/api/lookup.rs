@@ -6,7 +6,7 @@ use axum::{
 use serde::Deserialize;
 
 use crate::{
-    api::util::{normalize_isbn10, normalize_isbn13, now_secs, ApiQuery},
+    api::util::{now_secs, to_isbn13, ApiQuery},
     auth::guard::AuthUser,
     error::{ApiError, ApiErrorBody, ApiResult},
     lookup::Metadata,
@@ -25,20 +25,6 @@ pub struct Doc;
 pub struct LookupQuery {
     #[serde(default)]
     fresh: Option<bool>,
-}
-
-fn to_isbn13(raw: &str) -> Option<String> {
-    if let Some(v) = normalize_isbn13(raw) {
-        return Some(v);
-    }
-    let ten = normalize_isbn10(raw)?;
-    let body = format!("978{}", &ten[..9]);
-    let sum: u32 = body
-        .bytes()
-        .enumerate()
-        .map(|(i, b)| u32::from(b - b'0') * if i % 2 == 0 { 1 } else { 3 })
-        .sum();
-    Some(format!("{body}{}", (10 - sum % 10) % 10))
 }
 
 /// Merged book metadata from external providers.

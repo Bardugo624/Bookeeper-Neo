@@ -1314,6 +1314,63 @@
         ]
       }
     },
+    "/api/v1/books/isbn-index": {
+      "get": {
+        "tags": [
+          "books"
+        ],
+        "summary": "Every book of the library with an ISBN, for the duplicate-purchase check.",
+        "operationId": "isbn_index",
+        "parameters": [
+          {
+            "name": "version",
+            "in": "query",
+            "description": "Version the client already has",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Entries sorted by isbn, then title; empty with `unchanged` when `version` is current",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IsbnIndex"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation: invalid query parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/books/next-progressive": {
       "get": {
         "tags": [
@@ -7801,6 +7858,81 @@
           "guest"
         ]
       },
+      "IsbnEntry": {
+        "type": "object",
+        "required": [
+          "isbn",
+          "book_id",
+          "title",
+          "authors"
+        ],
+        "properties": {
+          "authors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "book_id": {
+            "type": "string"
+          },
+          "isbn": {
+            "type": "string",
+            "description": "ISBN-13, digits only."
+          },
+          "row_index": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "shelf": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ShelfRef"
+              }
+            ]
+          },
+          "slot_index": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "IsbnIndex": {
+        "type": "object",
+        "required": [
+          "version",
+          "unchanged",
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IsbnEntry"
+            }
+          },
+          "unchanged": {
+            "type": "boolean",
+            "description": "True when the requested `version` is the current one; `items` is then empty."
+          },
+          "version": {
+            "type": "string",
+            "description": "Opaque fingerprint (SHA-256, hex) of the entries."
+          }
+        }
+      },
       "LabelsRequest": {
         "type": "object",
         "required": [
@@ -9936,6 +10068,21 @@
               "null"
             ],
             "format": "int64"
+          }
+        }
+      },
+      "ShelfRef": {
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
           }
         }
       },
