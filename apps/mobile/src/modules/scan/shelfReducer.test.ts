@@ -107,7 +107,7 @@ describe('undo', () => {
     let s = run([read(s0.isbn), step(s0)]);
     s = reduce(s, { type: 'undo-start' });
     expect(s.busy).toBe(true);
-    s = reduce(s, { type: 'undo-done' });
+    s = reduce(s, { type: 'undo-done', at: 1200 });
     expect(s.steps).toEqual([]);
     expect(s.undo).toBeNull();
     expect(s.busy).toBe(false);
@@ -117,15 +117,21 @@ describe('undo', () => {
 
   it('removes only the last placed book, leaving the earlier ones', () => {
     let s = run([read('i1'), step(placed(1)), read('i2', 5000), step(placed(2))]);
-    s = run([{ type: 'undo-start' }, { type: 'undo-done' }], s);
+    s = run([{ type: 'undo-start' }, { type: 'undo-done', at: 1200 }], s);
     expect(s.steps).toEqual([placed(1)]);
     expect(s.undo).toBeNull();
   });
 
-  it('lets the same book be read again right away', () => {
-    let s = run([read('i1', 1000), step(placed(1)), { type: 'undo-start' }, { type: 'undo-done' }]);
-    s = reduce(s, read('i1', 1500));
+  it('still ignores the same code read again within three seconds of the undo', () => {
+    let s = run([read('i1', 1000), step(placed(1)), { type: 'undo-start' }, { type: 'undo-done', at: 1200 }]);
+    expect(reduce(s, read('i1', 1500))).toBe(s);
+    s = reduce(s, read('i1', 4300));
     expect(s.busy).toBe(true);
+  });
+
+  it('does not finish while a step is in flight', () => {
+    const s = reduce(initialState, read('i1'));
+    expect(reduce(s, { type: 'finish' })).toBe(s);
   });
 
   it('keeps the step when the undo fails on the network', () => {

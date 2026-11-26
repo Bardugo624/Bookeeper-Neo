@@ -59,7 +59,7 @@ export type Action =
   | { type: 'skip'; isbn: string }
   | { type: 'fail'; isbn: string }
   | { type: 'undo-start' }
-  | { type: 'undo-done' }
+  | { type: 'undo-done'; at: number }
   | { type: 'undo-fail' }
   | { type: 'finish' };
 
@@ -130,14 +130,15 @@ export function reduce(state: SessionState, action: Action): SessionState {
         steps: state.steps.filter((s) => s !== target),
         busy: false,
         undo: null,
-        // The same book may be read again at once.
-        last: null,
+        // The camera may still be on that book: the repeat rule keeps holding from now.
+        last: state.last ? { ...state.last, at: action.at } : null,
         feedback: { kind: 'undone', title: target.title },
       };
     }
     case 'undo-fail':
       return { ...state, busy: false, feedback: { kind: 'undoError', title: state.undo?.title ?? '' } };
     case 'finish':
-      return state.status === 'running' ? { ...state, status: 'finished', busy: false } : state;
+      // Not while a step is in flight: its outcome would miss the summary.
+      return state.status === 'running' && !state.busy ? { ...state, status: 'finished' } : state;
   }
 }

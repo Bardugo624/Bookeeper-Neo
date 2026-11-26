@@ -40,7 +40,11 @@ async function place(client: Client, target: Target, isbn: Isbn, book: BookOut, 
   try {
     slot = (await client.placeBook(book.id, { shelf_id: target.shelfId, row_index: target.row })).slot_index;
   } catch (e) {
-    if (isFull(e)) return { kind: 'full' };
+    if (isFull(e)) {
+      // A book created just for this row must not stay behind unplaced.
+      if (created.delete(book.id)) await client.deleteBook(book.id).catch(() => undefined);
+      return { kind: 'full' };
+    }
     throw e;
   }
   const from: Place | null = was ? { shelfId: was.shelf_id, row: was.row_index, slot: was.slot_index } : null;

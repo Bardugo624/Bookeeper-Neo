@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ShelfOut } from '@bookeeper/api';
 import { Button } from '@bookeeper/ui/base';
 import { useT } from '../../app/i18n';
@@ -28,6 +28,8 @@ export function ShelfSession({ picked, shelves, onDone }: ShelfSessionProps) {
   const session = useShelfSession(picked);
   const { state } = session;
   const camera = useCameraScan(video, session.onCode);
+  const started = useRef(false);
+  if (state.steps.length > 0) started.current = true;
   const blocked = camera.status === 'denied' || camera.status === 'unavailable';
 
   // The reducer ends the session (finished, or the row is full): hand the steps over.
@@ -50,7 +52,7 @@ export function ShelfSession({ picked, shelves, onDone }: ShelfSessionProps) {
       <SessionFeedback feedback={state.feedback} shelves={shelves} busy={state.busy} onRetry={session.retry} />
       {typing && !blocked ? <ManualIsbn onSubmit={session.submitManual} /> : null}
       <div className={styles.bar}>
-        {state.steps.length > 0 ? (
+        {started.current ? (
           <Button variant="secondary" disabled={state.undo === null || state.busy} onClick={() => void session.undo()}>
             {t('mscan.shelf.session.undo')}
           </Button>
@@ -60,7 +62,7 @@ export function ShelfSession({ picked, shelves, onDone }: ShelfSessionProps) {
             {t('mscan.blocked.manual')}
           </Button>
         )}
-        <Button variant="primary" onClick={session.finish}>
+        <Button variant="primary" disabled={state.busy} onClick={session.finish}>
           {t('mscan.shelf.session.finish')}
         </Button>
       </div>

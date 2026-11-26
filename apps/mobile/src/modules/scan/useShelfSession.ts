@@ -21,6 +21,7 @@ export function useShelfSession(target: Target) {
   const ref = useRef(state);
   const created = useRef<Created>(new Set());
   const current = useRef<Isbn | null>(null);
+  const typedRef = useRef<Typed | undefined>(undefined);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => () => clearTimeout(timer.current), []);
@@ -55,6 +56,7 @@ export function useShelfSession(target: Target) {
       apply({ type: 'read', code: isbn.isbn13, at: Date.now() });
       if (ref.current === before) return false;
       current.current = isbn;
+      typedRef.current = undefined;
       void run(isbn);
       return true;
     },
@@ -89,13 +91,14 @@ export function useShelfSession(target: Target) {
     const isbn = current.current;
     if (!isbn || !ref.current.failed) return;
     apply({ type: 'retry' });
-    void run(isbn);
+    void run(isbn, typedRef.current);
   }, [apply, run]);
 
   const giveTitle = useCallback(
     (typed: Typed) => {
       const isbn = current.current;
       if (!isbn) return;
+      typedRef.current = typed;
       apply({ type: 'titled' });
       void run(isbn, typed);
     },
@@ -113,7 +116,7 @@ export function useShelfSession(target: Target) {
     apply({ type: 'undo-start' });
     try {
       await undoStep(client, step, created.current);
-      apply({ type: 'undo-done' });
+      apply({ type: 'undo-done', at: Date.now() });
       refresh();
     } catch {
       apply({ type: 'undo-fail' });
