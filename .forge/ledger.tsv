@@ -420,3 +420,12 @@
 2026-11-26T00:37:51Z	bookeeper-fase-4c	m-reading	dwarf	sonnet	-	-	-	-	45
 2026-11-26T00:38:13Z	bookeeper-fase-4c	p3-4b-app	dwarf	sonnet	-	-	-	-	70
 2026-11-26T00:38:28Z	bookeeper-fase-4c	m-reading	qa	opus	PASS	-	-	-	31
+2026-11-26T00:39:42Z	bookeeper-fase-4c	p3-4b-app	qa	opus	PASS	-	-	-	83
+2026-11-26T00:41:37Z	bookeeper-fase-4c	m-tags	dwarf	sonnet	-	-	-	-	184
+2026-11-26T00:41:57Z	bookeeper-fase-4c	look-4b	dwarf	sonnet	-	-	-	-	130
+2026-11-26T00:42:54Z	bookeeper-fase-4c	m-tags	qa	opus	PASS	-	-	-	71
+2026-11-26T00:43:14Z	bookeeper-fase-4c	look-4b	qa	opus	FAIL	finding	turning an i18n string into a one other plural makes any caller that doesn t pass a numeric count render the raw key grep every t key	turning an i18n string into a `{one, other}` plural makes any caller that doesn't pass a numeric `count` render the raw key; grep every `t('<key>'`… [packages/i18n/src/index.ts]	71	1
+2026-11-26T00:43:38Z	bookeeper-fase-4c	look-4b	dwarf	sonnet	-	trap	turning an i18n string into a one other plural makes any caller that doesn t pass a numeric count render the raw key grep every t key	turning an i18n string into a `{one, other}` plural makes any caller that doesn't pass a numeric `count` render the raw key; grep every `t('<key>'`… [packages/i18n/src/index.ts]	20	1
+2026-11-26T00:44:28Z	bookeeper-fase-4c	look-4b	qa	opus	PASS	-	-	-	43
+2026-11-26T00:46:08Z	bookeeper-fase-4c	m-filters	dwarf	sonnet	-	-	-	-	189
+2026-11-26T00:47:24Z	bookeeper-fase-4c	m-filters	qa	opus	PASS	-	-	-	70
