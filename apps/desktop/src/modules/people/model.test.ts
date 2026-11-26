@@ -10,7 +10,7 @@ const other = (role: Role) => ({ id: 'other', role });
 describe('personActions', () => {
   // actor role -> target role -> actions (the "who manages whom" table of contract 6A)
   const OTHERS: Record<Role, Record<Role, PersonAction[]>> = {
-    owner: { owner: [], admin: ['role', 'rename', 'remove', 'owner'], member: ['role', 'rename', 'remove', 'owner'], guest: ['role', 'rename', 'remove', 'owner'] },
+    owner: { owner: [], admin: ['role', 'rename', 'remove'], member: ['role', 'rename', 'remove'], guest: ['role', 'rename', 'remove'] },
     admin: { owner: [], admin: [], member: ['role', 'rename', 'remove'], guest: ['role', 'rename', 'remove'] },
     member: { owner: [], admin: [], member: [], guest: [] },
     guest: { owner: [], admin: [], member: [], guest: [] },
@@ -24,9 +24,9 @@ describe('personActions', () => {
     }
   }
 
-  it('lets everybody rename themself and everybody but the owner leave', () => {
+  it('lets everybody rename themself; leaving is in the danger zone, not in the menu', () => {
     expect(personActions({ id: ME, role: 'owner' }, { id: ME, role: 'owner' })).toEqual(['rename']);
-    for (const r of ['admin', 'member', 'guest'] as Role[]) expect(personActions({ id: ME, role: r }, { id: ME, role: r })).toEqual(['rename', 'leave']);
+    for (const r of ['admin', 'member', 'guest'] as Role[]) expect(personActions({ id: ME, role: r }, { id: ME, role: r })).toEqual(['rename']);
   });
 
   it('offers nothing without an actor', () => {
