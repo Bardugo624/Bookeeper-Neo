@@ -1,0 +1,13 @@
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  color: var(--bk-text-strong);
+}
+
+.note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--bk-text-muted);
+}

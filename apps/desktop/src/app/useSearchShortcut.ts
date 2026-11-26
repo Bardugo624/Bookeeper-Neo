@@ -1,13 +1,14 @@
 import { useEffect, type RefObject } from 'react';
+import { isPlainShortcut } from './keyboard';
 
-/** Lets a view receive focus on its search field with Ctrl K / Cmd K. */
+/** Lets a view receive focus on its search field with `/`. */
 export function useSearchShortcut(ref: RefObject<HTMLInputElement | null>): void {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (!(e.ctrlKey || e.metaKey) || e.altKey || e.key.toLowerCase() !== 'k') return;
+      if (e.key !== '/' || !isPlainShortcut(e)) return;
       const el = ref.current;
       if (!el) return;
-      // Browsers use Ctrl K for their own search or address bar.
+      // Firefox opens its quick find on `/`.
       e.preventDefault();
       el.focus();
       el.select();

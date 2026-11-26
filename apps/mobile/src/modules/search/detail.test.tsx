@@ -17,17 +17,24 @@ describe('book page', () => {
   it('puts where the book is first: furniture and shelf', async () => {
     open(book(1, { placement: placed }));
     const where = await screen.findByRole('region', { name: 'Dove si trova' });
-    expect(await within(where).findByText('Libreria del salotto')).toBeInTheDocument();
-    expect(within(where).getByText('Ripiano 2')).toBeInTheDocument();
+    expect(await within(where).findByText(/^Libreria del salotto · /)).toBeInTheDocument();
+    expect(within(where).getByText('Libreria del salotto · ripiano 2 · posto 4')).toBeInTheDocument();
     // First block after the title and authors.
     const regions = screen.getAllByRole('region').map((r) => r.getAttribute('aria-labelledby'));
     expect(regions[1]).toBe('where-title');
+  });
+
+  it('offers "Dov\'è?" only for a shelved book, going to its page', async () => {
+    open(book(1, { placement: placed }));
+    const where = await screen.findByRole('region', { name: 'Dove si trova' });
+    expect(within(where).getByRole('link', { name: "Dov'è?" })).toHaveAttribute('href', '/books/b1/where');
   });
 
   it('says so when the book is not shelved', async () => {
     open(book(1));
     const where = await screen.findByRole('region', { name: 'Dove si trova' });
     expect(within(where).getByText('Non collocato')).toBeInTheDocument();
+    expect(within(where).queryByRole('link', { name: "Dov'è?" })).toBeNull();
   });
 
   it('shows the title in the serif heading and the authors', async () => {
@@ -55,10 +62,10 @@ describe('book page', () => {
     expect(within(details).queryByText('Anno')).toBeNull();
   });
 
-  it('is read only: no edit button', async () => {
+  it('does not edit the book itself (only its tags and reading state)', async () => {
     open(book(1));
     await screen.findByRole('region', { name: 'Prestito' });
-    expect(screen.queryByRole('button', { name: /modific|edit/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /^(?!modifica tag$)(modific|edit)/i })).toBeNull();
   });
 
   it('shows a dedicated state for a book that does not exist', async () => {
@@ -113,7 +120,7 @@ describe('way back', () => {
     expect(router.state.location.pathname).toBe('/search');
     expect(router.state.location.search).toBe('?q=Libro&filter=loan');
     expect(await screen.findByRole('searchbox')).toHaveValue('Libro');
-    expect(screen.getByRole('tab', { name: 'In prestito' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('button', { name: 'In prestito' })).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('returns to the plain list from a direct link', async () => {

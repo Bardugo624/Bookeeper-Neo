@@ -1,0 +1,48 @@
+{
+  "title": "Reading",
+  "loading": "Loading the reading state",
+  "error": "Could not load the reading state.",
+  "retry": "Retry",
+  "invite": "Where are you with this book?",
+  "pick": {
+    "to_read": "To read",
+    "reading": "Reading now",
+    "read": "Read"
+  },
+  "status": {
+    "to_read": "To read",
+    "reading": "Reading",
+    "read": "Read",
+    "abandoned": "Abandoned"
+  },
+  "change": "Change status",
+  "sheet": {
+    "title": "Reading status",
+    "clear": "Remove the status"
+  },
+  "ring": {
+    "label": "{status}, {percent}%"
+  },
+  "pageOf": "Page {page} of {total}",
+  "page": "Page {page}",
+  "startedOn": "Started on {date}",
+  "finishedOn": "Finished on {date}",
+  "markRead": "Mark as read",
+  "field": {
+    "page": {
+      "label": "Current page",
+      "less": "One page less",
+      "more": "One page more",
+      "of": "of {total}",
+      "invalid": "Enter a whole number, 0 or more."
+    }
+  },
+  "rating": {
+    "label": "Rating",
+    "star": "{count} out of 5"
+  },
+  "note": {
+    "label": "Note",
+    "placeholder": "What did you think?"
+  }
+}

@@ -1,4 +1,4 @@
-import { beforeEach, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeConnection } from './testing';
 import { browserPlatform } from './browser';
 
@@ -44,4 +44,36 @@ it('saveFile downloads through an object URL and revokes it', async () => {
   expect(click).toHaveBeenCalledTimes(1);
   expect(revoke).toHaveBeenCalledWith('blob:x');
   click.mockRestore();
+});
+
+describe('notifications', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('is null where the browser has no Notification', () => {
+    vi.stubGlobal('Notification', undefined);
+    expect(browserPlatform('http://x').notifications).toBeNull();
+  });
+
+  it('maps the browser permission and request', async () => {
+    const requestPermission = vi.fn().mockResolvedValue('granted');
+    vi.stubGlobal('Notification', { permission: 'default', requestPermission });
+    const n = browserPlatform('http://x').notifications!;
+    expect(await n.permission()).toBe('prompt');
+    expect(await n.request()).toBe('granted');
+    requestPermission.mockResolvedValueOnce('default');
+    expect(await n.request()).toBe('denied');
+    requestPermission.mockRejectedValueOnce(new Error('x'));
+    expect(await n.request()).toBe('denied');
+    vi.stubGlobal('Notification', { permission: 'denied', requestPermission });
+    expect(await browserPlatform('http://x').notifications!.permission()).toBe('denied');
+    vi.stubGlobal('Notification', { permission: 'granted', requestPermission });
+    expect(await browserPlatform('http://x').notifications!.permission()).toBe('granted');
+  });
+
+  it('sends through the Notification constructor', async () => {
+    const ctor = vi.fn();
+    vi.stubGlobal('Notification', ctor);
+    await browserPlatform('http://x').notifications!.send({ title: 'T', body: 'B' });
+    expect(ctor).toHaveBeenCalledWith('T', { body: 'B' });
+  });
 });

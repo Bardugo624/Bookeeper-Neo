@@ -34,9 +34,6 @@
     "isbn": "ISBN {isbn}",
     "owned": {
       "tag": "It is in your library",
-      "where": "Where: {place}",
-      "shelfRow": "{shelf}, row {row}",
-      "row": "row {row}",
       "unplaced": "Not placed yet",
       "open": "Open the book"
     },
@@ -44,7 +41,8 @@
       "title": "Book found",
       "readOnly": "You cannot add books to this library.",
       "add": "Add to the library",
-      "adding": "Adding…"
+      "adding": "Adding…",
+      "wish": "Add to the wishlist"
     },
     "added": {
       "tag": "Added",
@@ -63,6 +61,106 @@
       "retry": "Try again",
       "addFailed": "The book was not added."
     },
-    "close": "Close"
+    "close": "Close",
+    "offline": {
+      "title": "Not in your library",
+      "text": "This ISBN is not in the copy of the library kept on this phone. Without a network I cannot look further.",
+      "updated": "Data updated at {time}",
+      "never": "The list of the library's books has not been downloaded yet."
+    }
+  },
+  "shelf": {
+    "enter": "Fill a shelf",
+    "title": "Fill a shelf",
+    "back": "Back to Scan",
+    "needPermission": {
+      "title": "Permission needed",
+      "text": "To fill a shelf you must be allowed to edit books. Ask whoever runs the library."
+    },
+    "pick": {
+      "intro": "Choose the unit to fill.",
+      "noRoom": "No room",
+      "unitInfo": "{rows} · {books}",
+      "rows": {
+        "one": "{count} shelf",
+        "other": "{count} shelves"
+      },
+      "books": {
+        "one": "{count} book",
+        "other": "{count} books"
+      },
+      "free": {
+        "one": "{count} free slot",
+        "other": "{count} free slots"
+      },
+      "fill": "{books} · {free}",
+      "full": "Full",
+      "row": "Shelf {row}",
+      "rowsTitle": "{shelf}: choose the shelf",
+      "change": "Change unit",
+      "emptyTitle": "No units",
+      "emptyText": "Create a unit from the computer first."
+    },
+    "session": {
+      "where": "{shelf}, shelf {row}",
+      "counter": {
+        "one": "{count} book placed",
+        "other": "{count} books placed"
+      },
+      "counterLabel": "Books placed",
+      "undo": "Undo the last",
+      "finish": "I'm done"
+    },
+    "feedback": {
+      "idle": "Point at the first book of the shelf.",
+      "placed": "{title} · slot {slot}",
+      "moved": "{title} · slot {slot}, moved from {from}",
+      "added": "{title} added · slot {slot}",
+      "here": "{title} is already here · slot {slot}",
+      "skipped": "Skipped: ISBN {isbn}",
+      "undone": "Undone: {title}",
+      "undoError": "Could not undo: {title}",
+      "error": "It did not work for ISBN {isbn}.",
+      "retry": "Retry",
+      "fromShelf": "{shelf}, shelf {row}",
+      "fromRow": "shelf {row}"
+    },
+    "none": {
+      "text": "I found no information about this book.",
+      "type": "Enter the title",
+      "skip": "Skip",
+      "authorLabel": "Author (optional)",
+      "create": "Create and place"
+    },
+    "summary": {
+      "title": "Summary",
+      "full": "The shelf is full",
+      "placed": {
+        "one": "{count} placed",
+        "other": "{count} placed"
+      },
+      "moved": {
+        "one": "{count} moved",
+        "other": "{count} moved"
+      },
+      "added": {
+        "one": "{count} added",
+        "other": "{count} added"
+      },
+      "skipped": {
+        "one": "{count} skipped",
+        "other": "{count} skipped"
+      },
+      "list": "Books in scanning order",
+      "empty": "No book was read.",
+      "kind": {
+        "placed": "placed",
+        "moved": "moved",
+        "added": "added",
+        "skipped": "skipped"
+      },
+      "again": "Another shelf",
+      "close": "Close"
+    }
   }
 }

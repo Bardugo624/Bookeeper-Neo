@@ -98,3 +98,13 @@
   font-size: 16px;
 }
 .stage[hidden] { display: none; }
+
+.enter {
+  display: flex;
+  flex-direction: column;
+  margin-top: 12px;
+}
+
+.enter > button {
+  min-height: 44px;
+}

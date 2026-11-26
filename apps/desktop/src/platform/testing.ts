@@ -1,5 +1,5 @@
 import { ApiError, type Transport, type TransportResponse } from '@bookeeper/api';
-import { NETWORK_PROBE, type Connection, type Connections, type Found, type Platform, type ProbeOut, type SaveFileRequest, type SaveFileResult, type SharingStatus, type UpdateChannel, type UpdateProgress, type UpdateState, type WindowControls } from './types';
+import { NETWORK_PROBE, type Connection, type Connections, type Found, type NotificationControls, type NotificationPermission, type Platform, type ProbeOut, type SaveFileRequest, type SaveFileResult, type SharingStatus, type UpdateChannel, type UpdateProgress, type UpdateState, type WindowControls } from './types';
 
 type Handler = (req: {
   method: string;
@@ -29,6 +29,8 @@ export interface FakePlatform extends Platform {
   sharingState: SharingStatus;
   /** Every `sharing.set` call, in order. */
   sharingCalls: Array<{ enabled: boolean; port?: number }>;
+  /** Control panel of the fake notifications (`permission` and `request` answers, what was sent). */
+  notificationsFake: FakeNotifications;
   /** Replaces what the next `sharing.set` returns (receives the request). */
   setSharingHandler(h: (enabled: boolean, port: number | undefined, current: SharingStatus) => SharingStatus | Promise<SharingStatus>): void;
 }
@@ -45,7 +47,20 @@ export interface FakeUpdates {
   emitProgress(p: UpdateProgress): void;
 }
 
+export interface FakeNotifications {
+  /** What `permission()` answers now; `request()` moves it to the next answer. */
+  permission: NotificationPermission;
+  /** What the next `request()` resolves to (default `granted`). */
+  nextAnswer: 'granted' | 'denied';
+  /** Number of `request()` calls. */
+  requests: number;
+  /** Every `send` call, in order. */
+  sent: Array<{ title: string; body: string }>;
+}
+
 export interface FakePlatformOptions {
+  /** Gives the platform notifications with this permission (default: `null`, like a browser without them). */
+  notifications?: { permission?: NotificationPermission; answer?: 'granted' | 'denied' };
   /** Gives the platform updates; `state` is what the checks answer (default `Disabled`). Absent: `updates` is null. */
   updates?: { state?: UpdateState };
   connections?: Connections;
@@ -110,6 +125,25 @@ export function fakePlatform(opts: FakePlatformOptions = {}): FakePlatform {
       progressListeners.forEach((cb) => cb(p));
     },
   };
+  const notificationsFake: FakeNotifications = {
+    permission: opts.notifications?.permission ?? 'prompt',
+    nextAnswer: opts.notifications?.answer ?? 'granted',
+    requests: 0,
+    sent: [],
+  };
+  const notifications: NotificationControls = {
+    async permission() {
+      return notificationsFake.permission;
+    },
+    async request() {
+      notificationsFake.requests += 1;
+      notificationsFake.permission = notificationsFake.nextAnswer;
+      return notificationsFake.nextAnswer;
+    },
+    async send(n) {
+      notificationsFake.sent.push({ ...n });
+    },
+  };
   const calls: FakePlatform['calls'] = [];
 
   const win: WindowControls = {
@@ -138,6 +172,7 @@ export function fakePlatform(opts: FakePlatformOptions = {}): FakePlatform {
     kind: opts.kind ?? 'tauri',
     calls,
     updatesFake,
+    notificationsFake,
     state: opts.connections ?? { active: null, items: [] },
     windowCalls,
     saved,
@@ -235,6 +270,7 @@ export function fakePlatform(opts: FakePlatformOptions = {}): FakePlatform {
           },
         }
       : null,
+    notifications: opts.notifications ? notifications : null,
     window: opts.window === false ? null : win,
     async deviceName() {
       return 'Test device';

@@ -3,13 +3,14 @@ import { useQuery } from '@tanstack/react-query';
 import { renderApp } from '../../app/testing';
 import { fakeConnection, fakePlatform, type FakePlatform } from '../../platform/testing';
 import { ME, ok } from '../../session/fixtures';
+import { book } from '../books/testkit';
 import type { AppModule } from '../../app';
 import { useClient, useSession } from '../../session';
 import { module } from './routes';
 import { WishlistPage } from './WishlistPage';
 
 export function wish(i: number, over: Partial<WishOut> = {}): WishOut {
-  return { id: `w${i}`, user_id: 'u1', title: `Desiderio ${i}`, priority: 1, created_at: 1_700_000_000 + i * 86_400, ...over };
+  return { id: `w${i}`, user_id: 'u1', user: { id: 'u1', display_name: 'Anna' }, title: `Desiderio ${i}`, priority: 1, created_at: 1_700_000_000 + i * 86_400, ...over };
 }
 
 export interface Shop {
@@ -23,7 +24,7 @@ export interface Shop {
   listFails?: boolean;
 }
 
-const BOOK: BookOut = { id: 'b9', title: 'Nuovo libro', authors: [], on_loan: false, created_at: 0, updated_at: 0 };
+const BOOK: BookOut = book(9, { id: 'b9', title: 'Nuovo libro', authors: [] });
 
 /** Answers `/me` and the wishlist routes from an in-memory list. */
 export function wishPlatform(shop: Shop): FakePlatform {

@@ -891,3 +891,432 @@ async fn shift_writes_one_audit_entry() {
     assert_eq!(shift_to(&s, &fb[5], &full, 0, 0, None).await.0, 409);
     assert_eq!(audit_rows(&s.state, &s.library_id).await.len(), n);
 }
+
+async fn make_room(s: &Seeded, name: &str) -> String {
+    let (st, _, b) = call(
+        &s.state,
+        "POST",
+        "/api/v1/rooms",
+        Some(&tok(s)),
+        Some(json!({"name": name})),
+    )
+    .await;
+    assert_eq!(st, 201, "{b}");
+    b["id"].as_str().unwrap().to_string()
+}
+
+async fn patch_shelf(s: &Seeded, id: &str, body: Value) -> (u16, Value) {
+    let (st, _, b) = call(
+        &s.state,
+        "PATCH",
+        &format!("/api/v1/shelves/{id}"),
+        Some(&tok(s)),
+        Some(body),
+    )
+    .await;
+    (st, b)
+}
+
+#[tokio::test]
+async fn shelf_without_room_has_null_room() {
+    let s = seed(Role::Owner, None, None).await;
+    let sh = new_shelf(&s, "A").await;
+    assert_eq!(sh["room_id"], Value::Null);
+    assert_eq!(sh["room"], Value::Null);
+}
+
+#[tokio::test]
+async fn create_with_room_id_returns_the_room() {
+    let s = seed(Role::Owner, None, None).await;
+    let r = make_room(&s, "Salotto").await;
+    let (st, sh) = create(
+        &s,
+        json!({"name": "A", "rows": 2, "slots_per_row": 5, "room_id": r}),
+    )
+    .await;
+    assert_eq!(st, 201, "{sh}");
+    assert_eq!(sh["room_id"], json!(r));
+    assert_eq!(sh["room"], json!({"id": r, "name": "Salotto"}));
+    let (_, got) = get(
+        &s,
+        &format!("/api/v1/shelves/{}", sh["id"].as_str().unwrap()),
+    )
+    .await;
+    assert_eq!(got["room"]["name"], "Salotto");
+    let (_, l) = get(&s, "/api/v1/shelves").await;
+    assert_eq!(l["items"][0]["room"]["id"], json!(r));
+    // `null` on create means no room.
+    let (st, n) = create(
+        &s,
+        json!({"name": "B", "rows": 2, "slots_per_row": 5, "room_id": null}),
+    )
+    .await;
+    assert_eq!((st, &n["room"]), (201, &Value::Null));
+}
+
+#[tokio::test]
+async fn patch_sets_keeps_and_clears_the_room() {
+    let s = seed(Role::Owner, None, None).await;
+    let r1 = make_room(&s, "Salotto").await;
+    let r2 = make_room(&s, "Studio").await;
+    let sh = new_shelf(&s, "A").await;
+    let sid = sh["id"].as_str().unwrap();
+    let (st, b) = patch_shelf(&s, sid, json!({"room_id": r1})).await;
+    assert_eq!(st, 200, "{b}");
+    assert_eq!(b["room"]["name"], "Salotto");
+    // Absent: unchanged.
+    let (_, b) = patch_shelf(&s, sid, json!({"name": "A2"})).await;
+    assert_eq!(
+        (b["room_id"].as_str(), b["name"].as_str()),
+        (Some(r1.as_str()), Some("A2"))
+    );
+    // Move to another room.
+    let (_, b) = patch_shelf(&s, sid, json!({"room_id": r2})).await;
+    assert_eq!(b["room"], json!({"id": r2, "name": "Studio"}));
+    // null: removed.
+    let (st, b) = patch_shelf(&s, sid, json!({"room_id": null})).await;
+    assert_eq!(st, 200);
+    assert_eq!((&b["room_id"], &b["room"]), (&Value::Null, &Value::Null));
+}
+
+#[tokio::test]
+async fn foreign_or_unknown_room_is_404_and_changes_nothing() {
+    let s = seed(Role::Owner, None, None).await;
+    let mine = make_room(&s, "Salotto").await;
+    let (_, other) = other_library(&s.state).await;
+    let (st, _, theirs) = call(
+        &s.state,
+        "POST",
+        "/api/v1/rooms",
+        Some(&other.access_token),
+        Some(json!({"name": "Loro"})),
+    )
+    .await;
+    assert_eq!(st, 201);
+    let theirs = theirs["id"].as_str().unwrap().to_string();
+    let sh = create(
+        &s,
+        json!({"name": "A", "rows": 2, "slots_per_row": 5, "room_id": mine}),
+    )
+    .await
+    .1;
+    let sid = sh["id"].as_str().unwrap();
+    let before = audit_rows(&s.state, &s.library_id).await.len();
+    for bad in [theirs.as_str(), "nope"] {
+        let (st, _) = create(
+            &s,
+            json!({"name": "B", "rows": 2, "slots_per_row": 5, "room_id": bad}),
+        )
+        .await;
+        assert_eq!(st, 404);
+        let (st, _) = patch_shelf(&s, sid, json!({"name": "Z", "rows": 3, "room_id": bad})).await;
+        assert_eq!(st, 404);
+    }
+    let (_, l) = get(&s, "/api/v1/shelves").await;
+    assert_eq!(l["items"].as_array().unwrap().len(), 1);
+    let (_, got) = get(&s, &format!("/api/v1/shelves/{sid}")).await;
+    assert_eq!(
+        (got["name"].as_str(), got["rows"].as_i64()),
+        (Some("A"), Some(2))
+    );
+    assert_eq!(got["room_id"], json!(mine));
+    assert_eq!(audit_rows(&s.state, &s.library_id).await.len(), before);
+}
+
+// ---- append (no slot_index) ----
+
+async fn append(s: &Seeded, book: &str, shelf: &str, row: i64) -> (u16, Value) {
+    let (st, _, b) = call(
+        &s.state,
+        "PUT",
+        &format!("/api/v1/books/{book}/placement"),
+        Some(&tok(s)),
+        Some(json!({"shelf_id": shelf, "row_index": row})),
+    )
+    .await;
+    (st, b)
+}
+
+#[tokio::test]
+async fn append_to_an_empty_row_takes_slot_zero() {
+    let s = seed(Role::Owner, None, None).await;
+    let sh = insert_shelf(&s.state, &s.library_id, "A", 2, 5).await;
+    let b = books(&s, 1).await;
+    let (st, body) = append(&s, &b[0], &sh, 1).await;
+    assert_eq!(st, 200, "{body}");
+    assert_eq!(body["row_index"], 1);
+    assert_eq!(body["slot_index"], 0);
+}
+
+#[tokio::test]
+async fn append_goes_after_the_last_occupied_slot() {
+    let s = seed(Role::Owner, None, None).await;
+    let sh = insert_shelf(&s.state, &s.library_id, "A", 1, 8).await;
+    let b = books(&s, 4).await;
+    for (i, slot) in [0, 1, 4].into_iter().enumerate() {
+        place(&s, &b[i], &sh, 0, slot).await;
+    }
+    let (st, body) = append(&s, &b[3], &sh, 0).await;
+    assert_eq!(st, 200, "{body}");
+    assert_eq!(body["slot_index"], 5);
+}
+
+#[tokio::test]
+async fn append_of_a_book_already_on_the_row_changes_nothing() {
+    let s = seed(Role::Owner, None, None).await;
+    let sh = insert_shelf(&s.state, &s.library_id, "A", 1, 8).await;
+    let b = books(&s, 3).await;
+    place(&s, &b[0], &sh, 0, 0).await;
+    place(&s, &b[1], &sh, 0, 3).await;
+    place(&s, &b[2], &sh, 0, 6).await;
+    let before = audit_rows(&s.state, &s.library_id).await.len();
+    let (st, body) = append(&s, &b[1], &sh, 0).await;
+    assert_eq!(st, 200, "{body}");
+    assert_eq!(body["slot_index"], 3);
+    assert_eq!(body["row_index"], 0);
+    assert_eq!(audit_rows(&s.state, &s.library_id).await.len(), before);
+    assert_eq!(
+        layout(&s, &sh).await,
+        vec![
+            (0, 0, b[0].clone()),
+            (0, 3, b[1].clone()),
+            (0, 6, b[2].clone())
+        ]
+    );
+}
+
+#[tokio::test]
+async fn append_moves_a_book_from_another_row_or_shelf_to_the_tail() {
+    let s = seed(Role::Owner, None, None).await;
+    let a = insert_shelf(&s.state, &s.library_id, "A", 2, 5).await;
+    let c = insert_shelf(&s.state, &s.library_id, "C", 1, 5).await;
+    let b = books(&s, 4).await;
+    place(&s, &b[0], &a, 0, 0).await;
+    place(&s, &b[1], &a, 1, 2).await;
+    place(&s, &b[2], &c, 0, 1).await;
+    // Other row of the same shelf.
+    let (st, body) = append(&s, &b[0], &a, 1).await;
+    assert_eq!(st, 200, "{body}");
+    assert_eq!(body["slot_index"], 3);
+    // Other shelf.
+    let (st, body) = append(&s, &b[3], &c, 0).await;
+    assert_eq!((st, &body["slot_index"]), (200, &json!(2)));
+    let (st, body) = append(&s, &b[1], &c, 0).await;
+    assert_eq!((st, &body["slot_index"]), (200, &json!(3)));
+    assert_eq!(
+        layout(&s, &a).await,
+        vec![(1, 3, b[0].clone())],
+        "old slots are freed"
+    );
+}
+
+#[tokio::test]
+async fn append_with_the_last_slot_taken_is_row_full_and_changes_nothing() {
+    let s = seed(Role::Owner, None, None).await;
+    let sh = insert_shelf(&s.state, &s.library_id, "A", 2, 5).await;
+    let b = books(&s, 3).await;
+    place(&s, &b[0], &sh, 0, 4).await;
+    place(&s, &b[1], &sh, 1, 0).await;
+    let before = audit_rows(&s.state, &s.library_id).await.len();
+    let (st, body) = append(&s, &b[2], &sh, 0).await;
+    assert_eq!(st, 409, "{body}");
+    assert_eq!(body["error_code"], "row_full");
+    // A placed book moving there is refused too and stays where it was.
+    let (st, body) = append(&s, &b[1], &sh, 0).await;
+    assert_eq!((st, &body["error_code"]), (409, &json!("row_full")));
+    assert_eq!(audit_rows(&s.state, &s.library_id).await.len(), before);
+    assert_eq!(
+        layout(&s, &sh).await,
+        vec![(0, 4, b[0].clone()), (1, 0, b[1].clone())]
+    );
+}
+
+#[tokio::test]
+async fn shift_without_slot_index_is_validation() {
+    let s = seed(Role::Owner, None, None).await;
+    let sh = insert_shelf(&s.state, &s.library_id, "A", 1, 5).await;
+    let b = books(&s, 1).await;
+    let (st, _, body) = call(
+        &s.state,
+        "PUT",
+        &format!("/api/v1/books/{}/placement", b[0]),
+        Some(&tok(&s)),
+        Some(json!({"shelf_id": sh, "row_index": 0, "shift": true})),
+    )
+    .await;
+    assert_eq!(st, 422, "{body}");
+    assert!(layout(&s, &sh).await.is_empty());
+}
+
+#[tokio::test]
+async fn ten_concurrent_appends_get_ten_different_slots() {
+    let s = seed(Role::Owner, None, None).await;
+    let sh = insert_shelf(&s.state, &s.library_id, "A", 1, 10).await;
+    let b = books(&s, 10).await;
+    let token = tok(&s);
+    let handles: Vec<_> = b
+        .iter()
+        .map(|id| {
+            let (state, token, id, sh) = (s.state.clone(), token.clone(), id.clone(), sh.clone());
+            tokio::spawn(async move {
+                call(
+                    &state,
+                    "PUT",
+                    &format!("/api/v1/books/{id}/placement"),
+                    Some(&token),
+                    Some(json!({"shelf_id": sh, "row_index": 0})),
+                )
+                .await
+            })
+        })
+        .collect();
+    let mut slots = Vec::new();
+    for h in handles {
+        let (st, _, body) = h.await.unwrap();
+        assert_eq!(st, 200, "{body}");
+        slots.push(body["slot_index"].as_i64().unwrap());
+    }
+    slots.sort();
+    assert_eq!(slots, (0..10).collect::<Vec<_>>());
+    assert_eq!(layout(&s, &sh).await.len(), 10);
+}
+
+#[tokio::test]
+async fn append_is_scoped_to_the_library() {
+    let s = seed(Role::Owner, None, None).await;
+    let mine = insert_shelf(&s.state, &s.library_id, "A", 1, 5).await;
+    let (olib, _) = other_library(&s.state).await;
+    let theirs = insert_shelf(&s.state, &olib, "Z", 1, 5).await;
+    let b = books(&s, 1).await;
+    let (st, _) = append(&s, &b[0], &theirs, 0).await;
+    assert_eq!(st, 404);
+    let their_book = insert_book(&s.state, &olib, "Loro").await;
+    let (st, _) = append(&s, &their_book, &mine, 0).await;
+    assert_eq!(st, 404);
+    assert!(layout(&s, &mine).await.is_empty());
+}
+
+#[tokio::test]
+async fn spine_width_has_three_states() {
+    let s = seed(Role::Owner, None, None).await;
+    let sh = insert_shelf(&s.state, &s.library_id, "A", 2, 5).await;
+    let b = books(&s, 1).await;
+    let put = |body: Value| {
+        let s = &s;
+        let id = b[0].clone();
+        async move {
+            call(
+                &s.state,
+                "PUT",
+                &format!("/api/v1/books/{id}/placement"),
+                Some(&tok(s)),
+                Some(body),
+            )
+            .await
+            .0
+        }
+    };
+    let width = || async {
+        let (_, l) = get(&s, &format!("/api/v1/shelves/{sh}/books")).await;
+        l["items"][0]["spine_width"].clone()
+    };
+    assert_eq!(
+        put(json!({"shelf_id": sh, "row_index": 0, "slot_index": 0, "spine_width": 3})).await,
+        200
+    );
+    assert_eq!(width().await, 3);
+    // Absent keeps.
+    assert_eq!(
+        put(json!({"shelf_id": sh, "row_index": 0, "slot_index": 0})).await,
+        200
+    );
+    assert_eq!(width().await, 3);
+    // A move that does not name it keeps it.
+    assert_eq!(
+        put(json!({"shelf_id": sh, "row_index": 1, "slot_index": 2})).await,
+        200
+    );
+    assert_eq!(width().await, 3);
+    // Appending (no slot_index) on the same row keeps it too.
+    assert_eq!(put(json!({"shelf_id": sh, "row_index": 1})).await, 200);
+    assert_eq!(width().await, 3);
+    // null clears, also with shift and without slot_index.
+    assert_eq!(
+        put(json!({"shelf_id": sh, "row_index": 1, "slot_index": 2, "spine_width": null})).await,
+        200
+    );
+    assert_eq!(width().await, Value::Null);
+    assert_eq!(
+        put(json!({"shelf_id": sh, "row_index": 0, "slot_index": 0, "spine_width": 2})).await,
+        200
+    );
+    assert_eq!(put(json!({"shelf_id": sh, "row_index": 0, "slot_index": 1, "shift": true, "spine_width": null})).await, 200);
+    assert_eq!(width().await, Value::Null);
+    assert_eq!(
+        put(json!({"shelf_id": sh, "row_index": 0, "slot_index": 1, "spine_width": 2})).await,
+        200
+    );
+    assert_eq!(
+        put(json!({"shelf_id": sh, "row_index": 0, "spine_width": null})).await,
+        200
+    );
+    assert_eq!(width().await, Value::Null);
+    for bad in [0, 4] {
+        assert_eq!(
+            put(json!({"shelf_id": sh, "row_index": 0, "slot_index": 1, "spine_width": bad})).await,
+            422
+        );
+    }
+}
+
+#[tokio::test]
+async fn already_placed_without_slot_applies_spine_width() {
+    let s = seed(Role::Owner, None, None).await;
+    let sh = insert_shelf(&s.state, &s.library_id, "A", 1, 5).await;
+    let b = books(&s, 1).await;
+    place(&s, &b[0], &sh, 0, 2).await;
+    let put = |body: Value| {
+        let s = &s;
+        let id = b[0].clone();
+        async move {
+            call(
+                &s.state,
+                "PUT",
+                &format!("/api/v1/books/{id}/placement"),
+                Some(&tok(s)),
+                Some(body),
+            )
+            .await
+            .0
+        }
+    };
+    let item = || async {
+        let (_, l) = get(&s, &format!("/api/v1/shelves/{sh}/books")).await;
+        (
+            l["items"][0]["slot_index"].clone(),
+            l["items"][0]["spine_width"].clone(),
+        )
+    };
+    let audits = || async { audit_rows(&s.state, &s.library_id).await.len() };
+    let base = audits().await;
+    assert_eq!(
+        put(json!({"shelf_id": sh, "row_index": 0, "spine_width": 3})).await,
+        200
+    );
+    assert_eq!(item().await, (json!(2), json!(3)));
+    assert_eq!(audits().await, base + 1);
+    // Same width again, or no width: nothing changes, no audit row.
+    assert_eq!(
+        put(json!({"shelf_id": sh, "row_index": 0, "spine_width": 3})).await,
+        200
+    );
+    assert_eq!(put(json!({"shelf_id": sh, "row_index": 0})).await, 200);
+    assert_eq!(item().await, (json!(2), json!(3)));
+    assert_eq!(audits().await, base + 1);
+    assert_eq!(
+        put(json!({"shelf_id": sh, "row_index": 0, "spine_width": null})).await,
+        200
+    );
+    assert_eq!(item().await, (json!(2), Value::Null));
+    assert_eq!(audits().await, base + 2);
+}

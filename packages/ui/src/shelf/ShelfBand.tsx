@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState, type DragEvent, type KeyboardEvent } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type DragEvent, type KeyboardEvent } from 'react';
 import { Spine } from './Spine';
 import { BOOK_MIME, MAX_EMPTY, type ShelfRow, type SlotDrop, type SpineBook, type SpineLabel } from './types';
 import styles from './Shelf.module.css';
@@ -8,6 +8,7 @@ export interface ShelfBandProps {
   rowIndex: number;
   spineLabel: (book: SpineBook) => SpineLabel;
   selectedId?: string;
+  pulledId?: string;
   pickedId: string | null;
   /** Insertion point drawn by someone else (keyboard move or the `dropTarget` prop). */
   externalIndex: number | null;
@@ -40,6 +41,25 @@ export function ShelfBand(props: ShelfBandProps) {
     const last = spines[spines.length - 1];
     setLeft(at ? at.offsetLeft : last ? last.offsetLeft + last.offsetWidth : 0);
   }, [index, row.books, props.pickedId]);
+
+  // Bring the pulled spine into view when `pulledId` changes, or when its spine first appears
+  // (data arrived late). A reload of the same books must not scroll again.
+  const scrolledTo = useRef<string | undefined>(undefined);
+  const lastPulled = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (lastPulled.current !== props.pulledId) {
+      // A new target (even one on another shelf) must scroll again when it comes back.
+      lastPulled.current = props.pulledId;
+      scrolledTo.current = undefined;
+    }
+    if (!props.pulledId) return;
+    if (!strip.current || scrolledTo.current === props.pulledId) return;
+    const el = visibleSpines(strip.current, null).find((s) => s.dataset.spineId === props.pulledId);
+    if (!el) return;
+    scrolledTo.current = props.pulledId;
+    const reduced = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    el.scrollIntoView?.({ block: 'nearest', inline: 'nearest', behavior: reduced ? 'auto' : 'smooth' });
+  }, [props.pulledId, row.books]);
 
   const indexAt = (clientX: number) => {
     const spines = visibleSpines(strip.current!, dragId.current);
@@ -85,6 +105,7 @@ export function ShelfBand(props: ShelfBandProps) {
             label={props.spineLabel(book)}
             selected={props.selectedId === book.id}
             picked={props.pickedId === book.id}
+            pulled={props.pulledId === book.id}
             draggable={interactive}
             onClick={props.onSpineClick}
             onDragStart={(id) => (dragId.current = id)}

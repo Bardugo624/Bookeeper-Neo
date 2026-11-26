@@ -1,0 +1,148 @@
+.sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.heading {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--bk-text-muted);
+}
+
+.choices,
+.options {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.choices {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.options {
+  flex-direction: column;
+  gap: 4px;
+}
+
+.choice {
+  min-height: 44px;
+  max-width: 100%;
+  padding: 0 14px;
+  border: 1px solid var(--bk-border-strong);
+  border-radius: 999px;
+  background: var(--bk-surface);
+  font: inherit;
+  font-size: 16px;
+  color: var(--bk-text-strong);
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.on {
+  border-color: var(--bk-primary-600);
+  background: var(--bk-primary-600);
+  color: var(--bk-on-primary);
+}
+
+.n {
+  font-size: 14px;
+  opacity: 0.75;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  font-size: 16px;
+  color: var(--bk-text-strong);
+  cursor: pointer;
+}
+
+.check {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  accent-color: var(--bk-primary-600);
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.footer {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.reset,
+.apply {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: var(--bk-radius);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.reset {
+  border: 1px solid var(--bk-border-strong);
+  background: var(--bk-surface);
+  color: var(--bk-text-strong);
+}
+
+.apply {
+  flex: 1;
+  border: 1px solid var(--bk-primary-600);
+  background: var(--bk-primary-600);
+  color: var(--bk-on-primary);
+}
+
+.choice:focus-visible,
+.reset:focus-visible,
+.apply:focus-visible,
+.check:focus-visible {
+  outline: 2px solid var(--bk-focus);
+  outline-offset: 2px;
+}
+
+.sectionError {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--bk-text-strong);
+}
+
+.sectionError p {
+  margin: 0;
+}
+
+.retry {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--bk-border-strong);
+  border-radius: 999px;
+  background: var(--bk-surface);
+  font: inherit;
+  font-size: 16px;
+  color: var(--bk-text-strong);
+  cursor: pointer;
+  touch-action: manipulation;
+}

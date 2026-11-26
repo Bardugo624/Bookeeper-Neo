@@ -4,6 +4,7 @@ import { Field, Input } from '@bookeeper/ui/base';
 import { useT } from '../../app';
 import { FormDialog, apiErrorMessage, toDateInputValue, toUnixSeconds, useFormState } from '../../kit';
 import { todayInput } from './loanForm';
+import { useBorrowerLabel } from './useBorrowerLabel';
 import { useLoanMutations } from './useLoanMutations';
 
 export interface ReturnDialogProps {
@@ -14,6 +15,7 @@ export interface ReturnDialogProps {
 /** "Mark as returned": the date defaults to today and cannot precede the lending date. */
 export function ReturnDialog({ loan, onClose }: ReturnDialogProps) {
   const t = useT();
+  const labelOf = useBorrowerLabel();
   const { markReturned } = useLoanMutations();
   const lent = toDateInputValue(loan.lent_at);
   const validate = useMemo(
@@ -33,7 +35,7 @@ export function ReturnDialog({ loan, onClose }: ReturnDialogProps) {
     <FormDialog
       open
       title={t('loans.return.title')}
-      description={t('loans.return.description', { title: loan.book_title, name: loan.borrower_name })}
+      description={t('loans.return.description', { title: loan.book_title, name: labelOf(loan, true) })}
       error={form.submitError ? apiErrorMessage(t, form.submitError) : null}
       busy={form.submitting}
       submitLabel={t('loans.return.submit')}

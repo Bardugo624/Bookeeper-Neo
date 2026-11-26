@@ -1,0 +1,4 @@
+# id	deps	difficulty	files	dwarf	qa	title
+p3-4c-desktop	-	medium	apps/desktop/src/modules/reading,apps/desktop/src/modules/settings/sections/audit,packages/i18n/src/locales/it/audit.json,packages/i18n/src/locales/en/audit.json,packages/i18n/src/locales/it/reading.json,packages/i18n/src/locales/en/reading.json	-	-	Desktop: difetti P3 del run 4C
+p3-4c-mobile	-	medium	apps/mobile/src/modules/search,apps/mobile/src/modules/tags,packages/i18n/src/locales/it/msearch.json,packages/i18n/src/locales/en/msearch.json,packages/i18n/src/locales/it/mtags.json,packages/i18n/src/locales/en/mtags.json	-	-	PWA: difetti P3 del run 4C
+release-docker	-	medium	.github/workflows/release.yml,Dockerfile.release	-	-	Release: immagine Docker dai binari già compilati

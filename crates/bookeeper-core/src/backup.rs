@@ -214,6 +214,7 @@ const TABLES: [Table; 9] = [
             ("finished_at", Int),
             ("rating", Int),
             ("note", Text),
+            ("current_page", Int),
             ("updated_at", Int),
         ],
         from: "reading t WHERE t.library_id = ?1",

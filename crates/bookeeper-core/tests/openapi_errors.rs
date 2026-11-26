@@ -48,6 +48,22 @@ const ROLE_GATED: &[(&str, &str)] = &[
     ("patch", "/api/v1/wishlist/{id}"),
     ("delete", "/api/v1/wishlist/{id}"),
     ("post", "/api/v1/wishlist/{id}/convert"),
+    ("get", "/api/v1/loans/borrowers"),
+    ("post", "/api/v1/tags"),
+    ("patch", "/api/v1/tags/{id}"),
+    ("delete", "/api/v1/tags/{id}"),
+    ("put", "/api/v1/books/{id}/tags"),
+    ("post", "/api/v1/rooms"),
+    ("patch", "/api/v1/rooms/{id}"),
+    ("delete", "/api/v1/rooms/{id}"),
+    ("get", "/api/v1/audit"),
+    ("get", "/api/v1/audit/actions"),
+    ("patch", "/api/v1/users/{id}"),
+    ("delete", "/api/v1/users/{id}"),
+    ("post", "/api/v1/users/{id}/owner"),
+    ("get", "/api/v1/invites"),
+    ("post", "/api/v1/invites"),
+    ("delete", "/api/v1/invites/{id}"),
 ];
 
 fn operations() -> Vec<(String, String, Value)> {
@@ -156,6 +172,7 @@ const RATE_LIMITED: &[(&str, &str)] = &[
     ("post", "/api/v1/auth/libraries"),
     ("post", "/api/v1/auth/confirm"),
     ("post", "/api/v1/pairing/redeem"),
+    ("post", "/api/v1/pairing/inspect"),
 ];
 
 /// Fails for each listed operation that is missing or lacks `status`.

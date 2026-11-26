@@ -1,0 +1,5 @@
+# id	deps	difficulty	files	dwarf	qa	title
+p3-5a-core	-	medium	crates/bookeeper-core/src/api/shelves.rs,crates/bookeeper-core/tests/shelves_api.rs,packages/api/openapi.json,packages/api/src/schema.d.ts	-	-	Core: due difetti P3 della collocazione
+p3-5a-ui	-	medium	packages/ui/src/shelf	-	-	Kit: tre difetti P3 del dorso sfilato
+p3-5a-desktop	-	medium	apps/desktop/src/modules/shelves,apps/desktop/src/modules/books,packages/i18n/src/locales/it/shelves.json,packages/i18n/src/locales/en/shelves.json,packages/i18n/src/locales/it/books.json,packages/i18n/src/locales/en/books.json	-	-	Desktop: quattro difetti P3 del run 5A
+p3-5a-mobile	-	low	apps/mobile/src/modules/search	-	-	PWA: due test che lasciano tracce

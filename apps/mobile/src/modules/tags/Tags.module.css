@@ -1,0 +1,184 @@
+.block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--bk-border);
+  border-radius: var(--bk-radius);
+  background: var(--bk-surface);
+  min-width: 0;
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--bk-text-muted);
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-width: 100%;
+}
+
+.list li {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* The target is 44px high; the Tag inside only draws the label. */
+.link {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-height: 44px;
+  text-decoration: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--bk-focus);
+  outline-offset: 2px;
+  border-radius: var(--bk-radius);
+}
+
+.link > span {
+  height: auto;
+  min-height: 32px;
+  padding: 4px 12px;
+  gap: 8px;
+  font-size: 15px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  border-radius: 999px;
+  color: var(--bk-text-strong);
+}
+
+.dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--tag-color, var(--bk-neutral-500));
+}
+
+.plain {
+  margin: 0;
+  font-size: 16px;
+  color: var(--bk-text-muted);
+}
+
+.error {
+  margin: 0;
+  font-size: 14px;
+  color: var(--bk-danger-strong);
+}
+
+.button,
+.primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  max-width: 100%;
+  padding: 0 14px;
+  border: 1px solid var(--bk-border-strong);
+  border-radius: var(--bk-radius);
+  background: var(--bk-surface);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--bk-text-strong);
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.primary {
+  width: 100%;
+  border-color: var(--bk-primary-600);
+  background: var(--bk-primary-600);
+  color: var(--bk-on-primary);
+}
+
+.button:disabled,
+.primary:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.button:focus-visible,
+.primary:focus-visible,
+.input:focus-visible {
+  outline: 2px solid var(--bk-focus);
+  outline-offset: 2px;
+}
+
+.sheet {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  min-width: 0;
+}
+
+.input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--bk-border-strong);
+  border-radius: var(--bk-radius);
+  background: var(--bk-surface);
+  font: inherit;
+  font-size: 16px;
+  color: var(--bk-text-strong);
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 4px;
+  font-size: 16px;
+  color: var(--bk-text-strong);
+  cursor: pointer;
+}
+
+.check {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  accent-color: var(--bk-primary-600);
+}
+
+.name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

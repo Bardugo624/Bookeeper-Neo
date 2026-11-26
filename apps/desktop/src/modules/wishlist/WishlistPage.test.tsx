@@ -200,3 +200,62 @@ describe('convert', () => {
     expect(screen.getByText('Desiderio 1')).toBeInTheDocument();
   });
 });
+
+describe('family scope', () => {
+  const items = [
+    wish(1, { title: 'Mia alta', priority: 2 }),
+    wish(2, { title: 'Di Bruno', priority: 0, user_id: 'u3', user: { id: 'u3', display_name: 'Bruno' } }),
+    wish(3, { title: 'Di Carla', priority: 2, user_id: 'u2', user: { id: 'u2', display_name: 'Carla' } }),
+    wish(4, { title: 'Mia bassa', priority: 0 }),
+    wish(5, { title: 'Bruno alta', priority: 2, user_id: 'u3', user: { id: 'u3', display_name: 'Bruno' } }),
+  ];
+  const groups = () => screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
+
+  it('switches scope and keeps it in the address', async () => {
+    const { router, platform } = renderWishlist({ items });
+    await screen.findByText('Mia alta');
+    expect(screen.getByRole('tab', { name: 'La mia' })).toHaveAttribute('aria-selected', 'true');
+    await userEvent.click(screen.getByRole('tab', { name: 'Famiglia' }));
+    expect(router.state.location.search).toBe('?scope=family');
+    await screen.findByRole('heading', { name: 'Tu' });
+    expect(platform.calls.some((c) => c.path.includes('scope=family'))).toBe(true);
+    await userEvent.click(screen.getByRole('tab', { name: 'La mia' }));
+    expect(router.state.location.search).toBe('');
+  });
+
+  it('groups by person, the caller first as "Tu", then by name', async () => {
+    renderWishlist({ items }, '/wishlist?scope=family');
+    await screen.findByText('Mia alta');
+    expect(groups()).toEqual(['Tu', 'Bruno', 'Carla']);
+    const bruno = screen.getByRole('region', { name: 'Bruno' });
+    expect(within(bruno).getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual(['Bruno alta', 'Di Bruno']);
+  });
+
+  it('gives controls only on the caller\'s own wishes', async () => {
+    renderWishlist({ items }, '/wishlist?scope=family');
+    await screen.findByText('Mia alta');
+    const own = screen.getByRole('region', { name: 'Tu' });
+    expect(within(own).getAllByRole('button', { name: /^Modifica / })).toHaveLength(2);
+    expect(within(own).getAllByRole('button', { name: /^Ho comprato / })).toHaveLength(2);
+    for (const name of ['Bruno', 'Carla']) {
+      expect(within(screen.getByRole('region', { name })).queryByRole('button')).toBeNull();
+    }
+  });
+
+  it('applies filter and sort inside the groups', async () => {
+    renderWishlist({ items }, '/wishlist?scope=family&priority=2');
+    await screen.findByText('Mia alta');
+    expect(screen.queryByText('Di Bruno')).toBeNull();
+    expect(screen.queryByText('Mia bassa')).toBeNull();
+    expect(groups()).toEqual(['Tu', 'Bruno', 'Carla']);
+  });
+
+  it('shows a guest only the family, without the choice or Aggiungi', async () => {
+    renderWishlist({ items, role: 'guest' });
+    await screen.findByText('Mia alta');
+    expect(screen.queryByRole('tab', { name: 'La mia' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Aggiungi' })).toBeNull();
+    expect(groups()).toEqual(['Tu', 'Bruno', 'Carla']);
+    expect(within(screen.getByRole('main')).queryByRole('button')).toBeNull();
+  });
+});

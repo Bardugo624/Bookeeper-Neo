@@ -1,0 +1,97 @@
+{
+  "title": "People",
+  "count": {
+    "one": "{count} person",
+    "other": "{count} people"
+  },
+  "loading": "Loading people",
+  "error": {
+    "title": "Couldn't load the people",
+    "text": "Check your connection and try again."
+  },
+  "you": "You",
+  "roles": {
+    "owner": "Owner",
+    "admin": "Admin",
+    "member": "Member",
+    "guest": "Guest"
+  },
+  "devices": {
+    "one": "{count} device",
+    "other": "{count} devices"
+  },
+  "lastSeen": "Last seen: {when}",
+  "neverSeen": "Never signed in",
+  "menu": {
+    "open": "Actions for {name}",
+    "role": "Change role",
+    "rename": "Rename",
+    "remove": "Remove",
+    "owner": "Make owner",
+    "leave": "Leave the library"
+  },
+  "role": {
+    "title": "Change {name}’s role",
+    "legend": "Role"
+  },
+  "rename": {
+    "title": "Rename the person",
+    "field": "Name",
+    "errors": {
+      "required": "Write a name.",
+      "tooLong": "The name can have at most {max} characters."
+    }
+  },
+  "remove": {
+    "title": "Remove {name}?",
+    "intro": "{name} will no longer be able to enter the library. This is what happens:",
+    "effects": {
+      "1": "Their devices are disconnected.",
+      "2": "Their reading status and wishlist are deleted.",
+      "3": "Books and loans stay where they are."
+    },
+    "confirm": "Remove"
+  },
+  "leave": {
+    "title": "Leave the library?",
+    "intro": "If you leave, this is what happens:",
+    "effects": {
+      "1": "Your devices are disconnected and you are signed out here.",
+      "2": "Your reading status and wishlist are deleted.",
+      "3": "Books and loans stay where they are."
+    },
+    "confirm": "Leave the library"
+  },
+  "owner": {
+    "title": "Make {name} the owner?",
+    "intro": "A library has only one owner.",
+    "effects": {
+      "1": "{name} becomes the owner of the library.",
+      "2": "You become an admin."
+    },
+    "confirm": "Make {name} owner"
+  },
+  "invite": {
+    "open": "Invite a person",
+    "title": "Invite a person",
+    "create": "Create the invitation",
+    "role": "Role",
+    "days": "Valid for",
+    "dayCount": {
+      "one": "{count} day",
+      "other": "{count} days"
+    },
+    "codeTitle": "Invitation as {role}",
+    "qrLabel": "QR code to join from a phone",
+    "expiresOn": "Expires on {date}",
+    "howNoQr": "On the computer: Join, then the code. To join from a phone you need a server with an HTTPS address.",
+    "how": "On the computer: Join, then the code. On the phone: scan the QR."
+  },
+  "pending": {
+    "title": "Pending invitations",
+    "empty": "No pending invitations.",
+    "by": "Created by {name}",
+    "expires": "expires on {date}",
+    "revoke": "Revoke"
+  }
+}

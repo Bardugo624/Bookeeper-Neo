@@ -5,6 +5,7 @@ import { fakePlatform } from '../platform/testing';
 import type { Platform } from '../platform';
 import { useSession } from '../session';
 import { AppProviders } from './AppProviders';
+import { resetOverlaysForTest } from './overlays';
 import { buildRoutes } from './routes';
 import type { AppModule } from './types';
 
@@ -19,6 +20,7 @@ export interface RenderAppOptions {
 export function renderApp({ platform = fakePlatform(), modules = [], route = '/', locale = 'it' }: RenderAppOptions = {}) {
   // The session store is global: start every render from a fresh boot.
   useSession.setState({ status: 'loading', connection: null, me: null, platform: null });
+  resetOverlaysForTest();
   const router = createMemoryRouter(buildRoutes(modules), { initialEntries: [route] });
   const view = render(
     <AppProviders platform={platform} locale={locale}>

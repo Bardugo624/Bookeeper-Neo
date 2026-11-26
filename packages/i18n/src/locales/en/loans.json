@@ -9,7 +9,8 @@
     "active": "Active",
     "overdue": "Overdue",
     "returned": "Returned",
-    "all": "All"
+    "all": "All",
+    "mine": "Lent to me"
   },
   "bookFilter": {
     "text": "Only the loans of one book.",
@@ -32,7 +33,8 @@
     "since": "since {date}",
     "due": "due {date}",
     "noDue": "no due date",
-    "returnedOn": "returned on {date}"
+    "returnedOn": "returned on {date}",
+    "byBorrower": "Show the loans of {name}"
   },
   "actions": {
     "return": "Mark as returned",
@@ -54,6 +56,10 @@
     "all": {
       "title": "No loans",
       "text": "You haven't lent any book yet."
+    },
+    "mine": {
+      "title": "No loans to you",
+      "text": "The books lent to you show up here."
     }
   },
   "error": {
@@ -90,7 +96,10 @@
       "dueBefore": "The due date can't be before the lending date.",
       "lentAfterReturn": "The lending date can't be after the return date.",
       "notesLong": "At most {max} characters."
-    }
+    },
+    "borrowerSuggestions": "Names already used",
+    "me": "You",
+    "meObject": "you"
   },
   "return": {
     "title": "Mark as returned",
@@ -109,5 +118,35 @@
   "errors": {
     "alreadyLent": "This book is already on loan. Return it before lending it again.",
     "reopenLent": "The book is already on loan to someone else: this loan can't be reopened."
+  },
+  "borrowerFilter": {
+    "text": "Only the loans to {name}.",
+    "clear": "Show all"
+  },
+  "history": {
+    "summary": "Summary",
+    "closed": "Closed loans",
+    "average": "Average length",
+    "top": "Most often lent to",
+    "topValue": "{name} ({count})",
+    "days": "{count} d",
+    "duration": "lasted {count} d",
+    "late": "{count} d late",
+    "search": "Search by person or title",
+    "noMatch": "No loan matches the search.",
+    "monthList": "Returned loans, {month}"
+  },
+  "badge": {
+    "one": "{count} overdue loan",
+    "other": "{count} overdue loans"
+  },
+  "notify": {
+    "title": "Overdue loans",
+    "line": "“{title}” · {name} · {since}",
+    "since": {
+      "one": "for {count} day",
+      "other": "for {count} days"
+    },
+    "more": "and {count} more"
   }
 }

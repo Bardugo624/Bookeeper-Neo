@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useClient, useSession } from '../../session';
 import type { LoanFilter } from './listParams';
@@ -11,10 +12,11 @@ export function useLoansKey(): readonly ['loans', string | undefined] {
 }
 
 /** Loans for a filter (and optionally one book), in pages; the next page comes with `fetchNextPage`. */
-export function useLoanList(filter: LoanFilter, book: string) {
+/** With `loadAll` the remaining pages are fetched one after the other (history, per-person view). */
+export function useLoanList(filter: LoanFilter, book: string, loadAll = false, mine = false) {
   const client = useClient();
   const key = useLoansKey();
-  const params = { status: filter, book_id: book || undefined };
+  const params = { status: filter, book_id: book || undefined, borrower_user_id: mine ? 'me' : undefined };
   const query = useInfiniteQuery({
     queryKey: [...key, 'list', params],
     initialPageParam: 0,
@@ -25,6 +27,10 @@ export function useLoanList(filter: LoanFilter, book: string) {
       return last.items.length > 0 && loaded < last.total ? loaded : undefined;
     },
   });
+  const { hasNextPage, isFetchingNextPage, isError, fetchNextPage } = query;
+  useEffect(() => {
+    if (loadAll && hasNextPage && !isFetchingNextPage && !isError) void fetchNextPage();
+  }, [loadAll, hasNextPage, isFetchingNextPage, isError, fetchNextPage]);
   const items = query.data?.pages.flatMap((p) => p.items) ?? [];
   return { query, items };
 }
@@ -43,4 +49,35 @@ function useCount(status: 'active' | 'overdue', book: string): number | undefine
 /** Open and overdue totals for the header line. */
 export function useLoanCounts(book: string): { active: number | undefined; overdue: number | undefined } {
   return { active: useCount('active', book), overdue: useCount('overdue', book) };
+}
+
+/** Whether any loan, open or closed, was made to who is looking: the "Lent to me" tab exists only then. */
+export function useHasLoansToMe(): boolean {
+  const client = useClient();
+  const key = useLoansKey();
+  const { data } = useQuery({
+    queryKey: [...key, 'count', 'mine'],
+    retry: false,
+    queryFn: () => client.listLoans({ status: 'all', borrower_user_id: 'me', limit: 1 }),
+  });
+  return (data?.total ?? 0) > 0;
+}
+
+const OVERDUE_REFRESH_MS = 5 * 60 * 1000;
+
+/**
+ * Total of overdue loans, for the sidebar badge (`null` until known). It refreshes every five
+ * minutes, when the window regains focus and after any write on the loans (they invalidate the root key).
+ */
+export function useOverdueCount(): number | null {
+  const client = useClient();
+  const key = useLoansKey();
+  const { data } = useQuery({
+    queryKey: [...key, 'overdueCount'],
+    retry: false,
+    refetchInterval: OVERDUE_REFRESH_MS,
+    refetchOnWindowFocus: true,
+    queryFn: () => client.listLoans({ status: 'overdue', limit: 1 }),
+  });
+  return data?.total ?? null;
 }

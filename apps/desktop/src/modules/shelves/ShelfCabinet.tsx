@@ -9,13 +9,15 @@ export interface ShelfCabinetProps {
   shelf: ShelfOut;
   books: ShelfBook[];
   selectedId?: string;
+  /** The spine drawn pulled out (where is it?). */
+  pulledId?: string;
   canWrite: boolean;
   onDrop: (drop: SlotDrop) => void;
   onSpine: (book: SpineBook) => void;
 }
 
 /** The cabinet drawing with its texts; an empty one gets an invitation (or a note) under it. */
-export function ShelfCabinet({ shelf, books, selectedId, canWrite, onDrop, onSpine }: ShelfCabinetProps) {
+export function ShelfCabinet({ shelf, books, selectedId, pulledId, canWrite, onDrop, onSpine }: ShelfCabinetProps) {
   const t = useT();
   const rows = useMemo(() => rowsOf(shelf, books, (n) => t('shelves.row', { n })), [shelf, books, t]);
   const announce = useMemo<ShelfAnnounce>(
@@ -33,6 +35,7 @@ export function ShelfCabinet({ shelf, books, selectedId, canWrite, onDrop, onSpi
         color={colorOf(shelf.color)}
         rows={rows}
         selectedId={selectedId}
+        pulledId={pulledId}
         readOnly={!canWrite}
         announce={announce}
         spineLabel={(book) => ({ title: book.title, detail: book.author ?? '' })}

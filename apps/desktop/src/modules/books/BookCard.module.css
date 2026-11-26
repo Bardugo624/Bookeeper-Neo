@@ -41,9 +41,55 @@
   z-index: 1;
 }
 
+/* Solid app surface, so the warning text never sits on the cover's own color. */
+.item .loan {
+  background: var(--bk-surface);
+  color: var(--bk-warn-strong);
+  box-shadow: inset 0 0 0 1px var(--bk-border);
+}
+
 .check {
   position: absolute;
   top: 8px;
   right: 8px;
   z-index: 2;
+}
+
+.ring {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: inline-flex;
+  border-radius: 50%;
+  background: var(--bk-surface);
+  box-shadow: var(--bk-shadow-1);
+}
+
+.done {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--bk-ok);
+  color: var(--bk-on-primary);
+}
+
+.where {
+  position: absolute;
+  /* Under the "On loan" label (top 8px + its height), never over it. */
+  top: 40px;
+  left: 8px;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity var(--bk-dur-fast) var(--bk-ease);
+}
+
+.item:hover .where,
+.item:focus-within .where {
+  opacity: 1;
 }

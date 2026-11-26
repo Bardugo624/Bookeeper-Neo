@@ -1,0 +1,52 @@
+{
+  "hint": "Search or run a command",
+  "title": "Command palette",
+  "input": "Search or run a command",
+  "placeholder": "Search a book, a page or a command",
+  "results": "Results",
+  "settingsSection": "Settings · {name}",
+  "settingsKeywords": "settings preferences",
+  "groups": {
+    "go": "Go to",
+    "books": "Books",
+    "where": "Where is it?",
+    "actions": "Actions"
+  },
+  "actions": {
+    "where": "Where is a book?",
+    "newBook": "New book",
+    "newLoan": "New loan",
+    "theme": {
+      "light": "Light theme",
+      "dark": "Dark theme",
+      "system": "System theme"
+    },
+    "shortcuts": "Keyboard shortcuts",
+    "signOut": "Sign out"
+  },
+  "where": {
+    "prefix": "where is ",
+    "none": "Not placed · open the book"
+  },
+  "notice": {
+    "none": "No results",
+    "searching": "Searching",
+    "whereHint": "Type the title of the book to find"
+  },
+  "shortcuts": {
+    "title": "Keyboard shortcuts",
+    "then": "then",
+    "palette": "Opens the command palette",
+    "search": "Moves focus to the search field of the view",
+    "goTo": "Goes to Books, Shelves, Loans, Wishlist, sTatistics, Devices, Settings",
+    "newBook": "New book",
+    "help": "Shows this list",
+    "close": "Closes the palette, dialogs and panels"
+  },
+  "keys": {
+    "mod": "Ctrl",
+    "modMac": "Cmd",
+    "hint": "Ctrl K",
+    "hintMac": "Cmd K"
+  }
+}

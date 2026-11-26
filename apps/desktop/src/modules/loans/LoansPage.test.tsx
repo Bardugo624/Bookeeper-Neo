@@ -1,6 +1,6 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { DAY, book, loan, loanListCalls, renderLoans, type Store } from './testkit';
@@ -69,6 +69,20 @@ describe('filters', () => {
     await user.click(screen.getByRole('button', { name: 'Mostra tutti' }));
     await screen.findByText('Libro 1');
     expect(router.state.location.search).toBe('?filter=all');
+  });
+});
+
+describe('borrower without a filter', () => {
+  it('shows all their loans, and keeps "active" when it is picked', async () => {
+    const user = userEvent.setup();
+    const { platform, router } = renderLoans(store({ loans: [loan(1, { borrower_name: 'Anna' }), loan(3, { borrower_name: 'Anna', returned_at: 1_700_100_000 })] }), '/loans?borrower=Anna');
+    await screen.findByText('Libro 3');
+    expect(cards()).toHaveLength(2);
+    expect(screen.getByRole('tab', { name: 'Tutti' })).toHaveAttribute('aria-selected', 'true');
+    expect(loanListCalls(platform).filter((p) => p.get('limit') === '50').every((p) => p.get('status') === 'all')).toBe(true);
+    await user.click(screen.getByRole('tab', { name: 'In corso' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?borrower=Anna&filter=active'));
+    expect(screen.getByRole('tab', { name: 'In corso' })).toHaveAttribute('aria-selected', 'true');
   });
 });
 
@@ -143,7 +157,9 @@ describe('permissions', () => {
     for (const name of ['Nuovo prestito', 'Segna come restituito', 'Riapri', 'Modifica', 'Elimina']) {
       expect(screen.queryByRole('button', { name })).toBeNull();
     }
-    expect(screen.queryAllByRole('button').filter((b) => b.closest('li'))).toHaveLength(0);
+    expect(screen
+        .queryAllByRole('button')
+        .filter((b) => b.closest('li') && !b.getAttribute('aria-label')?.startsWith('Mostra i prestiti di'))).toHaveLength(0);
   });
 
   it('shows them to a member', async () => {
@@ -152,5 +168,59 @@ describe('permissions', () => {
     expect(screen.getByRole('button', { name: 'Nuovo prestito' })).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: 'Modifica' })).toHaveLength(3);
     expect(screen.getByRole('button', { name: 'Riapri' })).toBeInTheDocument();
+  });
+});
+
+describe('loans to members', () => {
+  const people = [
+    { id: 'u1', display_name: 'Anna', is_me: true },
+    { id: 'u2', display_name: 'Marta Rossi' },
+  ];
+
+  it('shows the current name of the person with an icon, and the written name otherwise', async () => {
+    renderLoans(
+      store({
+        people,
+        loans: [
+          loan(1, { borrower_name: 'Marta', borrower_user_id: 'u2', borrower: { id: 'u2', display_name: 'Marta Rossi' } }),
+          loan(2, { borrower_name: 'Luca' }),
+        ],
+      }),
+    );
+    const person = await screen.findByRole('button', { name: 'Mostra i prestiti di Marta Rossi' });
+    expect(person).toHaveTextContent('A Marta Rossi');
+    expect(person.querySelector('svg')).not.toBeNull();
+    const plain = screen.getByRole('button', { name: 'Mostra i prestiti di Luca' });
+    expect(plain.querySelector('svg')).toBeNull();
+  });
+
+  it('has the "Prestati a me" tab only when a loan was made to the caller, open or closed', async () => {
+    const mine = loan(3, { borrower_user_id: 'u1', returned_at: 1_700_100_000, borrower: { id: 'u1', display_name: 'Anna' } });
+    const user = userEvent.setup();
+    const { platform, unmount } = renderLoans(store({ people, loans: [loan(1), mine] }));
+    const tab = await screen.findByRole('tab', { name: 'Prestati a me' });
+    await user.click(tab);
+    await waitFor(() => expect(cards()).toHaveLength(1));
+    expect(screen.getByText('Libro 3')).toBeInTheDocument();
+    expect(loanListCalls(platform).some((q) => q.get('borrower_user_id') === 'me')).toBe(true);
+    unmount();
+    renderLoans(store({ people, loans: [loan(1)] }));
+    await screen.findByText('Libro 1');
+    expect(screen.queryByRole('tab', { name: 'Prestati a me' })).toBeNull();
+  });
+
+  it('opens /loans?mine=1 on the loans to the caller', async () => {
+    const mine = loan(3, { borrower_user_id: 'u1', borrower: { id: 'u1', display_name: 'Anna' } });
+    renderLoans(store({ people, loans: [loan(1), mine] }), '/loans?mine=1');
+    expect(await screen.findByText('Libro 3')).toBeInTheDocument();
+    expect(screen.queryByText('Libro 1')).toBeNull();
+  });
+
+  it('reads a loan to the caller as "A te", never "A Tu"', async () => {
+    const mine = loan(3, { borrower_user_id: 'u1', borrower: { id: 'u1', display_name: 'Anna' } });
+    renderLoans(store({ people, loans: [mine] }));
+    expect(await screen.findByText('Libro 3')).toBeInTheDocument();
+    expect(screen.getByText('A te')).toBeInTheDocument();
+    expect(within(screen.getByRole('list', { name: 'Prestiti' })).queryByText(/Anna|\bTu\b/)).toBeNull();
   });
 });

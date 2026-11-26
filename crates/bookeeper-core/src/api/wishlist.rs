@@ -11,7 +11,7 @@ use utoipa::ToSchema;
 use crate::{
     api::{
         books::{fetch as fetch_book, insert_in_tx, validate_new, BookOut, CreateBook},
-        util::{new_id, normalize_isbn10, normalize_isbn13, now_secs},
+        util::{new_id, normalize_isbn10, normalize_isbn13, now_secs, ApiQuery, PersonRef},
     },
     audit,
     auth::{guard::AuthUser, Role},
@@ -33,7 +33,7 @@ pub fn routes() -> axum::Router<AppState> {
 #[derive(utoipa::OpenApi)]
 #[openapi(
     paths(list_wishlist, create_wish, patch_wish, delete_wish, convert_wish),
-    components(schemas(WishOut, WishList, CreateWish, PatchWish))
+    components(schemas(WishOut, WishList, CreateWish, PatchWish, ListWishQuery))
 )]
 pub struct Doc;
 
@@ -41,6 +41,8 @@ pub struct Doc;
 pub struct WishOut {
     pub id: String,
     pub user_id: String,
+    /// Whose wish it is.
+    pub user: PersonRef,
     pub isbn: Option<String>,
     pub title: String,
     pub authors: Option<String>,
@@ -99,13 +101,25 @@ pub struct PatchWish {
     pub notes: Option<Option<String>>,
 }
 
-const SELECT_WISH: &str =
-    "SELECT id, user_id, isbn, title, authors, source_url, priority, notes, created_at FROM wishlist";
+/// Query of `GET /wishlist`.
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct ListWishQuery {
+    /// `mine` (default) or `family`.
+    pub scope: Option<String>,
+}
+
+const SELECT_WISH: &str = "SELECT w.id, w.user_id, w.isbn, w.title, w.authors, w.source_url, \
+    w.priority, w.notes, w.created_at, u.display_name \
+    FROM wishlist w JOIN users u ON u.id = w.user_id";
 
 fn map_wish(r: &rusqlite::Row<'_>) -> rusqlite::Result<WishOut> {
     Ok(WishOut {
         id: r.get(0)?,
         user_id: r.get(1)?,
+        user: PersonRef {
+            id: r.get(1)?,
+            display_name: r.get(9)?,
+        },
         isbn: r.get(2)?,
         title: r.get(3)?,
         authors: r.get(4)?,
@@ -119,7 +133,7 @@ fn map_wish(r: &rusqlite::Row<'_>) -> rusqlite::Result<WishOut> {
 /// A wish is visible only to the user who owns it.
 fn fetch(conn: &Connection, who: &AuthUser, id: &str) -> rusqlite::Result<Option<WishOut>> {
     conn.query_row(
-        &format!("{SELECT_WISH} WHERE library_id = ?1 AND user_id = ?2 AND id = ?3"),
+        &format!("{SELECT_WISH} WHERE w.library_id = ?1 AND w.user_id = ?2 AND w.id = ?3"),
         params![who.library_id, who.user_id, id],
         map_wish,
     )
@@ -169,24 +183,34 @@ fn check_optional(
     path = "/api/v1/wishlist",
     tag = "wishlist",
     security(("bearer" = [])),
+    params(("scope" = Option<String>, Query, description = "mine (default): the caller's wishes; family: everyone's, the caller's first, then by person name")),
     responses(
-        (status = 200, description = "The caller's wishlist", body = WishList),
+        (status = 200, description = "The wishlist", body = WishList),
         (status = 401, description = "unauthorized, token_expired or device_revoked", body = ApiErrorBody),
+        (status = 422, description = "validation: invalid scope", body = ApiErrorBody),
     )
 )]
 pub async fn list_wishlist(
     State(state): State<AppState>,
     who: AuthUser,
+    ApiQuery(q): ApiQuery<ListWishQuery>,
 ) -> ApiResult<Json<WishList>> {
+    let family = match q.scope.as_deref() {
+        None | Some("mine") => false,
+        Some("family") => true,
+        Some(_) => return Err(ApiError::validation("scope must be mine or family")),
+    };
     let items = state
         .db
         .run(move |conn| {
+            // `mine` is the same query narrowed to the caller.
             let mut stmt = conn.prepare(&format!(
-                "{SELECT_WISH} WHERE library_id = ?1 AND user_id = ?2 \
-                 ORDER BY priority DESC, created_at DESC, id DESC"
+                "{SELECT_WISH} WHERE w.library_id = ?1 AND (?3 OR w.user_id = ?2) \
+                 ORDER BY w.user_id <> ?2, u.display_name COLLATE NOCASE, u.id, \
+                 w.priority DESC, w.created_at DESC, w.id DESC"
             ))?;
             let rows = stmt
-                .query_map(params![who.library_id, who.user_id], map_wish)?
+                .query_map(params![who.library_id, who.user_id, family], map_wish)?
                 .collect::<rusqlite::Result<Vec<_>>>()?;
             Ok(rows)
         })

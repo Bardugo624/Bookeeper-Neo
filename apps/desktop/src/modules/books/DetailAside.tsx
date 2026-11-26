@@ -4,6 +4,10 @@ import { Icon, Tag } from '@bookeeper/ui/base';
 import { useLocale, useT } from '../../app';
 import { formatDate } from '../../kit';
 import { useActiveLoan } from '../loans';
+import { ReadingCard } from '../reading';
+import { wherePhrase } from '../shelves';
+import { OwnerLine, ReadersBlock } from './DetailPeople';
+import { DetailTags } from './DetailTags';
 import { useShelfNames } from './useBook';
 import styles from './DetailAside.module.css';
 
@@ -27,6 +31,10 @@ export function DetailAside({ book }: { book: BookOut }) {
   const shelfName = placement ? shelves.get(placement.shelf_id) : undefined;
   return (
     <aside className={styles.aside}>
+      <OwnerLine book={book} />
+      <ReadingCard book={book} />
+      <ReadersBlock bookId={book.id} />
+      <DetailTags book={book} />
       <section className={styles.card} aria-labelledby="book-where">
         <h2 id="book-where" className={styles.heading}>
           <Icon name="pin" size={14} />
@@ -34,8 +42,7 @@ export function DetailAside({ book }: { book: BookOut }) {
         </h2>
         {placement ? (
           <>
-            {shelfName ? <p className={styles.value}>{shelfName}</p> : null}
-            <p className={styles.note}>{t('books.detail.where.row', { row: placement.row_index + 1 })}</p>
+            <p className={styles.value}>{wherePhrase(t, { ...placement, shelfName })}</p>
             <Link
               className={styles.link}
               to={`/shelves?unit=${encodeURIComponent(placement.shelf_id)}&book=${encodeURIComponent(book.id)}`}

@@ -1,0 +1,16 @@
+{
+  "title": "Tag",
+  "none": "Nessun tag.",
+  "edit": "Modifica tag",
+  "sheet": {
+    "title": "Tag del libro",
+    "filter": "Filtra o crea un tag",
+    "list": "Tag della libreria",
+    "loading": "Caricamento dei tag…",
+    "loadError": "Non riesco a leggere i tag.",
+    "retry": "Riprova",
+    "empty": "Nessun tag.",
+    "create": "Crea «{name}»",
+    "save": "Salva"
+  }
+}

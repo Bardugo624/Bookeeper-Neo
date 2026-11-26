@@ -1,11 +1,17 @@
-import { Link, useLocation, useParams } from 'react-router';
+import { useCanGoBack } from './useCanGoBack';
+import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import type { BookOut } from '@bookeeper/api';
 import { ApiError } from '@bookeeper/api';
 import { EmptyState, Icon, Skeleton } from '@bookeeper/ui/base';
 import { BookCover } from '@bookeeper/ui/book';
 import { useT, type Translate } from '../../app/i18n';
 import { ErrorState, Screen, apiErrorMessage } from '../../kit';
+import { ReadingBlock } from '../reading';
+import { TagsBlock } from '../tags';
+import { useSession } from '../../session';
 import { Description } from './Description';
+import { canEditBooks } from './editModel';
+import { OwnerLine, ReadersBlock } from './People';
 import { LoanBlock, WhereBlock } from './Placement';
 import type { FromList } from './searchState';
 import { mayHaveCover, useCover } from './useCover';
@@ -39,9 +45,13 @@ function Detail({ book }: { book: BookOut }) {
         <h2 className={styles.title}>{book.title}</h2>
         {book.subtitle ? <p className={styles.subtitle}>{book.subtitle}</p> : null}
         {book.authors.length > 0 ? <p className={styles.authors}>{book.authors.join(', ')}</p> : null}
+        <OwnerLine book={book} />
       </div>
       <WhereBlock book={book} />
       <LoanBlock book={book} />
+      <ReadingBlock book={book} />
+      <ReadersBlock bookId={book.id} />
+      <TagsBlock book={book} />
       {description ? (
         <section className={blocks.block} aria-labelledby="desc-title">
           <h2 id="desc-title" className={blocks.heading}>
@@ -88,8 +98,11 @@ export function BookDetailPage() {
   const t = useT();
   const { id = '' } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
+  const canGoBack = useCanGoBack();
   const from = (location.state as FromList | null)?.list ?? '';
   const book = useBook(id);
+  const canEdit = useSession((s) => canEditBooks(s.me?.user.role));
 
   let body;
   if (book.data) body = <Detail book={book.data} />;
@@ -102,8 +115,26 @@ export function BookDetailPage() {
   return (
     <Screen
       title={book.data?.title ?? t('msearch.title')}
+      actions={
+        book.data && canEdit ? (
+          <Link to={`/books/${encodeURIComponent(id)}/edit`} state={location.state} className={styles.edit}>
+            {t('msearch.detail.edit')}
+          </Link>
+        ) : undefined
+      }
       leading={
-        <Link to={{ pathname: '/search', search: from }} className={styles.back} aria-label={t('msearch.detail.back')}>
+        <Link
+          to={{ pathname: '/search', search: from }}
+          replace
+          className={styles.back}
+          aria-label={t('msearch.detail.back')}
+          onClick={(e) => {
+            // Back is the page the person came from; the list is only the way out of a direct entry.
+            if (!canGoBack) return;
+            e.preventDefault();
+            navigate(-1);
+          }}
+        >
           <Icon name="chevron-left" size={22} />
         </Link>
       }

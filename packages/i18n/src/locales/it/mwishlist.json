@@ -1,0 +1,34 @@
+{
+  "tab": "Wishlist",
+  "title": "Wishlist",
+  "loading": "Carico la wishlist",
+  "scope": { "label": "Quale lista", "mine": "La mia", "family": "Famiglia" },
+  "family": { "me": "Tu" },
+  "empty": {
+    "mine": { "title": "La tua wishlist è vuota", "text": "Aggiungi i libri che vorresti avere." },
+    "family": { "title": "Nessun desiderio in famiglia", "text": "Quando qualcuno aggiunge un libro alla wishlist, lo trovi qui." }
+  },
+  "priority": { "low": "Bassa", "medium": "Media", "high": "Alta" },
+  "add": { "button": "Aggiungi", "title": "Aggiungi alla wishlist", "submit": "Aggiungi alla wishlist" },
+  "edit": { "button": "Modifica", "title": "Modifica la voce", "submit": "Salva" },
+  "delete": {
+    "button": "Elimina",
+    "text": "«{title}» sarà tolto dalla wishlist. Non si può annullare.",
+    "confirm": "Sì, elimina",
+    "cancel": "Annulla",
+    "working": "Elimino…"
+  },
+  "convert": { "button": "Ce l'ho: aggiungilo alla libreria", "working": "Aggiungo…" },
+  "form": {
+    "title": "Titolo",
+    "authors": "Autori",
+    "authorsHint": "Separati da virgole",
+    "isbn": "ISBN",
+    "priority": "Priorità",
+    "saving": "Salvo…",
+    "errors": {
+      "required": "Campo obbligatorio",
+      "tooLong": "Al massimo {max} caratteri"
+    }
+  }
+}

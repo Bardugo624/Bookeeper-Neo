@@ -674,3 +674,69 @@ async fn return_without_a_body_ignores_the_content_type() {
     assert_eq!(st, 200, "{b}");
     assert!(b["returned_at"].as_i64().is_some());
 }
+
+async fn lend_as(s: &Seeded, name: &str, lent_at: i64) {
+    let book = insert_book(&s.state, &s.library_id, &format!("B-{name}-{lent_at}")).await;
+    lend(s, &book, json!({"borrower_name": name, "lent_at": lent_at})).await;
+}
+
+fn names(b: &Value) -> Vec<&str> {
+    b["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|v| v.as_str().unwrap())
+        .collect()
+}
+
+#[tokio::test]
+async fn borrowers_match_prefix_ignoring_case_and_are_distinct() {
+    let s = seed(Role::Owner, None, None).await;
+    lend_as(&s, "marta", 100).await;
+    lend_as(&s, "Marco", 200).await;
+    lend_as(&s, "MARTA", 300).await;
+    lend_as(&s, "Luca", 400).await;
+    let (st, b) = req(&s, "GET", "/api/v1/loans/borrowers?q=MAR", None).await;
+    assert_eq!(st, 200);
+    assert_eq!(names(&b), ["MARTA", "Marco"]);
+    let (_, b) = req(&s, "GET", "/api/v1/loans/borrowers?q=zz", None).await;
+    assert!(names(&b).is_empty());
+}
+
+#[tokio::test]
+async fn borrowers_empty_query_gives_ten_most_recent() {
+    let s = seed(Role::Owner, None, None).await;
+    for i in 0..12 {
+        lend_as(&s, &format!("Nome{i:02}"), 1000 + i).await;
+    }
+    for path in ["/api/v1/loans/borrowers", "/api/v1/loans/borrowers?q="] {
+        let (st, b) = req(&s, "GET", path, None).await;
+        assert_eq!(st, 200);
+        let n = names(&b);
+        assert_eq!(n.len(), 10);
+        assert_eq!(n[0], "Nome11");
+        assert_eq!(n[9], "Nome02");
+    }
+}
+
+#[tokio::test]
+async fn borrowers_are_isolated_and_need_member_role() {
+    let s = seed(Role::Owner, None, None).await;
+    lend_as(&s, "Marta", 100).await;
+    let (_, other) = other_library(&s.state).await;
+    let (st, b) = req_as_token(&s, &other.access_token, "/api/v1/loans/borrowers").await;
+    assert_eq!(st, 200);
+    assert!(names(&b).is_empty());
+    let (_, guest) = add_user(&s.state, &s.library_id, Role::Guest, "Gus").await;
+    let (st, _) = req_as_token(&s, &guest.access_token, "/api/v1/loans/borrowers").await;
+    assert_eq!(st, 403);
+    let (_, member) = add_user(&s.state, &s.library_id, Role::Member, "Meg").await;
+    let (st, b) = req_as_token(&s, &member.access_token, "/api/v1/loans/borrowers").await;
+    assert_eq!(st, 200);
+    assert_eq!(names(&b), ["Marta"]);
+}
+
+async fn req_as_token(s: &Seeded, token: &str, path: &str) -> (u16, Value) {
+    let (st, _, b) = call(&s.state, "GET", path, Some(token), None).await;
+    (st, b)
+}

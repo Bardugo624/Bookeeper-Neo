@@ -1,0 +1,35 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.dim {
+  opacity: 0.25;
+}
+
+.address {
+  margin: 0;
+  font-size: 12px;
+  color: var(--bk-text-muted);
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.how {
+  margin: 0;
+  font-size: 13px;
+  color: var(--bk-text);
+}

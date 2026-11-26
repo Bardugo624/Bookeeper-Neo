@@ -4,7 +4,9 @@ import { Button } from '@bookeeper/ui/base';
 import { BookCover } from '@bookeeper/ui/book';
 import { useLocale, useT } from '../../app';
 import { StatusTag, formatDate } from '../../kit';
-import { STATUS_TONES, authorsOf, bookPath, loanStatus } from './loanStatus';
+import { PersonIcon } from './PersonIcon';
+import { useBorrowerLabel } from './useBorrowerLabel';
+import { STATUS_TONES, authorsOf, bookPath, borrowerLabel, loanStatus } from './loanStatus';
 import { useLoanCover } from './useLoanCover';
 import styles from './LoanCard.module.css';
 
@@ -20,15 +22,29 @@ export interface LoanCardProps {
   /** Present only for who may write: without it no action button is drawn. */
   actions?: LoanActions;
   busy?: boolean;
+  /** Touching the person's name calls it; without it the name is plain text. */
+  onBorrower?(name: string): void;
+  /** Extra line (e.g. duration and delay in the history). */
+  extra?: string;
 }
 
-export function LoanCard({ loan, actions, busy = false }: LoanCardProps) {
+export function LoanCard({ loan, actions, busy = false, onBorrower, extra }: LoanCardProps) {
   const t = useT();
   const locale = useLocale();
   const src = useLoanCover(loan.book_id);
+  const labelOf = useBorrowerLabel();
   const status = loanStatus(loan);
   const labels = { active: t('loans.status.active'), overdue: t('loans.status.overdue'), returned: t('loans.status.returned') };
   const authors = authorsOf(loan);
+  const who = labelOf(loan, true);
+  const rawWho = borrowerLabel(loan);
+  const toWho = (
+    <>
+      {loan.borrower ? <PersonIcon /> : null}
+      {loan.borrower ? ' ' : null}
+      {t('loans.card.to', { name: who })}
+    </>
+  );
   const dates = [
     t('loans.card.since', { date: formatDate(locale, loan.lent_at) }),
     loan.returned_at != null
@@ -48,8 +64,22 @@ export function LoanCard({ loan, actions, busy = false }: LoanCardProps) {
           <StatusTag status={status} tones={STATUS_TONES} labels={labels} />
         </div>
         {authors ? <p className={styles.authors}>{authors}</p> : null}
-        <p className={styles.borrower}>{t('loans.card.to', { name: loan.borrower_name })}</p>
+        <p className={styles.borrower}>
+          {onBorrower ? (
+            <button
+              type="button"
+              className={styles.borrowerButton}
+              aria-label={t('loans.card.byBorrower', { name: who })}
+              onClick={() => onBorrower(rawWho)}
+            >
+              {toWho}
+            </button>
+          ) : (
+            toWho
+          )}
+        </p>
         <p className={styles.dates}>{dates.join(' · ')}</p>
+        {extra ? <p className={styles.dates}>{extra}</p> : null}
         {loan.notes ? <p className={styles.notes}>{loan.notes}</p> : null}
       </div>
       {actions ? (

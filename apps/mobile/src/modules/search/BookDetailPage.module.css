@@ -59,3 +59,25 @@
 .metaRow {
   display: contents;
 }
+
+.edit {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  margin-right: -6px;
+  padding: 0 10px;
+  border-radius: var(--bk-radius-sm);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--bk-primary-600);
+  text-decoration: none;
+  touch-action: manipulation;
+}
+
+.edit:focus-visible {
+  outline: 2px solid var(--bk-primary-400);
+  outline-offset: -2px;
+}

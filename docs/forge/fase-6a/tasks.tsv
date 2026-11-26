@@ -1,0 +1,6 @@
+# id	deps	difficulty	files	dwarf	qa	title
+people-api	-	high	crates/bookeeper-core/src/api,crates/bookeeper-core/src/auth,crates/bookeeper-core/src/db,crates/bookeeper-core/src/openapi.rs,crates/bookeeper-core/tests,packages/api/openapi.json	-	-	Core: persone, inviti, cambio proprietario
+family-api	people-api	high	crates/bookeeper-core/src/api,crates/bookeeper-core/src/openapi.rs,crates/bookeeper-core/tests,packages/api/openapi.json	-	-	Core: di chi è, chi lo legge, wishlist di famiglia, prestiti a membri
+isbn-index-api	family-api	medium	crates/bookeeper-core/src/api,crates/bookeeper-core/src/openapi.rs,crates/bookeeper-core/tests,packages/api/openapi.json	-	-	Core: indice ISBN per l'anti-doppio-acquisto
+client-6a	isbn-index-api	medium	packages/api,crates/bookeeper-core/tests/openapi_errors.rs	-	-	Client: tipi e risorse del run 6A
+apps-compat-6a	client-6a	low	apps/desktop/src,apps/mobile/src	-	-	App: compatibilità con i tipi del run 6A

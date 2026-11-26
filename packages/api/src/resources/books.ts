@@ -7,9 +7,16 @@ export type BookList = S['BookList'];
 export type BatchDeleted = S['BatchDeleted'];
 export type NextProgressive = S['NextProgressive'];
 export type Placement = S['Placement'];
+export type BookFacets = S['Facets'];
+export type Reader = S['Reader'];
+export type ReaderList = S['ReaderList'];
+export type IsbnIndex = S['IsbnIndex'];
+export type IsbnEntry = S['IsbnEntry'];
 export type ListBooksParams = Omit<S['ListBooksQuery'], 'on_loan' | 'unshelved'> & {
   on_loan?: boolean | null;
   unshelved?: boolean | null;
+  /** Repeatable: the book must have all the given tags. */
+  tag_id?: string[] | null;
 };
 
 export function booksApi(t: Transport) {
@@ -34,6 +41,16 @@ export function booksApi(t: Transport) {
     },
     async listBooks(params?: ListBooksParams) {
       return unwrap<BookList>(await t.request('GET', `${P}/books${qs(params)}`));
+    },
+    async getBookFacets() {
+      return unwrap<BookFacets>(await t.request('GET', `${P}/books/facets`));
+    },
+    async listReaders(bookId: string) {
+      return unwrap<ReaderList>(await t.request('GET', `${P}/books/${enc(bookId)}/readers`));
+    },
+    /** Pass the `version` of a previous answer: when it is still current, `unchanged` is true and `items` is empty. */
+    async isbnIndex(version?: string) {
+      return unwrap<IsbnIndex>(await t.request('GET', `${P}/books/isbn-index${qs({ version })}`));
     },
   };
 }

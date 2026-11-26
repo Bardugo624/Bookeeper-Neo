@@ -42,3 +42,24 @@ it('keeps literal colors out of every other source file', () => {
     expect(readFileSync(new URL(f, dir), 'utf8'), f).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(/i);
   }
 });
+
+it('has an explicit rule for reduced motion on the pulled spine', () => {
+  const css = strip(readFileSync(new URL('Shelf.module.css', dir), 'utf8'));
+  expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\)[\s\S]*data-pulled/);
+});
+
+it('keeps the usable spine area at 126px: strip height = 126 + top padding + pull room', () => {
+  const css = strip(readFileSync(new URL('Shelf.module.css', dir), 'utf8'));
+  const rule = css.match(/\.strip\s*\{([^}]*)\}/)![1]!;
+  const room = rule.match(/padding:\s*(\d+)px [^;]*?var\(--pull-room,\s*(\d+)px\)/)!;
+  const height = rule.match(/height:\s*calc\((\d+)px \+ var\(--pull-room,\s*(\d+)px\)\)/)!;
+  expect(height).not.toBeNull();
+  const top = Number(room[1]);
+  expect(Number(height[2])).toBe(Number(room[2]));
+  expect(Number(height[1]) - top).toBe(126);
+});
+
+it('uses a duration token for the pulse', () => {
+  const css = strip(readFileSync(new URL('Shelf.module.css', dir), 'utf8'));
+  expect(css).not.toMatch(/spine-pulse\s+\d/);
+});

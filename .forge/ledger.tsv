@@ -347,3 +347,192 @@
 2026-11-25T16:45:17Z	bookeeper-fase-3a	m-case-fix	qa	opus	PASS	-	-	-	27
 2026-11-25T16:58:07Z	bookeeper-fase-3a1	m-p3	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npm test w bookeeper mobile works without it vitest and vite plugins are not found	a fresh worktree needs `npm ci --offline` at the root before `npm test -w @bookeeper/mobile` works; without it vitest and vite plugins are not found [apps/mobile/package.json]	46	1
 2026-11-25T16:58:45Z	bookeeper-fase-3a1	m-p3	qa	opus	PASS	-	-	-	32
+2026-11-25T21:28:53Z	bookeeper-fase-4a	reading-api	dwarf	sonnet	-	verify	cargo test offline p bookeeper core test reading api test books api test db test backup api test openapi errors	cargo test --offline -p bookeeper-core --test reading_api --test books_api --test db --test backup_api --test openapi_errors [crates/bookeeper-core/Cargo.toml]	308	1
+2026-11-25T21:31:37Z	bookeeper-fase-4a	reading-api	qa	opus	PASS	-	-	-	157
+2026-11-25T21:35:24Z	bookeeper-fase-4a	tags-api	dwarf	sonnet	-	-	-	-	220
+2026-11-25T21:37:56Z	bookeeper-fase-4a	tags-api	qa	opus	FAIL	-	-	-	146
+2026-11-25T21:38:44Z	bookeeper-fase-4a	tags-api	dwarf	sonnet	-	-	-	-	42
+2026-11-25T21:40:38Z	bookeeper-fase-4a	tags-api	qa	opus	PASS	-	-	-	108
+2026-11-25T21:44:35Z	bookeeper-fase-4a	rooms-api	dwarf	sonnet	-	-	-	-	229
+2026-11-25T21:46:47Z	bookeeper-fase-4a	rooms-api	qa	opus	PASS	-	-	-	126
+2026-11-25T21:51:47Z	bookeeper-fase-4a	filters-api	dwarf	sonnet	-	trap	axum query cannot deserialize repeated keys into a vec read them with a second apiquery vec string string extractor	axum `Query` cannot deserialize repeated keys into a Vec; read them with a second `ApiQuery<Vec<(String, String)>>` extractor [crates/bookeeper-core/src/api/books_search.rs]	293	1
+2026-11-25T21:54:02Z	bookeeper-fase-4a	filters-api	qa	opus	PASS	-	-	-	129
+2026-11-25T21:57:01Z	bookeeper-fase-4a	audit-api	dwarf	sonnet	-	trap	error bodies are error code message flat not nested error code assert b error code in tests	error bodies are `{"error_code","message"}` flat, not nested `error.code`; assert `b["error_code"]` in tests [crates/bookeeper-core/tests/common/mod.rs]	172	1
+2026-11-25T21:59:24Z	bookeeper-fase-4a	audit-api	qa	opus	PASS	-	-	-	136
+2026-11-25T22:02:08Z	bookeeper-fase-4a	reading-stats	dwarf	sonnet	-	-	-	-	156
+2026-11-25T22:04:46Z	bookeeper-fase-4a	reading-stats	qa	opus	FAIL	finding	sqlite strftime unixepoch returns null for timestamps outside years 0000 9999 and finished at and similar epoch columns	SQLite `strftime(..., 'unixepoch')` returns NULL for timestamps outside years 0000–9999, and `finished_at` and similar epoch columns… [crates/bookeeper-core/src/api/reading.rs]	153	1
+2026-11-25T22:05:26Z	bookeeper-fase-4a	reading-stats	dwarf	sonnet	-	trap	sqlite strftime unixepoch returns null for timestamps outside years 0000 9999 and finished at and similar epoch columns	SQLite `strftime(..., 'unixepoch')` returns NULL for timestamps outside years 0000–9999, and `finished_at` and similar epoch columns… [crates/bookeeper-core/src/api/reading.rs]	33	1
+2026-11-25T22:06:57Z	bookeeper-fase-4a	reading-stats	qa	opus	PASS	-	-	-	85
+2026-11-25T22:09:35Z	bookeeper-fase-4a	client-4a	dwarf	sonnet	-	trap	listbooksquery in the generated schema omits repeatable tag id the openapi typed params in books ts must add it by hand	`ListBooksQuery` in the generated schema omits repeatable `tag_id`; the openapi-typed params in books.ts must add it by hand [packages/api/src/resources/books.ts]	152	1
+2026-11-25T22:12:16Z	bookeeper-fase-4a	client-4a	qa	opus	FAIL	finding	the hand maintained role gated list in openapi errors rs can silently miss a new route compare it against grep n	the hand-maintained ROLE_GATED list in openapi_errors.rs can silently miss a new route; compare it against `grep -n… [crates/bookeeper-core/tests/openapi_errors.rs]	155	1
+2026-11-25T22:12:40Z	bookeeper-fase-4a	client-4a	dwarf	sonnet	-	trap	the hand maintained role gated list in openapi errors rs can silently miss a new route compare it against grep n	the hand-maintained ROLE_GATED list in openapi_errors.rs can silently miss a new route; compare it against `grep -n… [crates/bookeeper-core/tests/openapi_errors.rs]	18	1
+2026-11-25T22:14:15Z	bookeeper-fase-4a	client-4a	qa	opus	PASS	-	-	-	89
+2026-11-25T22:25:56Z	bookeeper-fase-4a	apps-compat	dwarf	sonnet	-	-	-	-	161
+2026-11-25T22:26:58Z	bookeeper-fase-4a	apps-compat	qa	opus	PASS	-	-	-	58
+2026-11-25T22:49:28Z	bookeeper-fase-4b	reading-ui	dwarf	sonnet	-	trap	a rejected optimistic write can restore the cache in the same batch as the optimistic render so an effect keyed on the saved	a rejected optimistic write can restore the cache in the same batch as the optimistic render, so an effect keyed on the saved… [apps/desktop/src/modules/reading/PageField.tsx]	422	1
+2026-11-25T22:49:55Z	bookeeper-fase-4b	palette	dwarf	sonnet	-	trap	a zustand store shared across tests e g useoverlays must be reset in renderapp or an open palette from one test closes the next test s	a zustand store shared across tests (e.g. `useOverlays`) must be reset in `renderApp`, or an open palette from one test closes the next test's… [apps/desktop/src/app/testing.tsx]	449	1
+2026-11-25T22:52:23Z	bookeeper-fase-4b	reading-ui	qa	opus	PASS	-	-	-	170
+2026-11-25T22:53:19Z	bookeeper-fase-4b	palette	qa	opus	FAIL	finding	a css module and a test in one folder whose names differ only in case e g palette module css vs palette test tsx fail	a CSS module and a test in one folder whose names differ only in case (e.g. `Palette.module.css` vs `palette.test.tsx`) fail… [packages/ui/src/caseCollisions.test.ts]	198	1
+2026-11-25T22:54:09Z	bookeeper-fase-4b	palette	dwarf	sonnet	-	-	-	-	46
+2026-11-25T22:54:43Z	bookeeper-fase-4b	palette	qa	opus	FAIL	-	-	-	28
+2026-11-25T22:57:19Z	bookeeper-fase-4b	rooms-ui	dwarf	sonnet	-	-	-	-	291
+2026-11-25T22:57:50Z	bookeeper-fase-4b	loans-history	dwarf	sonnet	-	-	-	-	183
+2026-11-25T22:58:53Z	bookeeper-fase-4b	rooms-ui	qa	opus	FAIL	-	-	-	87
+2026-11-25T22:59:28Z	bookeeper-fase-4b	loans-history	qa	opus	FAIL	-	-	-	93
+2026-11-25T22:59:29Z	bookeeper-fase-4b	rooms-ui	dwarf	sonnet	-	-	-	-	33
+2026-11-25T23:00:45Z	bookeeper-fase-4b	loans-history	dwarf	sonnet	-	-	-	-	73
+2026-11-25T23:01:28Z	bookeeper-fase-4b	rooms-ui	qa	opus	FAIL	trap	shelfform test tsx validates with the limits of the core and sends the body can fail on aria selected when the whole	`ShelfForm.test.tsx` "validates with the limits of the core and sends the body" can fail on `aria-selected` when the whole… [apps/desktop/src/modules/shelves/ShelfForm.test.tsx]	113	1
+2026-11-25T23:01:50Z	bookeeper-fase-4b	loans-history	qa	opus	PASS	-	-	-	58
+2026-11-25T23:06:22Z	bookeeper-fase-4b	audit-ui	dwarf	sonnet	-	-	-	-	290
+2026-11-25T23:06:48Z	bookeeper-fase-4b	reading-stats-ui	dwarf	sonnet	-	-	-	-	294
+2026-11-25T23:08:04Z	bookeeper-fase-4b	audit-ui	qa	opus	PASS	-	-	-	96
+2026-11-25T23:08:28Z	bookeeper-fase-4b	reading-stats-ui	qa	opus	FAIL	-	-	-	94
+2026-11-25T23:09:10Z	bookeeper-fase-4b	reading-stats-ui	dwarf	sonnet	-	-	-	-	37
+2026-11-25T23:09:51Z	bookeeper-fase-4b	reading-stats-ui	qa	opus	PASS	-	-	-	36
+2026-11-25T23:12:11Z	bookeeper-fase-4b	p3-4a	dwarf	sonnet	-	trap	rusqlite scalar functions create scalar function need the functions feature in crates bookeeper core cargo toml	rusqlite scalar functions (`create_scalar_function`) need the `functions` feature in crates/bookeeper-core/Cargo.toml [crates/bookeeper-core/Cargo.toml]	136	1
+2026-11-25T23:14:31Z	bookeeper-fase-4b	p3-4a	qa	opus	PASS	-	-	-	134
+2026-11-25T23:17:44Z	bookeeper-fase-4b	tags-ui	dwarf	sonnet	-	trap	modules loans borrowerinput module css has a literal rgb color so kit styles test ts fails on it until the loans task fixes it	`modules/loans/BorrowerInput.module.css` has a literal `rgb(` color, so `kit/styles.test.ts` fails on it until the loans task fixes it [apps/desktop/src/kit/styles.test.ts]	576	1
+2026-11-25T23:17:44Z	bookeeper-fase-4b	tags-ui	dwarf	sonnet	-	trap	a test module registered with renderapp needs a nav entry and a route other than or the shell renders an empty main	a test module registered with `renderApp` needs a `nav` entry and a route other than `/`, or the shell renders an empty `<main>` [apps/desktop/src/app/testing.tsx]	576	1
+2026-11-25T23:20:04Z	bookeeper-fase-4b	tags-ui	qa	opus	FAIL	trap	radix dialog drawer close on escape from a document capture listener so a combobox inside one must intercept escape with a	Radix Dialog/Drawer close on Escape from a document capture listener, so a combobox inside one must intercept Escape with a… [apps/desktop/src/modules/loans/BorrowerInput.tsx]	135	1
+2026-11-25T23:20:52Z	bookeeper-fase-4b	tags-ui	dwarf	sonnet	-	-	-	-	44
+2026-11-25T23:21:58Z	bookeeper-fase-4b	tags-ui	qa	opus	PASS	-	-	-	59
+2026-11-25T23:24:48Z	bookeeper-fase-4b	rooms-ui	dwarf	opus	-	-	-	-	86
+2026-11-25T23:25:30Z	bookeeper-fase-4b	rooms-ui	qa	opus	PASS	-	-	-	37
+2026-11-25T23:31:25Z	bookeeper-fase-4b	palette-b	dwarf	sonnet	-	trap	usebookresults style debounced tests after vi advancetimersbytimeasync also advance 50 ms before vi userealtimers or	`useBookResults`-style debounced tests: after `vi.advanceTimersByTimeAsync` also advance 50 ms before `vi.useRealTimers()`, or… [apps/desktop/src/modules/palette/palette.test.tsx]	346	1
+2026-11-25T23:33:56Z	bookeeper-fase-4b	palette-b	qa	opus	FAIL	finding	a new module folder with both foo module css and foo test tsx trips packages ui src casecollisions test ts name the test after a	a new module folder with both `Foo.module.css` and `foo.test.tsx` trips `packages/ui/src/caseCollisions.test.ts`; name the test after a… [packages/ui/src/caseCollisions.test.ts]	147	1
+2026-11-25T23:34:44Z	bookeeper-fase-4b	palette-b	dwarf	sonnet	-	trap	a new module folder with both foo module css and foo test tsx trips packages ui src casecollisions test ts name the test after a	a new module folder with both `Foo.module.css` and `foo.test.tsx` trips `packages/ui/src/caseCollisions.test.ts`; name the test after a… [packages/ui/src/caseCollisions.test.ts]	43	1
+2026-11-25T23:35:36Z	bookeeper-fase-4b	palette-b	qa	opus	PASS	-	-	-	47
+2026-11-25T23:45:40Z	bookeeper-fase-4b	filters-ui	dwarf	sonnet	-	trap	in the books tests a list that ends up empty swaps the top active filter chips for the noresults ones so a button found before the	in the books tests, a list that ends up empty swaps the top active-filter chips for the NoResults ones, so a button found before the… [apps/desktop/src/modules/books/testkit.tsx]	599	1
+2026-11-25T23:45:40Z	bookeeper-fase-4b	filters-ui	dwarf	sonnet	-	trap	the books page has two pilltabs tablists filters and view so getallbyrole tab selected true counts the view tab too	the books page has two PillTabs tablists (filters and view), so `getAllByRole('tab', {selected:true})` counts the view tab too;… [apps/desktop/src/modules/books/FilterBar.tsx]	599	1
+2026-11-25T23:47:09Z	bookeeper-fase-4b	filters-ui	qa	opus	FAIL	finding	the books list ui must mirror build filter s 422 rules format enum year acquired from to 10 tag id shelf id vs unshelved	the books list UI must mirror build_filter's 422 rules (format enum, year/acquired from≤to, ≤10 tag_id, shelf_id vs unshelved)… [crates/bookeeper-core/src/api/books_search.rs]	84	1
+2026-11-25T23:48:22Z	bookeeper-fase-4b	filters-ui	dwarf	sonnet	-	-	-	-	70
+2026-11-25T23:49:38Z	bookeeper-fase-4b	filters-ui	qa	opus	PASS	-	-	-	70
+2026-11-25T23:52:08Z	bookeeper-fase-4b	fmt-4b	dwarf	sonnet	-	-	-	-	69
+2026-11-25T23:53:25Z	bookeeper-fase-4b	fmt-4b	qa	opus	PASS	-	-	-	71
+2026-11-26T00:04:53Z	bookeeper-fase-4b	guards-4b	dwarf	sonnet	-	-	-	-	46
+2026-11-26T00:05:32Z	bookeeper-fase-4b	guards-4b	qa	opus	PASS	-	-	-	34
+2026-11-26T00:29:08Z	bookeeper-fase-4c	p3-4b-core	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npm run gen test typecheck w bookeeper api works	a fresh worktree needs `npm ci --offline` at the root before `npm run gen/test/typecheck -w @bookeeper/api` works [packages/api/package.json]	85	1
+2026-11-26T00:30:40Z	bookeeper-fase-4c	p3-4b-core	qa	opus	PASS	-	-	-	86
+2026-11-26T00:34:29Z	bookeeper-fase-4c	p3-4b-app	dwarf	sonnet	-	trap	the books testkit extra handler is synchronous to delay a response in a test wrap the handler with platform handle and	the books testkit `extra` handler is synchronous; to delay a response in a test, wrap the handler with `platform.handle(...)` and… [apps/desktop/src/modules/reading/testkit.tsx]	405	1
+2026-11-26T00:35:08Z	bookeeper-fase-4c	m-reading	dwarf	sonnet	-	trap	a rejected optimistic write can restore the cache in the same batch as the optimistic render so an effect keyed on the saved value	a rejected optimistic write can restore the cache in the same batch as the optimistic render, so an effect keyed on the saved value… [apps/mobile/src/modules/reading/NoteField.tsx]	263	1
+2026-11-26T00:36:58Z	bookeeper-fase-4c	p3-4b-app	qa	opus	FAIL	-	-	-	143
+2026-11-26T00:37:01Z	bookeeper-fase-4c	m-reading	qa	opus	FAIL	-	-	-	106
+2026-11-26T00:37:51Z	bookeeper-fase-4c	m-reading	dwarf	sonnet	-	-	-	-	45
+2026-11-26T00:38:13Z	bookeeper-fase-4c	p3-4b-app	dwarf	sonnet	-	-	-	-	70
+2026-11-26T00:38:28Z	bookeeper-fase-4c	m-reading	qa	opus	PASS	-	-	-	31
+2026-11-26T00:39:42Z	bookeeper-fase-4c	p3-4b-app	qa	opus	PASS	-	-	-	83
+2026-11-26T00:41:37Z	bookeeper-fase-4c	m-tags	dwarf	sonnet	-	-	-	-	184
+2026-11-26T00:41:57Z	bookeeper-fase-4c	look-4b	dwarf	sonnet	-	-	-	-	130
+2026-11-26T00:42:54Z	bookeeper-fase-4c	m-tags	qa	opus	PASS	-	-	-	71
+2026-11-26T00:43:14Z	bookeeper-fase-4c	look-4b	qa	opus	FAIL	finding	turning an i18n string into a one other plural makes any caller that doesn t pass a numeric count render the raw key grep every t key	turning an i18n string into a `{one, other}` plural makes any caller that doesn't pass a numeric `count` render the raw key; grep every `t('<key>'`… [packages/i18n/src/index.ts]	71	1
+2026-11-26T00:43:38Z	bookeeper-fase-4c	look-4b	dwarf	sonnet	-	trap	turning an i18n string into a one other plural makes any caller that doesn t pass a numeric count render the raw key grep every t key	turning an i18n string into a `{one, other}` plural makes any caller that doesn't pass a numeric `count` render the raw key; grep every `t('<key>'`… [packages/i18n/src/index.ts]	20	1
+2026-11-26T00:44:28Z	bookeeper-fase-4c	look-4b	qa	opus	PASS	-	-	-	43
+2026-11-26T00:46:08Z	bookeeper-fase-4c	m-filters	dwarf	sonnet	-	-	-	-	189
+2026-11-26T00:47:24Z	bookeeper-fase-4c	m-filters	qa	opus	PASS	-	-	-	70
+2026-11-26T01:08:45Z	bookeeper-fase-4c1	p3-4c-desktop	dwarf	sonnet	-	trap	the reading audit desktop files have no prettier config in the repo format with npx prettier no config single quote print width	the reading/audit desktop files have no Prettier config in the repo; format with `npx prettier --no-config --single-quote --print-width… [apps/desktop/src/modules/tags/testkit.tsx]	112	1
+2026-11-26T01:09:07Z	bookeeper-fase-4c1	p3-4c-mobile	dwarf	sonnet	-	-	-	-	134
+2026-11-26T01:10:01Z	bookeeper-fase-4c1	p3-4c-mobile	qa	opus	PASS	-	-	-	48
+2026-11-26T01:10:30Z	bookeeper-fase-4c1	p3-4c-desktop	qa	opus	FAIL	-	-	-	99
+2026-11-26T01:10:37Z	bookeeper-fase-4c1	release-docker	dwarf	sonnet	-	-	-	-	31
+2026-11-26T01:11:08Z	bookeeper-fase-4c1	p3-4c-desktop	dwarf	sonnet	-	-	-	-	34
+2026-11-26T01:11:57Z	bookeeper-fase-4c1	release-docker	qa	opus	PASS	trap	in this sandbox the docker cli exists but no daemon runs and the x86 64 unknown linux musl rustup target is installed without x86 64 linux musl gcc so a	in this sandbox the docker CLI exists but no daemon runs, and the x86_64-unknown-linux-musl rustup target is installed without x86_64-linux-musl-gcc, so a… [Dockerfile.release]	74	1
+2026-11-26T01:12:23Z	bookeeper-fase-4c1	p3-4c-desktop	qa	opus	FAIL	finding	an effect keyed on the saved value that resets its reference on every server value also fires on the optimistic write so a failed	an effect keyed on the saved value that resets its reference on every server value also fires on the optimistic write, so a failed… [apps/desktop/src/modules/reading/NoteField.tsx]	68	1
+2026-11-26T01:20:53Z	bookeeper-fase-4c1	p3-4c-desktop	dwarf	opus	-	trap	a rejected optimistic write can restore the cache in the same batch as the optimistic render so an effect keyed on the saved value	a rejected optimistic write can restore the cache in the same batch as the optimistic render, so an effect keyed on the saved value… [apps/mobile/src/modules/reading/NoteField.tsx]	54	1
+2026-11-26T01:22:22Z	bookeeper-fase-4c1	p3-4c-desktop	qa	opus	PASS	-	-	-	84
+2026-11-26T01:59:13Z	bookeeper-fase-5a	ui-pull	dwarf	sonnet	-	trap	htmlelement prototype scrollintoview is stubbed by packages ui src overlays polyfills so tests must mock it on	`HTMLElement.prototype.scrollIntoView` is stubbed by `packages/ui/src/overlays/polyfills`, so tests must mock it on… [packages/ui/src/overlays/polyfills.ts]	115	1
+2026-11-26T02:00:54Z	bookeeper-fase-5a	ui-pull	qa	opus	PASS	-	-	-	93
+2026-11-26T02:02:44Z	bookeeper-fase-5a	core-append	dwarf	sonnet	-	trap	apierror validation into inside a run closure is fine but outside it before run clippy d warnings flags it as a	`ApiError::validation(..).into()` inside a `run` closure is fine, but outside it (before `run`) clippy `-D warnings` flags it as a… [crates/bookeeper-core/src/api/shelves.rs]	326	1
+2026-11-26T02:06:22Z	bookeeper-fase-5a	core-append	qa	opus	PASS	trap	db is one arc mutex connection so every run closure is serialised in process and a concurrency test on the api cannot catch a	`Db` is one `Arc<Mutex<Connection>>`, so every `run` closure is serialised in-process and a concurrency test on the API cannot catch a… [crates/bookeeper-core/src/db/mod.rs]	211	1
+2026-11-26T02:06:31Z	bookeeper-fase-5a	d-where	dwarf	sonnet	-	trap	npm test w bookeeper desktop first needs npm ci offline at the root in a fresh worktree or tsc cannot find vite vitest types	`npm test -w @bookeeper/desktop` first needs `npm ci --offline` at the root in a fresh worktree, or tsc cannot find vite/vitest types [apps/desktop/package.json]	327	1
+2026-11-26T02:08:36Z	bookeeper-fase-5a	d-where	qa	opus	PASS	-	-	-	119
+2026-11-26T02:09:24Z	bookeeper-fase-5a	m-where	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npx vitest run works in apps mobile	a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/mobile [apps/mobile/package.json]	174	1
+2026-11-26T02:10:46Z	bookeeper-fase-5a	m-where	qa	opus	PASS	-	-	-	76
+2026-11-26T02:12:01Z	bookeeper-fase-5a	d-move	dwarf	sonnet	-	trap	to test a timer driven drag with fake timers call vi usefaketimers only right before the drag event and	to test a timer-driven drag with fake timers, call `vi.useFakeTimers()` only right before the drag event and… [apps/desktop/src/modules/shelves/MoveBetween.test.tsx]	200	1
+2026-11-26T02:14:05Z	bookeeper-fase-5a	d-move	qa	opus	FAIL	trap	put placement upserts spine width with coalesce so sending null keeps the stored width the desktop shelves testkit fake does the	PUT placement upserts `spine_width` with COALESCE, so sending `null` keeps the stored width; the desktop shelves testkit fake does the… [crates/bookeeper-core/src/api/shelves.rs]	118	1
+2026-11-26T02:17:20Z	bookeeper-fase-5a	m-shelfscan	dwarf	sonnet	-	-	-	-	389
+2026-11-26T02:19:15Z	bookeeper-fase-5a	m-shelfscan	qa	opus	FAIL	trap	the mobile barcode scanner native detector and zxing reports the same code on every frame while it is in view so any de duplication of	the mobile barcode scanner (native detector and ZXing) reports the same code on every frame while it is in view, so any de-duplication of… [apps/mobile/src/platform/scanner.ts]	110	1
+2026-11-26T02:20:02Z	bookeeper-fase-5a	m-shelfscan	dwarf	sonnet	-	-	-	-	42
+2026-11-26T02:21:15Z	bookeeper-fase-5a	m-shelfscan	qa	opus	PASS	-	-	-	67
+2026-11-26T02:31:09Z	bookeeper-fase-5a	d-move	dwarf	sonnet	-	trap	put placement spine width is three state absent keeps null clears 1 3 sets via present the desktop shelves testkit fake	PUT placement `spine_width` is three-state (absent keeps, `null` clears, 1–3 sets) via `present`; the desktop shelves testkit fake… [crates/bookeeper-core/src/api/shelves.rs]	206	1
+2026-11-26T02:33:56Z	bookeeper-fase-5a	d-move	qa	opus	PASS	-	-	-	160
+2026-11-26T02:45:45Z	bookeeper-fase-5a	guards-5a	dwarf	sonnet	-	-	-	-	46
+2026-11-26T02:46:16Z	bookeeper-fase-5a	guards-5a	qa	opus	PASS	-	-	-	25
+2026-11-26T03:10:37Z	bookeeper-fase-5a1	p3-5a-ui	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npx vitest run or npm run typecheck works in packages ui	a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` or `npm run typecheck` works in packages/ui [packages/ui/package.json]	85	1
+2026-11-26T03:11:53Z	bookeeper-fase-5a1	p3-5a-core	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npm run gen w bookeeper api works	a fresh worktree needs `npm ci --offline` at the root before `npm run gen -w @bookeeper/api` works [packages/api/package.json]	162	1
+2026-11-26T03:12:23Z	bookeeper-fase-5a1	p3-5a-ui	qa	opus	FAIL	trap	vitest refuses test files outside packages ui to run a throwaway repro copy packages ui into the scratchpad and symlink the root node modules	vitest refuses test files outside packages/ui; to run a throwaway repro, copy packages/ui into the scratchpad and symlink the root node_modules… [packages/ui/vitest.config.ts]	98	1
+2026-11-26T03:13:05Z	bookeeper-fase-5a1	p3-5a-ui	dwarf	sonnet	-	-	-	-	36
+2026-11-26T03:13:34Z	bookeeper-fase-5a1	p3-5a-ui	qa	opus	PASS	-	-	-	23
+2026-11-26T03:14:05Z	bookeeper-fase-5a1	p3-5a-core	qa	opus	PASS	-	-	-	126
+2026-11-26T03:15:22Z	bookeeper-fase-5a1	p3-5a-mobile	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npx vitest run works in apps mobile	a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/mobile [apps/mobile/package.json]	69	1
+2026-11-26T03:15:58Z	bookeeper-fase-5a1	p3-5a-desktop	dwarf	sonnet	-	-	-	-	137
+2026-11-26T03:16:07Z	bookeeper-fase-5a1	p3-5a-mobile	qa	opus	PASS	-	-	-	38
+2026-11-26T03:18:04Z	bookeeper-fase-5a1	p3-5a-desktop	qa	opus	PASS	-	-	-	119
+2026-11-26T12:21:20Z	bookeeper-fase-6a	people-api	dwarf	sonnet	-	trap	the auth guard rewrites devices last seen on any request older than 60s so a test that reads a person s last seen must list with a	the auth guard rewrites `devices.last_seen` on any request older than 60s, so a test that reads a person's `last_seen` must list with a… [crates/bookeeper-core/src/auth/guard.rs]	650	1
+2026-11-26T12:21:20Z	bookeeper-fase-6a	people-api	dwarf	sonnet	-	trap	ratelimiter outcome succeeded clears every failure of the shared redeem key so a read only lookup on that key must use	`RateLimiter` outcome `succeeded()` clears every failure of the shared "redeem" key, so a read-only lookup on that key must use… [crates/bookeeper-core/src/auth/limit.rs]	650	1
+2026-11-26T12:24:14Z	bookeeper-fase-6a	people-api	qa	opus	PASS	-	-	-	165
+2026-11-26T12:29:39Z	bookeeper-fase-6a	family-api	dwarf	sonnet	-	trap	update openapi 1 cargo test test openapi does nothing without include ignored the updater is an ignored test	`UPDATE_OPENAPI=1 cargo test --test openapi` does nothing without `-- --include-ignored`; the updater is an ignored test [packages/api/openapi.json]	318	1
+2026-11-26T12:31:41Z	bookeeper-fase-6a	family-api	qa	opus	PASS	-	-	-	116
+2026-11-26T12:33:30Z	bookeeper-fase-6a	isbn-index-api	dwarf	sonnet	-	-	-	-	105
+2026-11-26T12:34:53Z	bookeeper-fase-6a	isbn-index-api	qa	opus	PASS	-	-	-	76
+2026-11-26T12:36:38Z	bookeeper-fase-6a	client-6a	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npm run gen w bookeeper api works	a fresh worktree needs `npm ci --offline` at the root before `npm run gen -w @bookeeper/api` works [packages/api/package.json]	101	1
+2026-11-26T12:37:46Z	bookeeper-fase-6a	client-6a	qa	opus	PASS	-	-	-	62
+2026-11-26T12:40:10Z	bookeeper-fase-6a	apps-compat-6a	dwarf	sonnet	-	-	-	-	140
+2026-11-26T12:41:14Z	bookeeper-fase-6a	apps-compat-6a	qa	opus	PASS	-	-	-	58
+2026-11-26T13:01:24Z	bookeeper-fase-6b	d-join	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npx vitest run works in apps desktop	a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/desktop [apps/desktop/package.json]	103	1
+2026-11-26T13:02:35Z	bookeeper-fase-6b	d-join	qa	opus	PASS	-	-	-	64
+2026-11-26T13:03:14Z	bookeeper-fase-6b	d-owner-readers	dwarf	sonnet	-	trap	tests that open a radix select in jsdom need haspointercapture setpointercapture releasepointercapture and	tests that open a Radix Select in jsdom need `hasPointerCapture`, `setPointerCapture`, `releasePointerCapture` and… [apps/desktop/src/modules/stats/ReadingTab.test.tsx]	213	1
+2026-11-26T13:04:47Z	bookeeper-fase-6b	d-owner-readers	qa	opus	PASS	-	-	-	87
+2026-11-26T13:05:36Z	bookeeper-fase-6b	p3-6a-client	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npm test w bookeeper api or any typecheck works	a fresh worktree needs `npm ci --offline` at the root before `npm test -w @bookeeper/api` or any typecheck works [packages/api/package.json]	44	1
+2026-11-26T13:06:13Z	bookeeper-fase-6b	p3-6a-client	qa	opus	PASS	-	-	-	32
+2026-11-26T13:08:06Z	bookeeper-fase-6b	d-family-wishlist	dwarf	sonnet	-	-	-	-	108
+2026-11-26T13:09:20Z	bookeeper-fase-6b	d-family-wishlist	qa	opus	FAIL	finding	uselistparams reset resets every key in the schema so a page that adds a mode scope parameter to its schema also resets that mode	`useListParams().reset()` resets every key in the schema, so a page that adds a mode/scope parameter to its schema also resets that mode… [apps/desktop/src/kit/useListParams.ts]	67	1
+2026-11-26T13:09:21Z	bookeeper-fase-6b	d-people	dwarf	sonnet	-	-	-	-	400
+2026-11-26T13:09:54Z	bookeeper-fase-6b	d-family-wishlist	dwarf	sonnet	-	trap	uselistparams reset resets every key in the schema so a page that adds a mode scope parameter to its schema also resets that mode	`useListParams().reset()` resets every key in the schema, so a page that adds a mode/scope parameter to its schema also resets that mode… [apps/desktop/src/kit/useListParams.ts]	29	1
+2026-11-26T13:10:43Z	bookeeper-fase-6b	d-family-wishlist	qa	opus	PASS	-	-	-	42
+2026-11-26T13:11:11Z	bookeeper-fase-6b	d-people	qa	opus	FAIL	-	-	-	103
+2026-11-26T13:12:15Z	bookeeper-fase-6b	d-people	dwarf	sonnet	-	-	-	-	59
+2026-11-26T13:13:24Z	bookeeper-fase-6b	d-people	qa	opus	PASS	-	-	-	62
+2026-11-26T13:13:47Z	bookeeper-fase-6b	d-loans-members	dwarf	sonnet	-	trap	uselistparams set non vede una scrittura fatta prima nello stesso handler per cambiare pi chiavi insieme es mine filter si	`useListParams().set` non vede una scrittura fatta prima nello stesso handler: per cambiare più chiavi insieme (es. `mine` + `filter`) si… [apps/desktop/src/kit/useListParams.ts]	178	1
+2026-11-26T13:15:15Z	bookeeper-fase-6b	d-loans-members	qa	opus	PASS	-	-	-	82
+2026-11-26T13:16:31Z	bookeeper-fase-6b	p3-5a1	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npx vitest run works in apps desktop	a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/desktop [apps/desktop/package.json]	67	1
+2026-11-26T13:17:54Z	bookeeper-fase-6b	p3-5a1	qa	opus	PASS	-	-	-	75
+2026-11-26T13:19:35Z	bookeeper-fase-6b	m-join	dwarf	sonnet	-	-	-	-	91
+2026-11-26T13:19:53Z	bookeeper-fase-6b	d-notify	dwarf	sonnet	-	trap	cargo add needs network access so offline fails for crates missing from the registry cache run it online since the proxy allows	`cargo add` needs network access, so `--offline` fails for crates missing from the registry cache; run it online, since the proxy allows… [apps/desktop/src-tauri/Cargo.toml]	383	1
+2026-11-26T13:20:48Z	bookeeper-fase-6b	m-join	qa	opus	PASS	-	-	-	66
+2026-11-26T13:21:09Z	bookeeper-fase-6b	d-notify	qa	opus	PASS	-	-	-	70
+2026-11-26T13:24:16Z	bookeeper-fase-6b	d-overdue	dwarf	sonnet	-	-	-	-	182
+2026-11-26T13:24:26Z	bookeeper-fase-6b	m-book-edit	dwarf	sonnet	-	-	-	-	213
+2026-11-26T13:25:46Z	bookeeper-fase-6b	d-overdue	qa	opus	PASS	-	-	-	83
+2026-11-26T13:26:19Z	bookeeper-fase-6b	m-book-edit	qa	opus	FAIL	finding	in apps mobile a per book query keyed outside books libraryid is not refreshed by the reading tags mutations which	in apps/mobile a per-book query keyed outside `['books', libraryId, …]` is not refreshed by the reading/tags mutations, which… [apps/mobile/src/modules/reading/useReading.ts]	106	1
+2026-11-26T13:27:06Z	bookeeper-fase-6b	m-book-edit	dwarf	sonnet	-	finding	in apps mobile a per book query keyed outside books libraryid is not refreshed by the reading tags mutations which	in apps/mobile a per-book query keyed outside `['books', libraryId, …]` is not refreshed by the reading/tags mutations, which… [apps/mobile/src/modules/reading/useReading.ts]	42	1
+2026-11-26T13:27:57Z	bookeeper-fase-6b	m-book-edit	qa	opus	PASS	-	-	-	45
+2026-11-26T13:29:43Z	bookeeper-fase-6b	m-wishlist	dwarf	sonnet	-	-	-	-	232
+2026-11-26T13:31:32Z	bookeeper-fase-6b	m-wishlist	qa	opus	PASS	-	-	-	102
+2026-11-26T13:32:26Z	bookeeper-fase-6b	m-loans	dwarf	sonnet	-	trap	in a vitest test kit spreading rendermobile platform after a platform property fails typecheck with ts2783 because the	in a vitest test kit, spreading `...renderMobile({ platform })` after a `platform` property fails typecheck with TS2783 because the… [apps/mobile/src/modules/loans/testkit.tsx]	264	1
+2026-11-26T13:34:22Z	bookeeper-fase-6b	m-loans	qa	opus	FAIL	-	-	-	109
+2026-11-26T13:35:12Z	bookeeper-fase-6b	m-loans	dwarf	sonnet	-	-	-	-	45
+2026-11-26T13:35:47Z	bookeeper-fase-6b	m-isbn-index	dwarf	sonnet	-	-	-	-	250
+2026-11-26T13:36:11Z	bookeeper-fase-6b	m-loans	qa	opus	PASS	-	-	-	51
+2026-11-26T13:37:11Z	bookeeper-fase-6b	m-isbn-index	qa	opus	FAIL	trap	when get me fails at launch with a transient error the session goes to ready with me null and the fake transport never simulates	when `GET /me` fails at launch with a transient error, the session goes to `ready` with `me === null`, and the fake transport never simulates… [apps/mobile/src/session/store.ts]	77	1
+2026-11-26T13:37:58Z	bookeeper-fase-6b	m-isbn-index	dwarf	sonnet	-	trap	when get me fails at launch with a transient error the session goes to ready with me null and the fake transport never simulates	when `GET /me` fails at launch with a transient error, the session goes to `ready` with `me === null`, and the fake transport never simulates… [apps/mobile/src/session/store.ts]	41	1
+2026-11-26T13:38:45Z	bookeeper-fase-6b	m-isbn-index	qa	opus	PASS	-	-	-	40
+2026-11-26T13:38:51Z	bookeeper-fase-6b	m-shelves	dwarf	sonnet	-	-	-	-	155
+2026-11-26T13:40:18Z	bookeeper-fase-6b	m-shelves	qa	opus	PASS	-	-	-	80
+2026-11-26T13:59:09Z	bookeeper-fase-6b1	ui-icons	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npm test w bookeeper ui or any typecheck works	a fresh worktree needs `npm ci --offline` at the root before `npm test -w @bookeeper/ui` or any typecheck works [packages/ui/package.json]	48	1
+2026-11-26T13:59:55Z	bookeeper-fase-6b1	ui-icons	qa	opus	PASS	-	-	-	39
+2026-11-26T14:00:01Z	bookeeper-fase-6b1	p3-6b-desktop-b	dwarf	sonnet	-	-	-	-	101
+2026-11-26T14:02:17Z	bookeeper-fase-6b1	p3-6b-desktop-b	qa	opus	FAIL	-	-	-	130
+2026-11-26T14:02:34Z	bookeeper-fase-6b1	p3-6b-desktop-a	dwarf	sonnet	-	-	-	-	154
+2026-11-26T14:03:32Z	bookeeper-fase-6b1	p3-6b-desktop-a	qa	opus	FAIL	-	-	-	52
+2026-11-26T14:04:38Z	bookeeper-fase-6b1	p3-6b-desktop-b	dwarf	sonnet	-	trap	a loans page test must scope text queries to the loan list since the caller s name also shows in the user menu	a loans page test must scope text queries to the loan list, since the caller's name also shows in the user menu [apps/desktop/src/modules/loans/LoansPage.test.tsx]	136	1
+2026-11-26T14:07:19Z	bookeeper-fase-6b1	p3-6b-mobile-a	dwarf	sonnet	-	trap	a book card back link that must keep role link should be a link whose onclick calls navigate 1 when location key	a book-card back link that must keep role "link" should be a `Link` whose onClick calls `navigate(-1)` when `location.key !==… [apps/mobile/src/modules/search/BookDetailPage.tsx]	221	1
+2026-11-26T14:08:23Z	bookeeper-fase-6b1	p3-6b-desktop-b	qa	opus	PASS	trap	running the desktop loans books shelves vitest suites together can fail a timing sensitive test such as shelfform test tsx	running the desktop loans/books/shelves vitest suites together can fail a timing-sensitive test such as ShelfForm.test.tsx… [apps/desktop/src/modules/shelves/ShelfForm.test.tsx]	218	1
+2026-11-26T14:08:49Z	bookeeper-fase-6b1	p3-6b-mobile-a	qa	opus	FAIL	finding	a back control that uses location key default as no previous app page goes wrong after a replace navigation or a	a back control that uses `location.key === 'default'` as "no previous app page" goes wrong after a `replace` navigation or a… [apps/mobile/src/modules/search/BookDetailPage.tsx]	82	1
+2026-11-26T14:09:52Z	bookeeper-fase-6b1	p3-6b-mobile-a	dwarf	sonnet	-	trap	back navigation direct entry must use window history state idx survives replace not location key default memory	back-navigation "direct entry" must use `window.history.state.idx` (survives `replace`), not `location.key === 'default'`; memory… [apps/mobile/src/modules/search/useCanGoBack.ts]	58	1
+2026-11-26T14:11:12Z	bookeeper-fase-6b1	p3-6b-mobile-a	qa	opus	PASS	-	-	-	73
+2026-11-26T14:12:48Z	bookeeper-fase-6b1	p3-6b-mobile-b	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npm run typecheck w bookeeper mobile or npx vitest run works	a fresh worktree needs `npm ci --offline` at the root before `npm run typecheck -w @bookeeper/mobile` or `npx vitest run` works [apps/mobile/package.json]	90	1
+2026-11-26T14:13:54Z	bookeeper-fase-6b1	p3-6b-mobile-b	qa	opus	FAIL	-	-	-	59
+2026-11-26T14:15:53Z	bookeeper-fase-6b1	p3-6b-mobile-b	dwarf	sonnet	-	-	-	-	115
+2026-11-26T14:16:48Z	bookeeper-fase-6b1	p3-6b-mobile-b	qa	opus	PASS	-	-	-	48
+2026-11-26T14:22:21Z	bookeeper-fase-6b1	p3-6b-desktop-a	dwarf	sonnet	-	-	-	-	13
+2026-11-26T14:23:01Z	bookeeper-fase-6b1	p3-6b-desktop-a	qa	opus	PASS	-	-	-	33

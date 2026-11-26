@@ -1,6 +1,14 @@
 import { beforeEach, expect, it, vi } from 'vitest';
 
 const invoke = vi.fn();
+const isPermissionGranted = vi.fn();
+const requestPermission = vi.fn();
+const sendNotification = vi.fn();
+vi.mock('@tauri-apps/plugin-notification', () => ({
+  isPermissionGranted: (...a: unknown[]) => isPermissionGranted(...a),
+  requestPermission: (...a: unknown[]) => requestPermission(...a),
+  sendNotification: (...a: unknown[]) => sendNotification(...a),
+}));
 vi.mock('@tauri-apps/api/core', () => ({ invoke: (...a: unknown[]) => invoke(...a) }));
 vi.mock('@tauri-apps/api/window', () => ({ getCurrentWindow: () => ({}) }));
 
@@ -63,4 +71,27 @@ it('updates call the commands with the channel and turn failures into codes', as
   await expect(updates!.install('stable')).rejects.toBe('signature');
   invoke.mockRejectedValueOnce('anything else');
   await expect(updates!.install('stable')).rejects.toBe('install');
+});
+
+it('notifications use the plugin and tell denied from prompt', async () => {
+  const { notifications } = tauriPlatform();
+  isPermissionGranted.mockResolvedValueOnce(true);
+  expect(await notifications!.permission()).toBe('granted');
+
+  isPermissionGranted.mockResolvedValue(false);
+  vi.stubGlobal('Notification', { permission: 'default' });
+  expect(await notifications!.permission()).toBe('prompt');
+  vi.stubGlobal('Notification', { permission: 'denied' });
+  expect(await notifications!.permission()).toBe('denied');
+  vi.unstubAllGlobals();
+
+  requestPermission.mockResolvedValueOnce('granted');
+  expect(await notifications!.request()).toBe('granted');
+  requestPermission.mockResolvedValueOnce('default');
+  expect(await notifications!.request()).toBe('denied');
+  requestPermission.mockRejectedValueOnce(new Error('x'));
+  expect(await notifications!.request()).toBe('denied');
+
+  await notifications!.send({ title: 'T', body: 'B' });
+  expect(sendNotification).toHaveBeenCalledWith({ title: 'T', body: 'B' });
 });

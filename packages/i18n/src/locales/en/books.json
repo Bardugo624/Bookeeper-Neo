@@ -9,12 +9,15 @@
     "label": "Search books",
     "placeholder": "Search title, author, ISBN",
     "clear": "Clear search",
-    "hint": "Ctrl K",
-    "hintMac": "⌘K"
+    "hint": "/",
+    "hintMac": "/"
   },
   "filters": {
     "label": "Filters",
     "all": "All",
+    "to_read": "To read",
+    "reading": "Reading",
+    "read": "Read",
     "loan": "On loan",
     "unshelved": "Unshelved"
   },
@@ -36,9 +39,12 @@
       "author": "Author",
       "year": "Year",
       "placement": "Location",
+      "reading": "Reading",
       "status": "Loan"
     },
-    "sortBy": "Sort by {column}"
+    "sortBy": "Sort by {column}",
+    "where": "Where is it?",
+    "whereFor": "Where is “{title}”?"
   },
   "empty": {
     "title": "No books",
@@ -98,7 +104,16 @@
       "retry": "Try again"
     },
     "lend": "Lend",
-    "more": "More"
+    "more": "More",
+    "owner": "Owner: {name}",
+    "readers": {
+      "title": "Who is reading it",
+      "reading": "{name} · is reading",
+      "to_read": "{name} · to read",
+      "read": "{name} · has read it",
+      "readOn": "{name} · read it in {date}",
+      "abandoned": "{name} · gave up on it"
+    }
   },
   "new": {
     "button": "Add",
@@ -158,7 +173,8 @@
       "price": "An amount like 12.50.",
       "date": "Invalid date.",
       "progressiveTaken": "Another book already uses this number."
-    }
+    },
+    "owner": "Whose is it"
   },
   "cover": {
     "title": "Cover",
@@ -226,6 +242,109 @@
     "updated": "“{title}” saved",
     "deleted": "“{title}” deleted",
     "coverFailed": "The book was saved, but its cover was not.",
-    "colorFailed": "The book was saved, but its spine color was not."
+    "colorFailed": "The book was saved, but its spine color was not.",
+    "tagsFailed": "The book was saved, but not its tags."
+  },
+  "active": {
+    "label": "Active filters",
+    "remove": "Remove filter: {label}",
+    "clearAll": "Clear all",
+    "q": "Search: {q}",
+    "reading": "Reading: {value}",
+    "tag": "Tag: {name}",
+    "room": "Room: {name}",
+    "shelf": "Shelf: {name}",
+    "genre": "Genre: {name}",
+    "language": "Language: {name}",
+    "format": "Format: {name}",
+    "years": {
+      "both": "Year {from}–{to}",
+      "from": "From {from}",
+      "to": "Up to {to}"
+    },
+    "acquired": {
+      "both": "Acquired {from} to {to}",
+      "from": "Acquired from {from}",
+      "to": "Acquired up to {to}"
+    },
+    "owner": "Owner: {name}"
+  },
+  "facets": {
+    "reading": {
+      "to_read": "To read",
+      "reading": "Reading",
+      "read": "Read",
+      "abandoned": "Abandoned",
+      "none": "No status"
+    }
+  },
+  "panel": {
+    "rangeError": "Invalid range: the start is after the end.",
+    "title": "Filters",
+    "button": "Filters",
+    "buttonCount": "Filters ({count})",
+    "reset": "Reset",
+    "show": {
+      "one": "Show {count} book",
+      "other": "Show {count} books"
+    },
+    "showAny": "Show books",
+    "withCount": "{name} ({count})",
+    "reading": "Reading state",
+    "onLoan": "Only books on loan",
+    "tags": "Tags (the book has them all)",
+    "place": "Where they are",
+    "room": "Room",
+    "anyRoom": "All rooms",
+    "shelf": "Shelf",
+    "anyShelf": "All shelves",
+    "edition": "Edition",
+    "genre": "Genre",
+    "anyGenre": "All genres",
+    "language": "Language",
+    "anyLanguage": "All languages",
+    "format": "Format",
+    "anyFormat": "All formats",
+    "years": "Publication year",
+    "yearFrom": "Year from",
+    "yearTo": "Year to",
+    "acquired": "Purchase date",
+    "acquiredFrom": "Acquired from",
+    "acquiredTo": "Acquired to",
+    "owner": "Whose is it",
+    "ownerMe": "Mine",
+    "ownerNone": "Everyone’s"
+  },
+  "sort": {
+    "button": "Sort by: {name}",
+    "relevance": "Relevance",
+    "label": "Sort by",
+    "asc": "Ascending",
+    "desc": "Descending",
+    "created_at": "Date added",
+    "title": "Title",
+    "author": "Author",
+    "published_year": "Publication year",
+    "acquired_at": "Purchase date",
+    "page_count": "Pages",
+    "progressive_number": "Sequence number",
+    "rating": "Rating"
+  },
+  "views": {
+    "button": "Views",
+    "save": "Save this view",
+    "full": "Limit of 10 views reached",
+    "manage": "Manage views",
+    "saveTitle": "Save this view",
+    "name": "View name",
+    "manageTitle": "Saved views",
+    "none": "No saved views.",
+    "rename": "Rename {name}",
+    "delete": "Delete {name}",
+    "saved": "View “{name}” saved"
+  },
+  "owner": {
+    "everyone": "Everyone",
+    "me": "You"
   }
 }

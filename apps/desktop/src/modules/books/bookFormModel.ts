@@ -22,6 +22,8 @@ export interface BookFormValues {
   price: string;
   description: string;
   notes: string;
+  /** Id of the owner; empty is "everyone". */
+  owner: string;
 }
 
 export const FORMATS = ['hardcover', 'paperback', 'ebook', 'audiobook'] as const;
@@ -43,7 +45,7 @@ export function emptyForm(): BookFormValues {
   return {
     title: '', subtitle: '', authors: [], publisher: '', year: '', language: '', pages: '', format: '',
     isbn13: '', isbn10: '', genre: '', progressive: '', condition: '', acquired: '', price: '',
-    description: '', notes: '',
+    description: '', notes: '', owner: '',
   };
 }
 
@@ -60,6 +62,7 @@ export function fromBook(b: BookOut): BookFormValues {
     isbn13: b.isbn_13 ?? '', isbn10: b.isbn_10 ?? '', genre: b.genre ?? '', progressive: num(b.progressive_number),
     condition: b.condition ?? '', acquired: b.acquired_at == null ? '' : toDateInputValue(b.acquired_at),
     price: centsToText(b.price_cents), description: b.description ?? '', notes: b.notes ?? '',
+    owner: b.owner?.id ?? '',
   };
 }
 
@@ -153,6 +156,7 @@ export function toCreateBody(v: BookFormValues): CreateBook {
   set('price_cents', priceToCents(v.price) ?? undefined);
   set('description', text(v.description));
   set('notes', text(v.notes));
+  set('owner_user_id', text(v.owner));
   return body;
 }
 

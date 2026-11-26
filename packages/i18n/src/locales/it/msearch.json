@@ -32,15 +32,20 @@
   "none": {
     "title": "Nessun risultato",
     "text": "Nessun libro corrisponde a questa ricerca.",
-    "textFor": "Nessun libro corrisponde a «{q}»."
+    "textFor": "Nessun libro corrisponde a «{q}».",
+    "filtered": "Nessun libro corrisponde a questi filtri.",
+    "reset": "Azzera i filtri"
   },
   "detail": {
     "back": "Torna all'elenco",
     "where": {
       "title": "Dove si trova",
       "shelf": "Mobile",
+      "none": "Non collocato",
+      "phrase": "{shelf} · ripiano {row} · posto {slot}",
+      "button": "Dov'è?",
       "row": "Ripiano {row}",
-      "none": "Non collocato"
+      "unit": "Apri il mobile"
     },
     "loan": {
       "title": "Prestito",
@@ -66,6 +71,94 @@
     "notFound": {
       "title": "Libro non trovato",
       "text": "Questo libro non esiste più o è stato rimosso dalla libreria."
+    },
+    "whereIs": {
+      "title": "Dov'è?",
+      "unit": "Mobile con il libro evidenziato",
+      "back": "Torna alla scheda",
+      "missing": "Non è su nessuno scaffale",
+      "missingText": "Questo libro non è collocato, oppure è stato spostato."
+    },
+    "you": "Tu",
+    "owner": "Di chi è: {name}",
+    "edit": "Modifica",
+    "readers": {
+      "title": "Chi lo legge",
+      "reading": "{name} · sta leggendo",
+      "to_read": "{name} · da leggere",
+      "read": "{name} · l’ha letto",
+      "readOn": "{name} · l’ha letto a {date}",
+      "abandoned": "{name} · l’ha lasciato"
     }
-  }
+  },
+  "reading": {
+    "to_read": "Da leggere",
+    "reading": "In lettura",
+    "read": "Letti",
+    "abandoned": "Abbandonato",
+    "none": "Senza stato"
+  },
+  "sheet": {
+    "open": "Filtri",
+    "title": "Filtri",
+    "reading": "Stato di lettura",
+    "tags": "Tag",
+    "room": "Stanza",
+    "reset": "Azzera",
+    "retry": "Riprova",
+    "show": "Mostra i libri",
+    "showCount": {
+      "one": "Mostra {count} libro",
+      "other": "Mostra {count} libri"
+    }
+  },
+  "active": {
+    "label": "Filtri attivi",
+    "reading": "Stato: {value}",
+    "tag": "Tag: {name}",
+    "room": "Stanza: {name}",
+    "remove": "Togli il filtro {label}"
+  },
+  "edit": {
+    "title": "Modifica libro",
+    "back": "Torna alla scheda",
+    "save": "Salva",
+    "saving": "Salvo…",
+    "subtitle": "Sottotitolo",
+    "authors": "Autori",
+    "authorN": "Autore {n}",
+    "addAuthor": "Aggiungi autore",
+    "removeAuthor": "Togli l’autore {n}",
+    "publisher": "Editore",
+    "year": "Anno",
+    "pages": "Pagine",
+    "language": "Lingua",
+    "genre": "Genere",
+    "format": "Formato",
+    "formatNone": "Non indicato",
+    "formats": {
+      "hardcover": "Rilegato",
+      "paperback": "Brossura",
+      "ebook": "E-book",
+      "audiobook": "Audiolibro"
+    },
+    "owner": "Di chi è",
+    "ownerNone": "Di tutti",
+    "peopleError": "Non è stato possibile caricare le persone.",
+    "errors": {
+      "required": "Campo obbligatorio",
+      "tooLong": "Al massimo {max} caratteri.",
+      "tooMany": "Al massimo {max} autori.",
+      "range": "Un numero da {min} a {max}.",
+      "invalid": "Il valore non è valido."
+    },
+    "leave": {
+      "title": "Uscire senza salvare?",
+      "text": "Le modifiche a questo libro andranno perse.",
+      "stay": "Continua a modificare",
+      "discard": "Esci senza salvare"
+    },
+    "titleField": "Titolo"
+  },
+  "shelves": "Scaffali"
 }

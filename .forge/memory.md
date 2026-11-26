@@ -4,6 +4,7 @@
      overwritten. Facts only, one per line. -->
 
 ## Verify
+- cargo test --offline -p bookeeper-core --test reading_api --test books_api --test db --test backup_api --test openapi_errors [crates/bookeeper-core/Cargo.toml]
 - npm install && npm run typecheck -w @bookeeper/mobile && npm test -w @bookeeper/mobile && npm run build -w @bookeeper/mobile && cargo test --offline -p… [apps/mobile/package.json]
 - cargo test --offline -p bookeeper-desktop && cargo clippy --offline -p bookeeper-desktop --all-targets -- -D warnings [apps/desktop/src-tauri/Cargo.toml]
 - cargo zigbuild --release --locked -p bookeeper-server --target x86_64-unknown-linux-musl (needs `pip install ziglang`, `cargo install --locked… [.github/workflows/release.yml]
@@ -13,19 +14,19 @@
 - UPDATE_OPENAPI=1 cargo test -p bookeeper-core --test openapi -- --include-ignored && npm run gen -w @bookeeper/api && npm test -w @bookeeper/api [packages/api/openapi.json]
 
 ## Known traps
+- a fresh worktree needs `npm ci --offline` at the root before `npm run gen -w @bookeeper/api` works [packages/api/package.json]
+- a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/mobile [apps/mobile/package.json]
+- a rejected optimistic write can restore the cache in the same batch as the optimistic render, so an effect keyed on the saved value… [apps/mobile/src/modules/reading/NoteField.tsx]
 - a fresh worktree has no node_modules; run `npm ci --offline` at the root, then `npx vitest run <path>` from apps/desktop [apps/desktop/package.json]
-- a fresh worktree needs `npm ci --offline` at the root before `npm test -w @bookeeper/mobile` works; without it vitest and vite plugins are not found [apps/mobile/package.json]
-- caseCollisions.test.ts can be run alone with `npx vitest run packages/ui/src/caseCollisions.test.ts` from the root after `npm ci --offline` [packages/ui/src/caseCollisions.test.ts]
-- the mobile `translationKeys.test.ts` only scans `mobile.*` and `common.*` keys, so a module's own namespace (e.g. `maccount.*`) needs its… [apps/mobile/src/translationKeys.test.ts]
-- `npm run typecheck -w @bookeeper/mobile` fails with "Cannot find type definition file" until `npm ci --offline` is run at the root of a fresh worktree [apps/mobile/package.json]
-- in mobile tests `findByRole('status', {name:'Caricamento…'})` can match the SessionGate's own loading status; await a view element (e.g.… [apps/mobile/src/app/SessionGate.tsx]
-- apps/mobile authTransport wraps the fetch transport but exposes only `request`, so any `@bookeeper/api` raw call (covers, files) fails… [apps/mobile/src/session/authTransport.ts]
-- apps/mobile/src/translationKeys.test.ts only checks `mobile.`/`common.` keys, so a missing key in a module namespace such as `maccount.`… [apps/mobile/src/translationKeys.test.ts]
-- `styles.test.ts` in apps/mobile fails on any `--bk-*` token not defined in the UI package (there is `--bk-radius`, `--bk-radius-sm`,… [apps/mobile/src/styles.test.ts]
-- `translationKeys.test.ts` scans only `mobile.*` and `common.*` keys, so keys in other mobile namespaces (e.g. `maccount.*`) need their… [apps/mobile/src/translationKeys.test.ts]
-- `apps/mobile/src/session/authTransport.ts` non espone `requestRaw`: `client.getCover` e ogni altra chiamata binaria falliscono con… [apps/mobile/src/session/authTransport.ts]
-- mobile public routes are children of SessionGate, which redirects them to home when the session is `ready`; tests that build their own router… [apps/mobile/src/app/SessionGate.tsx]
-- the core revokes a device when a refresh token is reused (`refresh_reused`), so the mobile transport refreshes inside a… [apps/mobile/src/session/authTransport.ts]
-- `NavLink` sets `aria-current` only when its own route matches, so a tab that must stay active on other paths needs a plain `Link` with a… [apps/mobile/src/shell/TabBar.tsx]
-- the core revokes a device when a refresh token is reused (`refresh_reused`), so any client holding refresh tokens in memory across tabs or… [crates/bookeeper-core/src/api/auth.rs]
+- a fresh worktree needs `npm ci --offline` at the root before `npm run typecheck -w @bookeeper/mobile` or `npx vitest run` works [apps/mobile/package.json]
+- running the desktop loans/books/shelves vitest suites together can fail a timing-sensitive test such as ShelfForm.test.tsx… [apps/desktop/src/modules/shelves/ShelfForm.test.tsx]
+- a book-card back link that must keep role "link" should be a `Link` whose onClick calls `navigate(-1)` when `location.key !==… [apps/mobile/src/modules/search/BookDetailPage.tsx]
+- a loans page test must scope text queries to the loan list, since the caller's name also shows in the user menu [apps/desktop/src/modules/loans/LoansPage.test.tsx]
+- a fresh worktree needs `npm ci --offline` at the root before `npm test -w @bookeeper/ui` or any typecheck works [packages/ui/package.json]
+- when `GET /me` fails at launch with a transient error, the session goes to `ready` with `me === null`, and the fake transport never simulates… [apps/mobile/src/session/store.ts]
+- in a vitest test kit, spreading `...renderMobile({ platform })` after a `platform` property fails typecheck with TS2783 because the… [apps/mobile/src/modules/loans/testkit.tsx]
+- `cargo add` needs network access, so `--offline` fails for crates missing from the registry cache; run it online, since the proxy allows… [apps/desktop/src-tauri/Cargo.toml]
+- a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/desktop [apps/desktop/package.json]
+- `useListParams().set` non vede una scrittura fatta prima nello stesso handler: per cambiare più chiavi insieme (es. `mine` + `filter`) si… [apps/desktop/src/kit/useListParams.ts]
+- `useListParams().reset()` resets every key in the schema, so a page that adds a mode/scope parameter to its schema also resets that mode… [apps/desktop/src/kit/useListParams.ts]
 

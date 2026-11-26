@@ -30,7 +30,7 @@ describe('useActiveLoan', () => {
   it('finds the open loan of a lent book', async () => {
     const { platform } = renderLoans({ loans: [loan(1)], books: [] }, '/probe', [probe('b1')]);
     expect(await screen.findByText('In prestito a Persona 1')).toBeInTheDocument();
-    const call = platform.calls.find((c) => c.path.startsWith('/api/v1/loans?'))!;
+    const call = platform.calls.find((c) => c.path.startsWith('/api/v1/loans?') && c.path.includes('book_id'))!;
     const q = new URL(call.path, 'http://x').searchParams;
     expect(q.get('book_id')).toBe('b1');
     expect(q.get('status')).toBe('active');

@@ -1,11 +1,11 @@
 import { useRef, useState, type FormEvent } from 'react';
-import { ApiError, type LibraryOut } from '@bookeeper/api';
+import { ApiError, type CodeInfo, type LibraryOut } from '@bookeeper/api';
 import { usePlatform } from '../../platform';
 import { useSession } from '../../session';
 import { useT } from '../../app/i18n';
 import { authenticate, deviceInfo, newRemoteConnection } from './connections';
 import { apiErrors, hasErrors, probeErrors, type Errors } from './errors';
-import { collect, emailError, focusFirstError, passwordError, requiredError } from './validate';
+import { collect, emailError, focusFirstError, inviteNameError, passwordError, requiredError } from './validate';
 import { useBusy } from './useBusy';
 import { useRemoteProbe } from './useRemoteProbe';
 import type { Redirect } from './types';
@@ -20,6 +20,12 @@ interface Target {
 interface Choice {
   target: Target;
   libraries: LibraryOut[];
+}
+
+interface Invite {
+  target: Target;
+  code: string;
+  info: CodeInfo;
 }
 
 const ORDER: Record<JoinMode, string[]> = {
@@ -38,6 +44,8 @@ export function useJoin() {
   const [errors, setErrors] = useState<Errors>({});
   const [redirect, setRedirect] = useState<Redirect | null>(null);
   const [choice, setChoice] = useState<Choice | null>(null);
+  const [invite, setInvite] = useState<Invite | null>(null);
+  const [displayName, setDisplayName] = useState('');
   const { busy, run } = useBusy();
   const remote = useRemoteProbe();
 
@@ -85,9 +93,37 @@ export function useJoin() {
       const target = { url: probed.url, fingerprint: probed.fingerprint };
       if (mode === 'account') return login(target);
       const device = await deviceInfo(platform);
-      await authenticate(platform, signIn, newRemoteConnection(target.url, target.fingerprint), (client) =>
-        client.redeemPairingCode({ code: values.code.trim(), ...device }),
-      );
+      const code = values.code.trim();
+      await authenticate(platform, signIn, newRemoteConnection(target.url, target.fingerprint), async (client) => {
+        const info = await client.inspectPairingCode({ code });
+        // An invitation needs the person's name first; nothing is kept until then.
+        if (info.kind === 'invite') {
+          setInvite({ target, code, info });
+          return null;
+        }
+        return client.redeemPairingCode({ code, ...device });
+      });
+    }, fail);
+  };
+
+  const join = (e: FormEvent) => {
+    e.preventDefault();
+    if (!invite) return;
+    void run(async () => {
+      const found = collect([['displayName', inviteNameError(displayName, t)]]);
+      setErrors(found);
+      if (hasErrors(found)) return focusFirstError(formRef.current, ['displayName'], found);
+      const device = await deviceInfo(platform);
+      const { target, code } = invite;
+      try {
+        await authenticate(platform, signIn, newRemoteConnection(target.url, target.fingerprint), (client) =>
+          client.redeemPairingCode({ code, ...device, display_name: displayName.trim() }),
+        );
+      } catch (err) {
+        // The invitation was used or has expired meanwhile: back to the code, with the message there.
+        if (err instanceof ApiError && err.code === 'pairing_code_invalid') setInvite(null);
+        throw err;
+      }
     }, fail);
   };
 
@@ -101,6 +137,7 @@ export function useJoin() {
     mode,
     setMode: (m: JoinMode) => {
       setMode(m);
+      setInvite(null);
       setErrors({});
     },
     values,
@@ -109,6 +146,14 @@ export function useJoin() {
     redirect,
     choice: choice?.libraries ?? null,
     leaveChoice: () => setChoice(null),
+    invite: invite?.info ?? null,
+    displayName,
+    setDisplayName,
+    join,
+    leaveInvite: () => {
+      setInvite(null);
+      setErrors({});
+    },
     busy,
     submit,
     choose,

@@ -1,0 +1,20 @@
+{
+  "title": "Scaffali",
+  "back": "Torna alla ricerca",
+  "backToList": "Torna agli scaffali",
+  "noRoom": "Senza stanza",
+  "count": {
+    "one": "{count} libro",
+    "other": "{count} libri"
+  },
+  "unit": "Mobile {name}",
+  "emptyUnit": "Nessun libro su questo mobile.",
+  "empty": {
+    "title": "Nessun mobile",
+    "text": "I mobili si creano dal computer."
+  },
+  "notFound": {
+    "title": "Mobile non trovato",
+    "text": "Non esiste più o non ne hai accesso."
+  }
+}

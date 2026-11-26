@@ -4,3 +4,7 @@ export { useSearchShortcut } from './useSearchShortcut';
 export { collectModules } from './modules';
 export { buildRoutes } from './routes';
 export { AppProviders } from './AppProviders';
+export { useShortcuts } from './useShortcuts';
+export { useOverlays } from './overlays';
+export { isMac } from './keyboard';
+export { SHORTCUT_ROWS, GO_TO, NEW_BOOK_PATH } from './shortcuts';

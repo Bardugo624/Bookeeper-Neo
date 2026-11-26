@@ -31,7 +31,11 @@ pub struct Db {
     conn: Arc<Mutex<Connection>>,
 }
 
-const MIGRATIONS: &[&str] = &[include_str!("migrations/0001_schema.sql")];
+const MIGRATIONS: &[&str] = &[
+    include_str!("migrations/0001_schema.sql"),
+    include_str!("migrations/0002_reading_progress.sql"),
+    include_str!("migrations/0003_invites.sql"),
+];
 
 /// Highest schema version this build understands.
 const SUPPORTED_VERSION: usize = MIGRATIONS.len();
@@ -43,6 +47,17 @@ fn is_busy(e: &rusqlite::Error) -> bool {
     matches!(
         e.sqlite_error_code(),
         Some(rusqlite::ErrorCode::DatabaseBusy | rusqlite::ErrorCode::DatabaseLocked)
+    )
+}
+
+/// `ulower(text)`: Unicode lowercase (SQLite's own `lower` folds ASCII only).
+fn register_functions(conn: &Connection) -> rusqlite::Result<()> {
+    use rusqlite::functions::FunctionFlags;
+    conn.create_scalar_function(
+        "ulower",
+        1,
+        FunctionFlags::SQLITE_UTF8 | FunctionFlags::SQLITE_DETERMINISTIC,
+        |ctx| Ok(ctx.get::<Option<String>>(0)?.map(|s| s.to_lowercase())),
     )
 }
 
@@ -105,6 +120,7 @@ impl Db {
         // Wait for a concurrent opener instead of failing with SQLITE_BUSY.
         conn.busy_timeout(BUSY_TIMEOUT)?;
         conn.pragma_update(None, "foreign_keys", true)?;
+        register_functions(&conn)?;
         // Refuse newer schemas before any write (including the journal mode switch).
         refuse_newer(schema_version(&conn)?)?;
         if wal {

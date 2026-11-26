@@ -58,7 +58,9 @@
     "choose": "Entra in {library}",
     "chooseBack": "Indietro",
     "needsSetup": "Questo server non ha ancora una libreria. Puoi crearla dalla scheda «Crea su un server».",
-    "goServer": "Vai a «Crea su un server»"
+    "goServer": "Vai a «Crea su un server»",
+    "invited": "Sei stato invitato in «{library}» come {role}.",
+    "enter": "Entra"
   },
   "server": {
     "title": "Crea su un server",
@@ -110,5 +112,11 @@
     "network": "Non riesco a raggiungere la libreria. Controlla la connessione e riprova.",
     "libraryChoice": "Questo account è in più librerie. Entra da «Unisciti» con email e password e scegli la libreria.",
     "generic": "Qualcosa è andato storto. Riprova."
+  },
+  "roles": {
+    "owner": "Proprietario",
+    "admin": "Amministratore",
+    "member": "Membro",
+    "guest": "Ospite"
   }
 }

@@ -2,6 +2,7 @@ use axum::{routing::get, Json, Router};
 
 use crate::{error::ApiError, state::AppState};
 
+pub mod audit;
 pub mod auth;
 pub mod backup;
 pub mod books;
@@ -9,16 +10,24 @@ pub mod books_search;
 pub mod confirm;
 pub mod covers;
 pub mod devices;
+pub mod facets;
 pub mod health;
+pub mod invites;
+pub mod isbn_index;
 pub mod labels;
 pub mod loans;
 pub mod lookup;
 pub mod pairing;
+pub mod readers;
+pub mod reading;
+pub mod rooms;
 pub mod server;
 pub mod setup;
 pub mod shelves;
 pub mod stats;
+pub mod tags;
 pub mod transfer;
+pub mod users;
 pub mod util;
 pub mod wishlist;
 
@@ -42,9 +51,18 @@ pub fn router(state: AppState) -> Router {
         .merge(auth::routes())
         .merge(pairing::routes())
         .merge(devices::routes())
+        .merge(users::routes())
+        .merge(invites::routes())
+        .merge(isbn_index::routes())
         .merge(books::routes())
+        .merge(facets::routes())
         .merge(books_search::routes())
+        .merge(reading::routes())
+        .merge(readers::routes())
+        .merge(tags::routes())
+        .merge(rooms::routes())
         .merge(shelves::routes())
+        .merge(audit::routes())
         .merge(loans::routes())
         .merge(wishlist::routes())
         .merge(stats::routes())

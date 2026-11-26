@@ -1,12 +1,16 @@
+import { useEffect } from 'react';
 import { Button, EmptyState } from '@bookeeper/ui/base';
 import { PillTabs, type PillTabItem } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
 import { PageHeader, usePermission } from '../../kit';
 import { LoanDialogs } from './LoanDialogs';
+import { LoanHistory } from './LoanHistory';
 import { LoanList, LoanSkeleton } from './LoanList';
+import { sameName } from './history';
+import { borrowerLabel } from './loanStatus';
 import { FILTERS, useLoanParams, type LoanFilter } from './listParams';
 import { useLoanDialogs } from './useLoanDialogs';
-import { useLoanCounts, useLoanList } from './useLoans';
+import { useHasLoansToMe, useLoanCounts, useLoanList } from './useLoans';
 import styles from './LoansPage.module.css';
 
 export function LoansPage() {
@@ -14,12 +18,28 @@ export function LoansPage() {
   const { can } = usePermission();
   const writable = can('write');
   const params = useLoanParams();
-  const { filter, book } = params.values;
-  const { query, items } = useLoanList(filter, book);
-  const counts = useLoanCounts(book);
+  const { filter, book, borrower } = params.values;
+  const mine = params.values.mine === '1';
+  const hasMine = useHasLoansToMe();
+  const history = filter === 'returned';
+  const { query, items: loaded } = useLoanList(filter, book, history || borrower !== '' || mine, mine);
+  const items = borrower ? loaded.filter((l) => sameName(borrowerLabel(l)) === sameName(borrower)) : loaded;
+  const allCounts = useLoanCounts(book);
+  // Totals ignore the person filter, so they are left out while it is on.
+  const counts = borrower || mine ? { active: undefined, overdue: undefined } : allCounts;
   const dialogs = useLoanDialogs();
+  const openNew = dialogs.open;
+  const wantsNew = params.values.new === '1';
+  const setParams = params.set;
+  useEffect(() => {
+    if (!wantsNew) return;
+    if (writable) openNew({ kind: 'new' });
+    setParams({ new: '' });
+  }, [wantsNew, writable, openNew, setParams]);
+  const byBorrower = (name: string) => params.set({ borrower: name, filter: 'all', mine: '' });
 
   const tabs: PillTabItem[] = FILTERS.map((id) => ({ id, label: t(`loans.filters.${id}`) }));
+  if (hasMine || mine) tabs.push({ id: 'mine', label: t('loans.filters.mine') });
   const parts = [
     counts.active === undefined ? null : t('loans.count.active', { count: counts.active }),
     counts.overdue === undefined ? null : t('loans.count.overdue', { count: counts.overdue }),
@@ -38,16 +58,22 @@ export function LoansPage() {
       />
     );
   } else if (items.length === 0) {
-    body = <EmptyState icon="loans" title={t(`loans.empty.${filter}.title`)} text={t(`loans.empty.${filter}.text`)} />;
+    body = <EmptyState icon="loans" title={t(mine ? 'loans.empty.mine.title' : `loans.empty.${filter}.title`)} text={t(mine ? 'loans.empty.mine.text' : `loans.empty.${filter}.text`)} />;
   } else {
+    const actions = writable ? dialogs.actions : undefined;
     body = (
       <>
-        <LoanList
-          loans={items}
-          label={t('loans.list.label')}
-          actions={writable ? dialogs.actions : undefined}
-          busyId={dialogs.busyId}
-        />
+        {history ? (
+          <LoanHistory loans={items} actions={actions} busyId={dialogs.busyId} onBorrower={byBorrower} />
+        ) : (
+          <LoanList
+            loans={items}
+            label={t('loans.list.label')}
+            actions={actions}
+            busyId={dialogs.busyId}
+            onBorrower={byBorrower}
+          />
+        )}
         {query.hasNextPage ? (
           <Button
             className={styles.more}
@@ -77,11 +103,11 @@ export function LoansPage() {
       />
       <PillTabs
         items={tabs}
-        value={filter}
+        value={mine ? 'mine' : filter}
         label={t('loans.filters.label')}
         onChange={(id) => {
           dialogs.dismissError();
-          params.set({ filter: id as LoanFilter });
+          params.pickFilter(id as LoanFilter | 'mine');
         }}
       />
       {book ? (
@@ -89,6 +115,14 @@ export function LoansPage() {
           <span>{t('loans.bookFilter.text')}</span>
           <Button size="sm" variant="ghost" onClick={() => params.set({ book: '' })}>
             {t('loans.bookFilter.clear')}
+          </Button>
+        </p>
+      ) : null}
+      {borrower ? (
+        <p className={styles.bookFilter}>
+          <span>{t('loans.borrowerFilter.text', { name: borrower })}</span>
+          <Button size="sm" variant="ghost" onClick={() => params.set({ borrower: '' })}>
+            {t('loans.borrowerFilter.clear')}
           </Button>
         </p>
       ) : null}

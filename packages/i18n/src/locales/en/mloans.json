@@ -1,0 +1,73 @@
+{
+  "tab": "Loans",
+  "title": "Loans",
+  "filters": {
+    "label": "Which loans",
+    "active": "Open",
+    "returned": "Returned"
+  },
+  "list": {
+    "label": "Loans",
+    "loading": "Loading loans",
+    "loadError": "Could not read the loans.",
+    "more": "Show more"
+  },
+  "empty": {
+    "active": {
+      "title": "No open loans",
+      "text": "Books you lend appear here until they come home."
+    },
+    "returned": {
+      "title": "No returned loans",
+      "text": "Finished loans appear here."
+    }
+  },
+  "row": {
+    "name": "{title}, {person}",
+    "due": "due {date}",
+    "noDue": "no due date",
+    "returnedOn": "returned on {date}",
+    "overdue": {
+      "one": "overdue by {count} day",
+      "other": "overdue by {count} days"
+    },
+    "return": "Return",
+    "returnLabel": "Return “{title}”"
+  },
+  "return": {
+    "title": "Return the book?",
+    "text": "“{title}” comes home: the loan to {person} ends today.",
+    "confirm": "Return",
+    "cancel": "Cancel"
+  },
+  "lend": {
+    "title": "Lend the book",
+    "book": "“{title}”",
+    "person": "Who is borrowing it",
+    "people": "People of the library",
+    "names": "Recently used names",
+    "me": "{name} (you)",
+    "or": "Or write a name",
+    "name": "Name",
+    "namePlaceholder": "Name of who takes it",
+    "due": "Due date",
+    "dueHint": "Optional",
+    "notes": "Note",
+    "notesHint": "Optional",
+    "save": "Lend",
+    "cancel": "Cancel",
+    "errors": {
+      "borrower": "Choose a person or write a name.",
+      "borrowerLong": "The name can have at most {max} characters.",
+      "dueInvalid": "Enter a valid date.",
+      "duePast": "The due date cannot be in the past.",
+      "notesLong": "The note can have at most {max} characters."
+    }
+  },
+  "block": {
+    "lend": "Lend",
+    "return": "Return",
+    "to": "Lent to {person}",
+    "loadError": "Could not tell who has it."
+  }
+}
