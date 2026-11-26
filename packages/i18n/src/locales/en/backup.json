@@ -27,9 +27,6 @@
     "empty": "There are no automatic backups yet."
   },
   "restore": {
-    "title": "Restore",
-    "description": "Brings the library back to the state of a backup. Only the owner can do this.",
-    "warning": "Warning: restoring replaces all the current data of the library (books, shelves, loans, wishlist and covers) with the backup's. Anything that is not in the backup will be lost and this cannot be undone.",
     "file": "Backup file (.zip)",
     "action": "Restore from file…",
     "working": "Restoring",
@@ -57,6 +54,7 @@
       "unsupportedVersion": "This backup is from a version this app cannot read.",
       "payload_too_large": "The file is too large to restore.",
       "busy": "Another operation is in progress: try again when it finishes."
-    }
+    },
+    "needFile": "Choose a backup file first."
   }
 }
