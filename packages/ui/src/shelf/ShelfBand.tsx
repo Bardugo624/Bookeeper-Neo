@@ -45,11 +45,14 @@ export function ShelfBand(props: ShelfBandProps) {
   // Bring the pulled spine into view when `pulledId` changes, or when its spine first appears
   // (data arrived late). A reload of the same books must not scroll again.
   const scrolledTo = useRef<string | undefined>(undefined);
+  const lastPulled = useRef<string | undefined>(undefined);
   useEffect(() => {
-    if (!props.pulledId) {
+    if (lastPulled.current !== props.pulledId) {
+      // A new target (even one on another shelf) must scroll again when it comes back.
+      lastPulled.current = props.pulledId;
       scrolledTo.current = undefined;
-      return;
     }
+    if (!props.pulledId) return;
     if (!strip.current || scrolledTo.current === props.pulledId) return;
     const el = visibleSpines(strip.current, null).find((s) => s.dataset.spineId === props.pulledId);
     if (!el) return;
