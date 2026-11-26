@@ -1,0 +1,21 @@
+{
+  "later": "Lo faccio dopo",
+  "skip": "Salta il tutorial",
+  "resume": "Riprendi",
+  "dismiss": "Non mostrare più",
+  "pill": {
+    "label": "Primi passi",
+    "progress": "{n} di {total}",
+    "more": "Altre azioni di Primi passi"
+  },
+  "card": {
+    "step": "Passo {n} di {total}",
+    "progress": "Avanzamento",
+    "announce": "Passo {n} di {total}: {title}"
+  },
+  "state": {
+    "done": "fatto",
+    "current": "in corso",
+    "todo": "da fare"
+  }
+}

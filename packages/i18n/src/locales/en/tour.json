@@ -1,0 +1,21 @@
+{
+  "later": "I'll do it later",
+  "skip": "Skip the tutorial",
+  "resume": "Resume",
+  "dismiss": "Don't show again",
+  "pill": {
+    "label": "First steps",
+    "progress": "{n} of {total}",
+    "more": "More actions for First steps"
+  },
+  "card": {
+    "step": "Step {n} of {total}",
+    "progress": "Progress",
+    "announce": "Step {n} of {total}: {title}"
+  },
+  "state": {
+    "done": "done",
+    "current": "current",
+    "todo": "to do"
+  }
+}
