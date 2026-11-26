@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { BookOut, ShelfBook, ShelfOut } from '@bookeeper/api';
+import type { ShelfBook, ShelfOut } from '@bookeeper/api';
 import { Button } from '@bookeeper/ui/base';
 import { Dialog } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
@@ -8,9 +8,11 @@ import { useShelfBooks } from './useShelves';
 import styles from './PlaceDialog.module.css';
 
 export interface PlaceDialogProps {
-  book: BookOut;
+  book: { id: string; title: string };
   shelves: ShelfOut[];
   initialShelfId: string;
+  /** The shelf (0-based) the dialog opens on; the first by default. */
+  initialRow?: number;
   busy: boolean;
   /** Puts the book at the end of the chosen row. */
   onPlace(shelf: ShelfOut, books: ShelfBook[], rowIndex: number): void;
@@ -18,10 +20,10 @@ export interface PlaceDialogProps {
 }
 
 /** "Place in…": the keyboard way to give an unplaced book a unit and a row. */
-export function PlaceDialog({ book, shelves, initialShelfId, busy, onPlace, onClose }: PlaceDialogProps) {
+export function PlaceDialog({ book, shelves, initialShelfId, initialRow = 0, busy, onPlace, onClose }: PlaceDialogProps) {
   const t = useT();
   const [shelfId, setShelfId] = useState(initialShelfId);
-  const [row, setRow] = useState(0);
+  const [row, setRow] = useState(initialRow);
   const shelf = shelves.find((s) => s.id === shelfId) ?? shelves[0]!;
   const books = useShelfBooks(shelf.id);
   const rows = Array.from({ length: shelf.rows }, (_, i) => i);
