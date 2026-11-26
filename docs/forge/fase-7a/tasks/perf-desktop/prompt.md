@@ -17,6 +17,10 @@ Con 10.000 libri e lo scorrimento infinito, la griglia e la tabella dei Libri fi
 - Scorrimento simulato: le righe giuste compaiono.
 - Selezione, tastiera e fuoco come oggi (i test esistenti restano verdi).
 
+## Rilevatore di Impeccable
+
+In questo ambiente il plugin Impeccable può aggiungere, dopo le modifiche e alla fine, rilievi di stile sui file dell'interfaccia. Questa task non cambia l'aspetto: non agire su quei rilievi e non toccare stili, testi o colori che la consegna non nomina. La rifinitura dell'interfaccia è il run 7B.
+
 ## Acceptance criteria
 
 - `npm run typecheck -w @bookeeper/desktop`, `npm test -w @bookeeper/desktop` e `npm run build -w @bookeeper/desktop` passano.

@@ -15,6 +15,10 @@ Con 10.000 libri, scorrendo a lungo l'elenco della ricerca il telefono tiene mig
 - Con 2.000 righe finte: nel DOM al più 80 righe, qualunque sia la posizione.
 - Scorrimento simulato; ritorno dalla scheda alla stessa posizione; pagina successiva.
 
+## Rilevatore di Impeccable
+
+In questo ambiente il plugin Impeccable può aggiungere, dopo le modifiche e alla fine, rilievi di stile sui file dell'interfaccia. Questa task non cambia l'aspetto: non agire su quei rilievi e non toccare stili, testi o colori che la consegna non nomina. La rifinitura dell'interfaccia è il run 7B.
+
 ## Acceptance criteria
 
 - `npm run typecheck -w @bookeeper/mobile`, `npm test -w @bookeeper/mobile` e `npm run build -w @bookeeper/mobile` passano.
