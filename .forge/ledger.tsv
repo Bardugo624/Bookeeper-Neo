@@ -654,3 +654,19 @@
 2026-11-26T22:33:37Z	bookeeper-fase-8a	danger-books	qa	opus	PASS	-	-	-	95
 2026-11-26T22:34:52Z	bookeeper-fase-8a	danger-shelves	dwarf	sonnet	-	-	-	-	151
 2026-11-26T22:36:15Z	bookeeper-fase-8a	danger-shelves	qa	opus	PASS	-	-	-	77
+2026-11-26T22:55:10Z	bookeeper-fase-8a1	fix-tour-place	dwarf	sonnet	-	-	-	-	107
+2026-11-26T22:56:26Z	bookeeper-fase-8a1	fix-book-sheet	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npx vitest run works in apps desktop	a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/desktop [apps/desktop/package.json]	183	1
+2026-11-26T22:57:00Z	bookeeper-fase-8a1	fix-tour-place	qa	opus	FAIL	finding	the tour card s dialog placement must be checked against the wide 760px sheet in the default 1280 800 window no side has room there	the tour card's dialog placement must be checked against the wide 760px sheet in the default 1280×800 window: no side has room there,… [apps/desktop/src/modules/tour/placement.ts]	103	1
+2026-11-26T22:58:21Z	bookeeper-fase-8a1	fix-tour-place	dwarf	sonnet	-	-	-	-	76
+2026-11-26T22:58:31Z	bookeeper-fase-8a1	fix-book-sheet	qa	opus	FAIL	finding	the new book dialog s salva e aggiungi un altro calls editor save true directly with no form submit event so	the new-book dialog's «Salva e aggiungi un altro» calls `editor.save(true)()` directly with no form submit event, so… [apps/desktop/src/modules/books/BookDialog.tsx]	119	1
+2026-11-26T22:59:41Z	bookeeper-fase-8a1	fix-book-sheet	dwarf	sonnet	-	-	-	-	64
+2026-11-26T22:59:50Z	bookeeper-fase-8a1	fix-tour-place	qa	opus	PASS	-	-	-	82
+2026-11-26T23:00:50Z	bookeeper-fase-8a1	fix-kit-danger	dwarf	sonnet	-	-	-	-	55
+2026-11-26T23:01:22Z	bookeeper-fase-8a1	fix-book-sheet	qa	opus	PASS	-	-	-	96
+2026-11-26T23:01:49Z	bookeeper-fase-8a1	fix-kit-danger	qa	opus	FAIL	finding	a kit wrapper class around children that already style themselves dangerzone actions around dangeraction row doubles	a kit wrapper class around children that already style themselves (DangerZone `.actions` around `DangerAction` `.row`) doubles… [packages/ui/src/base/DangerZone.tsx]	52	1
+2026-11-26T23:02:21Z	bookeeper-fase-8a1	fix-kit-danger	dwarf	sonnet	-	-	-	-	25
+2026-11-26T23:02:51Z	bookeeper-fase-8a1	fix-danger-collection	dwarf	sonnet	-	-	-	-	83
+2026-11-26T23:03:09Z	bookeeper-fase-8a1	fix-kit-danger	qa	opus	PASS	-	-	-	42
+2026-11-26T23:04:11Z	bookeeper-fase-8a1	fix-danger-collection	qa	opus	PASS	-	-	-	73
+2026-11-26T23:04:13Z	bookeeper-fase-8a1	fix-danger-settings	dwarf	sonnet	-	-	-	-	58
+2026-11-26T23:05:16Z	bookeeper-fase-8a1	fix-danger-settings	qa	opus	PASS	-	-	-	58
