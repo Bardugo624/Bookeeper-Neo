@@ -1,12 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import type { BookOut, ShelfBook, ShelfOut } from '@bookeeper/api';
+import { ApiError, type BookOut, ShelfBook, ShelfOut } from '@bookeeper/api';
 import { useClient } from '../../session';
 import { useKeys } from './useShelves';
 
 export type WhereState =
   | { kind: 'here'; bookId: string; title: string; row_index: number; slot_index: number }
   | { kind: 'unplaced'; book: BookOut }
+  | { kind: 'gone' }
+  | { kind: 'error'; retry: () => void }
   | null;
 
 /**
@@ -40,5 +42,9 @@ export function useWhere(
   if (!bookId) return null;
   if (here) return { kind: 'here', bookId, title: here.title, row_index: here.row_index, slot_index: here.slot_index };
   if (away.data && !placement) return { kind: 'unplaced', book: away.data };
+  if (away.isError) {
+    if (away.error instanceof ApiError && away.error.status === 404) return { kind: 'gone' };
+    return { kind: 'error', retry: () => void away.refetch() };
+  }
   return null;
 }
