@@ -14,6 +14,7 @@ export interface SpineProps {
   label: SpineLabel;
   selected: boolean;
   picked: boolean;
+  pulled?: boolean;
   draggable: boolean;
   onClick?: (book: SpineBook) => void;
   onDragStart: (id: string) => void;
@@ -50,6 +51,7 @@ export function Spine(props: SpineProps) {
         aria-pressed={selected}
         data-spine-id={book.id}
         data-picked={picked || undefined}
+        data-pulled={props.pulled ? 'true' : undefined}
         className={styles.spine}
         style={{
           width: spineWidth(book.pages),
