@@ -82,7 +82,9 @@ pub fn install_state(prefix: &str) -> io::Result<Option<InstallState>> {
 
 pub fn has_webview2() -> bool {
     let probe = |hive: RegKey, path: &str| -> bool {
-        let Ok(key) = hive.open_subkey_with_flags(path, KEY_READ) else { return false };
+        let Ok(key) = hive.open_subkey_with_flags(path, KEY_READ) else {
+            return false;
+        };
         match key.get_value::<String, _>("pv") {
             Ok(v) => {
                 let v = v.trim();
@@ -95,7 +97,10 @@ pub fn has_webview2() -> bool {
     probe(
         hklm,
         &format!(r"SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{WEBVIEW2_CLIENT}"),
-    ) || probe(hkcu(), &format!(r"SOFTWARE\Microsoft\EdgeUpdate\Clients\{WEBVIEW2_CLIENT}"))
+    ) || probe(
+        hkcu(),
+        &format!(r"SOFTWARE\Microsoft\EdgeUpdate\Clients\{WEBVIEW2_CLIENT}"),
+    )
 }
 
 pub fn autostart_enable(prefix: &str, exe: &Path) -> io::Result<()> {
@@ -107,7 +112,10 @@ pub fn autostart_enable(prefix: &str, exe: &Path) -> io::Result<()> {
     bytes[0] = 0x02;
     approved.set_raw_value(
         RUN_VALUE,
-        &RegValue { bytes: std::borrow::Cow::Owned(bytes), vtype: REG_BINARY },
+        &RegValue {
+            bytes: std::borrow::Cow::Owned(bytes),
+            vtype: REG_BINARY,
+        },
     )
 }
 
@@ -144,18 +152,26 @@ pub fn autostart_is_enabled(prefix: &str) -> io::Result<bool> {
 
 pub fn delete_tree(prefix: &str, key: &str) -> io::Result<()> {
     if key.trim_matches('\\').is_empty() {
-        return Err(io::Error::new(io::ErrorKind::InvalidInput, "empty registry key"));
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "empty registry key",
+        ));
     }
     not_found_as(hkcu().delete_subkey_all(join(prefix, key))).map(|_| ())
 }
 
 pub fn delete_key_if_empty(prefix: &str, key: &str) -> io::Result<()> {
     if key.trim_matches('\\').is_empty() {
-        return Err(io::Error::new(io::ErrorKind::InvalidInput, "empty registry key"));
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "empty registry key",
+        ));
     }
     let path = join(prefix, key);
     let root = hkcu();
-    let Some(k) = not_found_as(root.open_subkey(&path))? else { return Ok(()) };
+    let Some(k) = not_found_as(root.open_subkey(&path))? else {
+        return Ok(());
+    };
     let info = k.query_info()?;
     drop(k);
     if info.sub_keys == 0 && info.values == 0 {

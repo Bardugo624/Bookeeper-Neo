@@ -53,10 +53,12 @@ fn install(sys: &dyn System, a: &QuietInstallArgs, setup_exe: &Path, log: &Log) 
     if elevated_blocked(sys, log) {
         return ERROR;
     }
-    let meta = match File::open(setup_exe).map_err(|e| e.to_string()).and_then(|mut f| {
-        let len = f.metadata().map_err(|e| e.to_string())?.len();
-        payload::locate(&mut f, len).map_err(|e| e.to_string())
-    }) {
+    let meta = match File::open(setup_exe)
+        .map_err(|e| e.to_string())
+        .and_then(|mut f| {
+            let len = f.metadata().map_err(|e| e.to_string())?.len();
+            payload::locate(&mut f, len).map_err(|e| e.to_string())
+        }) {
         Ok(Some(l)) => l.meta,
         Ok(None) => {
             log.line("quiet: this Setup has no installer attached");
@@ -70,25 +72,42 @@ fn install(sys: &dyn System, a: &QuietInstallArgs, setup_exe: &Path, log: &Log) 
 
     let installed = ops::read_state(sys);
     let (mode, dir) = match &installed {
-        None => (Mode::Install, a.dir.clone().unwrap_or_else(|| sys.local_app_data().join("Bookeeper"))),
+        None => (
+            Mode::Install,
+            a.dir
+                .clone()
+                .unwrap_or_else(|| sys.local_app_data().join("Bookeeper")),
+        ),
         Some(st) => {
             if version::is_legacy(&st.version) {
-                log.line(&format!("quiet: version {} is too old to update", st.version));
+                log.line(&format!(
+                    "quiet: version {} is too old to update",
+                    st.version
+                ));
                 return NEWER;
             }
             let mode = match version::compare(&st.version, &meta.version) {
                 Some(Ordering::Equal) => Mode::Repair,
                 Some(Ordering::Less) => Mode::Update,
                 Some(Ordering::Greater) => {
-                    log.line(&format!("quiet: version {} is newer than {}", st.version, meta.version));
+                    log.line(&format!(
+                        "quiet: version {} is newer than {}",
+                        st.version, meta.version
+                    ));
                     return NEWER;
                 }
                 None => {
-                    log.line(&format!("quiet: cannot compare {} with {}", st.version, meta.version));
+                    log.line(&format!(
+                        "quiet: cannot compare {} with {}",
+                        st.version, meta.version
+                    ));
                     return ERROR;
                 }
             };
-            if a.dir.as_deref().is_some_and(|d| !ops::same_path(d, &st.dir)) {
+            if a.dir
+                .as_deref()
+                .is_some_and(|d| !ops::same_path(d, &st.dir))
+            {
                 log.line("quiet: Bookeeper is installed elsewhere; --dir must match");
                 return ERROR;
             }
@@ -101,27 +120,45 @@ fn install(sys: &dyn System, a: &QuietInstallArgs, setup_exe: &Path, log: &Log) 
         return ERROR;
     }
 
-    let opts = InstallOptions { dir, desktop_icon: a.desktop_icon, autostart: a.autostart, mode };
+    let opts = InstallOptions {
+        dir,
+        desktop_icon: a.desktop_icon,
+        autostart: a.autostart,
+        mode,
+    };
     match ops::install(sys, setup_exe, &opts, &mut |_| {}, log) {
         Ok(()) => DONE,
         Err(e) => code_for(&e),
     }
 }
 
-fn space_problem(sys: &dyn System, dir: &Path, meta: &payload::Meta) -> Option<folder::FolderProblem> {
+fn space_problem(
+    sys: &dyn System,
+    dir: &Path,
+    meta: &payload::Meta,
+) -> Option<folder::FolderProblem> {
     // The folder may not exist yet: ask about the nearest folder that does.
     let mut probe: PathBuf = dir.to_path_buf();
     while !probe.exists() && probe.pop() {}
     let free_target = sys.free_space(&probe).ok()?;
     let free_temp = sys.free_space(&sys.temp_dir()).ok()?;
-    folder::check_space(free_target, free_temp, meta.installed_bytes, meta.payload.bytes)
+    folder::check_space(
+        free_target,
+        free_temp,
+        meta.installed_bytes,
+        meta.payload.bytes,
+    )
 }
 
 fn uninstall(sys: &dyn System, a: &UninstallArgs, log: &Log) -> i32 {
     if elevated_blocked(sys, log) {
         return ERROR;
     }
-    let dir = match a.dir.clone().or_else(|| ops::read_state(sys).map(|s| s.dir)) {
+    let dir = match a
+        .dir
+        .clone()
+        .or_else(|| ops::read_state(sys).map(|s| s.dir))
+    {
         Some(d) => d,
         None => {
             log.line("quiet: Bookeeper is not installed");

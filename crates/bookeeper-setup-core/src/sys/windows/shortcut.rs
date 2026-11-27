@@ -24,7 +24,9 @@ pub fn shortcut_target(lnk: &Path) -> io::Result<Option<PathBuf>> {
         return Ok(None);
     }
     let lnk = lnk.to_path_buf();
-    std::thread::spawn(move || read(&lnk)).join().map_err(|_| other("shortcut thread panicked"))?
+    std::thread::spawn(move || read(&lnk))
+        .join()
+        .map_err(|_| other("shortcut thread panicked"))?
 }
 
 fn read(lnk: &Path) -> io::Result<Option<PathBuf>> {
@@ -41,7 +43,11 @@ fn read(lnk: &Path) -> io::Result<Option<PathBuf>> {
             let mut data = WIN32_FIND_DATAW::default();
             link.GetPath(&mut buf, &mut data, 0).map_err(other)?;
             let target = wide::path_from_buf(&buf);
-            Ok(if target.as_os_str().is_empty() { None } else { Some(target) })
+            Ok(if target.as_os_str().is_empty() {
+                None
+            } else {
+                Some(target)
+            })
         })();
         if init.is_ok() {
             CoUninitialize();

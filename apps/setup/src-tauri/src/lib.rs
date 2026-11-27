@@ -24,9 +24,18 @@ pub fn route(invocation: &Invocation) -> Route {
     match invocation {
         Invocation::QuietInstall(_) => Route::Quiet,
         Invocation::Uninstall(a) if a.quiet || a.passive => Route::Quiet,
-        Invocation::Uninstall(_) => Route::Window { smoke: false, uninstall: true },
-        Invocation::SmokeUi => Route::Window { smoke: true, uninstall: false },
-        Invocation::Gui => Route::Window { smoke: false, uninstall: false },
+        Invocation::Uninstall(_) => Route::Window {
+            smoke: false,
+            uninstall: true,
+        },
+        Invocation::SmokeUi => Route::Window {
+            smoke: true,
+            uninstall: false,
+        },
+        Invocation::Gui => Route::Window {
+            smoke: false,
+            uninstall: false,
+        },
     }
 }
 
@@ -38,7 +47,11 @@ pub fn run_window(smoke: bool, uninstall: bool, setup_exe: PathBuf) {
     let log = Log::open(platform.as_ref());
     let state = Arc::new(AppState {
         sys: platform,
-        ctx: Context { setup_exe, uninstall_requested: uninstall, supported: cfg!(windows) },
+        ctx: Context {
+            setup_exe,
+            uninstall_requested: uninstall,
+            supported: cfg!(windows),
+        },
         log,
         smoke,
     });

@@ -28,7 +28,10 @@ pub enum Signal {
     /// The installer is extracted and verified; NSIS is about to start.
     Extracted,
     /// Bytes unpacked so far by NSIS (its `ns*.tmp` file) out of the total to install.
-    Unpacked { bytes: u64, total: u64 },
+    Unpacked {
+        bytes: u64,
+        total: u64,
+    },
     /// `bookeeper-desktop.exe` is complete (a real milestone, 90%).
     MainComplete,
     NsisExited,
@@ -75,7 +78,12 @@ pub struct ProgressModel {
 const CATCH_UP: f64 = 0.8;
 
 fn band(step: Step, lo: f64, hi: f64, share: f64) -> Band {
-    Band { step, lo, hi, share }
+    Band {
+        step,
+        lo,
+        hi,
+        share,
+    }
 }
 
 impl ProgressModel {
@@ -97,7 +105,10 @@ impl ProgressModel {
                 band(Step::Finish, 0.95, 1.0, 0.1),
             ]
         } else {
-            vec![band(Step::RemoveApp, 0.0, 0.95, 0.9), band(Step::Finish, 0.95, 1.0, 0.1)]
+            vec![
+                band(Step::RemoveApp, 0.0, 0.95, 0.9),
+                band(Step::Finish, 0.95, 1.0, 0.1),
+            ]
         };
         Self::new(false, bands, start, estimate)
     }
@@ -194,7 +205,9 @@ impl ProgressModel {
             _ => {
                 // Slowing curve: approaches the band's end, never reaches it.
                 let tau = (self.estimate.as_secs_f64() * b.share).max(0.05);
-                let t = now.saturating_duration_since(self.real_entered).as_secs_f64();
+                let t = now
+                    .saturating_duration_since(self.real_entered)
+                    .as_secs_f64();
                 0.95 * (1.0 - (-t / tau).exp())
             }
         };
@@ -228,7 +241,10 @@ impl ProgressModel {
         // which is after every remaining step's 600 ms and after the 3 s total.
         let rest = &self.bands[self.shown_idx + 1..];
         let widths: Vec<f64> = rest.iter().map(|b| b.hi - b.lo).collect();
-        let mins: f64 = widths.iter().map(|w| MIN_STEP.as_secs_f64().max(w / CATCH_UP)).sum();
+        let mins: f64 = widths
+            .iter()
+            .map(|w| MIN_STEP.as_secs_f64().max(w / CATCH_UP))
+            .sum();
         let sum_min = min0 + mins;
         let total = sum_min.max(self.secs_until(self.start + MIN_TOTAL));
         let surplus = total - sum_min;
@@ -311,7 +327,13 @@ mod tests {
     }
 
     /// Feeds `Tick`s every 100 ms from `*t` up to `until`.
-    fn run(m: &mut ProgressModel, t0: Instant, t: &mut u64, until: u64, out: &mut Vec<(u64, Snapshot)>) {
+    fn run(
+        m: &mut ProgressModel,
+        t0: Instant,
+        t: &mut u64,
+        until: u64,
+        out: &mut Vec<(u64, Snapshot)>,
+    ) {
         while *t < until {
             *t += 100;
             out.push((*t, m.observe(t0 + ms(*t), Signal::Tick)));
@@ -326,10 +348,28 @@ mod tests {
         let mut t = 0;
         let signals = [
             (500, Signal::Extracted),
-            (1500, Signal::Unpacked { bytes: 800, total: 1000 }),
-            (2500, Signal::Unpacked { bytes: 100, total: 1000 }),
+            (
+                1500,
+                Signal::Unpacked {
+                    bytes: 800,
+                    total: 1000,
+                },
+            ),
+            (
+                2500,
+                Signal::Unpacked {
+                    bytes: 100,
+                    total: 1000,
+                },
+            ),
             (3000, Signal::MainComplete),
-            (3500, Signal::Unpacked { bytes: 10, total: 1000 }),
+            (
+                3500,
+                Signal::Unpacked {
+                    bytes: 10,
+                    total: 1000,
+                },
+            ),
             (6000, Signal::NsisExited),
             (6200, Signal::IconsDone),
             (7000, Signal::Finished),
@@ -361,13 +401,26 @@ mod tests {
         let last = seen.last().unwrap().1;
         assert_eq!(last.step, Step::Copy);
         assert!(last.fraction < 0.90, "{}", last.fraction);
-        assert!(last.fraction > 0.5, "the estimate should have moved the bar: {}", last.fraction);
+        assert!(
+            last.fraction > 0.5,
+            "the estimate should have moved the bar: {}",
+            last.fraction
+        );
         // Unpacked bytes at 100% still do not reach 90% either.
-        let s = m.observe(t0 + ms(121_000), Signal::Unpacked { bytes: 1000, total: 1000 });
+        let s = m.observe(
+            t0 + ms(121_000),
+            Signal::Unpacked {
+                bytes: 1000,
+                total: 1000,
+            },
+        );
         assert!(s.fraction < 0.90);
         let s = m.observe(t0 + ms(121_100), Signal::MainComplete);
         let s2 = m.observe(t0 + ms(121_800), Signal::Tick);
-        assert!(s2.fraction >= 0.90 && s2.step == Step::Icons, "{s:?} {s2:?}");
+        assert!(
+            s2.fraction >= 0.90 && s2.step == Step::Icons,
+            "{s:?} {s2:?}"
+        );
     }
 
     #[test]
@@ -375,7 +428,12 @@ mod tests {
         let t0 = Instant::now();
         let mut m = ProgressModel::new_install(t0, Duration::from_secs(2));
         // A blazing fast install: every milestone at t=0.
-        for s in [Signal::Extracted, Signal::MainComplete, Signal::NsisExited, Signal::Finished] {
+        for s in [
+            Signal::Extracted,
+            Signal::MainComplete,
+            Signal::NsisExited,
+            Signal::Finished,
+        ] {
             m.observe(t0, s);
         }
         let mut seen = vec![(0, m.observe(t0, Signal::Tick))];
@@ -396,8 +454,14 @@ mod tests {
                 order.push(current);
             }
         }
-        assert_eq!(order, [Step::Prepare, Step::Copy, Step::Icons, Step::Finish]);
-        assert!(seen.iter().filter(|(_, s)| !s.done).all(|(_, s)| s.fraction < 1.0));
+        assert_eq!(
+            order,
+            [Step::Prepare, Step::Copy, Step::Icons, Step::Finish]
+        );
+        assert!(seen
+            .iter()
+            .filter(|(_, s)| !s.done)
+            .all(|(_, s)| s.fraction < 1.0));
         assert_keeps_moving(&seen);
     }
 
@@ -439,7 +503,11 @@ mod tests {
         for w in seen[..=end].windows(2) {
             let ((t1, a), (t2, b)) = (w[0], w[1]);
             if t2 > t1 {
-                assert!(b.fraction > a.fraction, "held at {} from {t1} to {t2} ms", a.fraction);
+                assert!(
+                    b.fraction > a.fraction,
+                    "held at {} from {t1} to {t2} ms",
+                    a.fraction
+                );
             }
         }
     }
@@ -449,11 +517,27 @@ mod tests {
         let t0 = Instant::now();
         let mut m = ProgressModel::new_install(t0, Duration::from_secs(30));
         m.observe(t0 + ms(700), Signal::Extracted);
-        let s = m.observe(t0 + ms(1000), Signal::Unpacked { bytes: 500, total: 1000 });
+        let s = m.observe(
+            t0 + ms(1000),
+            Signal::Unpacked {
+                bytes: 500,
+                total: 1000,
+            },
+        );
         assert_eq!(s.step, Step::Copy);
         assert!((s.fraction - 0.49).abs() < 0.01, "{}", s.fraction);
-        let s = m.observe(t0 + ms(1100), Signal::Unpacked { bytes: 900, total: 1000 });
-        assert!((s.fraction - (0.08 + 0.82 * 0.9) as f32).abs() < 0.01, "{}", s.fraction);
+        let s = m.observe(
+            t0 + ms(1100),
+            Signal::Unpacked {
+                bytes: 900,
+                total: 1000,
+            },
+        );
+        assert!(
+            (s.fraction - (0.08 + 0.82 * 0.9) as f32).abs() < 0.01,
+            "{}",
+            s.fraction
+        );
     }
 
     #[test]
@@ -497,6 +581,9 @@ mod tests {
             order
         };
         assert_eq!(steps(false), [Step::RemoveApp, Step::Finish]);
-        assert_eq!(steps(true), [Step::RemoveApp, Step::RemoveData, Step::Finish]);
+        assert_eq!(
+            steps(true),
+            [Step::RemoveApp, Step::RemoveData, Step::Finish]
+        );
     }
 }

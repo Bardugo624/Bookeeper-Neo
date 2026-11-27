@@ -8,8 +8,8 @@ use crate::log::Log;
 use crate::payload::{self, FileMeta, Meta};
 use crate::progress::{ProgressModel, Signal, Snapshot};
 use crate::sys::{InstallState, RunOutcome, System};
-use run::{create_private_dir, largest_nsis_tmp, remove_tree, run_polled, sha256_hex, Reporter};
 pub(crate) use run::same_path;
+use run::{create_private_dir, largest_nsis_tmp, remove_tree, run_polled, sha256_hex, Reporter};
 use std::ffi::OsString;
 use std::fs::{File, OpenOptions};
 use std::io::{self, Read, Seek, SeekFrom, Write};
@@ -76,11 +76,16 @@ pub fn read_state(sys: &dyn System) -> Option<InstallState> {
     if dir.as_os_str().is_empty() || !dir.join(MAIN_EXE).is_file() {
         return None;
     }
-    Some(InstallState { dir, version: state.version.trim().to_string() })
+    Some(InstallState {
+        dir,
+        version: state.version.trim().to_string(),
+    })
 }
 
 fn dir_bytes(dir: &Path) -> u64 {
-    let Ok(rd) = std::fs::read_dir(dir) else { return 0 };
+    let Ok(rd) = std::fs::read_dir(dir) else {
+        return 0;
+    };
     rd.flatten()
         .map(|e| match e.metadata() {
             Ok(m) if m.is_dir() => dir_bytes(&e.path()),
@@ -91,7 +96,10 @@ fn dir_bytes(dir: &Path) -> u64 {
 }
 
 fn data_dirs(sys: &dyn System) -> [PathBuf; 2] {
-    [sys.app_data().join(DATA_ID), sys.local_app_data().join(DATA_ID)]
+    [
+        sys.app_data().join(DATA_ID),
+        sys.local_app_data().join(DATA_ID),
+    ]
 }
 
 pub fn data_summary(sys: &dyn System) -> DataSummary {
@@ -138,7 +146,10 @@ fn extract_payload(
     src.seek(SeekFrom::Start(offset))?;
     let mut src = src.take(len);
     {
-        let mut out = OpenOptions::new().write(true).create_new(true).open(&path)?;
+        let mut out = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&path)?;
         let mut buf = vec![0u8; 256 * 1024];
         loop {
             let n = src.read(&mut buf)?;
@@ -153,24 +164,36 @@ fn extract_payload(
     let mut lock = open_locked(&path)?;
     let size = lock.metadata()?.len();
     if size != meta.payload.bytes {
-        return Err(OpError::Verification(format!("installer is {size} bytes, expected {}", meta.payload.bytes)));
+        return Err(OpError::Verification(format!(
+            "installer is {size} bytes, expected {}",
+            meta.payload.bytes
+        )));
     }
     let hash = sha256_hex(&mut lock, || rep.tick_if_due())?;
     if !hash.eq_ignore_ascii_case(&meta.payload.sha256) {
-        return Err(OpError::Verification("installer hash does not match".into()));
+        return Err(OpError::Verification(
+            "installer hash does not match".into(),
+        ));
     }
     Ok(Extracted { _lock: lock, path })
 }
 
 fn check_file(path: &Path, want: &FileMeta, rep: &mut Reporter) -> Result<(), OpError> {
-    let mut f = File::open(path).map_err(|e| OpError::Verification(format!("{}: {e}", want.name)))?;
+    let mut f =
+        File::open(path).map_err(|e| OpError::Verification(format!("{}: {e}", want.name)))?;
     let size = f.metadata()?.len();
     if size != want.bytes {
-        return Err(OpError::Verification(format!("{} is {size} bytes, expected {}", want.name, want.bytes)));
+        return Err(OpError::Verification(format!(
+            "{} is {size} bytes, expected {}",
+            want.name, want.bytes
+        )));
     }
     let hash = sha256_hex(&mut f, || rep.tick_if_due())?;
     if !hash.eq_ignore_ascii_case(&want.sha256) {
-        return Err(OpError::Verification(format!("{} hash does not match", want.name)));
+        return Err(OpError::Verification(format!(
+            "{} hash does not match",
+            want.name
+        )));
     }
     Ok(())
 }
@@ -187,7 +210,13 @@ struct MainWatch {
 
 impl MainWatch {
     fn new(exe: PathBuf, bytes: u64, mode: Mode) -> Self {
-        Self { exe, bytes, needs_rewrite: mode != Mode::Install, emptied: false, complete: false }
+        Self {
+            exe,
+            bytes,
+            needs_rewrite: mode != Mode::Install,
+            emptied: false,
+            complete: false,
+        }
     }
 
     /// True the first time the file is complete.
@@ -195,7 +224,10 @@ impl MainWatch {
         if self.complete {
             return false;
         }
-        let len = std::fs::metadata(&self.exe).ok().filter(|m| m.is_file()).map(|m| m.len());
+        let len = std::fs::metadata(&self.exe)
+            .ok()
+            .filter(|m| m.is_file())
+            .map(|m| m.len());
         if len != Some(self.bytes) {
             self.emptied = true;
             return false;
@@ -238,7 +270,11 @@ fn install_inner(
     if sys.is_running(&main_exe)? {
         return Err(OpError::AppRunning);
     }
-    log.line(&format!("install: {:?} into {}", opts.mode, opts.dir.display()));
+    log.line(&format!(
+        "install: {:?} into {}",
+        opts.mode,
+        opts.dir.display()
+    ));
 
     let mut file = File::open(setup_exe)?;
     let len = file.metadata()?.len();
@@ -253,9 +289,22 @@ fn install_inner(
     rep.signal(Signal::Tick);
 
     let work = create_private_dir(&sys.temp_dir())?;
-    let outcome = install_in(sys, setup_exe, opts, &meta, located.payload_offset, located.payload_len, &work, &mut rep, log);
+    let outcome = install_in(
+        sys,
+        setup_exe,
+        opts,
+        &meta,
+        located.payload_offset,
+        located.payload_len,
+        &work,
+        &mut rep,
+        log,
+    );
     if let Err(e) = remove_tree(&work) {
-        log.line(&format!("install: could not remove {}: {e}", work.display()));
+        log.line(&format!(
+            "install: could not remove {}: {e}",
+            work.display()
+        ));
     }
     outcome?;
     rep.finish();
@@ -280,7 +329,10 @@ fn install_in(
     rep.signal(Signal::Extracted);
 
     let args = cmdline::install_args(&opts.dir, opts.mode != Mode::Install);
-    let env = [(OsString::from("TEMP"), private.clone().into_os_string()), (OsString::from("TMP"), private.clone().into_os_string())];
+    let env = [
+        (OsString::from("TEMP"), private.clone().into_os_string()),
+        (OsString::from("TMP"), private.clone().into_os_string()),
+    ];
     log.line(&format!("run: {} {args}", installer.path.display()));
 
     let main_exe = opts.dir.join(MAIN_EXE);
@@ -368,7 +420,10 @@ fn uninstall_inner(
     if sys.is_running(&main_exe)? {
         return Err(OpError::AppRunning);
     }
-    log.line(&format!("uninstall: {} (delete data: {delete_data})", dir.display()));
+    log.line(&format!(
+        "uninstall: {} (delete data: {delete_data})",
+        dir.display()
+    ));
 
     let model = ProgressModel::new_uninstall(Instant::now(), Duration::from_secs(8), delete_data);
     let mut rep = Reporter::new(model, report);

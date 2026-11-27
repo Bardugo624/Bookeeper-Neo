@@ -47,7 +47,10 @@ mod tests {
 
     #[test]
     fn unsupported_off_windows() {
-        assert_eq!(enable(Path::new("x")).unwrap_err().kind(), io::ErrorKind::Unsupported);
+        assert_eq!(
+            enable(Path::new("x")).unwrap_err().kind(),
+            io::ErrorKind::Unsupported
+        );
         assert_eq!(disable().unwrap_err().kind(), io::ErrorKind::Unsupported);
         assert_eq!(is_enabled().unwrap_err().kind(), io::ErrorKind::Unsupported);
     }

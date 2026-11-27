@@ -3,7 +3,9 @@
 use std::io;
 use std::ptr::null;
 
-use windows_sys::Win32::Security::Credentials::{CredDeleteW, CredEnumerateW, CredFree, CREDENTIALW};
+use windows_sys::Win32::Security::Credentials::{
+    CredDeleteW, CredEnumerateW, CredFree, CREDENTIALW,
+};
 
 use super::wide;
 
@@ -18,7 +20,11 @@ pub fn delete_with_suffix(suffix: &str) -> io::Result<usize> {
     let ok = unsafe { CredEnumerateW(null(), 0, &mut count, &mut list) };
     if ok == 0 {
         let err = io::Error::last_os_error();
-        return if err.raw_os_error() == Some(ERROR_NOT_FOUND) { Ok(0) } else { Err(err) };
+        return if err.raw_os_error() == Some(ERROR_NOT_FOUND) {
+            Ok(0)
+        } else {
+            Err(err)
+        };
     }
     let mut targets: Vec<(Vec<u16>, u32)> = Vec::new();
     // SAFETY: `list` holds `count` valid pointers until CredFree.

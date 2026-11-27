@@ -65,27 +65,75 @@ fn unsupported<T>() -> io::Result<T> {
 }
 
 impl System for UnsupportedSystem {
-    fn install_state(&self) -> io::Result<Option<InstallState>> { unsupported() }
-    fn app_data(&self) -> PathBuf { PathBuf::new() }
-    fn local_app_data(&self) -> PathBuf { PathBuf::new() }
-    fn temp_dir(&self) -> PathBuf { std::env::temp_dir() }
-    fn desktop_dir(&self) -> PathBuf { PathBuf::new() }
-    fn programs_dir(&self) -> PathBuf { PathBuf::new() }
-    fn free_space(&self, _: &Path) -> io::Result<u64> { unsupported() }
-    fn is_network_path(&self, _: &Path) -> bool { false }
-    fn can_write(&self, _: &Path) -> io::Result<bool> { unsupported() }
-    fn is_running(&self, _: &Path) -> io::Result<bool> { unsupported() }
-    fn is_elevated(&self) -> bool { false }
-    fn has_webview2(&self) -> bool { false }
-    fn run_and_wait(&self, _: &Path, _: &str, _: &[(OsString, OsString)], _: Duration) -> io::Result<RunOutcome> { unsupported() }
-    fn shortcut_target(&self, _: &Path) -> io::Result<Option<PathBuf>> { unsupported() }
-    fn autostart_enable(&self, _: &Path) -> io::Result<()> { unsupported() }
-    fn autostart_disable(&self) -> io::Result<()> { unsupported() }
-    fn autostart_is_enabled(&self) -> io::Result<bool> { unsupported() }
-    fn delete_credentials_with_suffix(&self, _: &str) -> io::Result<usize> { unsupported() }
-    fn delete_registry_tree(&self, _: &str) -> io::Result<()> { unsupported() }
-    fn delete_registry_key_if_empty(&self, _: &str) -> io::Result<()> { unsupported() }
-    fn self_delete_outside(&self, _: &Path) -> io::Result<()> { unsupported() }
+    fn install_state(&self) -> io::Result<Option<InstallState>> {
+        unsupported()
+    }
+    fn app_data(&self) -> PathBuf {
+        PathBuf::new()
+    }
+    fn local_app_data(&self) -> PathBuf {
+        PathBuf::new()
+    }
+    fn temp_dir(&self) -> PathBuf {
+        std::env::temp_dir()
+    }
+    fn desktop_dir(&self) -> PathBuf {
+        PathBuf::new()
+    }
+    fn programs_dir(&self) -> PathBuf {
+        PathBuf::new()
+    }
+    fn free_space(&self, _: &Path) -> io::Result<u64> {
+        unsupported()
+    }
+    fn is_network_path(&self, _: &Path) -> bool {
+        false
+    }
+    fn can_write(&self, _: &Path) -> io::Result<bool> {
+        unsupported()
+    }
+    fn is_running(&self, _: &Path) -> io::Result<bool> {
+        unsupported()
+    }
+    fn is_elevated(&self) -> bool {
+        false
+    }
+    fn has_webview2(&self) -> bool {
+        false
+    }
+    fn run_and_wait(
+        &self,
+        _: &Path,
+        _: &str,
+        _: &[(OsString, OsString)],
+        _: Duration,
+    ) -> io::Result<RunOutcome> {
+        unsupported()
+    }
+    fn shortcut_target(&self, _: &Path) -> io::Result<Option<PathBuf>> {
+        unsupported()
+    }
+    fn autostart_enable(&self, _: &Path) -> io::Result<()> {
+        unsupported()
+    }
+    fn autostart_disable(&self) -> io::Result<()> {
+        unsupported()
+    }
+    fn autostart_is_enabled(&self) -> io::Result<bool> {
+        unsupported()
+    }
+    fn delete_credentials_with_suffix(&self, _: &str) -> io::Result<usize> {
+        unsupported()
+    }
+    fn delete_registry_tree(&self, _: &str) -> io::Result<()> {
+        unsupported()
+    }
+    fn delete_registry_key_if_empty(&self, _: &str) -> io::Result<()> {
+        unsupported()
+    }
+    fn self_delete_outside(&self, _: &Path) -> io::Result<()> {
+        unsupported()
+    }
 }
 
 /// The real system: Windows, or an `Unsupported` one elsewhere.

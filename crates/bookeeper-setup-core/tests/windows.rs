@@ -15,8 +15,16 @@ use winreg::{RegKey, RegValue};
 static COUNTER: AtomicU32 = AtomicU32::new(0);
 
 fn unique() -> String {
-    let nanos = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
-    format!("{}-{}-{}", std::process::id(), nanos, COUNTER.fetch_add(1, Ordering::SeqCst))
+    let nanos = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    format!(
+        "{}-{}-{}",
+        std::process::id(),
+        nanos,
+        COUNTER.fetch_add(1, Ordering::SeqCst)
+    )
 }
 
 /// A system on a scratch registry root, removed on drop.
@@ -49,14 +57,28 @@ impl Drop for Scratch {
 fn autostart_round_trip() {
     let s = Scratch::new();
     assert!(!s.sys.autostart_is_enabled().unwrap());
-    s.sys.autostart_enable(Path::new(r"C:\Program Files\Bookeeper\bookeeper-desktop.exe")).unwrap();
+    s.sys
+        .autostart_enable(Path::new(
+            r"C:\Program Files\Bookeeper\bookeeper-desktop.exe",
+        ))
+        .unwrap();
     assert!(s.sys.autostart_is_enabled().unwrap());
 
-    let run = Scratch::hkcu().open_subkey(s.key(registry::RUN_KEY)).unwrap();
+    let run = Scratch::hkcu()
+        .open_subkey(s.key(registry::RUN_KEY))
+        .unwrap();
     let cmd: String = run.get_value("Bookeeper").unwrap();
-    assert_eq!(cmd, r#""C:\Program Files\Bookeeper\bookeeper-desktop.exe" --autostart"#);
-    let approved = Scratch::hkcu().open_subkey(s.key(registry::APPROVED_KEY)).unwrap();
-    assert_eq!(approved.get_raw_value("Bookeeper").unwrap().bytes.as_ref(), &[2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    assert_eq!(
+        cmd,
+        r#""C:\Program Files\Bookeeper\bookeeper-desktop.exe" --autostart"#
+    );
+    let approved = Scratch::hkcu()
+        .open_subkey(s.key(registry::APPROVED_KEY))
+        .unwrap();
+    assert_eq!(
+        approved.get_raw_value("Bookeeper").unwrap().bytes.as_ref(),
+        &[2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    );
 
     s.sys.autostart_disable().unwrap();
     assert!(!s.sys.autostart_is_enabled().unwrap());
@@ -66,14 +88,22 @@ fn autostart_round_trip() {
 #[test]
 fn autostart_disabled_by_task_manager_reads_off() {
     let s = Scratch::new();
-    s.sys.autostart_enable(Path::new(r"C:\x\bookeeper-desktop.exe")).unwrap();
+    s.sys
+        .autostart_enable(Path::new(r"C:\x\bookeeper-desktop.exe"))
+        .unwrap();
     let approved = Scratch::hkcu()
         .open_subkey_with_flags(s.key(registry::APPROVED_KEY), KEY_SET_VALUE)
         .unwrap();
     let mut bytes = vec![0u8; 12];
     bytes[0] = 3;
     approved
-        .set_raw_value("Bookeeper", &RegValue { bytes: std::borrow::Cow::Owned(bytes), vtype: REG_BINARY })
+        .set_raw_value(
+            "Bookeeper",
+            &RegValue {
+                bytes: std::borrow::Cow::Owned(bytes),
+                vtype: REG_BINARY,
+            },
+        )
         .unwrap();
     assert!(!s.sys.autostart_is_enabled().unwrap());
 }
@@ -83,21 +113,30 @@ fn install_state_strips_quotes() {
     let s = Scratch::new();
     assert_eq!(s.sys.install_state().unwrap(), None);
 
-    let (u, _) = Scratch::hkcu().create_subkey(s.key(registry::UNINSTALL_KEY)).unwrap();
-    u.set_value("InstallLocation", &r#""C:\Users\Mario Rossi\Bookeeper""#).unwrap();
+    let (u, _) = Scratch::hkcu()
+        .create_subkey(s.key(registry::UNINSTALL_KEY))
+        .unwrap();
+    u.set_value("InstallLocation", &r#""C:\Users\Mario Rossi\Bookeeper""#)
+        .unwrap();
     u.set_value("DisplayVersion", &"2.2.0").unwrap();
     let state = s.sys.install_state().unwrap().unwrap();
     assert_eq!(state.dir, Path::new(r"C:\Users\Mario Rossi\Bookeeper"));
     assert_eq!(state.version, "2.2.0");
 
     // The default value of our own key wins and has no quotes.
-    let (own, _) = Scratch::hkcu().create_subkey(s.key(registry::INSTALL_KEY)).unwrap();
+    let (own, _) = Scratch::hkcu()
+        .create_subkey(s.key(registry::INSTALL_KEY))
+        .unwrap();
     own.set_value("", &r"C:\Other\Bookeeper").unwrap();
-    assert_eq!(s.sys.install_state().unwrap().unwrap().dir, Path::new(r"C:\Other\Bookeeper"));
+    assert_eq!(
+        s.sys.install_state().unwrap().unwrap().dir,
+        Path::new(r"C:\Other\Bookeeper")
+    );
 
     // Relative and network paths are refused.
     own.set_value("", &r"Bookeeper").unwrap();
-    u.set_value("InstallLocation", &r#""\\server\share\Bookeeper""#).unwrap();
+    u.set_value("InstallLocation", &r#""\\server\share\Bookeeper""#)
+        .unwrap();
     assert_eq!(s.sys.install_state().unwrap(), None);
 }
 
@@ -121,11 +160,15 @@ fn delete_registry_helpers() {
 fn credentials_with_suffix_are_deleted() {
     use std::os::windows::ffi::OsStrExt;
     use windows_sys::Win32::Security::Credentials::{
-        CredDeleteW, CredReadW, CredWriteW, CREDENTIALW, CRED_PERSIST_LOCAL_MACHINE, CRED_TYPE_GENERIC,
+        CredDeleteW, CredReadW, CredWriteW, CREDENTIALW, CRED_PERSIST_LOCAL_MACHINE,
+        CRED_TYPE_GENERIC,
     };
 
     fn wide(s: &str) -> Vec<u16> {
-        std::ffi::OsStr::new(s).encode_wide().chain(Some(0)).collect()
+        std::ffi::OsStr::new(s)
+            .encode_wide()
+            .chain(Some(0))
+            .collect()
     }
     fn write(name: &str) {
         let mut target = wide(name);
@@ -136,7 +179,12 @@ fn credentials_with_suffix_are_deleted() {
         cred.CredentialBlobSize = blob.len() as u32;
         cred.CredentialBlob = blob.as_mut_ptr();
         cred.Persist = CRED_PERSIST_LOCAL_MACHINE;
-        assert_ne!(unsafe { CredWriteW(&cred, 0) }, 0, "{}", std::io::Error::last_os_error());
+        assert_ne!(
+            unsafe { CredWriteW(&cred, 0) },
+            0,
+            "{}",
+            std::io::Error::last_os_error()
+        );
     }
     fn exists(name: &str) -> bool {
         let target = wide(name);
@@ -173,21 +221,36 @@ fn run_and_wait_passes_raw_args() {
     let spaced = dir.path().join("with space");
     std::fs::create_dir(&spaced).unwrap();
     let out = spaced.join("out.txt");
-    let cmd = std::env::var_os("ComSpec").map(std::path::PathBuf::from).unwrap_or_else(|| r"C:\Windows\System32\cmd.exe".into());
+    let cmd = std::env::var_os("ComSpec")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| r"C:\Windows\System32\cmd.exe".into());
     let raw = format!(r#"/c echo %BK_TEST% > "{}""#, out.display());
     let env = [(OsString::from("BK_TEST"), OsString::from("raw-ok"))];
-    let r = s.sys.run_and_wait(&cmd, &raw, &env, Duration::from_secs(30)).unwrap();
+    let r = s
+        .sys
+        .run_and_wait(&cmd, &raw, &env, Duration::from_secs(30))
+        .unwrap();
     assert_eq!(r, RunOutcome::Exited(0));
     assert!(std::fs::read_to_string(&out).unwrap().contains("raw-ok"));
 
-    let slow = s.sys.run_and_wait(&cmd, "/c ping -n 30 127.0.0.1 > nul", &[], Duration::from_millis(300)).unwrap();
+    let slow = s
+        .sys
+        .run_and_wait(
+            &cmd,
+            "/c ping -n 30 127.0.0.1 > nul",
+            &[],
+            Duration::from_millis(300),
+        )
+        .unwrap();
     assert_eq!(slow, RunOutcome::TimedOut);
 }
 
 #[test]
 fn is_network_path_for_unc() {
     let s = Scratch::new();
-    assert!(s.sys.is_network_path(Path::new(r"\\server\share\Bookeeper")));
+    assert!(s
+        .sys
+        .is_network_path(Path::new(r"\\server\share\Bookeeper")));
     assert!(s.sys.is_network_path(Path::new(r"\\?\UNC\server\share")));
     assert!(!s.sys.is_network_path(Path::new(r"relative\path")));
 }
@@ -198,7 +261,12 @@ fn free_space_of_system_drive_is_positive() {
     let drive = std::env::var("SystemDrive").unwrap_or_else(|_| "C:".into());
     assert!(s.sys.free_space(Path::new(&format!(r"{drive}\"))).unwrap() > 0);
     // A folder that does not exist yet reports its drive.
-    assert!(s.sys.free_space(Path::new(&format!(r"{drive}\bk-nonexistent-{}", unique()))).unwrap() > 0);
+    assert!(
+        s.sys
+            .free_space(Path::new(&format!(r"{drive}\bk-nonexistent-{}", unique())))
+            .unwrap()
+            > 0
+    );
 }
 
 #[test]
@@ -223,5 +291,10 @@ fn folders_and_elevation_answer() {
     let _ = s.sys.has_webview2();
     let me = std::env::current_exe().unwrap();
     assert!(s.sys.is_running(&me).unwrap());
-    assert_eq!(s.sys.shortcut_target(Path::new(r"C:\nope\missing.lnk")).unwrap(), None);
+    assert_eq!(
+        s.sys
+            .shortcut_target(Path::new(r"C:\nope\missing.lnk"))
+            .unwrap(),
+        None
+    );
 }

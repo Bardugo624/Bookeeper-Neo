@@ -12,10 +12,16 @@ const STALE_AFTER: Duration = Duration::from_secs(24 * 60 * 60);
 /// Removes `bookeeper-setup-webview-*` folders in `temp` not touched for a day.
 /// Returns how many were removed.
 pub fn sweep_stale(temp: &Path, now: SystemTime) -> usize {
-    let Ok(rd) = std::fs::read_dir(temp) else { return 0 };
+    let Ok(rd) = std::fs::read_dir(temp) else {
+        return 0;
+    };
     let mut removed = 0;
     for entry in rd.flatten() {
-        if !entry.file_name().to_string_lossy().starts_with(WEBVIEW_PREFIX) {
+        if !entry
+            .file_name()
+            .to_string_lossy()
+            .starts_with(WEBVIEW_PREFIX)
+        {
             continue;
         }
         let old = entry
@@ -36,7 +42,11 @@ fn private_data_dir(temp: &Path) -> PathBuf {
     let nanos = SystemTime::now()
         .duration_since(SystemTime::UNIX_EPOCH)
         .map_or(0, |d| d.as_nanos());
-    temp.join(format!("{WEBVIEW_PREFIX}{:x}-{:x}", std::process::id(), nanos))
+    temp.join(format!(
+        "{WEBVIEW_PREFIX}{:x}-{:x}",
+        std::process::id(),
+        nanos
+    ))
 }
 
 pub fn create(app: &AppHandle) -> tauri::Result<()> {
