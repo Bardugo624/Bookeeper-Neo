@@ -27,7 +27,10 @@ mod tests {
         assert_eq!(compare("2.2.0", "2.2.0"), Some(Ordering::Equal));
         assert_eq!(compare("2.10.0", "2.9.0"), Some(Ordering::Greater));
         assert_eq!(compare("2.2.0-beta.1", "2.2.0"), Some(Ordering::Less));
-        assert_eq!(compare("2.2.0-beta.2", "2.2.0-beta.10"), Some(Ordering::Less));
+        assert_eq!(
+            compare("2.2.0-beta.2", "2.2.0-beta.10"),
+            Some(Ordering::Less)
+        );
         assert_eq!(compare("nope", "2.2.0"), None);
     }
 

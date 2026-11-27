@@ -32,7 +32,11 @@ impl Log {
 
     /// Appends a line. Logging never fails the operation: errors are dropped.
     pub fn line(&self, text: &str) {
-        let Ok(mut f) = OpenOptions::new().create(true).append(true).open(&self.path) else {
+        let Ok(mut f) = OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&self.path)
+        else {
             return;
         };
         let stamp = timestamp(SystemTime::now());
@@ -65,7 +69,12 @@ fn timestamp(t: SystemTime) -> String {
     let d = doy - (153 * mp + 2) / 5 + 1;
     let m = if mp < 10 { mp + 3 } else { mp - 9 };
     let y = yoe + era * 400 + i64::from(m <= 2);
-    format!("{y:04}-{m:02}-{d:02}T{:02}:{:02}:{:02}Z", rem / 3600, rem % 3600 / 60, rem % 60)
+    format!(
+        "{y:04}-{m:02}-{d:02}T{:02}:{:02}:{:02}Z",
+        rem / 3600,
+        rem % 3600 / 60,
+        rem % 60
+    )
 }
 
 #[cfg(test)]

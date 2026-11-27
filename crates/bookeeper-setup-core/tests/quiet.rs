@@ -12,7 +12,10 @@ const MAIN: &[u8] = b"the real bookeeper-desktop executable, long enough to matt
 static ENV: Mutex<()> = Mutex::new(());
 
 fn hex(b: &[u8]) -> String {
-    Sha256::digest(b).iter().map(|x| format!("{x:02x}")).collect()
+    Sha256::digest(b)
+        .iter()
+        .map(|x| format!("{x:02x}"))
+        .collect()
 }
 
 struct Fixture {
@@ -29,8 +32,16 @@ fn fixture() -> Fixture {
     let installer = b"fake NSIS installer bytes".repeat(20);
     let meta = Meta {
         version: "2.2.0".into(),
-        payload: FileMeta { name: "Bookeeper_2.2.0_x64-setup.exe".into(), bytes: installer.len() as u64, sha256: hex(&installer) },
-        main: FileMeta { name: "bookeeper-desktop.exe".into(), bytes: MAIN.len() as u64, sha256: hex(MAIN) },
+        payload: FileMeta {
+            name: "Bookeeper_2.2.0_x64-setup.exe".into(),
+            bytes: installer.len() as u64,
+            sha256: hex(&installer),
+        },
+        main: FileMeta {
+            name: "bookeeper-desktop.exe".into(),
+            bytes: MAIN.len() as u64,
+            sha256: hex(MAIN),
+        },
         installed_bytes: 5 * 1024 * 1024,
     };
     let mut bytes = b"MZ light setup".to_vec();
@@ -39,7 +50,13 @@ fn fixture() -> Fixture {
     let setup = root.join("Setup.exe");
     std::fs::write(&setup, bytes).unwrap();
     sys.on_run(|rec| {
-        let dir = PathBuf::from(rec.raw_args.split("/D=").nth(1).or_else(|| rec.raw_args.split("_?=").nth(1)).unwrap());
+        let dir = PathBuf::from(
+            rec.raw_args
+                .split("/D=")
+                .nth(1)
+                .or_else(|| rec.raw_args.split("_?=").nth(1))
+                .unwrap(),
+        );
         if rec.raw_args.contains("_?=") {
             let _ = std::fs::remove_file(dir.join("bookeeper-desktop.exe"));
         } else {
@@ -49,11 +66,20 @@ fn fixture() -> Fixture {
         }
         RunOutcome::Exited(0)
     });
-    Fixture { _tmp: tmp, root, sys, setup }
+    Fixture {
+        _tmp: tmp,
+        root,
+        sys,
+        setup,
+    }
 }
 
 fn install_args(dir: Option<&Path>) -> Invocation {
-    Invocation::QuietInstall(QuietInstallArgs { dir: dir.map(Path::to_path_buf), desktop_icon: true, autostart: false })
+    Invocation::QuietInstall(QuietInstallArgs {
+        dir: dir.map(Path::to_path_buf),
+        desktop_icon: true,
+        autostart: false,
+    })
 }
 
 fn installed(f: &Fixture, version: &str) -> PathBuf {
@@ -61,7 +87,10 @@ fn installed(f: &Fixture, version: &str) -> PathBuf {
     std::fs::create_dir_all(&dir).unwrap();
     std::fs::write(dir.join("bookeeper-desktop.exe"), b"old").unwrap();
     std::fs::write(dir.join("uninstall.exe"), b"u").unwrap();
-    *f.sys.installed.lock().unwrap() = Some(InstallState { dir: dir.clone(), version: version.into() });
+    *f.sys.installed.lock().unwrap() = Some(InstallState {
+        dir: dir.clone(),
+        version: version.into(),
+    });
     dir
 }
 
@@ -77,7 +106,12 @@ fn quiet_codes() {
     // Fresh install: 0, into the default folder.
     let f = fixture();
     assert_eq!(run(&f, &install_args(None)), 0);
-    assert!(f.sys.local_app_data().join("Bookeeper").join("bookeeper-desktop.exe").exists());
+    assert!(f
+        .sys
+        .local_app_data()
+        .join("Bookeeper")
+        .join("bookeeper-desktop.exe")
+        .exists());
 
     // App open: 3.
     let f = fixture();
@@ -96,11 +130,17 @@ fn quiet_codes() {
     let f = fixture();
     let dir = installed(&f, "2.2.0");
     assert_eq!(run(&f, &install_args(Some(&dir))), 0);
-    assert_eq!(f.sys.runs.lock().unwrap()[0].raw_args, format!("/S /UPDATE /D={}", dir.display()));
+    assert_eq!(
+        f.sys.runs.lock().unwrap()[0].raw_args,
+        format!("/S /UPDATE /D={}", dir.display())
+    );
     let f = fixture();
     let dir = installed(&f, "2.1.0");
     assert_eq!(run(&f, &install_args(None)), 0);
-    assert_eq!(f.sys.runs.lock().unwrap()[0].raw_args, format!("/S /UPDATE /D={}", dir.display()));
+    assert_eq!(
+        f.sys.runs.lock().unwrap()[0].raw_args,
+        format!("/S /UPDATE /D={}", dir.display())
+    );
 
     // A different --dir over an installation: 2, nothing run.
     let f = fixture();
@@ -137,14 +177,22 @@ fn quiet_passive_uninstall_keeps_data() {
     std::fs::write(data.join("bookeeper.sqlite"), b"db").unwrap();
     *f.sys.credentials.lock().unwrap() = vec!["t.org.bookeeper.desktop".into()];
 
-    let passive = Invocation::Uninstall(UninstallArgs { passive: true, quiet: false, delete_data: false, dir: Some(dir.clone()) });
+    let passive = Invocation::Uninstall(UninstallArgs {
+        passive: true,
+        quiet: false,
+        delete_data: false,
+        dir: Some(dir.clone()),
+    });
     assert_eq!(run(&f, &passive), 0);
     assert!(!dir.join("bookeeper-desktop.exe").exists());
     assert!(data.join("bookeeper.sqlite").exists());
     assert_eq!(f.sys.credentials.lock().unwrap().len(), 1);
     // One process only: the passive uninstall does not relaunch itself.
     assert_eq!(f.sys.runs.lock().unwrap().len(), 1);
-    assert_eq!(f.sys.runs.lock().unwrap()[0].raw_args, format!("/S _?={}", dir.display()));
+    assert_eq!(
+        f.sys.runs.lock().unwrap()[0].raw_args,
+        format!("/S _?={}", dir.display())
+    );
 }
 
 #[test]
@@ -156,7 +204,12 @@ fn quiet_uninstall_delete_data_and_codes() {
     let data = f.sys.app_data().join("org.bookeeper.desktop");
     std::fs::create_dir_all(&data).unwrap();
     *f.sys.credentials.lock().unwrap() = vec!["t.org.bookeeper.desktop".into()];
-    let inv = Invocation::Uninstall(UninstallArgs { passive: false, quiet: true, delete_data: true, dir: None });
+    let inv = Invocation::Uninstall(UninstallArgs {
+        passive: false,
+        quiet: true,
+        delete_data: true,
+        dir: None,
+    });
     *f.sys.running.lock().unwrap() = true;
     assert_eq!(run(&f, &inv), 3);
     *f.sys.running.lock().unwrap() = false;
@@ -166,6 +219,11 @@ fn quiet_uninstall_delete_data_and_codes() {
 
     // Not installed and no folder: 2.
     let f = fixture();
-    let inv = Invocation::Uninstall(UninstallArgs { passive: false, quiet: true, delete_data: false, dir: None });
+    let inv = Invocation::Uninstall(UninstallArgs {
+        passive: false,
+        quiet: true,
+        delete_data: false,
+        dir: None,
+    });
     assert_eq!(run(&f, &inv), 2);
 }

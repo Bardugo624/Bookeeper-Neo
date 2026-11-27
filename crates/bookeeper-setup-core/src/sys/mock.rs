@@ -97,11 +97,21 @@ impl System for MockSystem {
     fn install_state(&self) -> io::Result<Option<InstallState>> {
         Ok(lock(&self.installed).clone())
     }
-    fn app_data(&self) -> PathBuf { self.app_data.clone() }
-    fn local_app_data(&self) -> PathBuf { self.local_app_data.clone() }
-    fn temp_dir(&self) -> PathBuf { self.temp.clone() }
-    fn desktop_dir(&self) -> PathBuf { self.desktop.clone() }
-    fn programs_dir(&self) -> PathBuf { self.programs.clone() }
+    fn app_data(&self) -> PathBuf {
+        self.app_data.clone()
+    }
+    fn local_app_data(&self) -> PathBuf {
+        self.local_app_data.clone()
+    }
+    fn temp_dir(&self) -> PathBuf {
+        self.temp.clone()
+    }
+    fn desktop_dir(&self) -> PathBuf {
+        self.desktop.clone()
+    }
+    fn programs_dir(&self) -> PathBuf {
+        self.programs.clone()
+    }
 
     fn free_space(&self, path: &Path) -> io::Result<u64> {
         let best = lock(&self.free_by_prefix)
@@ -112,14 +122,24 @@ impl System for MockSystem {
         Ok(best.unwrap_or_else(|| *lock(&self.default_free)))
     }
     fn is_network_path(&self, path: &Path) -> bool {
-        lock(&self.network_prefixes).iter().any(|p| path.starts_with(p))
+        lock(&self.network_prefixes)
+            .iter()
+            .any(|p| path.starts_with(p))
     }
     fn can_write(&self, dir: &Path) -> io::Result<bool> {
-        Ok(!lock(&self.unwritable_prefixes).iter().any(|p| dir.starts_with(p)))
+        Ok(!lock(&self.unwritable_prefixes)
+            .iter()
+            .any(|p| dir.starts_with(p)))
     }
-    fn is_running(&self, _exe: &Path) -> io::Result<bool> { Ok(*lock(&self.running)) }
-    fn is_elevated(&self) -> bool { *lock(&self.elevated) }
-    fn has_webview2(&self) -> bool { *lock(&self.webview2) }
+    fn is_running(&self, _exe: &Path) -> io::Result<bool> {
+        Ok(*lock(&self.running))
+    }
+    fn is_elevated(&self) -> bool {
+        *lock(&self.elevated)
+    }
+    fn has_webview2(&self) -> bool {
+        *lock(&self.webview2)
+    }
 
     fn run_and_wait(
         &self,
@@ -128,9 +148,15 @@ impl System for MockSystem {
         env: &[(OsString, OsString)],
         _timeout: Duration,
     ) -> io::Result<RunOutcome> {
-        let rec = RunRecord { program: program.to_path_buf(), raw_args: raw_args.to_string(), env: env.to_vec() };
+        let rec = RunRecord {
+            program: program.to_path_buf(),
+            raw_args: raw_args.to_string(),
+            env: env.to_vec(),
+        };
         lock(&self.runs).push(rec.clone());
-        let outcome = lock(&self.on_run).as_ref().map_or(RunOutcome::Exited(0), |cb| cb(&rec));
+        let outcome = lock(&self.on_run)
+            .as_ref()
+            .map_or(RunOutcome::Exited(0), |cb| cb(&rec));
         Ok(outcome)
     }
 
@@ -145,7 +171,9 @@ impl System for MockSystem {
         *lock(&self.autostart) = None;
         Ok(())
     }
-    fn autostart_is_enabled(&self) -> io::Result<bool> { Ok(lock(&self.autostart).is_some()) }
+    fn autostart_is_enabled(&self) -> io::Result<bool> {
+        Ok(lock(&self.autostart).is_some())
+    }
 
     fn delete_credentials_with_suffix(&self, suffix: &str) -> io::Result<usize> {
         let mut c = lock(&self.credentials);
@@ -189,7 +217,12 @@ mod tests {
             RunOutcome::Exited(0)
         });
         let out = sys
-            .run_and_wait(Path::new("installer.exe"), "/S /D=C:\\a b", &[(OsString::from("TEMP"), OsString::from("x"))], Duration::from_secs(1))
+            .run_and_wait(
+                Path::new("installer.exe"),
+                "/S /D=C:\\a b",
+                &[(OsString::from("TEMP"), OsString::from("x"))],
+                Duration::from_secs(1),
+            )
             .unwrap();
         assert_eq!(out, RunOutcome::Exited(0));
         assert_eq!(lock(&sys.runs).len(), 1);
@@ -201,14 +234,25 @@ mod tests {
             k.insert(r"Software\bookeeper".into());
             k.insert(r"Software\bookeeper\Bookeeper".into());
         }
-        sys.delete_registry_key_if_empty(r"Software\bookeeper").unwrap();
+        sys.delete_registry_key_if_empty(r"Software\bookeeper")
+            .unwrap();
         assert!(lock(&sys.registry_keys).contains(r"Software\bookeeper"));
-        sys.delete_registry_tree(r"Software\bookeeper\Bookeeper").unwrap();
-        sys.delete_registry_key_if_empty(r"Software\bookeeper").unwrap();
+        sys.delete_registry_tree(r"Software\bookeeper\Bookeeper")
+            .unwrap();
+        sys.delete_registry_key_if_empty(r"Software\bookeeper")
+            .unwrap();
         assert!(lock(&sys.registry_keys).is_empty());
 
-        *lock(&sys.credentials) = vec!["token.org.bookeeper.desktop".into(), "other.app".into(), "x.org.bookeeper.desktop".into()];
-        assert_eq!(sys.delete_credentials_with_suffix(".org.bookeeper.desktop").unwrap(), 2);
+        *lock(&sys.credentials) = vec![
+            "token.org.bookeeper.desktop".into(),
+            "other.app".into(),
+            "x.org.bookeeper.desktop".into(),
+        ];
+        assert_eq!(
+            sys.delete_credentials_with_suffix(".org.bookeeper.desktop")
+                .unwrap(),
+            2
+        );
         assert_eq!(*lock(&sys.credentials), vec!["other.app".to_string()]);
 
         assert!(!sys.autostart_is_enabled().unwrap());
@@ -223,7 +267,10 @@ mod tests {
         #[cfg(not(windows))]
         {
             let s = crate::sys::platform();
-            assert_eq!(s.install_state().unwrap_err().kind(), io::ErrorKind::Unsupported);
+            assert_eq!(
+                s.install_state().unwrap_err().kind(),
+                io::ErrorKind::Unsupported
+            );
         }
     }
 }

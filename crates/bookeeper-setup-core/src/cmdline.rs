@@ -89,7 +89,11 @@ pub fn parse_invocation(raw: &str) -> Result<Invocation, String> {
         let alone = !(quiet || uninstall || delete_data || passive || no_desktop || autostart)
             && dir_flag.is_none()
             && nsis_dir.is_none();
-        return if alone { Ok(Invocation::SmokeUi) } else { Err("--smoke-ui takes no other argument".into()) };
+        return if alone {
+            Ok(Invocation::SmokeUi)
+        } else {
+            Err("--smoke-ui takes no other argument".into())
+        };
     }
     if uninstall {
         if no_desktop || autostart {
@@ -174,8 +178,14 @@ mod tests {
     #[test]
     fn install_args_keep_spaces_and_accents_unquoted() {
         let d = Path::new(DIR);
-        assert_eq!(install_args(d, false), r"/S /D=C:\Prova Bookeeper\Libreria è");
-        assert_eq!(install_args(d, true), r"/S /UPDATE /D=C:\Prova Bookeeper\Libreria è");
+        assert_eq!(
+            install_args(d, false),
+            r"/S /D=C:\Prova Bookeeper\Libreria è"
+        );
+        assert_eq!(
+            install_args(d, true),
+            r"/S /UPDATE /D=C:\Prova Bookeeper\Libreria è"
+        );
         assert_eq!(uninstall_args(d), r"/S _?=C:\Prova Bookeeper\Libreria è");
     }
 
@@ -188,7 +198,9 @@ mod tests {
                 passive: true,
                 quiet: false,
                 delete_data: false,
-                dir: Some(PathBuf::from(r"C:\Users\Mario Rossi\AppData\Local\Bookeeper")),
+                dir: Some(PathBuf::from(
+                    r"C:\Users\Mario Rossi\AppData\Local\Bookeeper"
+                )),
             }))
         );
         let raw = r#""C:\x\bookeeper-setup.exe" --uninstall /UPDATE _?=C:\a b"#;
@@ -208,11 +220,20 @@ mod tests {
         );
         assert_eq!(
             parse_invocation("setup.exe --quiet"),
-            Ok(Invocation::QuietInstall(QuietInstallArgs { dir: None, desktop_icon: true, autostart: false }))
+            Ok(Invocation::QuietInstall(QuietInstallArgs {
+                dir: None,
+                desktop_icon: true,
+                autostart: false
+            }))
         );
         assert_eq!(
             parse_invocation("bookeeper-setup.exe --uninstall --quiet --delete-data"),
-            Ok(Invocation::Uninstall(UninstallArgs { passive: false, quiet: true, delete_data: true, dir: None }))
+            Ok(Invocation::Uninstall(UninstallArgs {
+                passive: false,
+                quiet: true,
+                delete_data: true,
+                dir: None
+            }))
         );
     }
 
@@ -227,8 +248,14 @@ mod tests {
 
     #[test]
     fn parse_gui_without_flags() {
-        assert_eq!(parse_invocation(r#""C:\Program Files\x\setup.exe""#), Ok(Invocation::Gui));
+        assert_eq!(
+            parse_invocation(r#""C:\Program Files\x\setup.exe""#),
+            Ok(Invocation::Gui)
+        );
         assert_eq!(parse_invocation("setup.exe"), Ok(Invocation::Gui));
-        assert_eq!(parse_invocation("setup.exe --smoke-ui"), Ok(Invocation::SmokeUi));
+        assert_eq!(
+            parse_invocation("setup.exe --smoke-ui"),
+            Ok(Invocation::SmokeUi)
+        );
     }
 }

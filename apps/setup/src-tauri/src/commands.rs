@@ -134,10 +134,18 @@ pub struct OpResult {
 
 impl OpResult {
     pub fn done() -> Self {
-        Self { ok: true, error: None, code: None }
+        Self {
+            ok: true,
+            error: None,
+            code: None,
+        }
     }
     pub fn failed(error: ErrorCode) -> Self {
-        Self { ok: false, error: Some(error), code: None }
+        Self {
+            ok: false,
+            error: Some(error),
+            code: None,
+        }
     }
 }
 
@@ -147,7 +155,11 @@ impl From<Result<(), OpError>> for OpResult {
             Ok(()) => Self::done(),
             Err(OpError::AppRunning) => Self::failed(ErrorCode::AppRunning),
             Err(OpError::Payload(_)) => Self::failed(ErrorCode::Payload),
-            Err(OpError::NsisFailed { code }) => Self { ok: false, error: Some(ErrorCode::NsisFailed), code: Some(code) },
+            Err(OpError::NsisFailed { code }) => Self {
+                ok: false,
+                error: Some(ErrorCode::NsisFailed),
+                code: Some(code),
+            },
             Err(OpError::TimedOut) => Self::failed(ErrorCode::Timeout),
             Err(OpError::Verification(_)) => Self::failed(ErrorCode::Verification),
             Err(OpError::Io(_)) => Self::failed(ErrorCode::Io),
@@ -184,7 +196,11 @@ impl From<Snapshot> for ProgressEvent {
             Step::RemoveApp => StepId::RemoveApp,
             Step::RemoveData => StepId::RemoveData,
         };
-        Self { step, fraction: s.fraction, done: s.done }
+        Self {
+            step,
+            fraction: s.fraction,
+            done: s.done,
+        }
     }
 }
 
@@ -212,11 +228,21 @@ pub fn read_payload(setup_exe: &Path) -> Option<Meta> {
 }
 
 fn same_folder(a: &Path, b: &Path) -> bool {
-    let norm = |p: &Path| p.to_string_lossy().trim_end_matches(['\\', '/']).replace('/', "\\").to_lowercase();
+    let norm = |p: &Path| {
+        p.to_string_lossy()
+            .trim_end_matches(['\\', '/'])
+            .replace('/', "\\")
+            .to_lowercase()
+    };
     norm(a) == norm(b)
 }
 
-fn blocked_reason(sys: &dyn System, ctx: &Context, has_payload: bool, uninstall_mode: bool) -> Option<Blocked> {
+fn blocked_reason(
+    sys: &dyn System,
+    ctx: &Context,
+    has_payload: bool,
+    uninstall_mode: bool,
+) -> Option<Blocked> {
     if !ctx.supported {
         Some(Blocked::Unsupported)
     } else if sys.is_elevated() {
@@ -243,7 +269,11 @@ pub fn build_info(sys: &dyn System, ctx: &Context) -> SetupInfo {
         .zip(ctx.setup_exe.parent())
         .is_some_and(|(s, parent)| same_folder(&s.dir, parent));
     let uninstall_mode = meta.is_none() && (ctx.uninstall_requested || in_install_dir);
-    let mode = if uninstall_mode { SetupMode::Uninstall } else { SetupMode::Install };
+    let mode = if uninstall_mode {
+        SetupMode::Uninstall
+    } else {
+        SetupMode::Install
+    };
 
     let default_dir = state
         .as_ref()
@@ -253,11 +283,22 @@ pub fn build_info(sys: &dyn System, ctx: &Context) -> SetupInfo {
 
     SetupInfo {
         mode,
-        payload: meta.as_ref().map(|m| PayloadInfo { version: m.version.clone(), installed_bytes: m.installed_bytes }),
+        payload: meta.as_ref().map(|m| PayloadInfo {
+            version: m.version.clone(),
+            installed_bytes: m.installed_bytes,
+        }),
         installed,
-        defaults: Defaults { dir: default_dir.to_string_lossy().into_owned(), desktop_icon: true, autostart: false },
+        defaults: Defaults {
+            dir: default_dir.to_string_lossy().into_owned(),
+            desktop_icon: true,
+            autostart: false,
+        },
         blocked: blocked_reason(sys, ctx, meta.is_some(), uninstall_mode),
-        data: DataInfo { bytes: summary.bytes, has_library: summary.has_library, has_ebooks: summary.has_ebooks },
+        data: DataInfo {
+            bytes: summary.bytes,
+            has_library: summary.has_library,
+            has_ebooks: summary.has_ebooks,
+        },
     }
 }
 
@@ -314,13 +355,18 @@ pub fn check_exact(sys: &dyn System, dir: PathBuf, meta: Option<&Meta>) -> DirCh
     }
     let probe = nearest_existing(&dir);
     if !sys.can_write(&probe).unwrap_or(false) {
-        return result(Some(ProblemCode::NeedsAdmin), sys.free_space(&probe).unwrap_or(0));
+        return result(
+            Some(ProblemCode::NeedsAdmin),
+            sys.free_space(&probe).unwrap_or(0),
+        );
     }
     let free_target = sys.free_space(&probe).unwrap_or(0);
     let free_temp = sys.free_space(&sys.temp_dir()).unwrap_or(0);
     let (installed, payload_bytes) = meta.map_or((0, 0), |m| (m.installed_bytes, m.payload.bytes));
     match folder::check_space(free_target, free_temp, installed, payload_bytes) {
-        Some(FolderProblem::TooLittleSpace { free }) => result(Some(ProblemCode::TooLittleSpace), free),
+        Some(FolderProblem::TooLittleSpace { free }) => {
+            result(Some(ProblemCode::TooLittleSpace), free)
+        }
         Some(FolderProblem::TempTooSmall { free }) => result(Some(ProblemCode::TempTooSmall), free),
         _ => result(None, free_target),
     }
@@ -334,7 +380,11 @@ fn mode_of(m: RequestMode) -> Mode {
     }
 }
 
-pub fn run_install(state: &AppState, request: &InstallRequest, emit: &mut dyn FnMut(ProgressEvent)) -> OpResult {
+pub fn run_install(
+    state: &AppState,
+    request: &InstallRequest,
+    emit: &mut dyn FnMut(ProgressEvent),
+) -> OpResult {
     let sys = state.sys.as_ref();
     let meta = read_payload(&state.ctx.setup_exe);
     if blocked_reason(sys, &state.ctx, meta.is_some(), false).is_some() {
@@ -344,7 +394,9 @@ pub fn run_install(state: &AppState, request: &InstallRequest, emit: &mut dyn Fn
     // The UI sends a folder `check_dir` already corrected (or the installed one): use it as is.
     let check = check_exact(sys, PathBuf::from(request.dir.trim()), meta.as_ref());
     if let Some(problem) = check.problem {
-        state.log.line(&format!("install: refused, folder problem {problem:?}"));
+        state
+            .log
+            .line(&format!("install: refused, folder problem {problem:?}"));
         return OpResult::failed(ErrorCode::Io);
     }
     let opts = InstallOptions {
@@ -359,15 +411,20 @@ pub fn run_install(state: &AppState, request: &InstallRequest, emit: &mut dyn Fn
 
 /// The folder to remove: the registered one, else the one the Setup sits in.
 pub fn uninstall_dir(sys: &dyn System, setup_exe: &Path) -> Option<PathBuf> {
-    ops::read_state(sys)
-        .map(|s| s.dir)
-        .or_else(|| {
-            // Only a folder that really holds an installation counts.
-            setup_exe.parent().filter(|p| p.join(UNINSTALLER).is_file()).map(Path::to_path_buf)
-        })
+    ops::read_state(sys).map(|s| s.dir).or_else(|| {
+        // Only a folder that really holds an installation counts.
+        setup_exe
+            .parent()
+            .filter(|p| p.join(UNINSTALLER).is_file())
+            .map(Path::to_path_buf)
+    })
 }
 
-pub fn run_uninstall(state: &AppState, delete_data: bool, emit: &mut dyn FnMut(ProgressEvent)) -> OpResult {
+pub fn run_uninstall(
+    state: &AppState,
+    delete_data: bool,
+    emit: &mut dyn FnMut(ProgressEvent),
+) -> OpResult {
     let sys = state.sys.as_ref();
     // Incomplete is about installing; removing needs only a supported, non-elevated system.
     if blocked_reason(sys, &state.ctx, true, true).is_some() {
@@ -383,8 +440,12 @@ pub fn run_uninstall(state: &AppState, delete_data: bool, emit: &mut dyn FnMut(P
 
 /// Starts the installed app. Returns the error text when it cannot.
 pub fn launch(sys: &dyn System, setup_exe: &Path) -> io::Result<()> {
-    let dir = uninstall_dir(sys, setup_exe).ok_or_else(|| io::Error::from(io::ErrorKind::NotFound))?;
-    std::process::Command::new(dir.join(MAIN_EXE)).current_dir(&dir).spawn().map(|_| ())
+    let dir =
+        uninstall_dir(sys, setup_exe).ok_or_else(|| io::Error::from(io::ErrorKind::NotFound))?;
+    std::process::Command::new(dir.join(MAIN_EXE))
+        .current_dir(&dir)
+        .spawn()
+        .map(|_| ())
 }
 
 /// No WebView2: the full Setup unpacks the classic installer and starts it (it installs
@@ -395,7 +456,8 @@ pub fn webview2_fallback(sys: &dyn System, setup_exe: &Path, log: &Log) -> io::R
         log.line(&format!("no WebView2: starting {}", path.display()));
         std::process::Command::new(&path).spawn()?;
     } else {
-        let dir = uninstall_dir(sys, setup_exe).ok_or_else(|| io::Error::from(io::ErrorKind::NotFound))?;
+        let dir = uninstall_dir(sys, setup_exe)
+            .ok_or_else(|| io::Error::from(io::ErrorKind::NotFound))?;
         let path = dir.join(UNINSTALLER);
         log.line(&format!("no WebView2: starting {}", path.display()));
         std::process::Command::new(&path).spawn()?;
@@ -412,10 +474,14 @@ fn extract_installer(sys: &dyn System, setup_exe: &Path, meta: &Meta) -> io::Res
     let nanos = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map_or(0, |d| d.subsec_nanos());
-    let dir = sys.temp_dir().join(format!("bookeeper-setup-{}-{nanos:x}", std::process::id()));
+    let dir = sys
+        .temp_dir()
+        .join(format!("bookeeper-setup-{}-{nanos:x}", std::process::id()));
     std::fs::create_dir(&dir)?;
     // Only the file name of the metadata is used, so a hostile name cannot leave the folder.
-    let name = Path::new(&meta.payload.name).file_name().ok_or_else(|| io::Error::from(io::ErrorKind::InvalidData))?;
+    let name = Path::new(&meta.payload.name)
+        .file_name()
+        .ok_or_else(|| io::Error::from(io::ErrorKind::InvalidData))?;
     let out_path = dir.join(name);
     let mut out = File::create(&out_path)?;
     f.seek(SeekFrom::Start(located.payload_offset))?;
@@ -431,10 +497,17 @@ fn extract_installer(sys: &dyn System, setup_exe: &Path, meta: &Meta) -> io::Res
     }
     out.flush()?;
     drop(out);
-    let hex: String = hasher.finalize().iter().map(|b| format!("{b:02x}")).collect();
+    let hex: String = hasher
+        .finalize()
+        .iter()
+        .map(|b| format!("{b:02x}"))
+        .collect();
     if !hex.eq_ignore_ascii_case(&meta.payload.sha256) {
         let _ = std::fs::remove_dir_all(&dir);
-        return Err(io::Error::new(io::ErrorKind::InvalidData, "installer hash mismatch"));
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "installer hash mismatch",
+        ));
     }
     Ok(out_path)
 }
@@ -453,7 +526,11 @@ pub fn check_dir(state: AppStateRef<'_>, dir: String) -> DirCheck {
 }
 
 #[tauri::command]
-pub async fn install(app: AppHandle, state: AppStateRef<'_>, request: InstallRequest) -> Result<OpResult, String> {
+pub async fn install(
+    app: AppHandle,
+    state: AppStateRef<'_>,
+    request: InstallRequest,
+) -> Result<OpResult, String> {
     let state = state.inner().clone();
     tauri::async_runtime::spawn_blocking(move || {
         run_install(&state, &request, &mut |e| {
@@ -465,7 +542,11 @@ pub async fn install(app: AppHandle, state: AppStateRef<'_>, request: InstallReq
 }
 
 #[tauri::command]
-pub async fn uninstall(app: AppHandle, state: AppStateRef<'_>, delete_data: bool) -> Result<OpResult, String> {
+pub async fn uninstall(
+    app: AppHandle,
+    state: AppStateRef<'_>,
+    delete_data: bool,
+) -> Result<OpResult, String> {
     let state = state.inner().clone();
     tauri::async_runtime::spawn_blocking(move || {
         run_uninstall(&state, delete_data, &mut |e| {

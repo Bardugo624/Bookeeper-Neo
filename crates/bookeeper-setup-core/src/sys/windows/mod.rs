@@ -24,12 +24,16 @@ pub struct WindowsSystem {
 
 impl WindowsSystem {
     pub fn new() -> Self {
-        WindowsSystem { registry_root: String::new() }
+        WindowsSystem {
+            registry_root: String::new(),
+        }
     }
 
     /// For tests: every `HKCU` path becomes `<root>\<path>`.
     pub fn with_registry_root(root: &str) -> Self {
-        WindowsSystem { registry_root: root.trim_matches('\\').to_string() }
+        WindowsSystem {
+            registry_root: root.trim_matches('\\').to_string(),
+        }
     }
 }
 

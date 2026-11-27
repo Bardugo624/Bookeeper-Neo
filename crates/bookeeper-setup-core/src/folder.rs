@@ -24,7 +24,11 @@ pub fn target_for_choice(chosen: &Path, chosen_is_empty: bool) -> PathBuf {
     if chosen_is_empty || last.eq_ignore_ascii_case("Bookeeper") {
         return chosen.to_path_buf();
     }
-    let sep = if trimmed.contains('\\') || !trimmed.contains('/') { '\\' } else { '/' };
+    let sep = if trimmed.contains('\\') || !trimmed.contains('/') {
+        '\\'
+    } else {
+        '/'
+    };
     PathBuf::from(format!("{trimmed}{sep}Bookeeper"))
 }
 
@@ -35,7 +39,10 @@ pub fn check_path(dir: &Path) -> Option<FolderProblem> {
         return Some(FolderProblem::Network);
     }
     let b = s.as_bytes();
-    let drive_abs = b.len() >= 3 && b[0].is_ascii_alphabetic() && b[1] == b':' && (b[2] == b'\\' || b[2] == b'/');
+    let drive_abs = b.len() >= 3
+        && b[0].is_ascii_alphabetic()
+        && b[1] == b':'
+        && (b[2] == b'\\' || b[2] == b'/');
     if !drive_abs {
         return Some(FolderProblem::NotAbsolute);
     }
@@ -46,7 +53,12 @@ pub fn check_path(dir: &Path) -> Option<FolderProblem> {
 }
 
 /// The target disk needs `installed_bytes` plus a margin; the temp disk the installer's size.
-pub fn check_space(free_target: u64, free_temp: u64, installed_bytes: u64, payload_bytes: u64) -> Option<FolderProblem> {
+pub fn check_space(
+    free_target: u64,
+    free_temp: u64,
+    installed_bytes: u64,
+    payload_bytes: u64,
+) -> Option<FolderProblem> {
     if free_target < installed_bytes.saturating_add(SPACE_MARGIN) {
         return Some(FolderProblem::TooLittleSpace { free: free_target });
     }
@@ -62,32 +74,65 @@ mod tests {
 
     #[test]
     fn target_appends_bookeeper_to_non_empty_folder() {
-        assert_eq!(target_for_choice(Path::new(r"C:\Users\Mario Rossi\Documenti"), false), PathBuf::from(r"C:\Users\Mario Rossi\Documenti\Bookeeper"));
-        assert_eq!(target_for_choice(Path::new(r"D:\Libri\"), false), PathBuf::from(r"D:\Libri\Bookeeper"));
-        assert_eq!(target_for_choice(Path::new("/home/a"), false), PathBuf::from("/home/a/Bookeeper"));
-        assert_eq!(target_for_choice(Path::new(r"C:\Vuota"), true), PathBuf::from(r"C:\Vuota"));
+        assert_eq!(
+            target_for_choice(Path::new(r"C:\Users\Mario Rossi\Documenti"), false),
+            PathBuf::from(r"C:\Users\Mario Rossi\Documenti\Bookeeper")
+        );
+        assert_eq!(
+            target_for_choice(Path::new(r"D:\Libri\"), false),
+            PathBuf::from(r"D:\Libri\Bookeeper")
+        );
+        assert_eq!(
+            target_for_choice(Path::new("/home/a"), false),
+            PathBuf::from("/home/a/Bookeeper")
+        );
+        assert_eq!(
+            target_for_choice(Path::new(r"C:\Vuota"), true),
+            PathBuf::from(r"C:\Vuota")
+        );
     }
 
     #[test]
     fn target_keeps_folder_named_bookeeper() {
-        assert_eq!(target_for_choice(Path::new(r"C:\App\Bookeeper"), false), PathBuf::from(r"C:\App\Bookeeper"));
-        assert_eq!(target_for_choice(Path::new(r"C:\App\bookeeper"), false), PathBuf::from(r"C:\App\bookeeper"));
+        assert_eq!(
+            target_for_choice(Path::new(r"C:\App\Bookeeper"), false),
+            PathBuf::from(r"C:\App\Bookeeper")
+        );
+        assert_eq!(
+            target_for_choice(Path::new(r"C:\App\bookeeper"), false),
+            PathBuf::from(r"C:\App\bookeeper")
+        );
     }
 
     #[test]
     fn check_space_margin_and_temp() {
         let mb = 1024 * 1024;
         assert_eq!(check_space(91 * mb, 100 * mb, 41 * mb, 30 * mb), None);
-        assert_eq!(check_space(91 * mb - 1, 100 * mb, 41 * mb, 30 * mb), Some(FolderProblem::TooLittleSpace { free: 91 * mb - 1 }));
-        assert_eq!(check_space(500 * mb, 30 * mb - 1, 41 * mb, 30 * mb), Some(FolderProblem::TempTooSmall { free: 30 * mb - 1 }));
+        assert_eq!(
+            check_space(91 * mb - 1, 100 * mb, 41 * mb, 30 * mb),
+            Some(FolderProblem::TooLittleSpace { free: 91 * mb - 1 })
+        );
+        assert_eq!(
+            check_space(500 * mb, 30 * mb - 1, 41 * mb, 30 * mb),
+            Some(FolderProblem::TempTooSmall { free: 30 * mb - 1 })
+        );
         assert_eq!(check_space(500 * mb, 30 * mb, 41 * mb, 30 * mb), None);
     }
 
     #[test]
     fn check_path_rules() {
         assert_eq!(check_path(Path::new(r"C:\Users\x\Bookeeper")), None);
-        assert_eq!(check_path(Path::new(r"\\server\share\x")), Some(FolderProblem::Network));
-        assert_eq!(check_path(Path::new(r"relative\x")), Some(FolderProblem::NotAbsolute));
-        assert_eq!(check_path(Path::new(&format!(r"C:\{}", "a".repeat(200)))), Some(FolderProblem::TooLong));
+        assert_eq!(
+            check_path(Path::new(r"\\server\share\x")),
+            Some(FolderProblem::Network)
+        );
+        assert_eq!(
+            check_path(Path::new(r"relative\x")),
+            Some(FolderProblem::NotAbsolute)
+        );
+        assert_eq!(
+            check_path(Path::new(&format!(r"C:\{}", "a".repeat(200)))),
+            Some(FolderProblem::TooLong)
+        );
     }
 }

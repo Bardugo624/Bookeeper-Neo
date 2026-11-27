@@ -22,7 +22,11 @@ pub struct Reporter<'a> {
 
 impl<'a> Reporter<'a> {
     pub fn new(model: ProgressModel, report: &'a mut dyn FnMut(Snapshot)) -> Self {
-        Self { model, report, last: Instant::now() }
+        Self {
+            model,
+            report,
+            last: Instant::now(),
+        }
     }
 
     pub fn signal(&mut self, s: Signal) -> Snapshot {
@@ -92,7 +96,10 @@ pub fn create_private_dir(parent: &Path) -> io::Result<PathBuf> {
             Err(e) => return Err(e),
         }
     }
-    Err(io::Error::new(io::ErrorKind::AlreadyExists, "no free temp folder name"))
+    Err(io::Error::new(
+        io::ErrorKind::AlreadyExists,
+        "no free temp folder name",
+    ))
 }
 
 /// Removes a folder tree, retrying briefly: a process that just exited may still hold files.
@@ -121,7 +128,11 @@ pub fn sha256_hex(r: &mut impl Read, mut each: impl FnMut()) -> io::Result<Strin
         hasher.update(&buf[..n]);
         each();
     }
-    Ok(hasher.finalize().iter().map(|b| format!("{b:02x}")).collect())
+    Ok(hasher
+        .finalize()
+        .iter()
+        .map(|b| format!("{b:02x}"))
+        .collect())
 }
 
 /// Size of the largest `ns*.tmp` file directly inside `dir` (NSIS's unpack file).
@@ -139,6 +150,11 @@ pub fn largest_nsis_tmp(dir: &Path) -> Option<u64> {
 
 /// Case- and separator-insensitive comparison of two folder or file paths.
 pub fn same_path(a: &Path, b: &Path) -> bool {
-    let norm = |p: &Path| p.to_string_lossy().replace('/', "\\").trim_end_matches('\\').to_lowercase();
+    let norm = |p: &Path| {
+        p.to_string_lossy()
+            .replace('/', "\\")
+            .trim_end_matches('\\')
+            .to_lowercase()
+    };
     norm(a) == norm(b)
 }

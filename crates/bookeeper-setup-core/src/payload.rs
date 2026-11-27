@@ -115,7 +115,11 @@ pub fn locate<R: Read + Seek>(r: &mut R, len: u64) -> Result<Option<Located>, Pa
     r.seek(SeekFrom::Start(after_payload))?;
     r.read_exact(&mut json)?;
     let meta = parse_meta(&json, payload_len)?;
-    Ok(Some(Located { meta, payload_offset, payload_len }))
+    Ok(Some(Located {
+        meta,
+        payload_offset,
+        payload_len,
+    }))
 }
 
 /// Start of the PE certificate table, if the file is a PE whose table ends at the
@@ -179,7 +183,9 @@ fn certificate_start<R: Read + Seek>(r: &mut R, len: u64) -> Result<Option<u64>,
         };
         if !has_tail(r, off, &mut tail)? {
             for n in 1..=pad {
-                if zeros[pad - n..].iter().all(|b| *b == 0) && has_tail(r, off - n as u64, &mut tail)? {
+                if zeros[pad - n..].iter().all(|b| *b == 0)
+                    && has_tail(r, off - n as u64, &mut tail)?
+                {
                     end = off - n as u64;
                     break;
                 }
@@ -216,14 +222,19 @@ mod tests {
     fn file(setup: &[u8], payload: &[u8]) -> Vec<u8> {
         let mut f = setup.to_vec();
         f.extend_from_slice(payload);
-        f.extend(encode_tail(&sample(payload.len() as u64), payload.len() as u64));
+        f.extend(encode_tail(
+            &sample(payload.len() as u64),
+            payload.len() as u64,
+        ));
         f
     }
 
     #[test]
     fn locate_reads_tail_written_by_encode_tail() {
         let f = file(b"SETUP-BYTES", b"installer-bytes");
-        let found = locate(&mut Cursor::new(&f), f.len() as u64).unwrap().unwrap();
+        let found = locate(&mut Cursor::new(&f), f.len() as u64)
+            .unwrap()
+            .unwrap();
         assert_eq!(found.meta, sample(15));
         assert_eq!(found.payload_offset, 11);
         assert_eq!(found.payload_len, 15);
@@ -298,13 +309,17 @@ mod tests {
         f[dir..dir + 4].copy_from_slice(&(cert_off as u32).to_le_bytes());
         f[dir + 4..dir + 8].copy_from_slice(&(cert.len() as u32).to_le_bytes());
 
-        let found = locate(&mut Cursor::new(&f), f.len() as u64).unwrap().unwrap();
+        let found = locate(&mut Cursor::new(&f), f.len() as u64)
+            .unwrap()
+            .unwrap();
         assert_eq!(found.payload_offset, setup_len as u64);
         assert_eq!(found.payload_len, 9);
 
         // Without the directory entry the certificate bytes hide the tail.
         f[dir..dir + 8].fill(0);
-        assert!(locate(&mut Cursor::new(&f), f.len() as u64).unwrap().is_none());
+        assert!(locate(&mut Cursor::new(&f), f.len() as u64)
+            .unwrap()
+            .is_none());
     }
 
     #[test]
@@ -320,7 +335,9 @@ mod tests {
         let dir = 0x80 + 24 + 112 + 4 * 8;
         f[dir..dir + 4].copy_from_slice(&(cert_off as u32).to_le_bytes());
         f[dir + 4..dir + 8].copy_from_slice(&(cert.len() as u32).to_le_bytes());
-        let found = locate(&mut Cursor::new(&f), f.len() as u64).unwrap().unwrap();
+        let found = locate(&mut Cursor::new(&f), f.len() as u64)
+            .unwrap()
+            .unwrap();
         assert_eq!(found.payload_offset, setup_len as u64);
     }
 

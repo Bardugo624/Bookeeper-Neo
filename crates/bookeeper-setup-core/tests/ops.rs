@@ -12,7 +12,10 @@ use std::time::Duration;
 const MAIN: &[u8] = b"the real bookeeper-desktop executable, long enough to matter";
 
 fn hex(b: &[u8]) -> String {
-    Sha256::digest(b).iter().map(|x| format!("{x:02x}")).collect()
+    Sha256::digest(b)
+        .iter()
+        .map(|x| format!("{x:02x}"))
+        .collect()
 }
 
 struct Fixture {
@@ -30,8 +33,16 @@ fn fixture() -> Fixture {
     let installer = b"fake NSIS installer bytes".repeat(20);
     let meta = Meta {
         version: "2.2.0".into(),
-        payload: FileMeta { name: "Bookeeper_2.2.0_x64-setup.exe".into(), bytes: installer.len() as u64, sha256: hex(&installer) },
-        main: FileMeta { name: "bookeeper-desktop.exe".into(), bytes: MAIN.len() as u64, sha256: hex(MAIN) },
+        payload: FileMeta {
+            name: "Bookeeper_2.2.0_x64-setup.exe".into(),
+            bytes: installer.len() as u64,
+            sha256: hex(&installer),
+        },
+        main: FileMeta {
+            name: "bookeeper-desktop.exe".into(),
+            bytes: MAIN.len() as u64,
+            sha256: hex(MAIN),
+        },
         installed_bytes: 5 * 1024 * 1024,
     };
     let mut bytes = b"MZ light setup program".to_vec();
@@ -40,12 +51,23 @@ fn fixture() -> Fixture {
     let setup = root.join("Bookeeper-Setup-2.2.0.exe");
     std::fs::write(&setup, bytes).unwrap();
     let log = Log::open(&*sys);
-    Fixture { _tmp: tmp, root, sys, setup, log }
+    Fixture {
+        _tmp: tmp,
+        root,
+        sys,
+        setup,
+        log,
+    }
 }
 
 /// The folder NSIS was told to use, read back from the raw arguments.
 fn dir_of(args: &str) -> PathBuf {
-    PathBuf::from(args.split("/D=").nth(1).or_else(|| args.split("_?=").nth(1)).unwrap())
+    PathBuf::from(
+        args.split("/D=")
+            .nth(1)
+            .or_else(|| args.split("_?=").nth(1))
+            .unwrap(),
+    )
 }
 
 /// A fake NSIS installer that writes `main` and an uninstaller.
@@ -60,7 +82,12 @@ fn fake_nsis(f: &Fixture, main: &'static [u8]) {
 }
 
 fn opts(dir: &Path, mode: Mode) -> InstallOptions {
-    InstallOptions { dir: dir.to_path_buf(), desktop_icon: true, autostart: false, mode }
+    InstallOptions {
+        dir: dir.to_path_buf(),
+        desktop_icon: true,
+        autostart: false,
+        mode,
+    }
 }
 
 fn run_install(f: &Fixture, o: &InstallOptions) -> (Result<(), OpError>, Vec<Snapshot>) {
@@ -80,7 +107,11 @@ fn install_runs_nsis_with_exact_args() {
     assert_eq!(runs.len(), 1);
     assert_eq!(runs[0].raw_args, format!("/S /D={}", dir.display()));
     assert!(runs[0].program.starts_with(f.sys.temp_dir()));
-    let envs: Vec<_> = runs[0].env.iter().map(|(k, _)| k.to_string_lossy().into_owned()).collect();
+    let envs: Vec<_> = runs[0]
+        .env
+        .iter()
+        .map(|(k, _)| k.to_string_lossy().into_owned())
+        .collect();
     assert!(envs.contains(&"TEMP".to_string()) && envs.contains(&"TMP".to_string()));
     // The private TEMP sits inside the extraction folder.
     let temp_value = PathBuf::from(&runs[0].env[0].1);
@@ -94,7 +125,10 @@ fn update_and_repair_use_the_update_line() {
     let dir = f.root.join("App");
     let (r, _) = run_install(&f, &opts(&dir, Mode::Update));
     assert_eq!(r, Ok(()));
-    assert_eq!(f.sys.runs.lock().unwrap()[0].raw_args, format!("/S /UPDATE /D={}", dir.display()));
+    assert_eq!(
+        f.sys.runs.lock().unwrap()[0].raw_args,
+        format!("/S /UPDATE /D={}", dir.display())
+    );
 }
 
 #[test]
@@ -168,11 +202,23 @@ fn update_ignores_old_main_until_rewritten() {
         RunOutcome::Exited(0)
     });
     let mut seen: Vec<(u8, f32)> = vec![];
-    let r = ops::install(&*f.sys, &f.setup, &opts(&dir, Mode::Repair), &mut |s| seen.push((phase.load(Ordering::SeqCst), s.fraction)), &f.log);
+    let r = ops::install(
+        &*f.sys,
+        &f.setup,
+        &opts(&dir, Mode::Repair),
+        &mut |s| seen.push((phase.load(Ordering::SeqCst), s.fraction)),
+        &f.log,
+    );
     assert_eq!(r, Ok(()));
     let before: Vec<_> = seen.iter().filter(|(p, _)| *p == 1 || *p == 2).collect();
-    assert!(before.len() >= 3, "expected polls while waiting: {before:?}");
-    assert!(before.iter().all(|(_, fr)| *fr < 0.9), "old main must not count: {before:?}");
+    assert!(
+        before.len() >= 3,
+        "expected polls while waiting: {before:?}"
+    );
+    assert!(
+        before.iter().all(|(_, fr)| *fr < 0.9),
+        "old main must not count: {before:?}"
+    );
     assert!(seen.iter().any(|(_, fr)| *fr >= 0.9));
 }
 
@@ -184,7 +230,11 @@ fn install_removes_only_our_desktop_shortcut() {
         let dir = f.root.join("App");
         let lnk = f.sys.desktop_dir().join("Bookeeper.lnk");
         std::fs::write(&lnk, b"lnk").unwrap();
-        let target = if target_is_ours { dir.join("bookeeper-desktop.exe") } else { f.root.join("Other").join("bookeeper-desktop.exe") };
+        let target = if target_is_ours {
+            dir.join("bookeeper-desktop.exe")
+        } else {
+            f.root.join("Other").join("bookeeper-desktop.exe")
+        };
         f.sys.shortcuts.lock().unwrap().insert(lnk.clone(), target);
         let mut o = opts(&dir, Mode::Install);
         o.desktop_icon = false;
@@ -201,7 +251,11 @@ fn install_keeps_desktop_shortcut_when_wanted() {
     let dir = f.root.join("App");
     let lnk = f.sys.desktop_dir().join("Bookeeper.lnk");
     std::fs::write(&lnk, b"lnk").unwrap();
-    f.sys.shortcuts.lock().unwrap().insert(lnk.clone(), dir.join("bookeeper-desktop.exe"));
+    f.sys
+        .shortcuts
+        .lock()
+        .unwrap()
+        .insert(lnk.clone(), dir.join("bookeeper-desktop.exe"));
     let (r, _) = run_install(&f, &opts(&dir, Mode::Install));
     assert_eq!(r, Ok(()));
     assert!(lnk.exists());
@@ -215,11 +269,17 @@ fn install_enables_autostart_when_asked() {
     let mut o = opts(&dir, Mode::Install);
     o.autostart = true;
     assert_eq!(run_install(&f, &o).0, Ok(()));
-    assert_eq!(*f.sys.autostart.lock().unwrap(), Some(dir.join("bookeeper-desktop.exe")));
+    assert_eq!(
+        *f.sys.autostart.lock().unwrap(),
+        Some(dir.join("bookeeper-desktop.exe"))
+    );
 
     let f = fixture();
     fake_nsis(&f, MAIN);
-    assert_eq!(run_install(&f, &opts(&f.root.join("App"), Mode::Install)).0, Ok(()));
+    assert_eq!(
+        run_install(&f, &opts(&f.root.join("App"), Mode::Install)).0,
+        Ok(())
+    );
     assert_eq!(*f.sys.autostart.lock().unwrap(), None);
 }
 
@@ -227,15 +287,27 @@ fn install_enables_autostart_when_asked() {
 fn install_cleans_temp() {
     let f = fixture();
     fake_nsis(&f, MAIN);
-    assert_eq!(run_install(&f, &opts(&f.root.join("App"), Mode::Install)).0, Ok(()));
-    let left: Vec<_> = std::fs::read_dir(f.sys.temp_dir()).unwrap().flatten().map(|e| e.file_name().to_string_lossy().into_owned()).collect();
+    assert_eq!(
+        run_install(&f, &opts(&f.root.join("App"), Mode::Install)).0,
+        Ok(())
+    );
+    let left: Vec<_> = std::fs::read_dir(f.sys.temp_dir())
+        .unwrap()
+        .flatten()
+        .map(|e| e.file_name().to_string_lossy().into_owned())
+        .collect();
     assert_eq!(left, vec!["Bookeeper-Setup.log".to_string()]);
 
     // Also after a failure.
     let f = fixture();
     f.sys.on_run(|_| RunOutcome::Exited(1));
-    assert!(run_install(&f, &opts(&f.root.join("App"), Mode::Install)).0.is_err());
-    let left = std::fs::read_dir(f.sys.temp_dir()).unwrap().flatten().count();
+    assert!(run_install(&f, &opts(&f.root.join("App"), Mode::Install))
+        .0
+        .is_err());
+    let left = std::fs::read_dir(f.sys.temp_dir())
+        .unwrap()
+        .flatten()
+        .count();
     assert_eq!(left, 1);
 }
 
@@ -257,7 +329,10 @@ fn install_progress_is_monotonic_and_finishes() {
     let (r, snaps) = run_install(&f, &opts(&f.root.join("App"), Mode::Install));
     assert_eq!(r, Ok(()));
     assert!(snaps.len() > 5);
-    assert!(snaps.windows(2).all(|w| w[1].fraction >= w[0].fraction), "went backwards");
+    assert!(
+        snaps.windows(2).all(|w| w[1].fraction >= w[0].fraction),
+        "went backwards"
+    );
     let last = snaps.last().unwrap();
     assert!(last.done && (last.fraction - 1.0).abs() < 1e-6);
     assert!(snaps[..snaps.len() - 1].iter().all(|s| !s.done));
@@ -287,7 +362,11 @@ fn seed_data(f: &Fixture) {
     std::fs::write(a.join("bookeeper.sqlite"), vec![1u8; 1000]).unwrap();
     std::fs::write(a.join("ebooks").join("b.epub"), vec![1u8; 500]).unwrap();
     std::fs::write(l.join("cache.bin"), vec![1u8; 24]).unwrap();
-    *f.sys.credentials.lock().unwrap() = vec!["token.org.bookeeper.desktop".into(), "orfana.org.bookeeper.desktop".into(), "altra.app".into()];
+    *f.sys.credentials.lock().unwrap() = vec![
+        "token.org.bookeeper.desktop".into(),
+        "orfana.org.bookeeper.desktop".into(),
+        "altra.app".into(),
+    ];
     let mut k = f.sys.registry_keys.lock().unwrap();
     k.insert(r"Software\bookeeper".into());
     k.insert(r"Software\bookeeper\Bookeeper".into());
@@ -335,7 +414,10 @@ fn uninstall_refuses_when_app_running_and_reports_codes() {
     assert_eq!(run_uninstall(&f, &dir, false).0, Err(OpError::AppRunning));
     *f.sys.running.lock().unwrap() = false;
     f.sys.on_run(|_| RunOutcome::Exited(5));
-    assert_eq!(run_uninstall(&f, &dir, false).0, Err(OpError::NsisFailed { code: 5 }));
+    assert_eq!(
+        run_uninstall(&f, &dir, false).0,
+        Err(OpError::NsisFailed { code: 5 })
+    );
     f.sys.on_run(|_| RunOutcome::TimedOut);
     assert_eq!(run_uninstall(&f, &dir, false).0, Err(OpError::TimedOut));
 }
@@ -346,8 +428,17 @@ fn uninstall_keep_leaves_data_and_credentials() {
     let dir = seed_installation(&f);
     seed_data(&f);
     assert_eq!(run_uninstall(&f, &dir, false).0, Ok(()));
-    assert!(f.sys.app_data().join("org.bookeeper.desktop").join("bookeeper.sqlite").exists());
-    assert!(f.sys.local_app_data().join("org.bookeeper.desktop").exists());
+    assert!(f
+        .sys
+        .app_data()
+        .join("org.bookeeper.desktop")
+        .join("bookeeper.sqlite")
+        .exists());
+    assert!(f
+        .sys
+        .local_app_data()
+        .join("org.bookeeper.desktop")
+        .exists());
     assert_eq!(f.sys.credentials.lock().unwrap().len(), 3);
     assert_eq!(f.sys.registry_keys.lock().unwrap().len(), 2);
 }
@@ -358,7 +449,10 @@ fn uninstall_delete_removes_all_suffixed_credentials() {
     let dir = seed_installation(&f);
     seed_data(&f);
     assert_eq!(run_uninstall(&f, &dir, true).0, Ok(()));
-    assert_eq!(*f.sys.credentials.lock().unwrap(), vec!["altra.app".to_string()]);
+    assert_eq!(
+        *f.sys.credentials.lock().unwrap(),
+        vec!["altra.app".to_string()]
+    );
 }
 
 #[test]
@@ -368,7 +462,11 @@ fn uninstall_delete_removes_data_dirs_and_registry() {
     seed_data(&f);
     assert_eq!(run_uninstall(&f, &dir, true).0, Ok(()));
     assert!(!f.sys.app_data().join("org.bookeeper.desktop").exists());
-    assert!(!f.sys.local_app_data().join("org.bookeeper.desktop").exists());
+    assert!(!f
+        .sys
+        .local_app_data()
+        .join("org.bookeeper.desktop")
+        .exists());
     assert!(f.sys.registry_keys.lock().unwrap().is_empty());
 }
 
@@ -380,7 +478,13 @@ fn data_summary_reports_library_and_ebooks() {
     seed_data(&f);
     let s = ops::data_summary(&*f.sys);
     assert_eq!((s.bytes, s.has_library, s.has_ebooks), (1524, true, true));
-    std::fs::remove_dir_all(f.sys.app_data().join("org.bookeeper.desktop").join("ebooks")).unwrap();
+    std::fs::remove_dir_all(
+        f.sys
+            .app_data()
+            .join("org.bookeeper.desktop")
+            .join("ebooks"),
+    )
+    .unwrap();
     let s = ops::data_summary(&*f.sys);
     assert_eq!((s.bytes, s.has_library, s.has_ebooks), (1024, true, false));
 }
@@ -391,11 +495,23 @@ fn read_state_strips_quotes_and_requires_main_exe() {
     assert_eq!(ops::read_state(&*f.sys), None);
     let dir = f.root.join("Mario Rossi").join("Bookeeper");
     std::fs::create_dir_all(&dir).unwrap();
-    *f.sys.installed.lock().unwrap() = Some(InstallState { dir: PathBuf::from(format!("\"{}\"", dir.display())), version: "2.1.0".into() });
+    *f.sys.installed.lock().unwrap() = Some(InstallState {
+        dir: PathBuf::from(format!("\"{}\"", dir.display())),
+        version: "2.1.0".into(),
+    });
     assert_eq!(ops::read_state(&*f.sys), None, "no main exe yet");
     std::fs::write(dir.join("bookeeper-desktop.exe"), MAIN).unwrap();
-    assert_eq!(ops::read_state(&*f.sys), Some(InstallState { dir: dir.clone(), version: "2.1.0".into() }));
-    *f.sys.installed.lock().unwrap() = Some(InstallState { dir: dir.clone(), version: "2.1.0".into() });
+    assert_eq!(
+        ops::read_state(&*f.sys),
+        Some(InstallState {
+            dir: dir.clone(),
+            version: "2.1.0".into()
+        })
+    );
+    *f.sys.installed.lock().unwrap() = Some(InstallState {
+        dir: dir.clone(),
+        version: "2.1.0".into(),
+    });
     assert!(ops::read_state(&*f.sys).is_some());
 }
 

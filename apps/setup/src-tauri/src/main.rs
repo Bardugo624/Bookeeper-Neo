@@ -6,7 +6,9 @@ use bookeeper_setup_lib::{commands, route, run_window, Route};
 
 #[cfg(windows)]
 fn restrict_dll_search() {
-    use windows_sys::Win32::System::LibraryLoader::{SetDefaultDllDirectories, LOAD_LIBRARY_SEARCH_SYSTEM32};
+    use windows_sys::Win32::System::LibraryLoader::{
+        SetDefaultDllDirectories, LOAD_LIBRARY_SEARCH_SYSTEM32,
+    };
     // SAFETY: plain Win32 call with a valid flag, made before anything else loads a DLL.
     unsafe {
         SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_SYSTEM32);
@@ -66,7 +68,10 @@ fn main() {
         };
         std::process::exit(code);
     }
-    debug_assert!(matches!(invocation, Invocation::Gui | Invocation::SmokeUi | Invocation::Uninstall(_)));
+    debug_assert!(matches!(
+        invocation,
+        Invocation::Gui | Invocation::SmokeUi | Invocation::Uninstall(_)
+    ));
     drop(platform);
     run_window(smoke, uninstall, setup_exe);
 }

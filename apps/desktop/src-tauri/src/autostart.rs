@@ -28,5 +28,10 @@ pub fn get<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> Result<bool, String>
 pub fn set<R: tauri::Runtime>(app: &tauri::AppHandle<R>, on: bool) -> Result<(), String> {
     use tauri_plugin_autostart::ManagerExt;
     let launch = app.autolaunch();
-    if on { launch.enable() } else { launch.disable() }.map_err(|e| e.to_string())
+    if on {
+        launch.enable()
+    } else {
+        launch.disable()
+    }
+    .map_err(|e| e.to_string())
 }

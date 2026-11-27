@@ -30,7 +30,9 @@ fn known_folder(id: &GUID) -> Option<PathBuf> {
 }
 
 fn env_or_empty(name: &str) -> PathBuf {
-    std::env::var_os(name).map(PathBuf::from).unwrap_or_default()
+    std::env::var_os(name)
+        .map(PathBuf::from)
+        .unwrap_or_default()
 }
 
 pub fn app_data() -> PathBuf {
@@ -46,9 +48,8 @@ pub fn desktop_dir() -> PathBuf {
 }
 
 pub fn programs_dir() -> PathBuf {
-    known_folder(&FOLDERID_Programs).unwrap_or_else(|| {
-        env_or_empty("APPDATA").join(r"Microsoft\Windows\Start Menu\Programs")
-    })
+    known_folder(&FOLDERID_Programs)
+        .unwrap_or_else(|| env_or_empty("APPDATA").join(r"Microsoft\Windows\Start Menu\Programs"))
 }
 
 type GetTempPath2W = unsafe extern "system" fn(u32, *mut u16) -> u32;
