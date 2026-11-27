@@ -11,6 +11,7 @@
     "dev:mobile": "npm run dev --workspace=apps/mobile",
     "test": "npm run test --if-present --workspace=packages --workspace=apps",
     "typecheck": "npm run typecheck --if-present --workspace=packages --workspace=apps",
+    "bk": "node scripts/bk.mjs",
     "test:scripts": "node --test \"scripts/**/*.test.mjs\"",
     "build:2": "npm run build --if-present --workspace=packages --workspace=apps"
   }

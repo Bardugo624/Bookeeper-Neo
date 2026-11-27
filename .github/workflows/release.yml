@@ -407,6 +407,12 @@ jobs:
       VPS_PORT: "22"
       VPS_HOST_KEY: "SHA256:aT+GlEdo8ocxbB3WUGXnDAo7j7dotW8LepYZELK2Uj8"
       VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+      R2_ACCOUNT_ID: ${{ vars.R2_ACCOUNT_ID }}
+      R2_BUCKET: ${{ vars.R2_BUCKET }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      UPDATES_BASE: ${{ vars.UPDATES_BASE || 'https://updates.neokeeper.dev/v2' }}
+      UPDATES_REDIRECT: ${{ vars.UPDATES_REDIRECT }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -417,23 +423,53 @@ jobs:
           pattern: updates-*
           path: updates
           merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: installers-*
+          path: installers
+          merge-multiple: true
       - name: Is there anything to publish
         id: gate
         run: |
-          if [ -z "$VPS_SSH_KEY" ]; then
-            echo "::warning::VPS_SSH_KEY is not set: updates are not published"
-            echo "go=false" >> "$GITHUB_OUTPUT"
-          elif ! ls updates/*.sig >/dev/null 2>&1; then
+          signed=true
+          if ! ls updates/*.sig >/dev/null 2>&1; then
+            signed=false
             echo "::warning::No signed update artifacts: updates are not published"
-            echo "go=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "go=true" >> "$GITHUB_OUTPUT"
           fi
+          missing=""
+          for n in R2_ACCOUNT_ID R2_BUCKET AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY; do
+            [ -n "${!n}" ] || missing="$missing $n"
+          done
+          if [ -n "$missing" ]; then
+            echo "::warning::R2 is not published, missing:$missing (R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY are repository secrets, the others variables)"
+          fi
+          if [ -z "$missing" ] && [ "$signed" = true ]; then
+            echo "r2=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "r2=false" >> "$GITHUB_OUTPUT"
+          fi
+          if [ -z "$VPS_SSH_KEY" ]; then
+            echo "::warning::VPS_SSH_KEY is not set: the VPS is not updated"
+          fi
+          if [ "$UPDATES_REDIRECT" = on ]; then
+            echo "::warning::UPDATES_REDIRECT is on: the VPS is not updated, R2 serves the updates"
+          fi
+          if [ -n "$VPS_SSH_KEY" ] && [ "$UPDATES_REDIRECT" != on ] && [ "$signed" = true ]; then
+            echo "vps=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "vps=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Release notes
+        if: steps.gate.outputs.r2 == 'true' || steps.gate.outputs.vps == 'true'
+        run: node scripts/release-notes.mjs --version "$VERSION" --out release-notes.md
+      - name: Publish to R2
+        if: steps.gate.outputs.r2 == 'true'
+        run: |
+          node scripts/updates-r2.mjs publish --version "$VERSION" --updates updates --installers installers --notes-file release-notes.md --base "$UPDATES_BASE"
       - name: Manifest
         id: manifest
-        if: steps.gate.outputs.go == 'true'
+        if: steps.gate.outputs.vps == 'true'
         run: |
-          node scripts/release-notes.mjs --version "$VERSION" --out release-notes.md
           channel=$(node scripts/update-manifest.mjs --dir updates --version "$VERSION" \
             --base-url https://app.neokeeper.dev/updates \
             --notes-file release-notes.md \
@@ -441,35 +477,13 @@ jobs:
           echo "channel=${channel}" >> "$GITHUB_OUTPUT"
           cat latest.json
       - name: SSH setup
-        if: steps.gate.outputs.go == 'true'
-        run: |
-          mkdir -p ~/.ssh && chmod 700 ~/.ssh
-          if printf '%s' "$VPS_SSH_KEY" | grep -q 'BEGIN'; then
-            printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_vps
-          else
-            printf '%s' "$VPS_SSH_KEY" | tr -d ' \r\n' | base64 -d > ~/.ssh/id_vps
-          fi
-          chmod 600 ~/.ssh/id_vps
-          ssh-keyscan -p "$VPS_PORT" -t ed25519 "$VPS_HOST" > ~/.ssh/known_hosts 2>/dev/null
-          if ! ssh-keygen -lf ~/.ssh/known_hosts | grep -qF "$VPS_HOST_KEY"; then
-            echo "::error::The host key of the VPS is not the expected one"
-            exit 1
-          fi
-          cat > ~/.ssh/config <<CFG
-          Host vps
-            HostName $VPS_HOST
-            User $VPS_USER
-            Port $VPS_PORT
-            IdentityFile ~/.ssh/id_vps
-            IdentitiesOnly yes
-            BatchMode yes
-            StrictHostKeyChecking yes
-            ConnectTimeout 15
-          CFG
-          chmod 600 ~/.ssh/config
-          ssh vps true
+        if: steps.gate.outputs.vps == 'true'
+        uses: ./.github/actions/vps-ssh
+        with:
+          key: ${{ secrets.VPS_SSH_KEY }}
+          host-key: ${{ env.VPS_HOST_KEY }}
       - name: Upload the files, then the manifest
-        if: steps.gate.outputs.go == 'true'
+        if: steps.gate.outputs.vps == 'true'
         env:
           CHANNEL: ${{ steps.manifest.outputs.channel }}
         run: |
