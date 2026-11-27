@@ -16,8 +16,8 @@ Leggi prima `docs/forge/fase-9b/CONTRATTO.md` e il design `docs/superpowers/spec
   2. **Dopo `Collect`:** assembla `out/installers/Bookeeper-Setup-${VERSION}.exe` con `assemble.mjs`:
      - Setup: il file copiato al passo 1;
      - installer: il `*-setup.exe` della cartella `bundle/nsis`;
-     - eseguibile: `bookeeper-desktop.exe` di `target/<TARGET>/release`.
-  3. **Prova di fumo:** `pwsh scripts/setup/smoke.ps1 -Setup <Setup completo> -Classic <installer NSIS> -Main <bookeeper-desktop.exe della build>`, con `BOOKEEPER_SETUP_ALLOW_ELEVATED=1` (i runner di GitHub girano da amministratore). Se fallisce, il job fallisce e la release non si pubblica.
+     - eseguibile: `bookeeper-desktop.exe` estratto con `7z` dall'installer NSIS. Non quello di `target/<TARGET>/release`: dopo il pacchetto, il bundler di Tauri rimette lì il binario senza il tipo di pacchetto che ha scritto in quello installato, e l'hash non coincide.
+  3. **Prova di fumo:** `pwsh scripts/setup/smoke.ps1 -Setup <Setup completo> -Classic <installer NSIS> -Main <bookeeper-desktop.exe estratto dall'installer>`, con `BOOKEEPER_SETUP_ALLOW_ELEVATED=1` (i runner di GitHub girano da amministratore). Se fallisce, il job fallisce e la release non si pubblica.
   4. **Dipendenze DLL:** stampa `dumpbin /dependents` del Setup leggero, trovando `dumpbin` con `vswhere`. Serve solo da informazione: se `dumpbin` manca, è un avviso.
 - **`release.yml`, job `desktop`, solo su macOS:**
   - `TAURI_BUNDLER_DMG_IGNORE_CI: "true"`;
