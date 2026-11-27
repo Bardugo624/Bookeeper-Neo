@@ -314,8 +314,9 @@ jobs:
         shell: bash
         run: |
           npm run tauri -w @bookeeper/setup -- build --no-bundle --target "$TARGET"
-          exe=$(ls target/"${TARGET}"/release/bookeeper-setup.exe apps/setup/src-tauri/target/"${TARGET}"/release/bookeeper-setup.exe 2>/dev/null | head -1)
-          if [ -z "$exe" ] || [ ! -f "$exe" ]; then
+          exe="target/${TARGET}/release/bookeeper-setup.exe"
+          [ -f "$exe" ] || exe="apps/setup/src-tauri/target/${TARGET}/release/bookeeper-setup.exe"
+          if [ ! -f "$exe" ]; then
             echo "::error::bookeeper-setup.exe was not built for ${TARGET}"
             exit 1
           fi
@@ -406,7 +407,7 @@ jobs:
         run: |
           bundle="target/${TARGET}/release/bundle"
           [ -d "$bundle" ] || bundle="apps/desktop/src-tauri/target/${TARGET}/release/bundle"
-          nsis=$(ls "$bundle"/nsis/*-setup.exe | head -1)
+          nsis=$(find "$bundle/nsis" -maxdepth 1 -name '*-setup.exe' 2>/dev/null | head -1 || true)
           main="target/${TARGET}/release/bookeeper-desktop.exe"
           [ -f "$main" ] || main="apps/desktop/src-tauri/target/${TARGET}/release/bookeeper-desktop.exe"
           [ -f "$nsis" ] && [ -f "$main" ] || { echo "::error::NSIS installer or bookeeper-desktop.exe not found"; exit 1; }
