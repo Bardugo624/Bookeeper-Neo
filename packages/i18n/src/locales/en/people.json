@@ -22,7 +22,9 @@
     "open": "Actions for {name}",
     "role": "Change role",
     "rename": "Rename",
-    "remove": "Remove"
+    "remove": "Remove",
+    "owner": "Make owner",
+    "leave": "Leave the library"
   },
   "role": {
     "title": "Change {name}’s role",
@@ -90,19 +92,5 @@
     "revokeLabel": "Revoke the {role} invitation, expires {date}",
     "error": "The pending invitations couldn’t be loaded. Try again in a moment.",
     "retry": "Try again"
-  },
-  "danger": {
-    "title": "Danger zone",
-    "leave": {
-      "title": "Leave the library",
-      "consequence": "Leave this library: your devices are disconnected, you are signed out here, and your reading status and wishlist are deleted."
-    },
-    "owner": {
-      "title": "Transfer ownership",
-      "consequence": "Another person becomes the owner and you become Admin: you cannot undo it yourself.",
-      "pickTitle": "Who becomes the owner?",
-      "legend": "New owner",
-      "next": "Continue"
-    }
   }
 }

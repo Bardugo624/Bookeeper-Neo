@@ -42,7 +42,7 @@ export function RestoreBlock({ ops }: { ops: BackupOps }) {
           disabled={ops.busy}
           onPick={restore.pick}
         />
-        {restore.file ? null : <p className={styles.note}>{t('backup.restore.needFile')}</p>}
+        {restore.file || restore.report ? null : <p className={styles.note}>{t('backup.restore.needFile')}</p>}
         {restore.error ? (
           <p className={styles.error} role="alert">
             {restore.error}

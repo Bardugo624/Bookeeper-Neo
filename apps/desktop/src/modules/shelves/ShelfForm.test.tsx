@@ -89,14 +89,17 @@ describe('edit cabinet', () => {
 });
 
 describe('delete cabinet', () => {
-  it('keeps the delete action in the danger zone at the bottom of the panel', async () => {
+  it('puts the neutral delete icon beside the pencil, with no danger zone', async () => {
     renderShelves(world({ shelves: [shelf(1, { name: 'Salotto' })] }));
     const panel = await screen.findByRole('complementary', { name: 'Dettagli di Salotto' });
-    const zone = within(panel).getByRole('region', { name: 'Zona pericolosa' });
-    expect(zone).toHaveTextContent('restano in biblioteca');
-    expect(within(zone).getByRole('button', { name: 'Elimina Salotto' })).toBeInTheDocument();
-    expect(within(panel).getByRole('button', { name: 'Modifica Salotto' })).toBeInTheDocument();
-    expect(panel.lastElementChild).toBe(zone);
+    expect(within(panel).queryByRole('region', { name: 'Zona pericolosa' })).toBeNull();
+    expect(within(panel).queryByText('Zona pericolosa')).toBeNull();
+    const edit = within(panel).getByRole('button', { name: 'Modifica Salotto' });
+    const del = within(panel).getByRole('button', { name: 'Elimina Salotto' });
+    expect(del.parentElement).toBe(edit.parentElement);
+    expect(edit.parentElement).toBe(panel.firstElementChild);
+    expect(del.className).not.toContain('toneDanger');
+    expect(del.className).not.toContain('danger');
   });
 
   it('asks first and says the placed books stay, unplaced', async () => {
@@ -106,6 +109,7 @@ describe('delete cabinet', () => {
     const dialog = await screen.findByRole('dialog');
     expect(dialog).toHaveTextContent('Il mobile «Salotto» sarà eliminato. I 2 libri collocati restano in biblioteca, ma risultano non collocati.');
     expect(platform.calls.some((c) => c.method === 'DELETE')).toBe(false);
+    expect(within(dialog).getByRole('button', { name: 'Elimina' }).className).toContain('danger');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Elimina' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(platform.calls.filter((c) => c.method === 'DELETE').map((c) => c.path)).toEqual(['/api/v1/shelves/s1']);

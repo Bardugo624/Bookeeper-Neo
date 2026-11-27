@@ -6,12 +6,12 @@ import { EXPORT_FORMATS, isExportFormat } from './transferModel';
 import { useExport } from './useExport';
 import styles from './TransferSection.module.css';
 
-export function ExportBlock() {
+export function ExportBlock({ alone = false }: { alone?: boolean }) {
   const t = useT();
   const exp = useExport();
 
   return (
-    <SettingsBlock title={t('transfer.export.title')} description={t('transfer.export.description')}>
+    <SettingsBlock span={alone ? 'full' : undefined} title={t('transfer.export.title')} description={t('transfer.export.description')}>
       <PillTabs
         variant="segmented"
         label={t('transfer.export.format.label')}

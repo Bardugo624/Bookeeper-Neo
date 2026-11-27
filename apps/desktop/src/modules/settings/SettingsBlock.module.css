@@ -5,6 +5,15 @@
   background: var(--bk-surface);
 }
 
+.full {
+  grid-column: 1 / -1;
+}
+
+/* Form fields stay at a readable width however wide the card is. */
+.body > :where(input, select, label, form) {
+  max-width: 28rem;
+}
+
 .title {
   margin: 0;
   font-size: 15px;

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import type { WishOut } from '@bookeeper/api';
-import { Button, DangerAction, DangerZone } from '@bookeeper/ui/base';
+import { Button } from '@bookeeper/ui/base';
 import { Dialog } from '@bookeeper/ui/overlays';
 import { useT } from '../../app/i18n';
 import { BottomSheet, apiErrorMessage } from '../../kit';
@@ -72,17 +72,9 @@ export function WishSheet({ wish, onClose }: { wish: WishOut; onClose: () => voi
         <Button variant="secondary" icon="pencil" onClick={() => goTo('edit')} disabled={busy}>
           {t('mwishlist.edit.button')}
         </Button>
-        <DangerZone title={t('mwishlist.danger.title')}>
-          <DangerAction
-            title={t('mwishlist.danger.delete')}
-            consequence={t('mwishlist.danger.consequence')}
-            action={
-              <Button variant="danger" icon="trash" className={styles.touch} onClick={() => goTo('delete')} disabled={busy}>
-                {t('mwishlist.delete.button')}
-              </Button>
-            }
-          />
-        </DangerZone>
+        <Button variant="secondary" icon="trash" className={styles.touch} onClick={() => goTo('delete')} disabled={busy}>
+          {t('mwishlist.delete.button')}
+        </Button>
       </div>
     );
   }

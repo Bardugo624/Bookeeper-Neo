@@ -8,7 +8,7 @@ export function TransferSection() {
   return (
     <>
       {can('admin') ? <ImportBlock /> : null}
-      <ExportBlock />
+      <ExportBlock alone={!can('admin')} />
     </>
   );
 }

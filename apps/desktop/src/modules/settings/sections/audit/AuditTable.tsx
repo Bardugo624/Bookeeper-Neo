@@ -14,7 +14,7 @@ export function AuditTable({ items }: { items: AuditOut[] }) {
     {
       id: 'when',
       header: t('audit.columns.when'),
-      width: '170px',
+      width: '11rem',
       cell: (e) => (
         <time dateTime={new Date(e.at * 1000).toISOString()} title={formatRelativeDays(locale, e.at)}>
           {stamp.format(new Date(e.at * 1000))}
@@ -24,13 +24,15 @@ export function AuditTable({ items }: { items: AuditOut[] }) {
     {
       id: 'who',
       header: t('audit.columns.who'),
+      width: '12rem',
       cell: (e) => (e.user ? e.user.display_name : <span className={styles.muted}>{t('audit.system')}</span>),
     },
-    { id: 'device', header: t('audit.columns.device'), cell: (e) => e.device?.name ?? '' },
+    { id: 'device', header: t('audit.columns.device'), width: '12rem', cell: (e) => e.device?.name ?? '' },
     { id: 'what', header: t('audit.columns.what'), cell: (e) => <AuditWhat entry={e} /> },
   ];
 
   return (
+    <div className={styles.wide}>
     <DataTable
       label={t('audit.table')}
       columns={columns}
@@ -38,5 +40,6 @@ export function AuditTable({ items }: { items: AuditOut[] }) {
       rowKey={(e) => String(e.id)}
       empty={<EmptyState title={t('audit.empty.title')} text={t('audit.empty.description')} />}
     />
+    </div>
   );
 }

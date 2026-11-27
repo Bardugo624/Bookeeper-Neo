@@ -33,7 +33,7 @@ export function SelectionBar({ selected, books, onDone }: SelectionBarProps) {
           {t('tags.action')}
         </Button>
         <span className={styles.apart}>
-          <Button variant="danger" size="sm" icon="trash" disabled={count === 0} onClick={del.ask}>
+          <Button variant="secondary" size="sm" icon="trash" disabled={count === 0} onClick={del.ask}>
             {t('common.delete')}
           </Button>
         </span>

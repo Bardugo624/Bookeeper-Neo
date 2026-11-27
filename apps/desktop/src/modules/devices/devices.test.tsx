@@ -79,9 +79,9 @@ describe('rename', () => {
 describe('revoke', () => {
   const fleet = () => ({ devices: [device(1, { name: 'Portatile', current: true }), device(2, { name: 'Pixel', kind: 'mobile' as const })] });
 
-  it('shows the revoke action as dangerous', async () => {
+  it('keeps the revoke action neutral: the red is in the confirmation', async () => {
     renderDevices(fleet());
-    expect((await screen.findByRole('button', { name: 'Revoca Pixel' })).className).toMatch(/toneDanger/);
+    expect((await screen.findByRole('button', { name: 'Revoca Pixel' })).className).not.toMatch(/danger/i);
   });
 
   it('asks for confirmation, then revokes another device and moves it to the revoked section', async () => {

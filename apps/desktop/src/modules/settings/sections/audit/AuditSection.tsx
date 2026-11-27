@@ -60,7 +60,7 @@ export function AuditSection() {
   }
 
   return (
-    <SettingsBlock title={t('audit.title')} description={t('audit.description')}>
+    <SettingsBlock span="full" title={t('audit.title')} description={t('audit.description')}>
       <AuditFilters
         values={params.values}
         people={options.people}

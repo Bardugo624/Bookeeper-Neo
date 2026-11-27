@@ -349,12 +349,5 @@
   "owner": {
     "everyone": "Everyone",
     "me": "You"
-  },
-  "danger": {
-    "title": "Danger zone",
-    "delete": {
-      "title": "Delete book",
-      "consequence": "Deletes the book with its cover, its place on the shelf, its loans, reading statuses and assigned tags. This cannot be undone."
-    }
   }
 }
