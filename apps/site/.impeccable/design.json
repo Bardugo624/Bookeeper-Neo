@@ -1,0 +1,518 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-27T10:10:41+00:00",
+  "title": "Design System: Bookeeper — homepage",
+  "extensions": {
+    "colorMeta": {
+      "sheet": {
+        "role": "neutral",
+        "displayName": "Carta da disegno",
+        "tonalRamp": [
+          "#0a0c0a",
+          "#232624",
+          "#3f4340",
+          "#5d635f",
+          "#7e8480",
+          "#a1a6a3",
+          "#c6cac7",
+          "#ecefed"
+        ],
+        "dark": "#1e332a",
+        "canonical": "oklch(96.3% 0.010 155)"
+      },
+      "sheet-2": {
+        "role": "neutral",
+        "displayName": "Carta incassata",
+        "tonalRamp": [
+          "#080c0a",
+          "#212723",
+          "#3d4440",
+          "#5a645e",
+          "#7b857f",
+          "#9fa8a2",
+          "#c4cbc7",
+          "#eaf0ed"
+        ],
+        "dark": "#182a22",
+        "canonical": "oklch(93.5% 0.016 161)"
+      },
+      "grid": {
+        "role": "neutral",
+        "displayName": "Griglia",
+        "tonalRamp": [
+          "#020e08",
+          "#152a21",
+          "#2d493d",
+          "#486a5a",
+          "#688c7b",
+          "#8fad9f",
+          "#b7d0c4",
+          "#e0f4ea"
+        ],
+        "dark": "rgb(146 186 166 / 0.06)"
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Filetto",
+        "tonalRamp": [
+          "#050d09",
+          "#1b2922",
+          "#35473e",
+          "#51675c",
+          "#71897d",
+          "#96aba0",
+          "#bdcec5",
+          "#e5f2eb"
+        ],
+        "dark": "#3f5d4f",
+        "canonical": "oklch(83.0% 0.035 163)"
+      },
+      "ink": {
+        "role": "primary",
+        "displayName": "Inchiostro salvia",
+        "tonalRamp": [
+          "#010f07",
+          "#112b1f",
+          "#284a3a",
+          "#426c57",
+          "#628e78",
+          "#8aaf9c",
+          "#b3d2c1",
+          "#ddf5e8"
+        ],
+        "dark": "#92baa6",
+        "canonical": "oklch(48.1% 0.063 162)"
+      },
+      "ink-strong": {
+        "role": "primary",
+        "displayName": "Inchiostro forte",
+        "tonalRamp": [
+          "#050d0a",
+          "#1b2823",
+          "#354640",
+          "#51675e",
+          "#72887f",
+          "#97aaa2",
+          "#bdcec7",
+          "#e5f2ed"
+        ],
+        "dark": "#dcebe2",
+        "canonical": "oklch(31.9% 0.032 169)"
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Testo",
+        "tonalRamp": [
+          "#060d0a",
+          "#1e2824",
+          "#384540",
+          "#55665f",
+          "#768780",
+          "#9aa9a3",
+          "#c0cdc7",
+          "#e7f1ed"
+        ],
+        "dark": "#f1f7f4",
+        "canonical": "oklch(22.7% 0.025 168)"
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Testo tenue",
+        "tonalRamp": [
+          "#020e08",
+          "#152a21",
+          "#2d493d",
+          "#486a5a",
+          "#688c7b",
+          "#8fad9f",
+          "#b7d0c4",
+          "#e0f4ea"
+        ],
+        "dark": "#bcd6c8",
+        "canonical": "oklch(41.6% 0.051 165)"
+      },
+      "wall": {
+        "role": "neutral",
+        "displayName": "Muro",
+        "tonalRamp": [
+          "#040e09",
+          "#192923",
+          "#32473f",
+          "#4d685d",
+          "#6e8a7e",
+          "#93aca1",
+          "#bbcfc6",
+          "#e3f3ec"
+        ],
+        "dark": "#bcd6c8",
+        "canonical": "oklch(36.1% 0.039 167)"
+      },
+      "hatch-bg": {
+        "role": "neutral",
+        "displayName": "Fondo del tratteggio",
+        "tonalRamp": [
+          "#070d09",
+          "#1f2722",
+          "#3a453e",
+          "#57655d",
+          "#77877d",
+          "#9ca9a1",
+          "#c1ccc5",
+          "#e8f1ec"
+        ],
+        "dark": "#2b4438",
+        "canonical": "oklch(90.5% 0.024 159)"
+      },
+      "found": {
+        "role": "secondary",
+        "displayName": "Ambra trovata",
+        "tonalRamp": [
+          "#180600",
+          "#391e00",
+          "#5d3900",
+          "#835703",
+          "#a77833",
+          "#c69d66",
+          "#e5c396",
+          "#ffeac7"
+        ],
+        "dark": "#e0b062",
+        "canonical": "oklch(70.5% 0.111 74)"
+      },
+      "found-ink": {
+        "role": "secondary",
+        "displayName": "Ambra scritta",
+        "tonalRamp": [
+          "#140800",
+          "#332107",
+          "#553d1c",
+          "#795b32",
+          "#9c7c53",
+          "#bca07d",
+          "#dcc5a8",
+          "#feebd4"
+        ],
+        "dark": "#f0cd8f",
+        "canonical": "oklch(45.3% 0.075 73)"
+      },
+      "found-wash": {
+        "role": "secondary",
+        "displayName": "Velo d'ambra",
+        "tonalRamp": [
+          "#180600",
+          "#391e00",
+          "#5d3900",
+          "#835703",
+          "#a77833",
+          "#c69d66",
+          "#e5c396",
+          "#ffeac7"
+        ],
+        "dark": "rgb(224 176 98 / 0.14)"
+      },
+      "btn": {
+        "role": "primary",
+        "displayName": "Bottone",
+        "tonalRamp": [
+          "#020e08",
+          "#152a21",
+          "#2d493d",
+          "#486a5a",
+          "#688c7b",
+          "#8fad9f",
+          "#b7d0c4",
+          "#e0f4ea"
+        ],
+        "dark": "#f1f7f4",
+        "canonical": "oklch(41.6% 0.051 165)"
+      },
+      "btn-hover": {
+        "role": "primary",
+        "displayName": "Bottone al passaggio",
+        "tonalRamp": [
+          "#050d0a",
+          "#1b2823",
+          "#354640",
+          "#51675e",
+          "#72887f",
+          "#97aaa2",
+          "#bdcec7",
+          "#e5f2ed"
+        ],
+        "dark": "#dcebe2",
+        "canonical": "oklch(31.9% 0.032 169)"
+      },
+      "btn-text": {
+        "role": "primary",
+        "displayName": "Testo del bottone",
+        "tonalRamp": [
+          "#0a0c0b",
+          "#232624",
+          "#3f4341",
+          "#5e6260",
+          "#7f8481",
+          "#a2a6a4",
+          "#c6cac8",
+          "#ecefee"
+        ],
+        "dark": "#1a2c24",
+        "canonical": "oklch(97.1% 0.007 165)"
+      },
+      "code": {
+        "role": "neutral",
+        "displayName": "Fondo del codice",
+        "tonalRamp": [
+          "#080c0a",
+          "#202723",
+          "#3b453f",
+          "#59655e",
+          "#79867e",
+          "#9da8a2",
+          "#c3ccc6",
+          "#e9f1ec"
+        ],
+        "dark": "#162720",
+        "canonical": "oklch(92.6% 0.020 160)"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Solo la domanda «Dov'è …?» della prima schermata."
+      },
+      "display-answer": {
+        "displayName": "Risposta",
+        "purpose": "La risposta nello stesso h1, in inchiostro salvia."
+      },
+      "headline": {
+        "displayName": "Titolo di sezione",
+        "purpose": "Un h2 per tavola."
+      },
+      "title": {
+        "displayName": "Titolo",
+        "purpose": "Didascalie di tabella, titolo dei passi."
+      },
+      "title-sm": {
+        "displayName": "Titolo piccolo",
+        "purpose": "Titoli dei pannelli e dei modi d'uso."
+      },
+      "quote": {
+        "displayName": "Citazione",
+        "purpose": "Citazioni in corsivo, max 38ch."
+      },
+      "body": {
+        "displayName": "Corpo",
+        "purpose": "Testo corrente, max 56–62ch."
+      },
+      "body-sm": {
+        "displayName": "Corpo piccolo",
+        "purpose": "Note, metadati, piè di pagina."
+      },
+      "label": {
+        "displayName": "Annotazione",
+        "purpose": "Maiuscoletto da tavola: stanze, cartiglio, intestazioni, richiami. Mai soprattitolo."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "Nomi di file e comandi."
+      }
+    },
+    "shadows": [
+      {
+        "name": "appoggiato",
+        "value": "0 1px 2px rgb(16 32 26 / 0.08), 0 14px 32px -12px rgb(16 32 26 / 0.22)",
+        "dark": "0 1px 2px rgb(0 0 0 / 0.3), 0 18px 40px -14px rgb(0 0 0 / 0.55)",
+        "purpose": "Solo ciò che sta sopra il foglio: bottone primario, etichetta della pianta, schermate."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Unica curva della pagina (out-quint, la stessa di --bk-ease-snappy dell'app)."
+      },
+      {
+        "name": "state",
+        "value": "150ms",
+        "purpose": "Passaggi di stato di bottoni, chip, bottone tema."
+      },
+      {
+        "name": "walk",
+        "value": "1.3s stroke-dashoffset",
+        "purpose": "La linea dalla porta allo scaffale, una volta per risposta."
+      },
+      {
+        "name": "arrive",
+        "value": "0.5s dopo 1.05s",
+        "purpose": "Il punto d'arrivo cresce e il mobile si accende d'ambra quando la linea arriva."
+      },
+      {
+        "name": "tag",
+        "value": "0.45s dopo 1.15s, opacità + sfocatura + 6px",
+        "purpose": "L'etichetta compare a percorso finito."
+      },
+      {
+        "name": "lift",
+        "value": "0.5s dopo 1.3s, translateY -8px poi -4px",
+        "purpose": "Il dorso cercato si sfila nel prospetto."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "narrow",
+        "value": "480px"
+      },
+      {
+        "name": "phone",
+        "value": "760px"
+      },
+      {
+        "name": "tablet",
+        "value": "1100px"
+      },
+      {
+        "name": "wide",
+        "value": "1440px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Bottone primario",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Il solo riempimento pieno della pagina: scarica per il sistema rilevato.",
+      "html": "<a class=\"ds-btn-primary\" href=\"#\"><svg class=\"ds-i\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 19.5h14\"/></svg><span>Scarica per Linux</span></a>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 10px; padding: 16px 24px; border-radius: 6px; background: var(--btn, #305545); color: var(--btn-text, #f1f7f4); font: 600 1.0625rem/1.2 'Inter Variable', Inter, system-ui, sans-serif; text-decoration: none; box-shadow: 0 1px 2px rgb(16 32 26 / 0.08), 0 14px 32px -12px rgb(16 32 26 / 0.22); transition: background-color 150ms cubic-bezier(0.22, 1, 0.36, 1); } .ds-btn-primary:hover { background: var(--btn-hover, #223830); } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: 2px solid var(--found, #c9954a); outline-offset: 3px; } .ds-i { width: 1.25em; height: 1.25em; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }"
+    },
+    {
+      "name": "Bottone quieto",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "Link sottolineato con freccia, per «altri sistemi» e i rimandi.",
+      "html": "<a class=\"ds-btn-quiet\" href=\"#\">Altri sistemi <svg class=\"ds-i\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 5v13m0 0l-5-5m5 5l5-5\"/></svg></a>",
+      "css": ".ds-btn-quiet { display: inline-flex; align-items: center; gap: 10px; padding: 8px 0; color: var(--ink-strong, #223830); font: 500 1.0625rem/1.2 'Inter Variable', Inter, system-ui, sans-serif; text-decoration: underline; text-decoration-color: var(--rule, #b4cfc1); text-underline-offset: 0.3em; transition: text-decoration-color 150ms cubic-bezier(0.22, 1, 0.36, 1); } .ds-btn-quiet:hover { text-decoration-color: var(--found, #c9954a); } .ds-btn-quiet:focus-visible { outline: 2px solid var(--found, #c9954a); outline-offset: 3px; border-radius: 2px; } .ds-i { width: 1.25em; height: 1.25em; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }"
+    },
+    {
+      "name": "Chip del titolo",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Titoli da chiedere alla casa; premuto = inchiostro forte pieno.",
+      "html": "<span class=\"ds-chips\"><button class=\"ds-chip\" aria-pressed=\"true\">I promessi sposi</button><button class=\"ds-chip\" aria-pressed=\"false\">Delitto e castigo</button></span>",
+      "css": ".ds-chips { display: flex; flex-wrap: wrap; gap: 10px 14px; } .ds-chip { font: 500 0.875rem/1 'Inter Variable', Inter, system-ui, sans-serif; color: var(--muted, #305545); padding: 9px 12px; min-height: 36px; border-radius: 4px; background: transparent; border: 1px solid var(--rule, #b4cfc1); cursor: pointer; transition: border-color 150ms cubic-bezier(0.22, 1, 0.36, 1), background-color 150ms cubic-bezier(0.22, 1, 0.36, 1), color 150ms cubic-bezier(0.22, 1, 0.36, 1); } .ds-chip:hover { border-color: var(--ink, #3b6953); color: var(--text, #10201a); } .ds-chip[aria-pressed='true'] { background: var(--ink-strong, #223830); border-color: var(--ink-strong, #223830); color: var(--sheet, #eef5f0); } .ds-chip:focus-visible { outline: 2px solid var(--found, #c9954a); outline-offset: 3px; }"
+    },
+    {
+      "name": "Barra in alto",
+      "kind": "nav",
+      "refersTo": "theme-toggle",
+      "description": "Marchio a sinistra, link, poi lingua e bottone tema dopo un filetto.",
+      "html": "<header class=\"ds-top\"><a class=\"ds-brand\" href=\"#\"><span class=\"ds-mark\"></span>Bookeeper</a><nav class=\"ds-nav\"><a href=\"#\">L'app</a><a href=\"#\">In rete</a><a href=\"#\">Scarica</a></nav><div class=\"ds-tools\"><a href=\"#\">English</a><button class=\"ds-theme\" aria-label=\"Tema scuro\"><svg class=\"ds-i\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z\"/></svg></button></div></header>",
+      "css": ".ds-top { display: flex; align-items: center; gap: 24px; padding: 14px 24px; border-bottom: 1px solid var(--rule, #b4cfc1); background: var(--sheet, #eef5f0); } .ds-brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font: 600 1.25rem/1 'Lora Variable', Lora, Georgia, serif; color: var(--ink-strong, #223830); } .ds-mark { width: 28px; height: 28px; border-radius: 6px; background: var(--ink, #3b6953); } .ds-nav { display: flex; gap: 28px; margin-left: auto; } .ds-nav a, .ds-tools a { font: 500 0.9375rem/1 'Inter Variable', Inter, system-ui, sans-serif; color: var(--muted, #305545); text-decoration: none; padding: 8px 0; } .ds-nav a:hover, .ds-tools a:hover { color: var(--text, #10201a); text-decoration: underline; text-decoration-color: var(--found, #c9954a); } .ds-tools { display: flex; align-items: center; gap: 16px; padding-left: 24px; border-left: 1px solid var(--rule, #b4cfc1); } .ds-theme { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 1px solid var(--rule, #b4cfc1); border-radius: 6px; background: transparent; color: var(--ink-strong, #223830); cursor: pointer; transition: border-color 150ms, background-color 150ms; } .ds-theme:hover { border-color: var(--ink, #3b6953); background: var(--sheet-2, #e1ede6); } .ds-theme:focus-visible, .ds-nav a:focus-visible { outline: 2px solid var(--found, #c9954a); outline-offset: 3px; } .ds-i { width: 1.25em; height: 1.25em; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }"
+    },
+    {
+      "name": "Etichetta della pianta",
+      "kind": "custom",
+      "refersTo": "plan-tag",
+      "description": "Il cartellino appoggiato sulla pianta: stanza, mobile, ripiano.",
+      "html": "<p class=\"ds-tag\"><span class=\"ds-tag-room\">Soggiorno</span><span class=\"ds-tag-case\">Libreria grande</span><span class=\"ds-tag-shelf\">terzo ripiano</span></p>",
+      "css": ".ds-tag { display: inline-grid; gap: 2px; margin: 0; padding: 10px 14px 11px; border: 1.5px solid var(--ink-strong, #223830); border-radius: 4px; background: var(--sheet, #eef5f0); box-shadow: 0 1px 2px rgb(16 32 26 / 0.08), 0 14px 32px -12px rgb(16 32 26 / 0.22); } .ds-tag-room { font: 600 0.6875rem/1.3 'Inter Variable', Inter, system-ui, sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted, #305545); } .ds-tag-case { font: 500 1.0625rem/1.25 'Lora Variable', Lora, Georgia, serif; color: var(--text, #10201a); } .ds-tag-shelf { font: 600 0.875rem/1.3 'Inter Variable', Inter, system-ui, sans-serif; color: var(--found-ink, #6f4f22); }"
+    },
+    {
+      "name": "Cartiglio",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Riga di celle da tavola: esempio, scala, revisione.",
+      "html": "<p class=\"ds-cells\"><span>Casa d'esempio, dati inventati</span><span>Scala 1:100</span><span>Rev. 2.1.0</span></p>",
+      "css": ".ds-cells { display: flex; margin: 0; border-top: 1px solid var(--rule, #b4cfc1); font: 500 0.75rem/1.3 'Inter Variable', Inter, system-ui, sans-serif; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted, #305545); font-variant-numeric: tabular-nums; } .ds-cells span { padding: 14px 20px; white-space: nowrap; border-right: 1px solid var(--rule, #b4cfc1); } .ds-cells span:last-child { border-right: 0; margin-left: auto; }"
+    },
+    {
+      "name": "Pannello",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Riquadro incassato senza ombra: note di versione, telefono, secondo modo d'uso.",
+      "html": "<section class=\"ds-panel\"><h3>Novità della versione</h3><p>Ogni scaffale ha ora il suo prospetto.</p></section>",
+      "css": ".ds-panel { padding: clamp(20px, 2.4vw, 32px); border: 1px solid var(--rule, #b4cfc1); border-radius: 8px; background: var(--sheet-2, #e1ede6); display: grid; gap: 10px; max-width: 360px; } .ds-panel h3 { margin: 0; font: 500 1.5rem/1.2 'Lora Variable', Lora, Georgia, serif; color: var(--ink-strong, #223830); } .ds-panel p { margin: 0; font: 400 0.9375rem/1.55 'Inter Variable', Inter, system-ui, sans-serif; color: var(--muted, #305545); }"
+    },
+    {
+      "name": "Tabella da tavola",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Didascalia in Lora, intestazioni in label sopra un filetto forte; la riga «tua» prende il velo d'ambra.",
+      "html": "<table class=\"ds-table\"><caption>File di installazione</caption><thead><tr><th>File</th><th>Dimensione</th></tr></thead><tbody><tr class=\"is-yours\"><th>Bookeeper_2.1.0_amd64.deb</th><td>88 MB</td></tr><tr><th>Bookeeper_2.1.0_x64.msi</th><td>92 MB</td></tr></tbody></table>",
+      "css": ".ds-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; } .ds-table caption { text-align: left; font: 500 1.5rem/1.15 'Lora Variable', Lora, Georgia, serif; color: var(--ink-strong, #223830); padding-bottom: 16px; } .ds-table thead th { font: 600 0.75rem/1.3 'Inter Variable', Inter, system-ui, sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted, #305545); text-align: left; padding: 10px 16px 10px 0; border-bottom: 1.5px solid var(--ink-strong, #223830); } .ds-table tbody th, .ds-table tbody td { padding: 14px 16px 14px 0; border-bottom: 1px solid var(--rule, #b4cfc1); text-align: left; } .ds-table tbody th { font: 500 0.8125rem/1.4 ui-monospace, Menlo, monospace; color: var(--text, #10201a); } .ds-table tbody td { color: var(--muted, #305545); font-family: 'Inter Variable', Inter, system-ui, sans-serif; } .ds-table tr.is-yours { background: var(--found-wash, rgb(201 149 74 / 0.16)); } .ds-table tr.is-yours th, .ds-table tr.is-yours td { border-bottom-color: var(--found, #c9954a); }"
+    },
+    {
+      "name": "Blocco di codice",
+      "kind": "custom",
+      "refersTo": "code-block",
+      "description": "Comandi dei passi per il server.",
+      "html": "<pre class=\"ds-pre\"><code>docker compose up -d</code></pre>",
+      "css": ".ds-pre { margin: 0; padding: 12px 16px; border-radius: 6px; background: var(--code, #dcebe2); border: 1px solid var(--rule, #b4cfc1); overflow-x: auto; } .ds-pre code { font: 500 0.9375rem/1.5 ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; color: var(--text, #10201a); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "La tavola d'architetto",
+    "overview": "La pagina è una tavola di progetto per una casa di famiglia. Un foglio unico, chiuso da una cornice a filetto, diviso in riquadri come un set di disegni: cartiglio, pianta, prospetto, tabelle. L'inchiostro è il salvia di Bookeeper. L'ambra, un legno da scaffale, è l'unico segno che dice «trovato».\n\nLa densità è quella di un disegno tecnico: filetti sottili, quote, etichette in maiuscoletto, molto foglio libero. Niente card in griglia, niente sfondi a fasce: le sezioni sono altre tavole dello stesso set, separate da un filetto. Il movimento è uno solo e ha un senso: la linea che va dalla porta allo scaffale, disegnata una volta per ogni risposta.\n\nIl foglio chiaro è salvia pallido, mai crema. Il foglio scuro è salvia profondo, con linee salvia chiare.",
+    "keyCharacteristics": [
+      "Un foglio unico con cornice a filetto da 1px; riquadri divisi da filetti.",
+      "Inchiostro salvia su carta salvia, in due temi.",
+      "Ambra solo per ciò che è trovato, indicato o a fuoco.",
+      "Lora per titoli, domanda e citazioni; Inter per testo ed etichette.",
+      "Etichette da disegno in maiuscoletto Inter, spaziate.",
+      "Una sola animazione d'autore: la linea disegnata."
+    ],
+    "rules": [
+      {
+        "name": "La regola del segno trovato",
+        "body": "L'ambra segna solo ciò che è trovato, indicato o a fuoco. Mai decorazione, mai fondo di sezione, mai titoli.",
+        "section": "colors"
+      },
+      {
+        "name": "La regola della carta salvia",
+        "body": "Il foglio chiaro è salvia pallido. Mai crema, mai bianco caldo, mai grigio freddo.",
+        "section": "colors"
+      },
+      {
+        "name": "La regola dei legni",
+        "body": "I legni dei mobili (salvia, terracotta, notte, prugna, ambra, grafite) e le tele dei dorsi stanno solo nei mobili e nei dorsi. Sono dati del disegno (`house.mjs`, `plan.mjs`), non token.",
+        "section": "colors"
+      },
+      {
+        "name": "La regola dell'annotazione",
+        "body": "Il maiuscoletto spaziato è scrittura da tavola: nomi delle stanze, celle del cartiglio, intestazioni di tabella, richiami sulle schermate, sottotitoli delle note di versione. Non sta mai sopra un titolo come soprattitolo.",
+        "section": "typography"
+      },
+      {
+        "name": "La regola della domanda",
+        "body": "Il display è riservato alla domanda e alla sua risposta. Una pagina, un display.",
+        "section": "typography"
+      },
+      {
+        "name": "La regola della cornice",
+        "body": "Si separa con un filetto da 1px, non con fondi, card o spazi vuoti enormi. La griglia a quadretti sta solo dietro la pianta.",
+        "section": "layout"
+      },
+      {
+        "name": "La regola del foglio piatto",
+        "body": "Pannelli, chip, tabelle e celle non hanno ombra. Se non è appoggiato sopra il disegno, è disegnato sul foglio.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do tenere ogni colore nei token di `site.css`, con il valore scuro accanto a quello chiaro.",
+      "Do separare con filetti da 1px in `rule`, dentro la cornice del foglio.",
+      "Do usare l'ambra solo per percorso, oggetto trovato, fuoco, selezione e ciò che è «tuo».",
+      "Do scrivere titoli, domanda e citazioni in Lora 500 (corsivo per titoli di libri e citazioni) e tutto il resto in Inter.",
+      "Do tenere ogni animazione dentro `prefers-reduced-motion: no-preference`, con `--ease` `cubic-bezier(0.22, 1, 0.36, 1)` e 150ms per i passaggi di stato.",
+      "Do mostrare l'app con schermate vere, bordo 1px `rule`, 10px (22px per il telefono), ombra «appoggiato»."
+    ],
+    "donts": [
+      "Don't usare un fondo crema o bianco caldo nel tema chiaro.",
+      "Don't mettere un'etichetta maiuscola sopra un titolo come soprattitolo.",
+      "Don't usare l'ambra come decorazione o come colore di titoli e fondi.",
+      "Don't costruire sezioni a card ripetute, a fasce colorate o con ombre su pannelli e chip.",
+      "Don't aggiungere animazioni d'autore oltre alla linea disegnata dalla porta allo scaffale.",
+      "Don't portare i legni dei mobili fuori da mobili e dorsi."
+    ]
+  }
+}

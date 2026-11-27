@@ -55,7 +55,7 @@ export function renderPlan(lang, t, selected) {
   // Walls: outer 14, inner 8, cut with poché hatching; gaps erase door and window openings.
   out.push(`<g class="walls" aria-hidden="true">`);
   for (const layer of ['wall-edge', 'wall-fill']) {
-    out.push(`<path class="${layer} inner" d="M520 40V720M40 400H520M520 300H960M700 300V720"/>`);
+    out.push(`<path class="${layer} inner" d="M520 40V720M40 400H520M520 300H960M780 300V720"/>`);
     out.push(`<rect x="40" y="40" width="920" height="680" class="${layer} outer"/>`);
   }
   for (const d of doors) out.push(`<line class="gap" x1="${d.gap[0]}" y1="${d.gap[1]}" x2="${d.gap[2]}" y2="${d.gap[3]}"/>`);
@@ -107,27 +107,32 @@ function rng(seed) {
   };
 }
 
+// Every elevation is drawn at this one scale (px per unit), so sizes compare like the plan's.
+export const ELEVATION_SCALE = 0.56;
+
 const CLOTH = ['#3e6252', '#9c5a3c', '#3a4a6b', '#6b3a5f', '#7d5a2a', '#4a4a4a', '#5a6b3a', '#8a4452', '#2f5d63', '#6e5a48'];
 
 export function renderDetail(book, lang, t) {
   const a = answer(book, lang, t);
   const f = furniture.find((x) => x.id === book.furniture);
   const rand = rng(f.id);
-  const W = 460;
-  const shelfH = 58;
+  const SLOT = 26;
   const left = 34;
+  const W = left + 12 + f.slots * SLOT + 8;
+  const shelfH = 58;
   const H = f.shelves * shelfH + 16;
+  const K = ELEVATION_SCALE;
   const out = [];
-  out.push(`<svg class="elevation" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(`${a.furniture}: ${a.title}, ${a.shelf}`)}">`);
-  out.push(`<rect x="${left}" y="2" width="${W - left - 2}" height="${H - 4}" class="carcass" style="--wood:${f.color}"/>`);
+  out.push(`<svg class="elevation" viewBox="0 0 ${W} ${H}" width="${Math.round(W * K)}" height="${Math.round(H * K)}" role="img" aria-label="${esc(`${a.furniture}: ${a.title}, ${a.shelf}`)}">`);
+  out.push(`<rect x="${left}" y="2" width="${W - left - 2}" height="${H - 4}" class="carcass"/>`);
   for (let s = 1; s <= f.shelves; s++) {
     const base = 8 + s * shelfH;
     let x = left + 12;
     let slot = 0;
     out.push(`<text x="${left - 12}" y="${base - 18}" class="shelf-no${s === book.shelf ? ' is-target' : ''}">${s}</text>`);
-    while (x < W - 40) {
+    while (x < W - 36) {
       slot += 1;
-      const w = 14 + Math.floor(rand() * 12);
+      const w = 18 + Math.floor(rand() * 11);
       const h = 34 + Math.floor(rand() * 16);
       const lean = slot % 11 === 0;
       const isTarget = s === book.shelf && slot === book.slot;
@@ -137,9 +142,9 @@ export function renderDetail(book, lang, t) {
         x += w + 8;
         continue;
       }
-      out.push(`<rect x="${x}" y="${base - h}" width="${isTarget ? 22 : w}" height="${h}" class="spine${isTarget ? ' is-target' : ''}"${isTarget ? '' : ` style="--cloth:${color}"`}/>`);
-      if (isTarget) out.push(`<path class="pointer" d="M${x + 11} ${base - h - 18}v12"/>`);
-      x += (isTarget ? 22 : w) + 2;
+      out.push(`<rect x="${x}" y="${base - h}" width="${isTarget ? 30 : w}" height="${h}" class="spine${isTarget ? ' is-target' : ''}"${isTarget ? '' : ` style="--cloth:${color}"`}/>`);
+      if (isTarget) out.push(`<path class="pointer" d="M${x + 15} ${base - h - 18}v12"/>`);
+      x += (isTarget ? 30 : w) + 2;
       if (rand() < 0.05) x += 22;
     }
     out.push(`<line x1="${left + 4}" y1="${base}" x2="${W - 6}" y2="${base}" class="board"/>`);

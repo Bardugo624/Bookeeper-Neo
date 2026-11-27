@@ -38,7 +38,7 @@ function schema(t) {
 }
 
 export function renderPage(t, { downloadsOrder = 'index,github' } = {}) {
-  const sel = findBook('promessi');
+  const sel = findBook('mattia');
   const a = answer(sel, t.lang, t);
   const chips = books
     .map((b) => `<button type="button" class="chip" data-book="${b.id}" aria-pressed="${b.id === sel.id}">${esc(b[t.lang].title)}</button>`)
