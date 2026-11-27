@@ -309,12 +309,24 @@ pub async fn put_reading(
                 Ok(r) => r,
                 Err(e) => return Ok(Err(e)),
             };
-            // A page written by hand is also the progress.
-            let (percent, percent_at, percent_device) =
-                match page_percent(r.current_page, page_count) {
-                    Some(p) => (Some(p), Some(now), Some(who.device_id.clone())),
-                    None => (None, None, None),
-                };
+            // A page typed by hand is also the progress, but only when it
+            // actually changed: clients resend the saved page with every edit
+            // of a note or rating, and that must not rewrite the progress.
+            let old_page: Option<i64> = tx
+                .query_row(
+                    "SELECT current_page FROM reading WHERE user_id = ?1 AND book_id = ?2",
+                    params![who.user_id, id],
+                    |row| row.get(0),
+                )
+                .optional()?
+                .flatten();
+            let page_changed = r.current_page != old_page;
+            let clear_progress = page_changed && r.current_page.is_none();
+            let (percent, percent_at, percent_device) = match page_percent(r.current_page, page_count)
+            {
+                Some(p) if page_changed => (Some(p), Some(now), Some(who.device_id.clone())),
+                _ => (None, None, None),
+            };
             tx.execute(
                 "INSERT INTO reading (id, library_id, user_id, book_id, status, started_at, \
                  finished_at, rating, note, current_page, updated_at, progress_percent, \
@@ -324,9 +336,9 @@ pub async fn put_reading(
                  started_at = excluded.started_at, finished_at = excluded.finished_at, \
                  rating = excluded.rating, note = excluded.note, \
                  current_page = excluded.current_page, updated_at = excluded.updated_at, \
-                 progress_percent = COALESCE(excluded.progress_percent, progress_percent), \
-                 progress_at = COALESCE(excluded.progress_at, progress_at), \
-                 progress_device_id = COALESCE(excluded.progress_device_id, progress_device_id)",
+                 progress_percent = CASE WHEN ?15 THEN NULL ELSE COALESCE(excluded.progress_percent, progress_percent) END, \
+                 progress_at = CASE WHEN ?15 THEN NULL ELSE COALESCE(excluded.progress_at, progress_at) END, \
+                 progress_device_id = CASE WHEN ?15 THEN NULL ELSE COALESCE(excluded.progress_device_id, progress_device_id) END",
                 params![
                     new_id(),
                     who.library_id,
@@ -341,7 +353,8 @@ pub async fn put_reading(
                     now,
                     percent,
                     percent_at,
-                    percent_device
+                    percent_device,
+                    clear_progress
                 ],
             )?;
             audit::record(

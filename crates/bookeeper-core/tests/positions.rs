@@ -169,3 +169,37 @@ async fn guests_get_403_and_bad_input_is_rejected() {
     .await;
     assert_eq!(st, 404);
 }
+
+#[tokio::test]
+async fn editing_a_note_keeps_the_progress_and_clearing_the_page_clears_it() {
+    let c = setup(Some(10)).await;
+    let tok = c.s.session.access_token.clone();
+    let (_, v) = put(&c, &tok, 34.0).await;
+    assert_eq!(v["current_page"], 3);
+    let at = v["progress_at"].clone();
+    let rpath = format!("/api/v1/books/{}/reading", c.book);
+    // The apps resend the saved page with every edit.
+    let (st, _, v) = call(
+        &c.s.state,
+        "PUT",
+        &rpath,
+        Some(&tok),
+        Some(json!({"status": "reading", "current_page": 3, "note": "x"})),
+    )
+    .await;
+    assert_eq!(st, 200, "{v}");
+    assert_eq!(v["progress_percent"], 34.0);
+    assert_eq!(v["progress_at"], at);
+    // Back to to_read drops the page and the progress.
+    let (st, _, v) = call(
+        &c.s.state,
+        "PUT",
+        &rpath,
+        Some(&tok),
+        Some(json!({"status": "to_read"})),
+    )
+    .await;
+    assert_eq!(st, 200, "{v}");
+    assert!(v["progress_percent"].is_null(), "{v}");
+    assert!(v["progress_at"].is_null(), "{v}");
+}
