@@ -80,9 +80,10 @@ enum Kind {
     OptId,
     Text,
     Int,
+    Real,
 }
 
-use Kind::{Id, Int, OptId, Text};
+use Kind::{Id, Int, OptId, Real, Text};
 
 struct Table {
     name: &'static str,
@@ -91,7 +92,7 @@ struct Table {
     from: &'static str,
 }
 
-const TABLES: [Table; 9] = [
+const TABLES: [Table; 11] = [
     Table {
         name: "rooms",
         cols: &[
@@ -224,6 +225,37 @@ const TABLES: [Table; 9] = [
         cols: &[("book_id", Id), ("tag_id", Id)],
         from: "book_tags t JOIN books b ON b.id = t.book_id WHERE b.library_id = ?1",
     },
+    Table {
+        name: "book_files",
+        cols: &[
+            ("id", Id),
+            ("library_id", Text),
+            ("book_id", Id),
+            ("format", Text),
+            ("sha256", Text),
+            ("size_bytes", Int),
+            ("original_name", Text),
+            ("koreader_hash", Text),
+            ("uploaded_by", OptId),
+            ("created_at", Int),
+        ],
+        from: "book_files t WHERE t.library_id = ?1",
+    },
+    Table {
+        name: "reading_positions",
+        cols: &[
+            ("id", Id),
+            ("library_id", Text),
+            ("user_id", Id),
+            ("file_id", Id),
+            ("kind", Text),
+            ("value", Text),
+            ("percent", Real),
+            ("device_id", Text),
+            ("updated_at", Int),
+        ],
+        from: "reading_positions t WHERE t.library_id = ?1",
+    },
 ];
 
 const T_ROOMS: usize = 0;
@@ -235,6 +267,8 @@ const T_LOANS: usize = 5;
 const T_WISHLIST: usize = 6;
 const T_READING: usize = 7;
 const T_BOOK_TAGS: usize = 8;
+const T_BOOK_FILES: usize = 9;
+const T_POSITIONS: usize = 10;
 
 const USER_COLS: [(&str, Kind); 3] = [("id", Id), ("display_name", Text), ("role", Text)];
 
@@ -403,6 +437,16 @@ pub fn build_archive(snapshot: Snapshot, files: &Files, now: i64) -> Result<Vec<
         }
     }
     counts.insert("covers".into(), json!(covers_found.len()));
+    // Only the list of e-book files is archived, never the files themselves.
+    let (ebook_count, ebook_bytes) = match data.get("book_files") {
+        Some(Value::Array(rows)) => (
+            rows.len() as i64,
+            rows.iter()
+                .filter_map(|r| r.get("size_bytes").and_then(Value::as_i64))
+                .sum::<i64>(),
+        ),
+        _ => (0, 0),
+    };
 
     let manifest = json!({
         "format": FORMAT,
@@ -411,6 +455,7 @@ pub fn build_archive(snapshot: Snapshot, files: &Files, now: i64) -> Result<Vec<
         "created_at": now,
         "library": { "id": lib_id, "name": lib_name },
         "counts": counts,
+        "ebooks": { "count": ebook_count, "total_bytes": ebook_bytes },
     });
 
     let mut zip = ZipWriter::new(Cursor::new(Vec::new()));
@@ -496,6 +541,10 @@ fn to_sql(v: &Value, kind: Kind) -> Result<Sql, BackupError> {
         (Value::Number(n), Int) => match n.as_i64() {
             Some(i) => Ok(Sql::Integer(i)),
             None => invalid("non-integer number"),
+        },
+        (Value::Number(n), Real) => match n.as_f64() {
+            Some(f) => Ok(Sql::Real(f)),
+            None => invalid("non-numeric value"),
         },
         _ => invalid("value of the wrong type"),
     }
@@ -757,6 +806,8 @@ pub fn restore_archive(
         [lib],
     )?;
     for sql in [
+        "DELETE FROM reading_positions WHERE library_id = ?1",
+        "DELETE FROM book_files WHERE library_id = ?1",
         "DELETE FROM book_tags WHERE book_id IN (SELECT id FROM books WHERE library_id = ?1)",
         "DELETE FROM shelf_books WHERE shelf_id IN (SELECT id FROM shelves WHERE library_id = ?1)",
         "DELETE FROM loans WHERE library_id = ?1",
@@ -773,7 +824,15 @@ pub fn restore_archive(
     // New ids: kept unless the id is taken by another library of this server.
     let mut maps: HashMap<usize, HashMap<String, String>> = HashMap::new();
     for ti in [
-        T_ROOMS, T_SHELVES, T_TAGS, T_BOOKS, T_LOANS, T_WISHLIST, T_READING,
+        T_ROOMS,
+        T_SHELVES,
+        T_TAGS,
+        T_BOOKS,
+        T_LOANS,
+        T_WISHLIST,
+        T_READING,
+        T_BOOK_FILES,
+        T_POSITIONS,
     ] {
         let mut map = HashMap::new();
         for row in &tables[ti] {
@@ -833,6 +892,8 @@ pub fn restore_archive(
         users_remapped: 0,
     };
     let mut reading_seen: HashSet<(String, String)> = HashSet::new();
+    let mut files_seen: HashSet<(String, String)> = HashSet::new();
+    let mut positions_seen: HashSet<(String, String, String)> = HashSet::new();
 
     for ti in 0..TABLES.len() {
         let table = &TABLES[ti];
@@ -862,6 +923,14 @@ pub fn restore_archive(
                     remap(&maps[&T_TAGS], row, "tag_id")?;
                 }
                 T_BOOKS => user_ref(row, "owner_user_id", None),
+                T_BOOK_FILES => {
+                    remap(&maps[&T_BOOKS], row, "book_id")?;
+                    user_ref(row, "uploaded_by", None);
+                }
+                T_POSITIONS => {
+                    remap(&maps[&T_BOOK_FILES], row, "file_id")?;
+                    user_ref(row, "user_id", Some(&who.user_id));
+                }
                 _ => {}
             }
             if let Some(map) = maps.get(&ti) {
@@ -873,6 +942,25 @@ pub fn restore_archive(
                     text_of(row, "book_id").unwrap_or_default(),
                 );
                 if !reading_seen.insert(key) {
+                    continue;
+                }
+            }
+            if ti == T_BOOK_FILES {
+                let key = (
+                    text_of(row, "book_id").unwrap_or_default(),
+                    text_of(row, "sha256").unwrap_or_default(),
+                );
+                if !files_seen.insert(key) {
+                    continue;
+                }
+            }
+            if ti == T_POSITIONS {
+                let key = (
+                    text_of(row, "user_id").unwrap_or_default(),
+                    text_of(row, "file_id").unwrap_or_default(),
+                    text_of(row, "kind").unwrap_or_default(),
+                );
+                if !positions_seen.insert(key) {
                     continue;
                 }
             }
