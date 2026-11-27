@@ -149,15 +149,17 @@ fn credentials_with_suffix_are_deleted() {
     }
 
     let id = unique();
-    let a = format!("key-a-{id}.org.bookeeper.desktop");
-    let b = format!("KEY-B-{id}.ORG.BOOKEEPER.DESKTOP");
+    // Suffix unique to this run: never touches the real app's credentials.
+    let suffix = format!(".{id}.bookeeper-test");
+    let a = format!("key-a{suffix}");
+    let b = format!("KEY-B{}", suffix.to_uppercase());
     let keep = format!("key-c-{id}.other.app");
     for n in [&a, &b, &keep] {
         write(n);
     }
     let s = Scratch::new();
-    let n = s.sys.delete_credentials_with_suffix(".org.bookeeper.desktop").unwrap();
-    assert!(n >= 2);
+    let n = s.sys.delete_credentials_with_suffix(&suffix).unwrap();
+    assert_eq!(n, 2);
     assert!(!exists(&a));
     assert!(!exists(&b));
     assert!(exists(&keep));
