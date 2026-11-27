@@ -1,6 +1,6 @@
 # E-book in Bookeeper: file, lettore e lettori e-ink — design
 
-Data: 2026-11-27. Stato: da approvare. Il documento è passato da un controllo indipendente; le risposte sono qui dentro.
+Data: 2026-11-27. Stato: approvato dal proprietario («Approvo il design degli e-book, procedi»). Il piano della fase 10A è in `docs/forge/fase-10a/`. Il documento è passato da un controllo indipendente; le risposte sono qui dentro.
 
 I rapporti di ricerca sono in `docs/superpowers/research/`:
 - `2026-11-27-ebook-esperienza.md`: le app di lettura esistenti, cosa piace e cosa no;
