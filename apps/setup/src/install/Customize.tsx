@@ -34,8 +34,9 @@ export function Customize(props: CustomizeProps) {
           <PanelTitle>{t('setup.customize.title')}</PanelTitle>
           <p className={panel.meta}>{t('setup.customize.meta', { version: props.version })}</p>
         </div>
-        <Button variant="ghost" icon="chevron-up" onClick={props.onLess}>
+        <Button variant="ghost" onClick={props.onLess}>
           {t('setup.customize.less')}
+          <Icon name="chevron-up" size={16} />
         </Button>
       </div>
       <FolderField dir={props.dir} check={props.check} needBytes={props.installedBytes} onPick={props.onPickFolder} />

@@ -2,7 +2,7 @@
   "window": {
     "minimize": "Riduci",
     "close": "Chiudi",
-    "busy": "Aspetta la fine dell'installazione"
+    "busy": "Aspetta la fine dell’installazione"
   },
   "install": {
     "title": "Installa Bookeeper",
@@ -11,7 +11,7 @@
       "both": "Icona sul desktop e nel menu Start",
       "start": "Nel menu Start"
     },
-    "autostart": "Si apre all'accesso a Windows",
+    "autostart": "Si apre all’accesso a Windows",
     "customize": "Personalizza",
     "go": "Installa"
   },
@@ -26,14 +26,14 @@
       "needs_admin": "Questa cartella chiede i permessi di amministratore. Scegline una nella tua cartella utente.",
       "network": "Scegli una cartella di questo computer.",
       "not_absolute": "Scegli una cartella di questo computer.",
-      "too_long": "Il percorso è troppo lungo. Scegli una cartella più vicina all'inizio del disco.",
-      "too_little_space": "Su questo disco c'è troppo poco spazio: restano {free}.",
-      "temp_too_small": "Sul disco dei file temporanei c'è troppo poco spazio: restano {free}.",
-      "unknown": "Non riesco a controllare questa cartella. Scegline un'altra."
+      "too_long": "Il percorso è troppo lungo. Scegli una cartella più vicina all’inizio del disco.",
+      "too_little_space": "Su questo disco c’è troppo poco spazio: restano {free}.",
+      "temp_too_small": "Sul disco dei file temporanei c’è troppo poco spazio: restano {free}.",
+      "unknown": "Non riesco a controllare questa cartella. Scegline un’altra."
     },
     "desktop": "Icona sul desktop",
     "startMenu": "Bookeeper è sempre nel menu Start: serve alle notifiche di Windows.",
-    "autostart": "Apri Bookeeper all'accesso a Windows",
+    "autostart": "Apri Bookeeper all’accesso a Windows",
     "autostartNote": "Si apre ridotto a icona. Se condividi la libreria in rete, i telefoni la trovano finché il computer è acceso."
   },
   "progress": {
@@ -42,11 +42,11 @@
     "repair": "Sto riparando Bookeeper",
     "uninstall": "Sto disinstallando Bookeeper",
     "step": {
-      "prepare": "Preparo l'installazione",
+      "prepare": "Preparo l’installazione",
       "copy": "Copio i file",
       "icons": "Creo le icone",
       "finish": "Ultimi ritocchi",
-      "removeApp": "Tolgo l'app",
+      "removeApp": "Tolgo l’app",
       "removeData": "Cancello i dati"
     },
     "valueText": "{step}, {percent}%"
@@ -62,11 +62,11 @@
   },
   "running": {
     "title": "Chiudi Bookeeper per continuare",
-    "text": "L'app è aperta su questo computer. Chiudila, poi premi «Riprova».",
+    "text": "L’app è aperta su questo computer. Chiudila, poi premi «Riprova».",
     "retry": "Riprova"
   },
   "error": {
-    "install": "L'installazione si è fermata",
+    "install": "L’installazione si è fermata",
     "uninstall": "La disinstallazione si è fermata",
     "text": "Riprova. Se si ferma di nuovo, copia i dettagli e mandali a chi ti aiuta.",
     "copy": "Copia i dettagli",
@@ -76,7 +76,7 @@
   "maintenance": {
     "older": {
       "title": "Aggiorna Bookeeper",
-      "text": "Su questo computer c'è la {installed}. La {version} lascia la tua libreria com'è, nella stessa cartella.",
+      "text": "Su questo computer c’è la {installed}. La {version} lascia la tua libreria com’è, nella stessa cartella.",
       "go": "Aggiorna"
     },
     "same": {
@@ -85,12 +85,12 @@
       "repair": "Ripara"
     },
     "newer": {
-      "title": "C'è già una versione più recente",
-      "text": "Su questo computer c'è la {installed}. Una libreria della {installed} non si apre con la {version}: per tornare indietro bisogna disinstallare con «Cancella tutto»."
+      "title": "C’è già una versione più recente",
+      "text": "Su questo computer c’è la {installed}. Una libreria della {installed} non si apre con la {version}: per tornare indietro bisogna disinstallare con «Cancella tutto»."
     },
     "legacy": {
-      "title": "C'è una versione molto vecchia",
-      "text": "Su questo computer c'è Bookeeper {installed}. Disinstallala da Impostazioni › App, poi riapri il Setup."
+      "title": "C’è una versione molto vecchia",
+      "text": "Su questo computer c’è Bookeeper {installed}. Disinstallala da Impostazioni\u00a0›\u00a0App, poi riapri il Setup."
     },
     "uninstall": "Disinstalla"
   },

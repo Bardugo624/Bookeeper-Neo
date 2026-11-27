@@ -101,9 +101,9 @@ describe('the title bar', () => {
     expect(screen.getByRole('button', { name: 'Chiudi' })).toBeEnabled();
     await userEvent.click(screen.getByRole('button', { name: 'Installa' }));
     await screen.findByRole('heading', { name: 'Sto installando Bookeeper' });
-    expect(screen.getByRole('group', { name: "Aspetta la fine dell'installazione" })).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: "Aspetta la fine dell’installazione" })).toBeInTheDocument();
     await screen.findByRole('heading', { name: 'Bookeeper è pronto' });
-    await waitFor(() => expect(screen.queryByRole('group', { name: "Aspetta la fine dell'installazione" })).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByRole('group', { name: "Aspetta la fine dell’installazione" })).not.toBeInTheDocument());
   });
 });
 
@@ -129,7 +129,7 @@ describe('an error', () => {
   it('stops, copies the log and tries again', async () => {
     const { bridge } = renderInstall('error');
     await userEvent.click(screen.getByRole('button', { name: 'Installa' }));
-    expect(await screen.findByRole('heading', { name: "L'installazione si è fermata" })).toHaveFocus();
+    expect(await screen.findByRole('heading', { name: "L’installazione si è fermata" })).toHaveFocus();
 
     await userEvent.click(screen.getByRole('button', { name: 'Copia i dettagli' }));
     await waitFor(() => expect(writeText).toHaveBeenCalledWith(expect.stringContaining('nsis exited with code 5')));
@@ -150,7 +150,7 @@ describe('customize', () => {
     expect(screen.getByText('Bookeeper è sempre nel menu Start: serve alle notifiche di Windows.')).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('switch', { name: 'Icona sul desktop' }));
-    await userEvent.click(screen.getByRole('switch', { name: "Apri Bookeeper all'accesso a Windows" }));
+    await userEvent.click(screen.getByRole('switch', { name: "Apri Bookeeper all’accesso a Windows" }));
     await userEvent.click(screen.getByRole('button', { name: 'Cambia…' }));
     await waitFor(() => expect(screen.getByLabelText('Cartella')).toHaveValue('C:\\Programmi Miei\\Bookeeper'));
 
@@ -169,7 +169,7 @@ describe('customize', () => {
     renderInstall('welcome', {}, bridge);
     await userEvent.click(screen.getByRole('button', { name: 'Personalizza' }));
     await userEvent.click(screen.getByRole('switch', { name: 'Icona sul desktop' }));
-    await userEvent.click(screen.getByRole('switch', { name: "Apri Bookeeper all'accesso a Windows" }));
+    await userEvent.click(screen.getByRole('switch', { name: "Apri Bookeeper all’accesso a Windows" }));
     await userEvent.click(screen.getByRole('button', { name: 'Cambia…' }));
     await waitFor(() => expect(screen.getByLabelText('Cartella')).toHaveValue('C:\\Programmi Miei\\Bookeeper'));
     await userEvent.click(screen.getByRole('button', { name: 'Installa' }));
@@ -232,7 +232,7 @@ describe('folder check pending', () => {
 });
 
 describe('folder check fails', () => {
-  const UNKNOWN = "Non riesco a controllare questa cartella. Scegline un'altra.";
+  const UNKNOWN = "Non riesco a controllare questa cartella. Scegline un’altra.";
 
   it('says so on the field, stops waiting and keeps «Installa» off', async () => {
     const request = vi.fn();

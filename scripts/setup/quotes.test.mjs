@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
-import { DEFAULT_PATHS, generate, render } from './quotes.mjs';
+import { DEFAULT_PATHS, generate, render, typeset } from './quotes.mjs';
 
 const q = (id, it, en, work = 'Opera') => ({
   id, author: 'Autore', work, it: { text: it }, en: { text: en },
@@ -47,6 +47,11 @@ test('drops a language over 200 characters, and the quote if both are', () => {
   assert.equal(data[0].it, null);
   assert.equal(data[0].en, 'short');
   assert.equal(data[1].it, ok);
+});
+
+test('sets apostrophes and ellipses typographically', () => {
+  assert.equal(typeset("C'era una volta... un re"), 'C\u2019era una volta\u2026 un re');
+  assert.equal(typeset('nessun cambio'), 'nessun cambio');
 });
 
 test('the generated file in the repository is up to date', () => {

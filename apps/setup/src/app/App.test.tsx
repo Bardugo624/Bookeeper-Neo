@@ -30,7 +30,7 @@ describe('App', () => {
     renderSetup(<App />, { scenario: kind });
     await waitFor(() => expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument());
     expect(flow()).toBeUndefined();
-    // The title bar's close and the panel's own.
+    // The title bar’s close and the panel’s own.
     expect(screen.getAllByRole('button', { name: 'Chiudi' })).toHaveLength(2);
   });
 

@@ -15,9 +15,15 @@ export function workTitle(work) {
   return (i === -1 ? work : work.slice(0, i)).trim();
 }
 
+/** Typographic apostrophes and ellipses, as the frontispiece sets them: the words stay the source's. */
+export function typeset(text) {
+  return text.replace(/'/g, '\u2019').replace(/\.\.\./g, '\u2026');
+}
+
 function textIn(quote, lang) {
-  const text = quote[lang]?.text;
-  if (typeof text !== 'string') return null;
+  const raw = quote[lang]?.text;
+  if (typeof raw !== 'string') return null;
+  const text = typeset(raw);
   return [...text].length > MAX_CHARS ? null : text;
 }
 

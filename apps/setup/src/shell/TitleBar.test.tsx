@@ -24,7 +24,7 @@ describe('TitleBar', () => {
     expect(close).toBeDisabled();
     await userEvent.click(close);
     expect(bridge.calls).toEqual([]);
-    expect(screen.getByRole('group', { name: "Aspetta la fine dell'installazione" })).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: "Aspetta la fine dell’installazione" })).toBeInTheDocument();
   });
 
   it('keeps minimize working while busy', () => {

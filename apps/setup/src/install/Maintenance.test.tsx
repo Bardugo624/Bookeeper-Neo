@@ -10,7 +10,7 @@ describe('an older installation', () => {
   it('offers «Disinstalla» and «Aggiorna», and updates in the installed folder', async () => {
     const { bridge, onUninstall } = renderInstall('older');
     expect(screen.getByRole('heading', { name: 'Aggiorna Bookeeper' })).toHaveFocus();
-    expect(screen.getByText(/Su questo computer c'è la 2\.1\.0\. La 2\.2\.0 lascia/)).toBeInTheDocument();
+    expect(screen.getByText(/Su questo computer c’è la 2\.1\.0\. La 2\.2\.0 lascia/)).toBeInTheDocument();
     expect(commands()).toEqual(['Disinstalla', 'Aggiorna']);
     await userEvent.click(screen.getByRole('button', { name: 'Disinstalla' }));
     expect(onUninstall).toHaveBeenCalledTimes(1);
@@ -38,7 +38,7 @@ describe('the same version', () => {
 describe('a newer version', () => {
   it('only offers «Disinstalla» and «Chiudi»', async () => {
     const { bridge, onUninstall } = renderInstall('newer');
-    expect(screen.getByRole('heading', { name: "C'è già una versione più recente" })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: "C’è già una versione più recente" })).toBeInTheDocument();
     expect(commands()).toEqual(['Disinstalla', 'Chiudi']);
     await userEvent.click(screen.getByRole('button', { name: 'Disinstalla' }));
     expect(onUninstall).toHaveBeenCalledTimes(1);
@@ -51,7 +51,7 @@ describe('a newer version', () => {
 describe('a 0.x or 1.x version', () => {
   it('only offers «Chiudi»', () => {
     renderInstall('legacy');
-    expect(screen.getByRole('heading', { name: 'C\'è una versione molto vecchia' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'C’è una versione molto vecchia' })).toBeInTheDocument();
     expect(screen.getByText(/Disinstallala da Impostazioni/)).toBeInTheDocument();
     expect(commands()).toEqual(['Chiudi']);
   });
