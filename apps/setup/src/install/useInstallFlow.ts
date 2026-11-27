@@ -82,6 +82,7 @@ export function useInstallFlow(info: SetupInfo) {
     quote,
     choices: { ...choices, dir },
     check,
+    checking: looked && check === null,
     mode,
     copied,
     customize() {
@@ -97,7 +98,8 @@ export function useInstallFlow(info: SetupInfo) {
     },
     /** A known folder problem sends the person back to the choices instead of installing. */
     install() {
-      if (check?.problem) {
+      // The folder is only trusted once `check_dir` has answered: it adds `\Bookeeper` and validates the path.
+      if (check?.problem || (looked && !check)) {
         setScreen('customize');
         return;
       }

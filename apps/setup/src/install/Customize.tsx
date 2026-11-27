@@ -12,6 +12,8 @@ export interface CustomizeProps {
   installedBytes: number;
   dir: string;
   check: DirCheck | null;
+  /** The folder check has not answered yet. */
+  checking: boolean;
   desktopIcon: boolean;
   autostart: boolean;
   onPickFolder(): void;
@@ -24,7 +26,7 @@ export interface CustomizeProps {
 /** The tall panel: folder, desktop icon, the fixed Start menu entry and opening at sign-in. */
 export function Customize(props: CustomizeProps) {
   const t = useT();
-  const blocked = props.check?.problem != null;
+  const blocked = props.check?.problem != null || props.checking;
   return (
     <div className={styles.panel}>
       <div className={styles.head}>

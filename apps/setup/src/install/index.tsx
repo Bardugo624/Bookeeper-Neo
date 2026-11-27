@@ -36,6 +36,7 @@ export function InstallFlow({ info, onUninstall }: { info: SetupInfo; onUninstal
             installedBytes={installedBytes}
             dir={choices.dir}
             check={flow.check}
+            checking={flow.checking}
             desktopIcon={choices.desktopIcon}
             autostart={choices.autostart}
             onPickFolder={() => void flow.changeFolder()}

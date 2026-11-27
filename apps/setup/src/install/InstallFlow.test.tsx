@@ -1,7 +1,7 @@
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { mockBridge, mockInfo, useBusy } from '../bridge';
+import { mockBridge, mockInfo, useBusy, type DirCheck } from '../bridge';
 import { TitleBar } from '../shell';
 import { renderSetup } from '../shell/testing';
 import { InstallFlow } from './index';
@@ -206,7 +206,27 @@ describe('quotes', () => {
     const before = document.querySelector('blockquote')?.textContent;
     await userEvent.click(screen.getByRole('button', { name: 'Installa' }));
     await screen.findByRole('heading', { name: 'Sto installando Bookeeper' });
-    expect(document.querySelector('blockquote')?.textContent).not.toBe('');
+    const after = document.querySelector('blockquote')?.textContent;
     expect(before).toBeTruthy();
+    expect(after).toBeTruthy();
+    expect(after).not.toBe(before);
+  });
+});
+
+describe('folder check pending', () => {
+  it('keeps «Installa» off until check_dir has answered, and never installs the raw folder', async () => {
+    let answer: (c: DirCheck) => void = () => undefined;
+    const bridge = mockBridge('welcome', { tickMs: 5 });
+    bridge.checkDir = () => new Promise<DirCheck>((resolve) => (answer = resolve));
+    const request = vi.fn();
+    const install = bridge.install.bind(bridge);
+    bridge.install = (r) => (request(r), install(r));
+    renderInstall('welcome', {}, bridge);
+    await userEvent.click(screen.getByRole('button', { name: 'Personalizza' }));
+    expect(screen.getByRole('button', { name: 'Installa' })).toBeDisabled();
+    await userEvent.click(screen.getByRole('button', { name: 'Installa' }));
+    expect(request).not.toHaveBeenCalled();
+    answer({ dir: 'C:\\X\\Bookeeper', problem: null, freeBytes: 1e12, drive: 'C:' });
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Installa' })).toBeEnabled());
   });
 });
