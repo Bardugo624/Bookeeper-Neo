@@ -180,3 +180,12 @@ test("smoke.ps1: six steps, odd folder, awaited processes", () => {
   }
   assert.match(t, /-ArgumentList \$arguments/);
 });
+
+test("smoke.ps1: a failure shows the end of the Setup log", () => {
+  const t = read("scripts/setup/smoke.ps1");
+  const name = /FILE_NAME: &str = "([^"]+)"/.exec(read("crates/bookeeper-setup-core/src/log.rs"))?.[1];
+  assert.ok(name);
+  assert.ok(t.includes(`Join-Path ([IO.Path]::GetTempPath()) '${name}'`));
+  const fail = t.slice(t.indexOf("function Fail"), t.indexOf("function Expect"));
+  assert.match(fail, /Get-Content -LiteralPath \$SetupLog -Tail \d+/);
+});

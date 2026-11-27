@@ -17,11 +17,18 @@ $UninstallKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\Booke
 $InstallKey = 'HKCU:\Software\bookeeper\Bookeeper'
 $RunKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
 $Credentials = @("smoke-one.$DataId", "smoke-two.$DataId")
+$SetupLog = Join-Path ([IO.Path]::GetTempPath()) 'Bookeeper-Setup.log'
 
 function Fail([string]$what, $expected, $found) {
     Write-Host "FAIL: $what"
     Write-Host "  expected: $expected"
     Write-Host "  found:    $found"
+    if (Test-Path -LiteralPath $SetupLog) {
+        Write-Host "--- end of $SetupLog"
+        Get-Content -LiteralPath $SetupLog -Tail 40 | ForEach-Object { Write-Host "  $_" }
+    } else {
+        Write-Host "--- no Setup log at $SetupLog"
+    }
     exit 1
 }
 function Expect([string]$what, $expected, $found) {
