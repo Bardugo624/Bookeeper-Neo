@@ -21,6 +21,12 @@
   position: absolute;
 }
 
+.card[data-inline] {
+  position: static;
+  width: auto;
+  animation: none;
+}
+
 .arrow {
   position: absolute;
   width: 12px;

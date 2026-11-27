@@ -112,6 +112,8 @@ export function BookSheet({ id, editor, storedSrc, storedStatus, editing, coverR
           );
         })}
       </div>
+      {/* Where the tour card sits when there is no room beside the dialog: in the flow, over nothing. */}
+      <div data-tour-slot className={styles.tourSlot} />
     </form>
   );
 }

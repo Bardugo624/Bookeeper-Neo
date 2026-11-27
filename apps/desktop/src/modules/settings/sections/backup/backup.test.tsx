@@ -142,6 +142,8 @@ describe('restore', () => {
     const pw = await screen.findByLabelText('Password');
     await userEvent.type(pw, 'segreta{Enter}');
     expect(await screen.findByText('Ripristino completato. Nella libreria ci sono ora:')).toBeTruthy();
+    // the hint to pick a file is not shown above the outcome
+    expect(screen.queryByText('Scegli prima un file di backup.')).toBeNull();
     expect(tokens).toEqual([undefined, 'tok']);
     expect(screen.getByText('2 utenti del backup non esistono in questa libreria.')).toBeTruthy();
     const restores = platform.calls.filter((c) => c.path === '/api/v1/restore');
