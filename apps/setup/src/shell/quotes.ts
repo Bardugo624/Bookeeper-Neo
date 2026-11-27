@@ -1,15 +1,7 @@
 import { useCallback, useRef } from 'react';
 import type { Locale } from '@bookeeper/i18n';
-import quotes from '../quotes.json';
+import { QUOTES, quoteText, type QuoteEntry } from '@bookeeper/ui/quote';
 import { useLocale } from './i18n';
-
-interface RawQuote {
-  id: string;
-  author: string;
-  work: string;
-  it: string;
-  en: string;
-}
 
 /** A quote chosen by `useQuotes`; the text is looked up in the language on show. */
 export interface QuoteRef {
@@ -20,8 +12,7 @@ export interface ShownQuote {
   id: string;
   text: string;
   author: string;
-  /** Up to the first parenthesis. */
-  work: string;
+  work: string | null;
 }
 
 export type QuoteKind = 'welcome' | 'progress' | 'farewell';
@@ -34,40 +25,35 @@ export const FULL_MAX = 200;
 /** A new quote during the work comes at most this often. */
 export const QUOTE_INTERVAL_MS = 6000;
 
-const ALL = quotes as RawQuote[];
-
-function byId(id: string): RawQuote | undefined {
-  return ALL.find((q) => q.id === id);
+function byId(id: string): QuoteEntry | undefined {
+  return QUOTES.find((q) => q.id === id);
 }
 
-export function quoteLength(q: RawQuote, locale: Locale): number {
-  return q[locale].length;
+export function quoteLength(q: QuoteEntry, locale: Locale): number {
+  return q[locale]?.text.length ?? 0;
 }
 
-/** Inner low guillemets become high quotes: «… “like this” …». */
-export function innerQuotes(text: string): string {
-  return text.replace(/«/g, '“').replace(/»/g, '”');
-}
-
+/** `null` when the quote has no text in the language on show. */
 export function resolveQuote(ref: QuoteRef, locale: Locale): ShownQuote | null {
-  const q = byId(ref.id);
-  if (!q) return null;
-  return { id: q.id, text: innerQuotes(q[locale]), author: q.author, work: q.work.split('(')[0]!.trim() };
+  const t = quoteText(ref.id, locale);
+  return t ? { id: ref.id, text: t.text, author: t.author, work: t.work } : null;
 }
 
 // The welcome and the farewell sit under the compact frontispiece too.
-function fits(q: RawQuote, locale: Locale, kind: QuoteKind): boolean {
-  const text = q[locale];
+function fits(q: QuoteEntry, locale: Locale, kind: QuoteKind): boolean {
+  const text = q[locale]?.text;
+  if (text === undefined) return false;
   if (kind === 'progress') return text.length <= FULL_MAX;
   return text.length <= COMPACT_MAX && (text.match(/\n/g)?.length ?? 0) <= COMPACT_MAX_BREAKS;
 }
 
-function pool(kind: QuoteKind, locale: Locale): RawQuote[] {
-  return ALL.filter((q) => fits(q, locale, kind));
+/** The quotes a kind may show, in the language on show. */
+export function pool(kind: QuoteKind, locale: Locale): QuoteEntry[] {
+  return QUOTES.filter((q) => fits(q, locale, kind));
 }
 
-function shortest(locale: Locale): RawQuote {
-  return ALL.reduce((a, b) => (quoteLength(b, locale) < quoteLength(a, locale) ? b : a));
+function shortest(locale: Locale): QuoteEntry {
+  return QUOTES.filter((q) => q[locale] !== null).reduce((a, b) => (quoteLength(b, locale) < quoteLength(a, locale) ? b : a));
 }
 
 /**

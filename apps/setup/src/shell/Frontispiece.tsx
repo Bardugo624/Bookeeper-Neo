@@ -1,13 +1,8 @@
 import { useLayoutEffect, useRef } from 'react';
+import { Quotation, quoteSize } from '@bookeeper/ui/quote';
 import { useLocale } from './i18n';
 import { resolveQuote, type QuoteRef } from './quotes';
 import styles from './Frontispiece.module.css';
-
-/** Font size by length in the language on show: 33px up to 90 characters, 26px up to 140, 22px beyond. */
-export function quoteSize(length: number, compact: boolean): 33 | 26 | 22 {
-  if (compact) return 22;
-  return length <= 90 ? 33 : length <= 140 ? 26 : 22;
-}
 
 /** Motion only when the person has not asked for less, as in the CSS: no `matchMedia` means no motion. */
 function allowsMotion(): boolean {
@@ -23,7 +18,7 @@ export interface FrontispieceProps {
 export function Frontispiece({ quote, compact }: FrontispieceProps) {
   const locale = useLocale();
   const shown = resolveQuote(quote, locale);
-  const size = shown ? quoteSize(shown.text.length, compact) : 33;
+  const size = shown ? quoteSize(shown.text, { columnPx: 600, compact }) : 33;
   const frame = useRef<HTMLDivElement>(null);
   const last = useRef<{ rect: DOMRect; compact: boolean; size: number } | null>(null);
 
@@ -54,20 +49,7 @@ export function Frontispiece({ quote, compact }: FrontispieceProps) {
         e.currentTarget.style.transition = '';
       }}
     >
-      <figure key={shown.id} className={styles.quote}>
-        <blockquote className={styles.text} style={{ fontSize: size }}>
-          <span className={styles.mark} aria-hidden="true">
-            «
-          </span>
-          {shown.text}
-          <span className={styles.mark} aria-hidden="true">
-            »
-          </span>
-        </blockquote>
-        <figcaption className={styles.caption}>
-          {shown.author} · <cite className={styles.work}>{shown.work}</cite>
-        </figcaption>
-      </figure>
+      <Quotation key={shown.id} quote={shown} size={size} className={styles.quote} />
     </div>
   );
 }
