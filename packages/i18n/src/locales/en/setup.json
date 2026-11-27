@@ -1,0 +1,144 @@
+{
+  "window": {
+    "minimize": "Minimize",
+    "close": "Close",
+    "busy": "Wait until the installation is done"
+  },
+  "install": {
+    "title": "Install Bookeeper",
+    "meta": "Version {version} · {size}",
+    "icons": {
+      "both": "Icon on the desktop and in the Start menu",
+      "start": "In the Start menu"
+    },
+    "autostart": "Opens when you sign in to Windows",
+    "customize": "Customize",
+    "go": "Install"
+  },
+  "customize": {
+    "title": "Customize",
+    "meta": "Bookeeper {version}",
+    "less": "Fewer choices",
+    "folder": "Folder",
+    "change": "Change…",
+    "space": "You need {need}. Drive {drive} has {free} free.",
+    "problem": {
+      "needs_admin": "This folder needs administrator rights. Pick one in your user folder.",
+      "network": "Pick a folder on this computer.",
+      "not_absolute": "Pick a folder on this computer.",
+      "too_long": "The path is too long. Pick a folder closer to the top of the drive.",
+      "too_little_space": "This drive is too full: {free} left.",
+      "temp_too_small": "The drive for temporary files is too full: {free} left."
+    },
+    "desktop": "Icon on the desktop",
+    "startMenu": "Bookeeper is always in the Start menu: Windows notifications need it.",
+    "autostart": "Open Bookeeper when you sign in to Windows",
+    "autostartNote": "It opens minimized. If you share your library on the network, phones can find it while the computer is on."
+  },
+  "progress": {
+    "install": "Installing Bookeeper",
+    "update": "Updating Bookeeper",
+    "repair": "Repairing Bookeeper",
+    "uninstall": "Uninstalling Bookeeper",
+    "step": {
+      "prepare": "Getting ready",
+      "copy": "Copying files",
+      "icons": "Creating icons",
+      "finish": "Final touches",
+      "removeApp": "Removing the app",
+      "removeData": "Deleting your data"
+    },
+    "valueText": "{step}, {percent}%"
+  },
+  "done": {
+    "install": "Bookeeper is ready",
+    "update": "Bookeeper is up to date",
+    "repair": "Bookeeper is repaired",
+    "whereBoth": "Find it on the desktop and in the Start menu.",
+    "whereStart": "Find it in the Start menu.",
+    "open": "Open Bookeeper",
+    "close": "Close"
+  },
+  "running": {
+    "title": "Close Bookeeper to continue",
+    "text": "The app is open on this computer. Close it, then press “Try again”.",
+    "retry": "Try again"
+  },
+  "error": {
+    "install": "The installation stopped",
+    "uninstall": "The uninstall stopped",
+    "text": "Try again. If it stops again, copy the details and send them to whoever helps you.",
+    "copy": "Copy details",
+    "copied": "Details copied",
+    "retry": "Try again"
+  },
+  "maintenance": {
+    "older": {
+      "title": "Update Bookeeper",
+      "text": "This computer has version {installed}. Version {version} leaves your library as it is, in the same folder.",
+      "go": "Update"
+    },
+    "same": {
+      "title": "Bookeeper {version} is already installed",
+      "text": "You can repair it if something is wrong, or uninstall it.",
+      "repair": "Repair"
+    },
+    "newer": {
+      "title": "A newer version is already here",
+      "text": "This computer has version {installed}. A library from version {installed} does not open in version {version}: to go back, uninstall with “Delete everything”."
+    },
+    "legacy": {
+      "title": "This version is very old",
+      "text": "This computer has Bookeeper {installed}. Uninstall it from Settings › Apps, then open Setup again."
+    },
+    "uninstall": "Uninstall"
+  },
+  "blocked": {
+    "incomplete": {
+      "title": "The downloaded file is incomplete",
+      "text": "Download it again, then open Setup again."
+    },
+    "elevated": {
+      "title": "Open Setup without administrator rights",
+      "text": "Bookeeper installs for your user. Close this window and open Setup with a double click."
+    },
+    "unsupported": {
+      "title": "This Setup is for Windows",
+      "text": "On this system, install Bookeeper with the right package."
+    }
+  },
+  "uninstall": {
+    "title": "Uninstall Bookeeper",
+    "meta": "Version {version} · in {dir}",
+    "keep": {
+      "title": "Keep your library",
+      "text": "Books, covers and backups stay on this computer. If you reinstall, they are still there.",
+      "textEbooks": "Books, covers, e-books and backups stay on this computer. If you reinstall, they are still there.",
+      "textRemote": "Links to libraries on servers stay on this computer. If you reinstall, they are still there."
+    },
+    "delete": {
+      "title": "Delete everything",
+      "text": "Also removes the library on this computer: {size}, with covers and backups.",
+      "textEbooks": "Also removes the library on this computer: {size}, with covers, e-books and backups.",
+      "textRemote": "Also removes the data saved on this computer: {size}, with links to libraries on servers."
+    },
+    "cancel": "Cancel",
+    "go": "Uninstall"
+  },
+  "confirm": {
+    "title": "Delete the whole library?",
+    "titleRemote": "Delete Bookeeper data?",
+    "text": "Books, covers and automatic backups will be gone from this computer: {size}. This cannot be undone.",
+    "textEbooks": "Books, covers, e-books and automatic backups will be gone from this computer: {size}. This cannot be undone.",
+    "textRemote": "Links to libraries and saved data will be gone from this computer: {size}. This cannot be undone.",
+    "note": "Libraries on a server stay where they are.",
+    "cancel": "Cancel",
+    "go": "Delete everything"
+  },
+  "removed": {
+    "title": "Bookeeper is uninstalled",
+    "kept": "Your library is still on this computer: if you reinstall Bookeeper, it is there.",
+    "deleted": "None of your Bookeeper data is left on this computer.",
+    "close": "Close"
+  }
+}
