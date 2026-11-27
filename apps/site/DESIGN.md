@@ -185,8 +185,8 @@ Inchiostro e carta nella stessa famiglia salvia, più un solo colore caldo.
 ### Secondary
 - **Ambra trovata** (`found`): lo stato trovato (percorso, punto d'arrivo,
   mobile trovato, dorso acceso), il filetto della riga del tuo sistema tra i
-  download, l'anello di fuoco, il cursore, la selezione. Oggi colora anche la
-  sottolineatura dei link al passaggio. Scuro: `#e0b062`.
+  download, l'anello di fuoco, il cursore, la selezione. Nient'altro: al passaggio i
+  link si sottolineano in `ink-strong`. Scuro: `#e0b062`.
 - **Testo su ambra** (`on-found`): il testo selezionato sopra l'ambra. Uguale
   nei due temi.
 - **Ambra scritta** (`found-ink`): il testo in ambra («terzo ripiano», «il
@@ -333,7 +333,7 @@ tabella). Le icone sono SVG a tratto unico da 1.75, estremi arrotondati.
   scende di 1px, con la stessa transizione; fuoco = anello ambra 2px,
   scostato 3px.
 - **Quiet:** testo `ink-strong` 500, sottolineato in `rule`, sottolineatura
-  ambra al passaggio, freccia a destra. Per «altri sistemi» e i rimandi.
+  `ink-strong` al passaggio, freccia a destra. Per «altri sistemi» e i rimandi.
 
 ### Chips
 - **Style:** titoli da chiedere alla casa. Inter 500 0.875rem, `muted`, bordo
@@ -371,8 +371,9 @@ Lora), che rimanda al «Prospetto A» sotto.
 Il cartellino che nomina stanza (label `muted`), mobile (Lora 500 1.0625rem)
 e ripiano (Inter 600 in `found-ink`). Fondo `sheet`, bordo 1.5px
 `ink-strong`, 4px, ombra «appoggiato». Testi e margini in `cqw` della
-pianta (1.6 / 2.6 / 2.1cqw), così scala con il disegno. Collegata al mobile
-da una linea di richiamo. Sotto 760px sparisce.
+pianta (2 / 3 / 2.5cqw), così scala con il disegno. Collegata al mobile
+da una linea di richiamo. Sparisce quando la pianta è più stretta di 520px
+(lì la risposta sta nel titolo) e sotto 760px.
 
 ### Prospetto del mobile
 Sotto la pianta, separato da un filetto: il mobile visto di fronte. Tutti i
