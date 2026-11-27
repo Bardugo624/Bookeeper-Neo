@@ -3,9 +3,22 @@ import { useQuery } from '@tanstack/react-query';
 import type { BookOut } from '@bookeeper/api';
 import { useClient, useSession } from '../../session';
 import { fileStem, findSameBook, joinAuthors, parseAuthors, canSave, type ImportRow } from './ebookImport';
+import type { EbookFileInfo } from './bookFiles';
 import { useFilesApi } from './useBookFiles';
 import { useRefreshBooks } from './useBookWrites';
 import { readFileBytes } from './coverFile';
+
+/** Metadata the row doesn't show: dropped when the library would refuse it, so it never blocks the book. */
+function optionalMetadata(meta: NonNullable<EbookFileInfo['metadata']>) {
+  const year = meta.published_year;
+  return {
+    ...(meta.language && meta.language.length <= 35 ? { language: meta.language } : {}),
+    ...(meta.publisher ? { publisher: meta.publisher.slice(0, 300) } : {}),
+    ...(year && year >= 1 && year <= 2100 ? { published_year: year } : {}),
+    ...(meta.isbn_13 ? { isbn_13: meta.isbn_13 } : {}),
+    ...(meta.description ? { description: meta.description.slice(0, 10_000) } : {}),
+  };
+}
 
 export interface ImportSummary {
   added: number;
@@ -31,12 +44,23 @@ export function useEbookImport(files: File[]) {
       attach: false,
     })),
   );
+  // The latest rows, readable by the async work that outlives a render.
+  const latest = useRef(rows);
   const [summary, setSummary] = useState<ImportSummary | null>(null);
   const started = useRef(false);
+  const cancelled = useRef(false);
+  const removed = useRef(new Set<string>());
+  const checking = useRef(new Set<Promise<void>>());
 
-  const patch = useCallback((id: string, change: Partial<ImportRow>) => {
-    setRows((all) => all.map((r) => (r.id === id ? { ...r, ...change } : r)));
+  const commit = useCallback((update: (all: ImportRow[]) => ImportRow[]) => {
+    latest.current = update(latest.current);
+    setRows(latest.current);
   }, []);
+
+  const patch = useCallback(
+    (id: string, change: Partial<ImportRow>) => commit((all) => all.map((r) => (r.id === id ? { ...r, ...change } : r))),
+    [commit],
+  );
 
   const lookup = useCallback(
     async (isbn: string | null | undefined, title: string, authors: string[]): Promise<BookOut | undefined> => {
@@ -54,36 +78,52 @@ export function useEbookImport(files: File[]) {
   );
 
   useEffect(() => {
-    if (started.current) return;
+    // Closing the dialog (unmounting) stops the files still waiting to upload.
+    cancelled.current = false;
+    if (started.current) return () => void (cancelled.current = true);
     started.current = true;
     void (async () => {
       for (const [i, file] of files.entries()) {
         const id = `${i}`;
+        if (cancelled.current) return;
+        if (removed.current.has(id)) continue;
         try {
           const info = await api.upload(file.name, await readFileBytes(file));
           const meta = info.metadata ?? {};
           const title = meta.title?.trim() || fileStem(file.name);
           const authors = meta.authors ?? [];
           const duplicate = await lookup(meta.isbn_13, title, authors);
+          if (cancelled.current) return;
           patch(id, { status: 'ready', info, title, authors: joinAuthors(authors), duplicate, attach: duplicate !== undefined });
         } catch (error) {
           patch(id, { status: 'error', error });
         }
       }
     })();
+    return () => void (cancelled.current = true);
   }, [files, api, lookup, patch]);
 
   /** After the title or the authors change, the library is asked again whether the book is there. */
-  const recheck = async (id: string) => {
-    const row = rows.find((r) => r.id === id);
+  const recheck = (id: string) => {
+    const row = latest.current.find((r) => r.id === id);
     if (!row || row.status !== 'ready') return;
-    const duplicate = await lookup(row.info?.metadata?.isbn_13, row.title, parseAuthors(row.authors));
-    patch(id, { duplicate, attach: duplicate !== undefined && (row.duplicate ? row.attach : true) });
+    const job = (async () => {
+      const duplicate = await lookup(row.info?.metadata?.isbn_13, row.title, parseAuthors(row.authors));
+      const now = latest.current.find((r) => r.id === id);
+      // Skip an answer for text that changed again while the library was asked.
+      if (!now || now.status !== 'ready' || now.title !== row.title || now.authors !== row.authors) return;
+      patch(id, { duplicate, attach: duplicate !== undefined && (row.duplicate ? row.attach : true) });
+    })();
+    checking.current.add(job);
+    void job.finally(() => checking.current.delete(job));
+    return job;
   };
 
   const confirm = async () => {
     const result: ImportSummary = { added: 0, attached: 0, failed: 0 };
-    for (const row of rows.filter(canSave)) {
+    // A duplicate check started by leaving a field must land before the books are made.
+    await Promise.all([...checking.current]);
+    for (const row of latest.current.filter(canSave)) {
       const info = row.info!;
       patch(row.id, { status: 'saving' });
       let created = false;
@@ -95,11 +135,7 @@ export function useEbookImport(files: File[]) {
             title: row.title.trim(),
             authors: parseAuthors(row.authors),
             format: 'ebook',
-            ...(meta.language ? { language: meta.language } : {}),
-            ...(meta.publisher ? { publisher: meta.publisher } : {}),
-            ...(meta.published_year ? { published_year: meta.published_year } : {}),
-            ...(meta.isbn_13 ? { isbn_13: meta.isbn_13 } : {}),
-            ...(meta.description ? { description: meta.description } : {}),
+            ...optionalMetadata(meta),
           });
           bookId = book.id;
           created = true;
@@ -118,7 +154,10 @@ export function useEbookImport(files: File[]) {
     setSummary(result);
   };
 
-  const remove = (id: string) => setRows((all) => all.filter((r) => r.id !== id));
+  const remove = (id: string) => {
+    removed.current.add(id);
+    commit((all) => all.filter((r) => r.id !== id));
+  };
   const saving = rows.some((r) => r.status === 'saving');
   const uploading = rows.some((r) => r.status === 'uploading');
   return { rows, summary, patch, remove, recheck, confirm, saving, uploading, count: rows.filter(canSave).length };

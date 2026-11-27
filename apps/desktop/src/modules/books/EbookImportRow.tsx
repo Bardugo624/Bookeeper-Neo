@@ -18,7 +18,7 @@ export interface EbookImportRowProps {
 export function EbookImportRow({ row, locked, onChange, onBlur, onRemove }: EbookImportRowProps) {
   const t = useT();
   const cover = useEbookCover(row.info?.sha256, row.info?.has_cover === true);
-  const problem = row.error !== undefined ? uploadProblemKey(row.error) : null;
+  const problem = row.error !== undefined && row.status === 'error' ? uploadProblemKey(row.error) : null;
   const message = row.error === undefined ? null : problem ? t(problem) : apiErrorMessage(t, row.error);
   const editable = row.status === 'ready';
   const joining = row.attach && row.duplicate !== undefined;

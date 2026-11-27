@@ -41,6 +41,9 @@ function setup(role: Library['role'] = 'owner', books = [book(1, { title: 'Libro
     },
     extra: (r) => {
       if (r.method === 'POST' && r.path === '/api/v1/books') {
+        if (((r.body as { authors?: string[] }).authors ?? []).some((a) => a.length > 200)) {
+          return { status: 422, body: { error_code: 'validation', message: 'each author must be between 1 and 200 characters' } };
+        }
         created.push(r.body);
         return { status: 201, body: book(100 + created.length, { ...(r.body as object), format: 'ebook' }) };
       }
@@ -126,5 +129,25 @@ describe('e-book import', () => {
     const target = await screen.findByText('Libro 1');
     fireEvent.drop(target, { dataTransfer: { files: [epub('rosa.epub')], types: ['Files'] } });
     expect(screen.queryByRole('dialog', { name: 'Aggiungi e-book' })).toBeNull();
+  });
+
+  it('ignores drops that land on the import dialog itself', async () => {
+    setup();
+    const dialog = await drop('rosa.epub');
+    await waitFor(() => expect(within(dialog).getAllByLabelText('Titolo')).toHaveLength(1));
+    fireEvent.drop(within(dialog).getByLabelText('Titolo'), { dataTransfer: { files: [epub('pendolo.epub')], types: ['Files'] } });
+    expect(within(dialog).getAllByLabelText('Titolo')).toHaveLength(1);
+    expect((within(dialog).getByLabelText('Titolo') as HTMLInputElement).value).toBe('Il nome della rosa');
+  });
+
+  it('does not blame DRM when the book itself is refused', async () => {
+    const { created } = setup();
+    const dialog = await drop('rosa.epub');
+    const authors = await within(dialog).findByLabelText('Autori');
+    fireEvent.change(authors, { target: { value: 'x'.repeat(250) } });
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Aggiungi 1 libro' }));
+    expect(await within(dialog).findByRole('alert')).toBeInTheDocument();
+    expect(created).toHaveLength(0);
+    expect(within(dialog).queryByText(/DRM|protett/i)).toBeNull();
   });
 });

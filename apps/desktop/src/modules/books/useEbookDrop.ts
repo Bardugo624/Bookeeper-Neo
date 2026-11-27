@@ -1,6 +1,8 @@
 import { useState, type DragEvent } from 'react';
 
-const hasFiles = (e: DragEvent) => Array.from(e.dataTransfer?.types ?? []).includes('Files');
+// React events bubble through portals: a drop inside a dialog is not a drop on the page.
+const hasFiles = (e: DragEvent) =>
+  e.currentTarget.contains(e.target as Node | null) && Array.from(e.dataTransfer?.types ?? []).includes('Files');
 
 /** Drop target for e-books: the props to spread on the page, whether files hover it, and what was dropped. */
 export function useEbookDrop(enabled: boolean, onDrop: (files: File[]) => void) {
