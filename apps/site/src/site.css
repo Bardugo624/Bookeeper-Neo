@@ -217,6 +217,7 @@ html:not(.js) .chips { display: none; }
   width: min(100%, calc((100svh - 470px) * 1000 / 790));
   min-width: min(100%, 420px);
   margin-inline: auto;
+  container-type: inline-size;
 }
 .plan { width: 100%; height: 100%; overflow: visible; }
 .plan .room { fill: transparent; }
@@ -251,12 +252,12 @@ html:not(.js) .chips { display: none; }
   position: absolute; left: var(--x); top: var(--y);
   transform: translate(-50%, -50%);
   display: grid; gap: 2px; min-width: max-content;
-  padding: 10px 14px 11px; border: 1.5px solid var(--ink-strong); border-radius: 4px;
+  padding: 1.3cqw 1.9cqw 1.4cqw; border: 1.5px solid var(--ink-strong); border-radius: 4px;
   background: var(--sheet); box-shadow: var(--shadow); pointer-events: none;
 }
-.tag-room { font: 600 0.6875rem/1.3 var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
-.tag-case { font: 500 1.0625rem/1.25 var(--serif); color: var(--text); }
-.tag-shelf { font: 600 0.875rem/1.3 var(--sans); color: var(--found-ink); }
+.tag-room { font: 600 1.6cqw/1.3 var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.tag-case { font: 500 2.6cqw/1.25 var(--serif); color: var(--text); }
+.tag-shelf { font: 600 2.1cqw/1.3 var(--sans); color: var(--found-ink); }
 
 .detail { display: flex; align-items: center; gap: 28px; padding-top: 14px; border-top: 1px solid var(--rule); }
 .detail-name { flex: 1 1 auto; display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-items: center; font-size: 0.875rem; line-height: 1.4; color: var(--muted); }

@@ -42,19 +42,19 @@ export const furniture = [
   {
     id: 'studio', room: 'study', x: 920, y: 66, w: 26, h: 210, color: '#3a4a6b', shelves: 4, slots: 14,
     it: 'Scaffale dello studio', en: 'Study shelves',
-    front: [896, 171], tag: [690, 184], mark: [884, 92],
+    front: [896, 171], tag: [690, 185], mark: [884, 92],
     route: [[610, 700], [610, 330], [573, 330], [573, 252], [860, 252], [860, 171], [896, 171]],
   },
   {
     id: 'ragazzi', room: 'kids', x: 54, y: 500, w: 26, h: 160, color: '#c9954a', shelves: 3, slots: 12,
     it: 'Mensole dei ragazzi', en: 'Children’s shelves',
-    front: [104, 580], tag: [250, 520], mark: [67, 474],
+    front: [104, 580], tag: [240, 512], mark: [67, 474],
     route: [[610, 700], [610, 625], [130, 625], [130, 580], [104, 580]],
   },
   {
     id: 'ingresso', room: 'hall', x: 754, y: 560, w: 26, h: 90, color: '#b8704f', shelves: 2, slots: 10,
     it: 'Mobiletto', en: 'Hall cabinet',
-    front: [728, 605], tag: [660, 420], mark: [728, 536],
+    front: [728, 605], tag: [650, 420], mark: [728, 536],
     route: [[610, 700], [700, 700], [700, 605], [728, 605]],
   },
 ];
@@ -64,7 +64,6 @@ export const fittings = [
   { kind: 'rect', x: 150, y: 318, w: 230, h: 58, r: 10 }, // sofa
   { kind: 'rect', x: 210, y: 262, w: 110, h: 40, r: 4 }, // coffee table
   { kind: 'rect', x: 600, y: 58, w: 180, h: 50, r: 2 }, // desk
-  { kind: 'circle', cx: 690, cy: 132, r: 20 }, // desk chair
   { kind: 'rect', x: 400, y: 420, w: 100, h: 170, r: 6 }, // bunk bed
   { kind: 'rect', x: 800, y: 318, w: 142, h: 50, r: 2 }, // kitchen counter
   { kind: 'circle', cx: 870, cy: 600, r: 50 }, // round table
