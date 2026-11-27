@@ -288,6 +288,11 @@ fn is_empty_dir(dir: &Path) -> bool {
 pub fn check_target(sys: &dyn System, chosen: &str, meta: Option<&Meta>) -> DirCheck {
     let chosen = Path::new(chosen.trim());
     let dir = folder::target_for_choice(chosen, is_empty_dir(chosen));
+    check_exact(sys, dir, meta)
+}
+
+/// Checks a folder as it is: no `Bookeeper` suffix is added (it was already chosen).
+pub fn check_exact(sys: &dyn System, dir: PathBuf, meta: Option<&Meta>) -> DirCheck {
     let drive = drive_of(&dir);
     let result = |problem: Option<ProblemCode>, free_bytes: u64| DirCheck {
         dir: dir.to_string_lossy().into_owned(),
@@ -336,7 +341,8 @@ pub fn run_install(state: &AppState, request: &InstallRequest, emit: &mut dyn Fn
         state.log.line("install: refused, the Setup is blocked");
         return OpResult::failed(ErrorCode::Io);
     }
-    let check = check_target(sys, &request.dir, meta.as_ref());
+    // The UI sends a folder `check_dir` already corrected (or the installed one): use it as is.
+    let check = check_exact(sys, PathBuf::from(request.dir.trim()), meta.as_ref());
     if let Some(problem) = check.problem {
         state.log.line(&format!("install: refused, folder problem {problem:?}"));
         return OpResult::failed(ErrorCode::Io);
@@ -355,7 +361,10 @@ pub fn run_install(state: &AppState, request: &InstallRequest, emit: &mut dyn Fn
 pub fn uninstall_dir(sys: &dyn System, setup_exe: &Path) -> Option<PathBuf> {
     ops::read_state(sys)
         .map(|s| s.dir)
-        .or_else(|| setup_exe.parent().map(Path::to_path_buf))
+        .or_else(|| {
+            // Only a folder that really holds an installation counts.
+            setup_exe.parent().filter(|p| p.join(UNINSTALLER).is_file()).map(Path::to_path_buf)
+        })
 }
 
 pub fn run_uninstall(state: &AppState, delete_data: bool, emit: &mut dyn FnMut(ProgressEvent)) -> OpResult {
@@ -404,7 +413,7 @@ fn extract_installer(sys: &dyn System, setup_exe: &Path, meta: &Meta) -> io::Res
         .duration_since(std::time::UNIX_EPOCH)
         .map_or(0, |d| d.subsec_nanos());
     let dir = sys.temp_dir().join(format!("bookeeper-setup-{}-{nanos:x}", std::process::id()));
-    std::fs::create_dir_all(&dir)?;
+    std::fs::create_dir(&dir)?;
     // Only the file name of the metadata is used, so a hostile name cannot leave the folder.
     let name = Path::new(&meta.payload.name).file_name().ok_or_else(|| io::Error::from(io::ErrorKind::InvalidData))?;
     let out_path = dir.join(name);
