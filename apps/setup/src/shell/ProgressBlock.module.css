@@ -1,0 +1,38 @@
+.block {
+    height: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+    padding: 0 72px;
+}
+
+.head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+}
+
+.title {
+    margin: 0;
+    font-family: var(--bk-font-serif);
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--bk-text-strong);
+}
+
+.percent {
+    font-family: var(--bk-font-serif);
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--bk-text-strong);
+    font-variant-numeric: tabular-nums;
+}
+
+.step {
+    margin: 0;
+    font-size: 13px;
+    color: var(--bk-text-muted);
+}
