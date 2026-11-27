@@ -81,6 +81,11 @@ jobs:
         run: |
           curl -sS -o /dev/null -w 'www: %{http_code}\n' https://www.neokeeper.dev/ || echo "::warning::www.neokeeper.dev is not reachable yet (DNS record or certificate missing)"
           curl -sS -o /dev/null -w 'apex: %{http_code} -> %{redirect_url}\n' https://neokeeper.dev/ || echo "::warning::neokeeper.dev is not reachable yet"
+          # The page reads R2 from the browser: R2 must allow the site's origin.
+          for f in stable/latest.json downloads/stable.json; do
+            h=$(curl -sS -D - -o /dev/null -H 'Origin: https://www.neokeeper.dev' "https://updates.neokeeper.dev/v2/$f" | tr -d '\r')
+            echo "R2 $f: $(printf '%s\n' "$h" | head -1) | $(printf '%s\n' "$h" | grep -i '^access-control-allow-origin' || echo 'no CORS header')"
+          done
       - name: Remove the key
         if: always()
         run: rm -f ~/.ssh/id_vps
