@@ -1,6 +1,6 @@
 # E-book in Bookeeper: file, lettore e lettori e-ink — design
 
-Data: 2026-11-27. Stato: da approvare.
+Data: 2026-11-27. Stato: da approvare. Il documento è passato da un controllo indipendente; le risposte sono qui dentro.
 
 I rapporti di ricerca sono in `docs/superpowers/research/`:
 - `2026-11-27-ebook-esperienza.md`: le app di lettura esistenti, cosa piace e cosa no;
@@ -184,6 +184,12 @@ La prova conferma il motore oppure riapre la scelta.
 
 ### Fase 10C — Lettori e-ink
 
+**Solo con il server in HTTPS**, come il telefono. Le rotte `/opds`, `/kosync` e `/kobo` stanno in `bookeeper-server`, non nel router del core. La condivisione del PC sulla rete di casa non le espone, per due motivi:
+- usa un certificato fatto in casa, che un lettore e-ink non può verificare;
+- in HTTP semplice la password dei lettori viaggerebbe in chiaro.
+
+Con una libreria sul PC, «Lettori e-ink» spiega che serve il server.
+
 **10C-1, KOReader**
 - **Credenziali:** nelle Impostazioni, «Lettori e-ink» crea per ogni persona una password per i lettori, diversa da quella di accesso e revocabile.
 - **Catalogo OPDS 1.2** su `/opds`, con autenticazione Basic. Contiene:
@@ -200,6 +206,7 @@ La prova conferma il motore oppure riapre la scelta.
 - **Collegare il Kobo:** nelle Impostazioni, «Collega un Kobo» crea per la persona l'indirizzo `https://<server>/kobo/<token>`. Le istruzioni dicono come scriverlo in `api_endpoint`, nel file `.kobo/Kobo/Kobo eReader.conf`, via USB. Il token si può revocare.
 - **Quali libri:** sul Kobo vanno i libri che la persona mette nell'elenco «Sul mio Kobo», purché abbiano un EPUB.
 - **Cosa si sincronizza:** metadati, copertine, stato (letto, in lettura) e percentuale, nei due sensi. La Location del Kobo resta in `reading_positions`.
+- **Niente salti all'indietro.** Sul Kobo non si può chiedere «Continua da …», quindi Bookeeper gli manda una posizione solo quando è più avanti di quella che il Kobo ha già. Il Kobo non torna mai indietro da solo, e il lettore Bookeeper continua a chiedere.
 - **KEPUB:** convertire in KEPUB dà una posizione più precisa del capitolo. Se e come farlo lo sceglie il costruttore: una conversione nel core, sul modello di kepubify (MIT), oppure EPUB semplice con avanzamento per capitolo.
 - **HTTPS** è necessario, perché il token sta nell'indirizzo.
 - Si sa in anticipo che è fragile. Le Impostazioni mostrano l'ultima sincronizzazione del Kobo, così un problema si vede.
@@ -225,6 +232,9 @@ Il proprietario decide dove vanno queste fasi rispetto a 9A (R2 e lo script `bk`
 - Lettura ad alta voce e dizionario dopo la prima versione.
 - Una password per i lettori e-ink, separata da quella di accesso.
 - L'elenco «Sul mio Kobo» per scegliere cosa va sul Kobo.
+- I lettori e-ink funzionano solo con il server in HTTPS: niente catalogo né sincronizzazioni sulla condivisione del PC.
+- Al Kobo arrivano solo posizioni più avanti della sua.
+- Le schede degli acquisti fatti sul negozio Kobo restano solo schede: leggere quei libri non aggiorna l'anello.
 
 ## Lasciato al costruttore
 
