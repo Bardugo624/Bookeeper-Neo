@@ -6,7 +6,7 @@ import { mkdtempSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { delimiter, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { installFakeGh } from './fake-gh.mjs';
+import { gitOnlyDir, installFakeGh } from './fake-gh.mjs';
 
 const bk = join(dirname(fileURLToPath(import.meta.url)), '..', 'bk.mjs');
 const tmp = () => mkdtempSync(join(tmpdir(), 'bk-cmd-'));
@@ -43,7 +43,7 @@ function runBk(args, { scenario, env = {}, cwd } = {}) {
   const fake = scenario ? installFakeGh(join(dir, 'bin'), scenario) : null;
   const bin = fake ? join(dir, 'bin') : join(dir, 'empty');
   if (!fake) mkdirSync(bin);
-  const gitDir = dirname(spawnSync('which', ['git'], { encoding: 'utf8' }).stdout.trim() || '/usr/bin/git');
+  const gitDir = gitOnlyDir(join(dir, 'git'));
   return new Promise((resolve) => {
     {
       const p = spawn(process.execPath, [bk, ...args], {

@@ -5,7 +5,7 @@ import { copyFileSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { delimiter, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { installFakeGh } from '../fake-gh.mjs';
+import { gitOnlyDir, installFakeGh } from '../fake-gh.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 export const projectRoot = join(here, '..', '..', '..');
@@ -27,6 +27,9 @@ export function repo(branchName = 'main') {
   mkdirSync(dir);
   git(base, 'init', '--bare', remote);
   git(dir, 'init', '-b', branchName);
+  // bk commits in this repository: without a global identity (CI) git would refuse.
+  git(dir, 'config', 'user.name', 't');
+  git(dir, 'config', 'user.email', 't@t');
   for (const f of VERSION_FILES) {
     mkdirSync(dirname(join(dir, f)), { recursive: true });
     copyFileSync(join(projectRoot, f), join(dir, f));
@@ -67,7 +70,7 @@ export const failingWatch = { match: ['run', 'watch'], code: 1 };
 export function runBk(args, { scenario, env = {}, cwd, input = '' } = {}) {
   const dir = tmp();
   const fake = installFakeGh(join(dir, 'bin'), scenario);
-  const gitDir = dirname(spawnSync('which', ['git'], { encoding: 'utf8' }).stdout.trim() || '/usr/bin/git');
+  const gitDir = gitOnlyDir(join(dir, 'git'));
   return new Promise((resolve) => {
     const p = spawn(process.execPath, [bk, ...args], {
       cwd,
