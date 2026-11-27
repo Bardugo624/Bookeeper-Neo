@@ -19,6 +19,16 @@
     height: 150px;
 }
 
+.stage[data-compact][data-panel='medium'] .top {
+    height: 226px;
+}
+
+/* Over the medium panel there is room to centre the compact quote, as in the drafts. */
+.stage[data-compact][data-panel='medium'] .top > * {
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
 .panel {
     position: absolute;
     inset: auto 0 0 0;
@@ -31,6 +41,10 @@
 
 .panel[data-height='short'] {
     transform: translateY(190px);
+}
+
+.panel[data-height='medium'] {
+    transform: translateY(76px);
 }
 
 @media (prefers-reduced-motion: no-preference) {

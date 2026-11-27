@@ -69,7 +69,8 @@ export function UninstallFlow({ info }: { info: SetupInfo }) {
 
   const go = () =>
     choice === "delete" ? setConfirming(true) : void run(false);
-  const panel = phase === "choose" ? "tall" : "short";
+  // The choice needs less room than «Personalizza»: the frontispiece keeps the quote centred.
+  const panel = phase === "choose" ? "medium" : "short";
 
   return (
     <SetupLayout

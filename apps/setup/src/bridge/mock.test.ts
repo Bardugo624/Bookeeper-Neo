@@ -46,6 +46,18 @@ describe('mockBridge', () => {
     expect(seen[seen.length - 1]).toBe(1);
   });
 
+  it('keeps a second subscription of the same handler when the first one stops', async () => {
+    // StrictMode mounts, unmounts and mounts again: the same handler subscribes twice.
+    const bridge = mockBridge('welcome', { tickMs: 0 });
+    const seen: number[] = [];
+    const handler = (e: { fraction: number }) => void seen.push(e.fraction);
+    const first = await bridge.onProgress(handler);
+    await bridge.onProgress(handler);
+    first();
+    bridge.emitProgress({ step: 'copy', fraction: 0.5, done: false });
+    expect(seen).toEqual([0.5]);
+  });
+
   it('fails the error scenario and blocks the first install of the running one', async () => {
     const req = { dir: 'C:\\x', desktopIcon: true, autostart: false, mode: 'install' as const };
     expect(await mockBridge('error').install(req)).toEqual({ ok: false, error: 'nsis_failed', code: 5 });

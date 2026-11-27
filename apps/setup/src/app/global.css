@@ -14,3 +14,8 @@ body {
 #root {
     position: relative;
 }
+
+/* Titles take the focus when the panel changes, for screen readers: they are not controls, so no ring. */
+[tabindex='-1']:focus {
+    outline: none;
+}

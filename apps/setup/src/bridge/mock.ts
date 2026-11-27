@@ -122,9 +122,12 @@ export function mockBridge(scenario: Scenario, options: MockOptions = {}): MockB
     emit({ step: steps[steps.length - 1]!, fraction: 1, done: true });
   }
 
-  const subscribe = <T>(set: Set<T>, handler: T): Promise<Unlisten> => {
-    set.add(handler);
-    return Promise.resolve(() => void set.delete(handler));
+  // One entry per call: React's StrictMode subscribes the same handler twice, and the first
+  // unlisten must not drop the second subscription.
+  const subscribe = <A extends unknown[]>(set: Set<(...args: A) => void>, handler: (...args: A) => void): Promise<Unlisten> => {
+    const entry = (...args: A) => handler(...args);
+    set.add(entry);
+    return Promise.resolve(() => void set.delete(entry));
   };
 
   return {

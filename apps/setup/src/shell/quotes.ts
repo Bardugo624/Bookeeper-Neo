@@ -26,8 +26,10 @@ export interface ShownQuote {
 
 export type QuoteKind = 'welcome' | 'progress' | 'farewell';
 
-/** The characters of a quote that fit the compact frontispiece, and the longest one that fits at all. */
-export const COMPACT_MAX = 140;
+/** The characters of a quote that fit the compact frontispiece (two lines at 22px), and the longest one that fits at all. */
+export const COMPACT_MAX = 110;
+/** The compact frontispiece holds two lines: a quote in verse may break once at most. */
+export const COMPACT_MAX_BREAKS = 1;
 export const FULL_MAX = 200;
 /** A new quote during the work comes at most this often. */
 export const QUOTE_INTERVAL_MS = 6000;
@@ -54,12 +56,18 @@ export function resolveQuote(ref: QuoteRef, locale: Locale): ShownQuote | null {
 }
 
 // The welcome and the farewell sit under the compact frontispiece too.
-function maxLength(kind: QuoteKind): number {
-  return kind === 'progress' ? FULL_MAX : COMPACT_MAX;
+function fits(q: RawQuote, locale: Locale, kind: QuoteKind): boolean {
+  const text = q[locale];
+  if (kind === 'progress') return text.length <= FULL_MAX;
+  return text.length <= COMPACT_MAX && (text.match(/\n/g)?.length ?? 0) <= COMPACT_MAX_BREAKS;
 }
 
 function pool(kind: QuoteKind, locale: Locale): RawQuote[] {
-  return ALL.filter((q) => quoteLength(q, locale) <= maxLength(kind));
+  return ALL.filter((q) => fits(q, locale, kind));
+}
+
+function shortest(locale: Locale): RawQuote {
+  return ALL.reduce((a, b) => (quoteLength(b, locale) < quoteLength(a, locale) ? b : a));
 }
 
 /**
@@ -75,13 +83,14 @@ export function useQuotes(random: () => number = Math.random): { pick(kind: Quot
       const now = Date.now();
       const shown = current.current;
       const shownQuote = shown ? byId(shown.id) : undefined;
-      const stillFits = shownQuote !== undefined && quoteLength(shownQuote, locale) <= maxLength(kind);
+      const stillFits = shownQuote !== undefined && fits(shownQuote, locale, kind);
       if (shown && shown.kind === kind && stillFits && (kind !== 'progress' || now - shown.at < QUOTE_INTERVAL_MS)) {
         return { id: shown.id };
       }
       const candidates = pool(kind, locale);
       const fresh = candidates.filter((q) => q.id !== shown?.id);
-      const from = fresh.length > 0 ? fresh : candidates.length > 0 ? candidates : ALL;
+      // With no quote that fits, the shortest one is the least likely to overflow.
+      const from = fresh.length > 0 ? fresh : candidates.length > 0 ? candidates : [shortest(locale)];
       const chosen = from[Math.min(from.length - 1, Math.floor(random() * from.length))]!;
       current.current = { id: chosen.id, kind, at: now };
       return { id: chosen.id };

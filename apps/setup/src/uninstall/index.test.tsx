@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { mockBridge, mockInfo, useBusy, type MockBridge, type OpResult, type Scenario } from '../bridge';
@@ -34,6 +34,13 @@ describe('UninstallFlow: choice', () => {
     expect(screen.getByRole('radiogroup', { name: 'Disinstalla Bookeeper' })).toBeInTheDocument();
     expect(keep()).toBeChecked();
     expect(wipe()).not.toBeChecked();
+  });
+
+  it('uses the medium panel, so the quote stays centred above the choice', () => {
+    setup();
+    const stage = screen.getByRole('heading', { name: 'Disinstalla Bookeeper' }).closest('[data-panel]');
+    expect(stage).toHaveAttribute('data-panel', 'medium');
+    expect(stage?.querySelector('section')).toHaveAttribute('data-height', 'medium');
   });
 
   it('uninstalls keeping the library, with no confirmation', async () => {
@@ -126,9 +133,18 @@ describe('UninstallFlow: confirmation', () => {
 
 describe('UninstallFlow: running and end', () => {
   it('shows the progress, then «kept» and closes with 0', async () => {
-    const { bridge, user } = setup();
+    // The uninstall stays open until the test ends it: the progress is not a race against the mock.
+    const bridge = mockBridge('uninstall', { tickMs: 1 });
+    let finish: (result: OpResult) => void = () => {};
+    const held: MockBridge = { ...bridge, uninstall: () => new Promise<OpResult>((resolve) => (finish = resolve)) };
+    renderSetup(<UninstallFlow info={mockInfo('uninstall')} />, { bridge: held });
+    const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: 'Disinstalla' }));
     expect(await screen.findByRole('progressbar', { name: 'Sto disinstallando Bookeeper' })).toBeInTheDocument();
+    act(() => {
+      bridge.emitProgress({ step: 'finish', fraction: 1, done: true });
+      finish({ ok: true });
+    });
     const title = await screen.findByRole('heading', { name: 'Bookeeper è stato disinstallato' });
     expect(title).toHaveFocus();
     expect(screen.getByText(/La tua libreria è ancora su questo computer/)).toBeInTheDocument();

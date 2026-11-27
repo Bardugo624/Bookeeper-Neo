@@ -17,11 +17,12 @@ describe('useQuotes', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
-  it.each<Locale>(['it', 'en'])('welcome picks only quotes up to 140 characters in %s', (locale) => {
+  it.each<Locale>(['it', 'en'])('welcome picks only quotes of two lines and up to 110 characters in %s', (locale) => {
     for (let i = 0; i < 40; i += 1) {
       const { result, unmount } = renderHook(() => useQuotes(() => i / 40), { wrapper: wrapper(locale) });
-      const ref = result.current.pick('welcome');
-      expect(byId.get(ref.id)![locale].length).toBeLessThanOrEqual(140);
+      const text = byId.get(result.current.pick('welcome').id)![locale];
+      expect(text.length).toBeLessThanOrEqual(110);
+      expect(text.split('\n').length).toBeLessThanOrEqual(2);
       unmount();
     }
   });
@@ -59,6 +60,6 @@ describe('useQuotes', () => {
   it('farewell takes quotes that fit the compact frontispiece', () => {
     const { result } = renderHook(() => useQuotes(), { wrapper: wrapper('en') });
     const ref = result.current.pick('farewell');
-    expect(byId.get(ref.id)!.en.length).toBeLessThanOrEqual(140);
+    expect(byId.get(ref.id)!.en.length).toBeLessThanOrEqual(110);
   });
 });

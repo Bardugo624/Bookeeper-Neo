@@ -1,10 +1,10 @@
-/* The panel is 370px tall from y=150; the draft's panel starts at y=226, so the content keeps its place. */
+/* The visible part of the medium panel, which starts at y=226 as in the draft. */
 .panel {
-    height: 370px;
+    height: 294px;
     display: flex;
     flex-direction: column;
     gap: 16px;
-    padding: 98px 40px 22px 72px;
+    padding: 22px 40px 22px 72px;
 }
 
 .title {

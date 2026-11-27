@@ -385,7 +385,7 @@ La direzione è nel brief `apps/setup/.impeccable/surfaces/src-main-tsx.md`, con
 - Testo e autore seguono la lingua dell'interfaccia. L'opera si mostra fino alla prima parentesi, nella lingua originale: «Cuore», non «Cuore (chapter …)».
 - **Dimensioni**, contando i caratteri nella lingua mostrata:
   - frontespizio pieno: fino a 90 caratteri 33px, fino a 140 26px, fino a 200 22px;
-  - frontespizio compatto («Personalizza», disinstallazione): 22px, solo fino a 140 caratteri;
+  - frontespizio compatto («Personalizza», disinstallazione): 22px, solo fino a 110 caratteri e al massimo due righe: di più non sta nello spazio sopra il pannello;
   - oltre i 200 caratteri la citazione resta fuori.
 - Il benvenuto usa solo citazioni adatte anche al frontespizio compatto.
 - La citazione cambia quando parte l'installazione, poi al massimo ogni 6 secondi. La schermata finale tiene l'ultima.

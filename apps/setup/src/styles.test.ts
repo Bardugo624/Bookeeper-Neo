@@ -121,11 +121,23 @@ describe('setup stylesheets', () => {
   });
 });
 
+describe('focus on titles', () => {
+  it('shows no ring on the titles that take the focus when the panel changes', () => {
+    expect(read(join(srcDir, 'app/global.css'))).toMatch(/\[tabindex='-1'\]:focus\s*\{\s*outline:\s*none;/);
+  });
+});
+
 describe('the working panel', () => {
   const panel = /\.panel\s*\{([^}]*)\}/.exec(read(join(srcDir, 'shell/SetupLayout.module.css')))?.[1] ?? '';
 
   it('casts the soft shadow of the drafts over the frontispiece, from a token', () => {
     expect(panel).toMatch(/box-shadow:\s*0 -8px 24px color-mix\(in srgb, var\(--bk-scrim\) 4%, transparent\)/);
+  });
+
+  it('has a medium height that leaves 226px to the compact frontispiece', () => {
+    const css = read(join(srcDir, 'shell/SetupLayout.module.css'));
+    expect(css).toMatch(/\.panel\[data-height='medium'\]\s*\{\s*transform:\s*translateY\(76px\);/);
+    expect(css).toMatch(/\.stage\[data-compact\]\[data-panel='medium'\]\s*\.top\s*\{\s*height:\s*226px;/);
   });
 
   it('rests without a transition: it slides only when motion is allowed', () => {
