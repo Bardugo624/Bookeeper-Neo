@@ -278,37 +278,53 @@ fn sweep_due(dir: &std::path::Path) -> bool {
 /// Deletes the stored files no book uses and the orphaned temporaries, when
 /// older than `older_than`. Returns how many files went.
 pub async fn sweep_unattached(state: &AppState, older_than: Duration) -> ApiResult<usize> {
-    let referenced: HashSet<String> = state
+    let dir = state.files.ebooks_dir.clone();
+    // Reading the used hashes and deleting happen inside the same database
+    // closure (single connection), so an attach cannot slip in between.
+    let done = state
         .db
-        .run(|conn| {
+        .run(move |conn| {
             let mut stmt = conn.prepare("SELECT DISTINCT sha256 FROM book_files")?;
             let rows = stmt.query_map([], |r| r.get::<_, String>(0))?;
-            rows.collect::<rusqlite::Result<HashSet<_>>>()
+            let referenced = rows.collect::<rusqlite::Result<HashSet<_>>>()?;
+            Ok(ebooks::sweep_staged(&dir, &referenced, older_than))
         })
         .await?;
-    let dir = state.files.ebooks_dir.clone();
-    tokio::task::spawn_blocking(move || ebooks::sweep_staged(&dir, &referenced, older_than))
-        .await
-        .map_err(|_| ApiError::internal())?
-        .map_err(|e| {
-            tracing::warn!(error = %e, "cannot sweep the e-book folder");
-            ApiError::internal()
-        })
+    done.map_err(|e| {
+        tracing::warn!(error = %e, "cannot sweep the e-book folder");
+        ApiError::internal()
+    })
 }
 
 /// Sweeps in the background, unless it already ran during the last hour.
 /// Called at startup (by the router) and after every upload.
 pub fn maybe_sweep(state: &AppState) {
-    let Ok(handle) = tokio::runtime::Handle::try_current() else {
-        return;
-    };
     if !sweep_due(&state.files.ebooks_dir) {
         return;
     }
     let state = state.clone();
-    handle.spawn(async move {
+    let job = async move {
         if let Err(e) = sweep_unattached(&state, STAGED_TTL).await {
             tracing::warn!(status = %e.status, "e-book sweep failed");
         }
-    });
+    };
+    match tokio::runtime::Handle::try_current() {
+        Ok(handle) => {
+            handle.spawn(job);
+        }
+        // Built outside a runtime (the desktop app does it in Tauri's
+        // `setup`): run the sweep on its own thread.
+        Err(_) => {
+            let _ = std::thread::Builder::new()
+                .name("ebook-sweep".into())
+                .spawn(move || {
+                    if let Ok(rt) = tokio::runtime::Builder::new_current_thread()
+                        .enable_all()
+                        .build()
+                    {
+                        rt.block_on(job);
+                    }
+                });
+        }
+    }
 }
