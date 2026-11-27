@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { classify, fromGithub, fromIndex, loadRelease, detectSystem, formatSize } from '../src/downloads.mjs';
+import { classify, fromGithub, fromIndex, loadRelease, detectSystem, formatSize, notesToHtml } from '../src/downloads.mjs';
 
 const names = [
   'bookeeper-server-2.1.0-linux-amd64.tar.gz',
@@ -54,7 +54,7 @@ test('the index is tried first and GitHub answers when it fails', async () => {
     if (url.includes('updates.neokeeper.dev')) return { ok: false, status: 404 };
     return { ok: true, json: async () => release };
   };
-  const r = await loadRelease(['index', 'github'], fetchImpl);
+  const r = await loadRelease(['index', 'github'], fetchImpl, []);
   assert.equal(r.source, 'github');
   assert.equal(calls.length, 2);
 });
@@ -75,4 +75,38 @@ test('the installer billed first follows the visitor system', () => {
 test('sizes read in megabytes', () => {
   assert.equal(formatSize(8213331, 'it'), '7,8 MB');
   assert.equal(formatSize(91847160, 'en'), '88 MB');
+});
+
+test('notes come from the first manifest that announces the same version', async () => {
+  const r2 = 'https://r2.test/v2/stable/latest.json';
+  const vps = '/updates/stable/latest.json';
+  const answers = {
+    [r2]: null,
+    [vps]: { version: '2.1.0', notes: '### Added\n\n- dalla VPS', pub_date: '2026-11-27T03:09:00Z' },
+  };
+  const fetchImpl = async (url) => {
+    if (url in answers) return answers[url] ? { ok: true, json: async () => answers[url] } : { ok: false, status: 404 };
+    return { ok: true, json: async () => ({ ...release, body: 'dalla release' }) };
+  };
+  const r = await loadRelease(['github'], fetchImpl, [r2, vps]);
+  assert.equal(r.notes, '### Added\n\n- dalla VPS');
+  assert.equal(r.notesSource, vps);
+});
+
+test('a manifest for another version does not lend its notes', async () => {
+  const fetchImpl = async (url) => url.endsWith('latest.json')
+    ? { ok: true, json: async () => ({ version: '2.2.0', notes: 'più nuova' }) }
+    : { ok: true, json: async () => ({ ...release, body: 'dalla release' }) };
+  const r = await loadRelease(['github'], fetchImpl, ['/updates/stable/latest.json']);
+  assert.equal(r.notes, 'dalla release');
+});
+
+test('release notes render the changelog subset and nothing else', () => {
+  const html = notesToHtml('### Fixed\n\n- **Menu** `x` <img src=x onerror=alert(1)>\n  a capo\n- [ok](https://example.org) [no](javascript:alert(1))', 'it');
+  assert.match(html, /<h4>Correzioni<\/h4>/);
+  assert.match(html, /<strong>Menu<\/strong> <code>x<\/code> &lt;img/);
+  assert.match(html, /a capo<\/li>/);
+  assert.match(html, /<a href="https:\/\/example.org">ok<\/a>/);
+  assert.doesNotMatch(html, /href="javascript/);
+  assert.equal(notesToHtml('### Added', 'en'), '<h4>New</h4>');
 });

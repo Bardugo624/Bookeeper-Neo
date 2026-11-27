@@ -7,7 +7,7 @@ Pagina statica che presenta Bookeeper, in italiano (`/`) e in inglese (`/en/`). 
 ```bash
 node apps/site/build.mjs          # scrive apps/site/dist
 node apps/site/serve.mjs 4321     # la serve in locale
-node --test apps/site/test/       # test dei download
+node --test apps/site/test/*.test.mjs   # test dei download
 ```
 
 ## Struttura
@@ -22,26 +22,45 @@ node --test apps/site/test/       # test dei download
 
 ## Download e versioni
 
-La pagina non contiene versioni scritte a mano. Nel browser legge l'ultima release:
+La pagina non contiene versioni scritte a mano. A ogni visita il browser legge l'ultima versione stabile e aggiorna da solo:
+- il pulsante;
+- il peso del file;
+- la tabella dei file;
+- la data;
+- la sezione «Le novità della versione».
 
-- **oggi:** `https://api.github.com/repos/Bardugo624/Bookeeper-Neo/releases/latest`;
-- **domani:** l'indice `https://updates.neokeeper.dev/v2/downloads/stable.json`.
+**Installer.** La pagina prova le fonti in ordine e usa la prima che risponde con file riconosciuti:
 
-L'ordine delle fonti si sceglie alla build:
+1. l'indice su R2, `https://updates.neokeeper.dev/v2/downloads/stable.json`;
+2. l'ultima release su GitHub, `api.github.com/repos/Bardugo624/Bookeeper-Neo/releases/latest`.
+
+La VPS non ospita installer: ha solo i file di aggiornamento dell'app.
+
+**Novità.** Vengono dal manifest dell'aggiornamento, lo stesso che leggono le app. La pagina legge il primo che annuncia la stessa versione degli installer:
+
+1. R2: `https://updates.neokeeper.dev/v2/stable/latest.json`;
+2. VPS: `/updates/stable/latest.json`, servito dallo stesso dominio del sito (vedi il blocco di Caddy più sotto);
+3. se nessun manifest corrisponde, il testo della release su GitHub, che contiene la stessa sezione del CHANGELOG.
+
+Le note sono in markdown, con il sottoinsieme del CHANGELOG. `notesToHtml` le rende in modo sicuro: prima esegue l'escape del testo, e accetta solo link `https`.
+
+Oggi R2 non risponde ancora. La pagina passa a GitHub per gli installer e alla VPS per le novità. Quando R2 sarà attivo, lo userà senza rifare la build.
+
+L'ordine delle fonti degli installer si può cambiare alla build, per esempio solo GitHub:
 
 ```bash
-SITE_DOWNLOADS=index,github node apps/site/build.mjs
+SITE_DOWNLOADS=github node apps/site/build.mjs
 ```
 
-Con `index,github` la pagina prova prima l'indice e ripiega su GitHub. `fromIndex` accetta due forme:
+`fromIndex` accetta due forme:
 - `{ version, date, notes?, files: [{ name, url, size? }] }`;
 - `{ version, date, platforms: { <chiave>: { name?, url, size? } } }`.
 
 Il tipo di file si riconosce dal nome, come per GitHub. Quando il formato reale sarà deciso, va aggiornato `fromIndex` con il suo test.
 
-Due condizioni per l'indice su R2:
-- DEVE rispondere con l'intestazione `Access-Control-Allow-Origin` per `https://www.neokeeper.dev`;
-- senza quell'intestazione, il browser lo rifiuta e la pagina usa GitHub.
+Due condizioni per R2:
+- l'indice e il manifest DEVONO rispondere con `Access-Control-Allow-Origin: https://www.neokeeper.dev`, cioè con una regola CORS sul bucket;
+- senza quella regola, il browser li rifiuta e la pagina usa GitHub e la VPS.
 
 Se nessuna fonte risponde, il pulsante porta alla pagina delle release.
 
@@ -60,6 +79,13 @@ www.neokeeper.dev {
 	header /fonts/* Cache-Control "public, max-age=31536000, immutable"
 	header /shots/* Cache-Control "public, max-age=86400"
 	header /*.html Cache-Control "no-cache"
+
+	# Only the stable updater manifest, read-only, on the site's own origin: the page reads the notes from it.
+	handle /updates/stable/latest.json {
+		root * /opt/bookeeper
+		header Cache-Control "no-cache"
+		file_server
+	}
 }
 ```
 

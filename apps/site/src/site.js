@@ -1,4 +1,4 @@
-import { loadRelease, detectSystem, formatSize, RELEASES_URL } from './downloads.mjs';
+import { loadRelease, detectSystem, formatSize, notesToHtml, RELEASES_URL } from './downloads.mjs';
 import { renderPlan, renderDetail, answer, findBook } from './plan.mjs';
 
 const T = JSON.parse(document.getElementById('bk-strings').textContent);
@@ -157,6 +157,12 @@ let system = sys;
     fillTable($('#files-server'), rel.files.filter((f) => f.id.startsWith('server')));
     if (byId.checksums) $('#dl-sums').href = byId.checksums.url;
     $('#dl-notes').href = rel.notesUrl;
+    const notes = notesToHtml(rel.notes, T.lang);
+    if (notes) {
+      $('#dl-changes-h').textContent = `${T.dlNotesH} ${rel.version}`;
+      $('#dl-changes-body').innerHTML = notes;
+      $('#dl-changes').hidden = false;
+    }
     get.dataset.state = 'ready';
     $('.dl-body').dataset.state = 'ready';
   } catch {

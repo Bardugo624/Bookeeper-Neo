@@ -1,7 +1,7 @@
 // Builds the static homepage into apps/site/dist: / (Italian) and /en/ (English).
 // Usage: node apps/site/build.mjs
-// SITE_DOWNLOADS sets the download sources in order, e.g. "index,github" once
-// updates.neokeeper.dev/v2/downloads/stable.json is live. Default: "github".
+// SITE_DOWNLOADS sets the installer sources in order. Default "index,github": the R2
+// index when it answers, the GitHub release otherwise. Nothing to rebuild when R2 goes live.
 
 import { cp, mkdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
@@ -11,7 +11,7 @@ import { renderPage } from './src/page.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const dist = join(here, 'dist');
-const order = process.env.SITE_DOWNLOADS || 'github';
+const order = process.env.SITE_DOWNLOADS || 'index,github';
 if (!/^(index|github)(,(index|github))*$/.test(order)) throw new Error(`SITE_DOWNLOADS not valid: ${order}`);
 
 await rm(dist, { recursive: true, force: true });

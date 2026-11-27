@@ -37,7 +37,7 @@ function schema(t) {
 </svg>`;
 }
 
-export function renderPage(t, { downloadsOrder = 'github' } = {}) {
+export function renderPage(t, { downloadsOrder = 'index,github' } = {}) {
   const sel = findBook('promessi');
   const a = answer(sel, t.lang, t);
   const chips = books
@@ -50,7 +50,7 @@ export function renderPage(t, { downloadsOrder = 'github' } = {}) {
     })
     .join('');
   const strings = {
-    lang: t.lang, locale: t.locale, labels: t.labels, short: t.short, planShelf: t.planShelf, planDoor: t.planDoor, planExample: t.planExample, dlYours: t.dlYours,
+    lang: t.lang, locale: t.locale, labels: t.labels, short: t.short, planShelf: t.planShelf, planDoor: t.planDoor, planExample: t.planExample, dlYours: t.dlYours, dlNotesH: t.dlNotesH,
     dlFor: t.dlFor, dlGeneric: t.dlGeneric, dlVersion: t.dlVersion, dlPublished: t.dlPublished,
     dlError: t.dlError, dlErrorCta: t.dlErrorCta, dlIntelHint: t.dlIntelHint, dlDebHint: t.dlDebHint,
     themeToLight: t.themeToLight, themeToDark: t.themeToDark, footRev: t.footRev,
@@ -208,6 +208,11 @@ export function renderPage(t, { downloadsOrder = 'github' } = {}) {
         <tbody><tr class="skeleton"><td colspan="3">${esc(t.dlLoading)}</td></tr></tbody>
       </table>
     </div>
+    <section class="notes-box" id="dl-changes" aria-labelledby="dl-changes-h" hidden>
+      <h3 id="dl-changes-h">${esc(t.dlNotesH)}</h3>
+      ${t.dlNotesLang ? `<p class="notes-lang">${esc(t.dlNotesLang)}</p>` : ''}
+      <div class="changes" id="dl-changes-body" lang="it"></div>
+    </section>
     <p class="dl-error" role="alert" hidden>${esc(t.dlError)} <a href="${RELEASES_URL}">${esc(t.dlErrorCta)}</a></p>
     <p class="dl-links"><a id="dl-notes" href="${RELEASES_URL}">${esc(t.dlNotes)}</a><a id="dl-sums" href="${RELEASES_URL}">${esc(t.dlChecksums)}</a><a href="${GH}/releases">${esc(t.dlAll)}</a></p>
   </div>
