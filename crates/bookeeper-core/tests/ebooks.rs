@@ -15,6 +15,12 @@ use zip::CompressionMethod;
 const COVER: &[u8] = b"\x89PNG\r\n\x1a\nfake-cover-bytes";
 
 fn epub_with(extra: &[(&str, &str)]) -> Vec<u8> {
+    epub_at("OEBPS/content.opf", "OEBPS/content.opf", extra)
+}
+
+/// `attr` is the raw `full-path` text in `container.xml`; `entry` the OPF's
+/// name in the archive.
+fn epub_at(attr: &str, entry: &str, extra: &[(&str, &str)]) -> Vec<u8> {
     let mut buf = std::io::Cursor::new(Vec::new());
     {
         let mut z = zip::ZipWriter::new(&mut buf);
@@ -24,10 +30,11 @@ fn epub_with(extra: &[(&str, &str)]) -> Vec<u8> {
         z.write_all(b"application/epub+zip").unwrap();
         z.start_file("META-INF/container.xml", deflated).unwrap();
         z.write_all(
-            br#"<?xml version="1.0"?><container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles></container>"#,
+            format!(r#"<?xml version="1.0"?><container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="{attr}" media-type="application/oebps-package+xml"/></rootfiles></container>"#)
+                .as_bytes(),
         )
         .unwrap();
-        z.start_file("OEBPS/content.opf", deflated).unwrap();
+        z.start_file(entry, deflated).unwrap();
         z.write_all(
             br#"<?xml version="1.0"?>
 <package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="id">
@@ -241,6 +248,32 @@ fn metadata_and_cover_come_from_the_epub() {
 }
 
 #[test]
+fn an_escaped_rootfile_path_still_finds_the_opf() {
+    let dir = tempfile::tempdir().unwrap();
+    for (i, attr) in [
+        "OEBPS/a&amp;b c.opf",
+        "OEBPS/a%26b%20c.opf",
+        "OEBPS/a&#38;b&#x20;c.opf",
+    ]
+    .iter()
+    .enumerate()
+    {
+        let p = write(
+            dir.path(),
+            &format!("e{i}.epub"),
+            &epub_at(attr, "OEBPS/a&b c.opf", &[]),
+        );
+        let m = read_metadata(&p, EbookFormat::Epub);
+        assert_eq!(m.title.as_deref(), Some("Il nome della rosa"), "{attr}");
+        assert_eq!(
+            extract_cover(&p, EbookFormat::Epub).as_deref(),
+            Some(COVER),
+            "{attr}"
+        );
+    }
+}
+
+#[test]
 fn metadata_of_a_pdf_and_of_garbage() {
     let dir = tempfile::tempdir().unwrap();
     let p = write(dir.path(), "d.pdf", &pdf(false));
@@ -374,7 +407,10 @@ fn large_pdf_tail_does_not_mistake_a_longer_object_number() {
          trailer\n<< /Root 2 0 R /Info 1 0 R /Size 12 >>\nstartxref\n0\n%%EOF\n",
     );
     let p = write(dir.path(), "big2.pdf", &bytes);
-    assert_eq!(read_metadata(&p, EbookFormat::Pdf).title.as_deref(), Some("Vero"));
+    assert_eq!(
+        read_metadata(&p, EbookFormat::Pdf).title.as_deref(),
+        Some("Vero")
+    );
 }
 
 #[test]

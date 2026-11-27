@@ -354,26 +354,38 @@ fn open_epub(path: &Path) -> Option<rbook::Epub> {
     let container = read_capped(&mut zip, EPUB_CONTAINER, MAX_CONTAINER_BYTES)?;
     let text = String::from_utf8_lossy(&container);
     let mut mini = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
-    let opts = zip::write::SimpleFileOptions::default()
-        .compression_method(zip::CompressionMethod::Stored);
+    let opts =
+        zip::write::SimpleFileOptions::default().compression_method(zip::CompressionMethod::Stored);
     mini.start_file(EPUB_CONTAINER, opts).ok()?;
     mini.write_all(&container).ok()?;
     let mut total = 0u64;
     let mut added = HashSet::new();
     for full in attr_values(&text, "full-path") {
-        let name = full.trim_start_matches('/').to_string();
-        if name == EPUB_CONTAINER || !added.insert(name.clone()) {
-            continue;
-        }
-        let Some(opf) = read_capped(&mut zip, &name, MAX_OPF_BYTES) else {
+        // The attribute is XML text and may also be percent-encoded: the OPF
+        // is copied under every spelling, so whichever one rbook asks for is
+        // there, but read (and counted) once.
+        let raw = full.trim_start_matches('/').to_string();
+        let unescaped = xml_unescape(&raw);
+        let decoded = percent_decode(&unescaped);
+        let mut names = vec![raw, unescaped, decoded];
+        names.dedup();
+        names.retain(|n| n != EPUB_CONTAINER && !added.contains(n));
+        let Some(opf) = names
+            .iter()
+            .find_map(|n| read_capped(&mut zip, n, MAX_OPF_BYTES))
+        else {
             continue;
         };
         total += opf.len() as u64;
         if total > MAX_OPF_BYTES {
             return None;
         }
-        mini.start_file(name, opts).ok()?;
-        mini.write_all(&opf).ok()?;
+        for name in names {
+            if added.insert(name.clone()) {
+                mini.start_file(name, opts).ok()?;
+                mini.write_all(&opf).ok()?;
+            }
+        }
     }
     let bytes = mini.finish().ok()?.into_inner();
     rbook::Epub::options()
@@ -397,6 +409,65 @@ fn read_capped(zip: &mut zip::ZipArchive<File>, name: &str, cap: u64) -> Option<
     let mut out = Vec::new();
     entry.take(cap + 1).read_to_end(&mut out).ok()?;
     (out.len() as u64 <= cap).then_some(out)
+}
+
+/// The five predefined entities and numeric character references; anything
+/// else is left as written.
+fn xml_unescape(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    let mut rest = s;
+    while let Some(i) = rest.find('&') {
+        out.push_str(&rest[..i]);
+        rest = &rest[i..];
+        let Some(end) = rest.find(';') else { break };
+        let ent = &rest[1..end];
+        let ch = match ent {
+            "amp" => Some('&'),
+            "lt" => Some('<'),
+            "gt" => Some('>'),
+            "quot" => Some('"'),
+            "apos" => Some('\''),
+            _ => ent
+                .strip_prefix("#x")
+                .or_else(|| ent.strip_prefix("#X"))
+                .map(|h| u32::from_str_radix(h, 16))
+                .or_else(|| ent.strip_prefix('#').map(str::parse))
+                .and_then(Result::ok)
+                .and_then(char::from_u32),
+        };
+        match ch {
+            Some(c) => {
+                out.push(c);
+                rest = &rest[end + 1..];
+            }
+            None => {
+                out.push('&');
+                rest = &rest[1..];
+            }
+        }
+    }
+    out.push_str(rest);
+    out
+}
+
+/// `%XX` decoding; invalid escapes and non-UTF-8 results are left as written.
+fn percent_decode(s: &str) -> String {
+    let b = s.as_bytes();
+    let mut out = Vec::with_capacity(b.len());
+    let mut i = 0;
+    while i < b.len() {
+        let hex = |c: u8| (c as char).to_digit(16);
+        if b[i] == b'%' && i + 2 < b.len() {
+            if let (Some(h), Some(l)) = (hex(b[i + 1]), hex(b[i + 2])) {
+                out.push((h * 16 + l) as u8);
+                i += 3;
+                continue;
+            }
+        }
+        out.push(b[i]);
+        i += 1;
+    }
+    String::from_utf8(out).unwrap_or_else(|_| s.to_string())
 }
 
 /// Values of every `attr="…"` (or `'…'`) in `xml`.
@@ -460,7 +531,8 @@ fn pdf_metadata(path: &Path) -> Option<EbookMetadataRaw> {
 fn pdf_metadata_tail(path: &Path) -> Option<EbookMetadataRaw> {
     let mut f = File::open(path).ok()?;
     let len = f.metadata().ok()?.len();
-    f.seek(SeekFrom::Start(len.saturating_sub(PDF_TAIL_BYTES))).ok()?;
+    f.seek(SeekFrom::Start(len.saturating_sub(PDF_TAIL_BYTES)))
+        .ok()?;
     let mut tail = Vec::new();
     f.take(PDF_TAIL_BYTES).read_to_end(&mut tail).ok()?;
     let at = rfind(&tail, b"/Info")? + 5;
