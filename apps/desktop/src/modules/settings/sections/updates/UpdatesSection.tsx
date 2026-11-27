@@ -27,7 +27,7 @@ export function UpdatesSection() {
   const last = lastCheck === null ? t('updates.settings.never') : new Date(lastCheck).toLocaleString(locale);
 
   return (
-    <SettingsBlock title={t('updates.settings.title')} description={t('updates.settings.description')}>
+    <SettingsBlock span="full" title={t('updates.settings.title')} description={t('updates.settings.description')}>
       <FactList>
         <Fact label={t('updates.settings.installed')}>{APP_VERSION}</Fact>
         <Fact label={t('updates.settings.lastCheck')}>{last}</Fact>
