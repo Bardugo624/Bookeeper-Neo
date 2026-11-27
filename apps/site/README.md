@@ -32,7 +32,12 @@ La pagina non contiene versioni scritte a mano. A ogni visita il browser legge l
 **Installer.** La pagina prova le fonti in ordine e usa la prima che risponde con file riconosciuti:
 
 1. l'indice su R2, `https://updates.neokeeper.dev/v2/downloads/stable.json`;
-2. l'ultima release su GitHub, `api.github.com/repos/Bardugo624/Bookeeper-Neo/releases/latest`.
+2. l'ultima release su GitHub, `api.github.com/repos/Bardugo624/Bookeeper-Neo/releases/latest`;
+3. il manifest dell'aggiornamento, prima su R2 e poi sulla VPS. Versione, data e novità vengono dal manifest. I link agli installer si costruiscono dallo schema fisso dei nomi della release (`releaseFileNames`), senza peso dei file.
+
+La terza fonte esiste perché l'API di GitHub concede 60 richieste all'ora per indirizzo IP. Chi la supera, per esempio da una rete condivisa, vede lo stesso la versione giusta e i link giusti.
+
+Se lo schema dei nomi degli installer cambia, `releaseFileNames` e il suo test DEVONO cambiare con lui.
 
 La VPS non ospita installer: ha solo i file di aggiornamento dell'app.
 
@@ -49,7 +54,7 @@ Oggi R2 non risponde ancora. La pagina passa a GitHub per gli installer e alla V
 L'ordine delle fonti degli installer si può cambiare alla build, per esempio solo GitHub:
 
 ```bash
-SITE_DOWNLOADS=github node apps/site/build.mjs
+SITE_DOWNLOADS=github,manifest node apps/site/build.mjs
 ```
 
 `fromIndex` accetta due forme:

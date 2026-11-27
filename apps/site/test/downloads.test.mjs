@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { classify, fromGithub, fromIndex, loadRelease, detectSystem, formatSize, notesToHtml } from '../src/downloads.mjs';
+import { classify, fromGithub, fromIndex, fromManifest, loadRelease, detectSystem, formatSize, notesToHtml } from '../src/downloads.mjs';
 
 const names = [
   'bookeeper-server-2.1.0-linux-amd64.tar.gz',
@@ -109,4 +109,26 @@ test('release notes render the changelog subset and nothing else', () => {
   assert.match(html, /<a href="https:\/\/example.org">ok<\/a>/);
   assert.doesNotMatch(html, /href="javascript/);
   assert.equal(notesToHtml('### Added', 'en'), '<h4>New</h4>');
+});
+
+test('with GitHub refusing, the manifest gives version, notes and the installer links', async () => {
+  const manifest = { version: '2.1.0', notes: '### Added\n\n- novità', pub_date: '2026-11-27T03:09:00Z' };
+  const fetchImpl = async (url) => {
+    if (url.includes('api.github.com')) return { ok: false, status: 403 };
+    if (url.includes('stable.json')) return { ok: false, status: 404 };
+    if (url === '/updates/stable/latest.json') return { ok: true, json: async () => manifest };
+    return { ok: false, status: 502 };
+  };
+  const r = await loadRelease(['index', 'github', 'manifest'], fetchImpl, ['https://r2.test/latest.json', '/updates/stable/latest.json']);
+  assert.equal(r.source, 'manifest');
+  assert.equal(r.version, '2.1.0');
+  assert.equal(r.notes, manifest.notes);
+  // The same names as the real 2.1.0 release, so the links point at real files.
+  assert.deepEqual(r.files.map((f) => f.name).sort(), [...names].sort());
+  assert.equal(r.files.find((f) => f.id === 'windows').url,
+    'https://github.com/Bardugo624/Bookeeper-Neo/releases/download/v2.1.0/Bookeeper_2.1.0_x64-setup.exe');
+});
+
+test('a beta manifest never becomes the download source', () => {
+  assert.throws(() => fromManifest({ version: '2.2.0-beta.1' }));
 });

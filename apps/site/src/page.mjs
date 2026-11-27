@@ -37,7 +37,7 @@ function schema(t) {
 </svg>`;
 }
 
-export function renderPage(t, { downloadsOrder = 'index,github' } = {}) {
+export function renderPage(t, { downloadsOrder = 'index,github,manifest' } = {}) {
   const sel = findBook('mattia');
   const a = answer(sel, t.lang, t);
   const chips = books

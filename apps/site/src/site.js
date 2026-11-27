@@ -76,7 +76,7 @@ const io = new IntersectionObserver((entries) => {
 io.observe(planWrap);
 
 /* Downloads: the right installer first, every version read from the release. */
-const order = ($('meta[name="bk-downloads"]')?.content || 'github').split(',').map((s) => s.trim());
+const order = ($('meta[name="bk-downloads"]')?.content || 'index,github,manifest').split(',').map((s) => s.trim());
 const sys = detectSystem(navigator.userAgent, null);
 const fmtDate = (d) => (d ? new Intl.DateTimeFormat(T.locale, { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(d)) : '');
 
@@ -150,7 +150,7 @@ let system = sys;
       btn.href = '#scarica';
     }
     const ver = $('#dl-meta .ver');
-    ver.textContent = `${T.dlVersion} ${rel.version}${primary ? ` · ${formatSize(primary.size, T.lang)}` : ''}`;
+    ver.textContent = `${T.dlVersion} ${rel.version}${primary && primary.size ? ` · ${formatSize(primary.size, T.lang)}` : ''}`;
     $('#rev').textContent = `${T.footRev} ${rel.version}`;
     $('#foot-rev').textContent = `${T.dlVersion} ${rel.version}${rel.date ? `, ${T.dlPublished} ${fmtDate(rel.date)}` : ''}`;
     $('#dl-release').textContent = `${T.dlVersion} ${rel.version}${rel.date ? `, ${T.dlPublished} ${fmtDate(rel.date)}.` : '.'}`;

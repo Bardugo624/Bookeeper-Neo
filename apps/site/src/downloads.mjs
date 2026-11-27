@@ -76,9 +76,41 @@ export function fromIndex(index) {
   };
 }
 
+// Last resort when GitHub's API refuses (60 requests an hour per IP): the updater manifest
+// gives version, date and notes, and the installer names follow the release's fixed scheme.
+export function releaseFileNames(version) {
+  return [
+    `Bookeeper_${version}_x64-setup.exe`,
+    `Bookeeper_${version}_aarch64.dmg`,
+    `Bookeeper_${version}_x64.dmg`,
+    `Bookeeper_${version}_amd64.AppImage`,
+    `Bookeeper_${version}_amd64.deb`,
+    `bookeeper-server-${version}-linux-amd64.tar.gz`,
+    `bookeeper-server-${version}-linux-arm64.tar.gz`,
+    `bookeeper-server-${version}-macos-arm64.tar.gz`,
+    `bookeeper-server-${version}-macos-amd64.tar.gz`,
+    `bookeeper-server-${version}-windows-amd64.zip`,
+    'SHA256SUMS',
+  ];
+}
+export function fromManifest(manifest) {
+  const version = String((manifest && manifest.version) || '').replace(/^v/, '');
+  if (!/^\d+\.\d+\.\d+$/.test(version)) throw new Error('manifest without a stable version');
+  const base = `https://github.com/${REPO}/releases/download/v${version}`;
+  const files = releaseFileNames(version).map((name) => ({ id: classify(name), name, url: `${base}/${name}`, size: null }));
+  return {
+    version,
+    date: manifest.pub_date || null,
+    notes: typeof manifest.notes === 'string' ? manifest.notes : '',
+    notesUrl: `https://github.com/${REPO}/releases/tag/v${version}`,
+    files: sortFiles(files),
+  };
+}
+
 const SOURCES = {
-  index: { url: INDEX_URL, parse: fromIndex },
-  github: { url: GITHUB_LATEST, parse: fromGithub },
+  index: { urls: [INDEX_URL], parse: fromIndex },
+  github: { urls: [GITHUB_LATEST], parse: fromGithub },
+  manifest: { urls: MANIFESTS, parse: fromManifest },
 };
 
 async function getJson(url, fetchImpl) {
@@ -90,21 +122,24 @@ async function getJson(url, fetchImpl) {
 // Tries each file source in order; the first that answers with known files wins.
 // Then the notes: the first updater manifest that announces the same version
 // (R2, then the VPS) gives them; the release's own notes stay as the fallback.
-export async function loadRelease(order = ['github'], fetchImpl = globalThis.fetch, manifests = MANIFESTS) {
+export async function loadRelease(order = ['index', 'github', 'manifest'], fetchImpl = globalThis.fetch, manifests = MANIFESTS) {
   let release = null;
   let lastError = null;
   for (const key of order) {
     const source = SOURCES[key];
     if (!source) continue;
-    try {
-      release = { source: key, ...source.parse(await getJson(source.url, fetchImpl)) };
-      break;
-    } catch (err) {
-      lastError = err;
+    for (const url of key === 'manifest' ? manifests : source.urls) {
+      try {
+        release = { source: key, ...source.parse(await getJson(url, fetchImpl)) };
+        break;
+      } catch (err) {
+        lastError = err;
+      }
     }
+    if (release) break;
   }
   if (!release) throw lastError || new Error('no download source');
-  for (const url of manifests) {
+  for (const url of release.source === 'manifest' ? [] : manifests) {
     try {
       const m = await getJson(url, fetchImpl);
       if (String(m.version || '').replace(/^v/, '') !== release.version) continue;

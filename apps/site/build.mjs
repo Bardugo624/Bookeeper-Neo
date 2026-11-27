@@ -1,7 +1,8 @@
 // Builds the static homepage into apps/site/dist: / (Italian) and /en/ (English).
 // Usage: node apps/site/build.mjs
-// SITE_DOWNLOADS sets the installer sources in order. Default "index,github": the R2
-// index when it answers, the GitHub release otherwise. Nothing to rebuild when R2 goes live.
+// SITE_DOWNLOADS sets the installer sources in order. Default "index,github,manifest": the R2
+// index when it answers, then the GitHub release, then the updater manifest (R2, then the VPS)
+// with the installer names built from the release scheme. Nothing to rebuild when R2 goes live.
 
 import { cp, mkdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
@@ -11,8 +12,8 @@ import { renderPage } from './src/page.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const dist = join(here, 'dist');
-const order = process.env.SITE_DOWNLOADS || 'index,github';
-if (!/^(index|github)(,(index|github))*$/.test(order)) throw new Error(`SITE_DOWNLOADS not valid: ${order}`);
+const order = process.env.SITE_DOWNLOADS || 'index,github,manifest';
+if (!/^(index|github|manifest)(,(index|github|manifest))*$/.test(order)) throw new Error(`SITE_DOWNLOADS not valid: ${order}`);
 
 await rm(dist, { recursive: true, force: true });
 await mkdir(join(dist, 'en'), { recursive: true });
