@@ -737,3 +737,28 @@
 2026-11-27T11:48:22Z	bookeeper-fase-9b	setup-downloads	qa	opus	PASS	-	-	-	50
 2026-11-27T11:48:54Z	bookeeper-fase-9b	setup-ui-install	dwarf	sonnet	-	-	-	-	32
 2026-11-27T11:49:45Z	bookeeper-fase-9b	setup-ui-install	qa	opus	PASS	-	-	-	44
+2026-11-27T12:02:38Z	bookeeper-fase-9b	setup-core-logic	dwarf	opus	-	-	-	-	205
+2026-11-27T12:04:40Z	bookeeper-fase-9b	setup-core-logic	qa	opus	PASS	-	-	-	115
+2026-11-27T12:07:28Z	bookeeper-fase-9b	setup-core-win	dwarf	sonnet	-	-	-	-	158
+2026-11-27T12:09:34Z	bookeeper-fase-9b	setup-core-ops	dwarf	sonnet	-	verify	cargo test offline p bookeeper setup core cargo clippy offline p bookeeper setup core all targets d warnings cargo check	cargo test --offline -p bookeeper-setup-core && cargo clippy --offline -p bookeeper-setup-core --all-targets -- -D warnings && cargo check… [crates/bookeeper-setup-core/Cargo.toml]	285	1
+2026-11-27T12:09:34Z	bookeeper-fase-9b	setup-core-ops	dwarf	sonnet	-	trap	bookeeper setup core install uninstall tests take about 3 s each because progressmodel enforces min total on real clocks	bookeeper-setup-core install/uninstall tests take about 3 s each because ProgressModel enforces MIN_TOTAL on real clocks [crates/bookeeper-setup-core/src/progress.rs]	285	1
+2026-11-27T12:09:40Z	bookeeper-fase-9b	setup-core-win	qa	opus	FAIL	-	-	-	124
+2026-11-27T12:09:59Z	bookeeper-fase-9b	setup-core-win	dwarf	sonnet	-	-	-	-	12
+2026-11-27T12:10:56Z	bookeeper-fase-9b	setup-core-win	qa	opus	PASS	-	-	-	47
+2026-11-27T12:11:42Z	bookeeper-fase-9b	setup-assemble	dwarf	sonnet	-	-	-	-	40
+2026-11-27T12:12:38Z	bookeeper-fase-9b	setup-core-ops	qa	opus	PASS	-	-	-	176
+2026-11-27T12:12:58Z	bookeeper-fase-9b	setup-assemble	qa	opus	PASS	-	-	-	67
+2026-11-27T12:19:19Z	bookeeper-fase-9b	setup-app	dwarf	sonnet	-	trap	tauri plugin single instance was not in the offline cargo cache a plain cargo test without offline fetches it and adds only the new	`tauri-plugin-single-instance` was not in the offline cargo cache; a plain `cargo test` (without `--offline`) fetches it and adds only the new… [apps/setup/src-tauri/Cargo.toml]	394	1
+2026-11-27T12:19:19Z	bookeeper-fase-9b	setup-app	dwarf	sonnet	-	verify	cargo check target x86 64 pc windows msvc p bookeeper setup lib bins type checks the windows only code and the manifest build step from linux	cargo check --target x86_64-pc-windows-msvc -p bookeeper-setup --lib --bins type-checks the Windows-only code and the manifest build step from Linux [apps/setup/src-tauri/build.rs]	394	1
+2026-11-27T12:23:47Z	bookeeper-fase-9b	setup-app	qa	opus	FAIL	finding	setup ui sends already corrected folders check dir result installed dir to install so re applying target for choice on the	Setup UI sends already-corrected folders (`check_dir` result, `installed.dir`) to `install`, so re-applying `target_for_choice` on the… [apps/setup/src/install/useInstallFlow.ts]	259	1
+2026-11-27T12:23:47Z	bookeeper-fase-9b	setup-app	qa	opus	FAIL	verify	cargo check offline target x86 64 pc windows msvc p bookeeper setup works from the committed files and type checks the setup s windows only	cargo check --offline --target x86_64-pc-windows-msvc -p bookeeper-setup works from the committed files and type-checks the Setup's Windows-only… [apps/setup/src-tauri/Cargo.toml]	259	1
+2026-11-27T12:24:20Z	bookeeper-fase-9b	setup-app	dwarf	sonnet	-	-	-	-	25
+2026-11-27T12:27:19Z	bookeeper-fase-9b	setup-app	qa	opus	PASS	-	-	-	171
+2026-11-27T12:28:35Z	bookeeper-fase-9b	setup-workflows	dwarf	sonnet	-	-	-	-	67
+2026-11-27T12:30:27Z	bookeeper-fase-9b	setup-workflows	qa	opus	FAIL	trap	in windows shell bash steps pwd is an msys path d a values written to github env for a later pwsh step need pwd w or cygpath w	in Windows `shell: bash` steps `$PWD` is an MSYS path (`/d/a/...`); values written to GITHUB_ENV for a later pwsh step need `pwd -W` or `cygpath -w` [.github/workflows/release.yml]	101	1
+2026-11-27T12:30:52Z	bookeeper-fase-9b	setup-workflows	dwarf	sonnet	-	trap	in windows shell bash steps pwd is an msys path d a values written to github env for a later pwsh step need pwd w or cygpath w	in Windows `shell: bash` steps `$PWD` is an MSYS path (`/d/a/...`); values written to GITHUB_ENV for a later pwsh step need `pwd -W` or `cygpath -w` [.github/workflows/release.yml]	10	1
+2026-11-27T12:31:35Z	bookeeper-fase-9b	app-autostart	dwarf	sonnet	-	-	-	-	248
+2026-11-27T12:32:20Z	bookeeper-fase-9b	setup-workflows	qa	opus	FAIL	trap	github shell bash steps run with eo pipefail so x ls a b 2 dev null head 1 aborts the step when any listed path is missing	GitHub `shell: bash` steps run with `-eo pipefail`, so `x=$(ls a b 2>/dev/null | head -1)` aborts the step when any listed path is missing [.github/workflows/release.yml]	77	1
+2026-11-27T12:36:46Z	bookeeper-fase-9b	app-autostart	qa	opus	PASS	-	-	-	282
+2026-11-27T12:39:00Z	bookeeper-fase-9b	app-autostart-ui	dwarf	sonnet	-	-	-	-	122
+2026-11-27T12:40:08Z	bookeeper-fase-9b	app-autostart-ui	qa	opus	PASS	-	-	-	59
