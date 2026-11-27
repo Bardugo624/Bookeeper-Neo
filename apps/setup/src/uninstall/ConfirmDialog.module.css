@@ -1,0 +1,11 @@
+.text {
+    margin: 0;
+    font-size: 14px;
+    color: var(--bk-text);
+}
+
+.note {
+    margin: 10px 0 0;
+    font-size: 13px;
+    color: var(--bk-text-muted);
+}

@@ -1,0 +1,48 @@
+.panel {
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 0 40px 0 72px;
+}
+
+.lead {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.badge {
+    flex: none;
+    width: 32px;
+    height: 32px;
+    margin-top: -2px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--bk-warn-bg);
+    color: var(--bk-warn-strong);
+}
+
+.title {
+    margin: 0;
+    font-family: var(--bk-font-serif);
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--bk-text-strong);
+}
+
+.text {
+    margin: 6px 0 0;
+    max-width: 440px;
+    font-size: 13px;
+    color: var(--bk-text-muted);
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
