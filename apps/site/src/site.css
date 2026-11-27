@@ -112,7 +112,7 @@ body {
 ::selection { background: var(--found); color: var(--on-found); }
 img, svg { display: block; max-width: 100%; }
 a { color: inherit; text-decoration-color: var(--ink); text-decoration-thickness: 1px; text-underline-offset: 0.22em; }
-a:hover { text-decoration-color: var(--found); }
+a:hover { text-decoration-color: var(--ink-strong); }
 :focus-visible { outline: 2px solid var(--found); outline-offset: 3px; border-radius: 2px; }
 h1, h2, h3, h4 { font-family: var(--serif); font-weight: 500; color: var(--ink-strong); text-wrap: balance; margin: 0; }
 p { margin: 0; text-wrap: pretty; }
@@ -136,7 +136,7 @@ p { margin: 0; text-wrap: pretty; }
 .brand img { border-radius: 6px; }
 .nav { display: flex; gap: 28px; margin-left: auto; }
 .nav a, .lang { font: 500 0.9375rem/1 var(--sans); text-decoration: none; color: var(--muted); padding: 8px 0; }
-.nav a:hover, .lang:hover { color: var(--text); text-decoration: underline; text-decoration-color: var(--found); }
+.nav a:hover, .lang:hover { color: var(--text); text-decoration: underline; text-decoration-color: var(--ink-strong); }
 .tools { display: flex; align-items: center; gap: 16px; padding-left: 24px; border-left: 1px solid var(--rule); }
 .theme {
   display: grid; place-items: center; width: 44px; height: 44px; padding: 0;
@@ -181,7 +181,7 @@ h1 cite { font-style: italic; }
 .btn.primary:active { transform: translateY(1px); }
 .get[data-state='loading'] .btn.primary .btn-label { opacity: 0.9; }
 .btn.quiet { padding: 8px 0; color: var(--ink-strong); font-weight: 500; text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 0.3em; }
-.btn.quiet:hover { text-decoration-color: var(--found); }
+.btn.quiet:hover { text-decoration-color: var(--ink-strong); }
 
 .cells {
   margin: auto calc(-1 * var(--gutter)) 0; padding: 0;
@@ -255,9 +255,11 @@ html:not(.js) .chips { display: none; }
   padding: 1.3cqw 1.9cqw 1.4cqw; border: 1.5px solid var(--ink-strong); border-radius: 4px;
   background: var(--sheet); box-shadow: var(--shadow); pointer-events: none;
 }
-.tag-room { font: 600 1.6cqw/1.3 var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
-.tag-case { font: 500 2.6cqw/1.25 var(--serif); color: var(--text); }
-.tag-shelf { font: 600 2.1cqw/1.3 var(--sans); color: var(--found-ink); }
+.tag-room { font: 600 2cqw/1.3 var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.tag-case { font: 500 3cqw/1.25 var(--serif); color: var(--text); }
+.tag-shelf { font: 600 2.5cqw/1.3 var(--sans); color: var(--found-ink); }
+/* Below this plan width the tag's lettering would fall under ~10px: the h1 carries the answer there. */
+@container (max-width: 519px) { .tag, .plan .leader { display: none; } }
 
 .detail { display: flex; align-items: center; gap: 28px; padding-top: 14px; border-top: 1px solid var(--rule); }
 .detail-name { flex: 1 1 auto; display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-items: center; font-size: 0.875rem; line-height: 1.4; color: var(--muted); }

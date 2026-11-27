@@ -15,6 +15,7 @@ colors:
   found: "#c9954a"
   found-ink: "#6f4f22"
   found-wash: "rgb(201 149 74 / 0.16)"
+  on-found: "#10201a"
   btn: "#305545"
   btn-hover: "#223830"
   btn-text: "#f1f7f4"
@@ -101,11 +102,14 @@ components:
   theme-toggle:
     textColor: "{colors.ink-strong}"
     rounded: "{rounded.md}"
-    size: "40px"
+    size: "44px"
   chip:
     textColor: "{colors.muted}"
     rounded: "{rounded.sm}"
     padding: "9px 12px"
+    height: "40px"
+  chip-phone:
+    height: "44px"
   chip-pressed:
     backgroundColor: "{colors.ink-strong}"
     textColor: "{colors.sheet}"
@@ -113,7 +117,7 @@ components:
     backgroundColor: "{colors.sheet}"
     textColor: "{colors.text}"
     rounded: "{rounded.sm}"
-    padding: "10px 14px 11px"
+    padding: "1.3cqw 1.9cqw 1.4cqw"
   panel:
     backgroundColor: "{colors.sheet-2}"
     rounded: "{rounded.lg}"
@@ -132,7 +136,7 @@ Questo è il sistema della homepage pubblica (`apps/site`, www.neokeeper.dev).
 Il sistema dell'app desktop e del telefono resta nel
 [DESIGN.md della radice](../../DESIGN.md) e non cambia per questo file. La
 homepage ne eredita il marchio: verde salvia, Lora per i titoli, Inter per il
-testo, l'icona dell'app, i legni dei mobili. Tutto il resto è suo.
+testo, l'icona dell'app, le tele dei dorsi. Tutto il resto è suo.
 
 I token vivono in [src/site.css](src/site.css), su `:root`, con i valori del
 tema scuro sotto `prefers-color-scheme: dark` e `[data-theme='dark']`. I valori
@@ -159,7 +163,7 @@ profondo, con linee salvia chiare.
 **Key Characteristics:**
 - Un foglio unico con cornice a filetto da 1px; riquadri divisi da filetti.
 - Inchiostro salvia su carta salvia, in due temi.
-- Ambra solo per ciò che è trovato, indicato o a fuoco.
+- Ambra solo per ciò che è trovato o «tuo», per fuoco, cursore e selezione.
 - Lora per titoli, domanda e citazioni; Inter per testo ed etichette.
 - Etichette da disegno in maiuscoletto Inter, spaziate.
 - Una sola animazione d'autore: la linea disegnata.
@@ -179,9 +183,12 @@ Inchiostro e carta nella stessa famiglia salvia, più un solo colore caldo.
   `#f1f7f4`, passaggio `#dcebe2`, testo `#1a2c24`.
 
 ### Secondary
-- **Ambra trovata** (`found`): il percorso, il punto d'arrivo, il mobile
-  trovato, il dorso acceso, l'anello di fuoco, la selezione, il cursore, la
-  sottolineatura al passaggio. Scuro: `#e0b062`.
+- **Ambra trovata** (`found`): lo stato trovato (percorso, punto d'arrivo,
+  mobile trovato, dorso acceso), il filetto della riga del tuo sistema tra i
+  download, l'anello di fuoco, il cursore, la selezione. Oggi colora anche la
+  sottolineatura dei link al passaggio. Scuro: `#e0b062`.
+- **Testo su ambra** (`on-found`): il testo selezionato sopra l'ambra. Uguale
+  nei due temi.
 - **Ambra scritta** (`found-ink`): il testo in ambra («terzo ripiano», «il
   tuo sistema»). Scuro: `#f0cd8f`.
 - **Velo d'ambra** (`found-wash`): la stanza trovata, la riga del file giusto
@@ -202,15 +209,18 @@ Inchiostro e carta nella stessa famiglia salvia, più un solo colore caldo.
 - **Codice** (`code`): fondo dei blocchi di comandi. Scuro: `#162720`.
 
 ### Named Rules
-**La regola del segno trovato.** L'ambra segna solo ciò che è trovato,
-indicato o a fuoco. Mai decorazione, mai fondo di sezione, mai titoli.
+**La regola del segno trovato.** L'ambra è riservata allo stato trovato,
+alla riga del tuo sistema tra i download, al fuoco, al cursore e alla
+selezione. Mai decorazione, mai fondo di sezione, mai titoli.
 
 **La regola della carta salvia.** Il foglio chiaro è salvia pallido. Mai
 crema, mai bianco caldo, mai grigio freddo.
 
-**La regola dei legni.** I legni dei mobili (salvia, terracotta, notte,
-prugna, ambra, grafite) e le tele dei dorsi stanno solo nei mobili e nei
-dorsi. Sono dati del disegno (`house.mjs`, `plan.mjs`), non token.
+**La regola del mobile neutro.** I mobili si disegnano neutri: in pianta
+tratteggio `hatch-bg` con contorno `wall`, in prospetto fondo `sheet-2` con
+contorno `wall`. Solo il mobile trovato è ambra. I colori pieni stanno solo
+nelle tele dei dorsi (`CLOTH` in `plan.mjs`): sono dati del disegno, non
+token.
 
 ## Typography
 
@@ -223,8 +233,8 @@ Inter è la mano del disegnatore: precisa, piccola, ordinata.
 
 ### Hierarchy
 - **Display** (Lora 500, `clamp(2.375rem, 3.9vw, 3.875rem)`, 1.04): solo la
-  domanda «Dov'è …?» della prima schermata, massimo 14ch. Il titolo del libro
-  è in corsivo.
+  domanda «Dov'è *titolo*?» della prima schermata, massimo 14ch. Il titolo
+  del libro sta in un `cite` corsivo.
 - **Display answer** (Lora 500, 0.64em del display, 1.15, in `ink`): la
   risposta, subito sotto la domanda, nello stesso `h1`.
 - **Headline** (Lora 500, `clamp(2rem, 3.6vw, 3.25rem)`, 1.08): i titoli di
@@ -272,6 +282,9 @@ sezioni è `section`.
   sulla pianta e la linea di richiamo spariscono, i testi della pianta
   crescono, i passi passano a due colonne (44px).
 - **Sotto 1440px** spariscono i richiami sulle schermate.
+- **La pianta è un contenitore** (`container-type: inline-size`): l'etichetta
+  sulla pianta ha testi e margini in unità `cqw` e cresce o cala con il
+  disegno.
 
 ### Named Rules
 **La regola della cornice.** Si separa con un filetto da 1px, non con fondi,
@@ -317,13 +330,14 @@ tabella). Le icone sono SVG a tratto unico da 1.75, estremi arrotondati.
   icona di download a sinistra, ombra «appoggiato». Uno per pagina: scarica
   per il sistema rilevato.
 - **Hover / Focus:** fondo `btn-hover` in 150ms `--ease`; alla pressione
-  scende di 1px; fuoco = anello ambra 2px, scostato 3px.
+  scende di 1px, con la stessa transizione; fuoco = anello ambra 2px,
+  scostato 3px.
 - **Quiet:** testo `ink-strong` 500, sottolineato in `rule`, sottolineatura
   ambra al passaggio, freccia a destra. Per «altri sistemi» e i rimandi.
 
 ### Chips
 - **Style:** titoli da chiedere alla casa. Inter 500 0.875rem, `muted`, bordo
-  1px `rule`, fondo trasparente, 4px.
+  1px `rule`, fondo trasparente, 4px. Alti almeno 40px, 44px sotto 760px.
 - **State:** al passaggio bordo `ink`, testo `text`; premuto
   (`aria-pressed`) fondo `ink-strong`, testo `sheet`. Senza JavaScript non si
   vedono.
@@ -340,26 +354,34 @@ tabella). Le icone sono SVG a tratto unico da 1.75, estremi arrotondati.
   a sinistra; link Inter 500 0.9375rem in `muted` a destra; lingua e bottone
   tema dopo un filetto verticale. Al passaggio il link va in `text`,
   sottolineato in ambra. Sotto 760px restano solo marchio, lingua e tema.
-- **Bottone tema:** 40px, bordo `rule`, 6px; al passaggio bordo `ink` e fondo
+- **Bottone tema:** 44px, bordo `rule`, 6px; al passaggio bordo `ink` e fondo
   `sheet-2`. Luna nel chiaro, sole nello scuro.
 
 ### Pianta della casa (firma)
 La pianta di una casa d'esempio, su griglia da 20px. Muri a doppio tratto
 con tratteggio (`wall` su `hatch-bg`), porte con arco tratteggiato in `ink`,
 arredi in `ink` al 55%, nomi delle stanze in label maiuscola `muted`, quote
-in `ink`. Il mobile trovato si riempie d'ambra, la stanza prende il velo
-d'ambra, il percorso dalla porta è una linea ambra da 4px.
+in `ink`. Le librerie sono neutre (fondo `hatch-bg`, contorno `wall`). Solo
+quella trovata si riempie d'ambra; la stanza prende il velo d'ambra, il
+percorso dalla porta è una linea ambra da 4px. Accanto al mobile trovato sta
+il segno di sezione «A» (cerchio `sheet`, bordo 2px `ink-strong`, lettera in
+Lora), che rimanda al «Prospetto A» sotto.
 
 ### Etichetta della pianta
 Il cartellino che nomina stanza (label `muted`), mobile (Lora 500 1.0625rem)
 e ripiano (Inter 600 in `found-ink`). Fondo `sheet`, bordo 1.5px
-`ink-strong`, 4px, ombra «appoggiato». Collegata al mobile da una linea di
-richiamo. Sotto 760px sparisce.
+`ink-strong`, 4px, ombra «appoggiato». Testi e margini in `cqw` della
+pianta (1.6 / 2.6 / 2.1cqw), così scala con il disegno. Collegata al mobile
+da una linea di richiamo. Sotto 760px sparisce.
 
 ### Prospetto del mobile
-Sotto la pianta, separato da un filetto: il mobile visto di fronte, nel suo
-legno, con i ripiani numerati e il dorso cercato acceso in ambra. Accanto, il
-segno di prospetto «A» e il nome del mobile in Lora.
+Sotto la pianta, separato da un filetto: il mobile visto di fronte. Tutti i
+prospetti usano la stessa scala (`ELEVATION_SCALE` 0.56), così le misure si
+confrontano. Fianchi e ripiani neutri (fondo `sheet-2`, contorno `wall` da
+3), ripiani numerati in Inter 600 `muted`; il numero del ripiano cercato è in
+`found-ink` e più grande. I dorsi hanno le loro tele; quello cercato è ambra,
+con una tacca in `found-ink` sopra. Accanto, il segno «A» e il nome del
+mobile in Lora.
 
 ### Cartiglio
 La riga di celle in fondo alla prima colonna: label maiuscola `muted`, celle
@@ -393,6 +415,7 @@ Fondo `code`, bordo 1px `rule`, 6px, 12px 16px, mono 500.
 - **Do** tenere ogni animazione dentro `prefers-reduced-motion:
   no-preference`, con `--ease` `cubic-bezier(0.22, 1, 0.36, 1)` e 150ms per
   i passaggi di stato.
+- **Do** dare ai bersagli almeno 40px sul desktop e 44px sotto 760px.
 - **Do** mostrare l'app con schermate vere, bordo 1px `rule`, 10px (22px per
   il telefono), ombra «appoggiato».
 
@@ -404,4 +427,5 @@ Fondo `code`, bordo 1px `rule`, 6px, 12px 16px, mono 500.
   su pannelli e chip.
 - **Don't** aggiungere animazioni d'autore oltre alla linea disegnata dalla
   porta allo scaffale.
-- **Don't** portare i legni dei mobili fuori da mobili e dorsi.
+- **Don't** colorare i mobili disegnati: sono neutri, solo quello trovato è
+  ambra, e i colori pieni stanno solo nei dorsi.

@@ -31,7 +31,7 @@ export const furniture = [
     id: 'grande', room: 'living', x: 80, y: 54, w: 300, h: 26, color: '#7c8f6a', shelves: 5, slots: 16,
     it: 'Libreria grande', en: 'Large bookcase',
     front: [230, 104], tag: [300, 196], mark: [406, 67],
-    route: [[610, 700], [610, 347], [470, 347], [470, 130], [230, 130], [230, 104]],
+    route: [[610, 700], [610, 347], [470, 347], [470, 116], [230, 116], [230, 104]],
   },
   {
     id: 'vetrina', room: 'living', x: 54, y: 140, w: 26, h: 180, color: '#6b3a5f', shelves: 3, slots: 12,
@@ -42,13 +42,13 @@ export const furniture = [
   {
     id: 'studio', room: 'study', x: 920, y: 66, w: 26, h: 210, color: '#3a4a6b', shelves: 4, slots: 14,
     it: 'Scaffale dello studio', en: 'Study shelves',
-    front: [896, 171], tag: [690, 185], mark: [884, 92],
-    route: [[610, 700], [610, 330], [573, 330], [573, 252], [860, 252], [860, 171], [896, 171]],
+    front: [896, 171], tag: [696, 185], mark: [884, 92],
+    route: [[610, 700], [610, 330], [573, 330], [573, 264], [880, 264], [880, 171], [896, 171]],
   },
   {
     id: 'ragazzi', room: 'kids', x: 54, y: 500, w: 26, h: 160, color: '#c9954a', shelves: 3, slots: 12,
     it: 'Mensole dei ragazzi', en: 'Children’s shelves',
-    front: [104, 580], tag: [240, 512], mark: [67, 474],
+    front: [104, 580], tag: [262, 512], mark: [67, 474],
     route: [[610, 700], [610, 625], [130, 625], [130, 580], [104, 580]],
   },
   {
@@ -62,9 +62,9 @@ export const furniture = [
 // Other furniture, drawn thin: it makes the plan a home, not a diagram.
 export const fittings = [
   { kind: 'rect', x: 150, y: 318, w: 230, h: 58, r: 10 }, // sofa
-  { kind: 'rect', x: 210, y: 262, w: 110, h: 40, r: 4 }, // coffee table
+  { kind: 'rect', x: 210, y: 272, w: 110, h: 30, r: 4 }, // coffee table
   { kind: 'rect', x: 600, y: 58, w: 180, h: 50, r: 2 }, // desk
-  { kind: 'rect', x: 400, y: 420, w: 100, h: 170, r: 6 }, // bunk bed
+  { kind: 'rect', x: 432, y: 420, w: 70, h: 170, r: 6 }, // bunk bed
   { kind: 'rect', x: 800, y: 318, w: 142, h: 50, r: 2 }, // kitchen counter
   { kind: 'circle', cx: 870, cy: 600, r: 50 }, // round table
 ];
