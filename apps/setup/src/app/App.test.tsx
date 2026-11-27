@@ -2,7 +2,7 @@ import { act, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mockBridge, useInstall, type Scenario } from '../bridge';
 import { renderSetup } from '../shell/testing';
-import { App } from './App';
+import { App, READY_FALLBACK_MS } from './App';
 
 function Starter() {
   const { run } = useInstall();
@@ -44,6 +44,19 @@ describe('App', () => {
     expect(bridge.calls).not.toContain('ready');
     await waitFor(() => expect(bridge.calls.filter((c) => c === 'ready')).toHaveLength(1));
     expect(flow()).toBe('install');
+    await new Promise((r) => setTimeout(r, READY_FALLBACK_MS + 100));
+    expect(bridge.calls.filter((c) => c === 'ready')).toHaveLength(1);
+  });
+
+  it('calls ready even when the hidden window gets no animation frames', async () => {
+    const raf = vi.spyOn(window, 'requestAnimationFrame').mockImplementation(() => 0);
+    try {
+      const { bridge } = renderSetup(<App />, { scenario: 'welcome' });
+      await waitFor(() => expect(bridge.calls.filter((c) => c === 'ready')).toHaveLength(1));
+      expect(raf).toHaveBeenCalled();
+    } finally {
+      raf.mockRestore();
+    }
   });
 
   describe('a second launch with --uninstall', () => {

@@ -13,22 +13,29 @@ import { BlockedPanel, TitleBar } from '../shell';
 import { UninstallFlow } from '../uninstall';
 import { useTheme } from './useTheme';
 
+/** How long `ready` waits for the first two frames: a window still hidden may get none. */
+export const READY_FALLBACK_MS = 300;
+
 /** Calls `ready` once, after the first screen has been drawn: the window stays hidden until then. */
 function useReadyAfterFirstPaint(drawn: boolean): void {
   const ready = useReady();
   const called = useRef(false);
   useEffect(() => {
     if (!drawn || called.current) return;
+    const once = () => {
+      if (called.current) return;
+      called.current = true;
+      void ready();
+    };
     let second = 0;
     const first = requestAnimationFrame(() => {
-      second = requestAnimationFrame(() => {
-        called.current = true;
-        void ready();
-      });
+      second = requestAnimationFrame(once);
     });
+    const fallback = setTimeout(once, READY_FALLBACK_MS);
     return () => {
       cancelAnimationFrame(first);
       cancelAnimationFrame(second);
+      clearTimeout(fallback);
     };
   }, [drawn, ready]);
 }
