@@ -1,15 +1,17 @@
 name: VPS deploy
 
-# Builds the server image on the runner, loads it on the VPS and runs
-# ops/vps/deploy/deploy.sh there. Needs the repository secret VPS_SSH_KEY.
+# Manual only, from main. target=server builds the image, loads it on the VPS and runs
+# ops/vps/deploy/deploy.sh; target=caddy only reinstalls the Caddy site.
+# With UPDATES_REDIRECT=on the R2 site is installed, after R2 is checked to be ready.
 
 on:
-  push:
-    branches: [claude/funny-bell-g5wrux]
-    paths:
-      - "ops/vps/deploy/**"
-      - ".github/workflows/vps-deploy.yml"
   workflow_dispatch:
+    inputs:
+      target:
+        description: What to deploy
+        type: choice
+        options: [server, caddy]
+        default: server
 
 permissions:
   contents: read
@@ -27,50 +29,51 @@ jobs:
       VPS_USER: root
       VPS_PORT: "22"
       VPS_HOST_KEY: "SHA256:aT+GlEdo8ocxbB3WUGXnDAo7j7dotW8LepYZELK2Uj8"
+      UPDATES_BASE: ${{ vars.UPDATES_BASE || 'https://updates.neokeeper.dev/v2' }}
+      UPDATES_REDIRECT: ${{ vars.UPDATES_REDIRECT }}
+      TARGET: ${{ inputs.target }}
     steps:
-      - uses: actions/checkout@v4
-      - name: SSH setup
-        env:
-          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+      - name: Only from main
+        if: github.ref != 'refs/heads/main'
         run: |
-          if [ -z "$VPS_SSH_KEY" ]; then
-            echo "::error::Repository secret VPS_SSH_KEY is not set"
-            exit 1
-          fi
-          mkdir -p ~/.ssh && chmod 700 ~/.ssh
-          if printf '%s' "$VPS_SSH_KEY" | grep -q 'BEGIN'; then
-            printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_vps
-          else
-            printf '%s' "$VPS_SSH_KEY" | tr -d ' \r\n' | base64 -d > ~/.ssh/id_vps
-          fi
-          chmod 600 ~/.ssh/id_vps
-          ssh-keyscan -p "$VPS_PORT" -t ed25519 "$VPS_HOST" > ~/.ssh/known_hosts 2>/dev/null
-          if ! ssh-keygen -lf ~/.ssh/known_hosts | grep -qF "$VPS_HOST_KEY"; then
-            echo "::error::The host key of the VPS is not the expected one"
-            exit 1
-          fi
-          cat > ~/.ssh/config <<CFG
-          Host vps
-            HostName $VPS_HOST
-            User $VPS_USER
-            Port $VPS_PORT
-            IdentityFile ~/.ssh/id_vps
-            IdentitiesOnly yes
-            BatchMode yes
-            StrictHostKeyChecking yes
-            ConnectTimeout 15
-          CFG
-          chmod 600 ~/.ssh/config
-          ssh vps true
+          echo "::error::This workflow runs only from main"
+          exit 1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: R2 is ready
+        if: vars.UPDATES_REDIRECT == 'on'
+        run: node scripts/updates-r2.mjs ready --base "$UPDATES_BASE" --vps https://app.neokeeper.dev/updates
+      - name: Choose the Caddy site
+        run: |
+          if [ "$UPDATES_REDIRECT" = on ]; then site=bookeeper-r2.caddy; else site=bookeeper.caddy; fi
+          echo "SITE=ops/vps/deploy/$site" >> "$GITHUB_ENV"
+      - name: SSH setup
+        uses: ./.github/actions/vps-ssh
+        with:
+          key: ${{ secrets.VPS_SSH_KEY }}
+          host-key: ${{ env.VPS_HOST_KEY }}
       - name: Build the image
+        if: inputs.target == 'server'
         run: docker build -t bookeeper-server:deploy .
       - name: Load the image on the VPS
+        if: inputs.target == 'server'
         run: docker save bookeeper-server:deploy | gzip | ssh vps 'gunzip | docker load'
-      - name: Deploy
+      - name: Deploy the server
+        if: inputs.target == 'server'
         run: |
           ssh vps 'mkdir -p /opt/bookeeper'
-          scp ops/vps/deploy/docker-compose.yml ops/vps/deploy/bookeeper.caddy ops/vps/deploy/deploy.sh vps:/opt/bookeeper/
+          scp ops/vps/deploy/docker-compose.yml ops/vps/deploy/deploy.sh ops/vps/deploy/caddy.sh vps:/opt/bookeeper/
+          scp "$SITE" vps:/opt/bookeeper/bookeeper.caddy
           ssh vps 'bash /opt/bookeeper/deploy.sh'
+      - name: Deploy the Caddy site
+        if: inputs.target == 'caddy'
+        run: |
+          ssh vps 'mkdir -p /opt/bookeeper'
+          scp ops/vps/deploy/caddy.sh vps:/opt/bookeeper/
+          scp "$SITE" vps:/opt/bookeeper/bookeeper.caddy
+          ssh vps 'bash /opt/bookeeper/caddy.sh'
       - name: Remove the key
         if: always()
         run: rm -f ~/.ssh/id_vps
