@@ -319,3 +319,73 @@ fn large_pdf_metadata_is_read_from_the_tail() {
     assert_eq!(m.title.as_deref(), Some("Dune"));
     assert_eq!(m.authors, vec!["Frank Herbert", "Brian Herbert"]);
 }
+
+#[test]
+fn an_oversized_opf_is_never_handed_to_the_epub_parser() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut buf = std::io::Cursor::new(Vec::new());
+    {
+        let mut z = zip::ZipWriter::new(&mut buf);
+        let stored = SimpleFileOptions::default().compression_method(CompressionMethod::Stored);
+        let deflated = SimpleFileOptions::default();
+        z.start_file("mimetype", stored).unwrap();
+        z.write_all(b"application/epub+zip").unwrap();
+        z.start_file("META-INF/container.xml", deflated).unwrap();
+        z.write_all(
+            br#"<container><rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles></container>"#,
+        )
+        .unwrap();
+        // Highly compressible: tiny on disk, 40 MB once inflated.
+        z.start_file("OEBPS/content.opf", deflated).unwrap();
+        z.write_all(b"<package><metadata><dc:title>Bomba</dc:title></metadata><!--")
+            .unwrap();
+        z.write_all(&vec![b' '; 40 << 20]).unwrap();
+        z.write_all(b"--></package>").unwrap();
+        z.finish().unwrap();
+    }
+    let bytes = buf.into_inner();
+    assert!(bytes.len() < 1 << 20);
+    let p = write(dir.path(), "bomb.epub", &bytes);
+    assert_eq!(read_metadata(&p, EbookFormat::Epub), Default::default());
+    assert_eq!(extract_cover(&p, EbookFormat::Epub), None);
+}
+
+fn big_pdf_with_tail(tail: &str) -> Vec<u8> {
+    let mut bytes = b"%PDF-1.4\n".to_vec();
+    bytes.extend(std::iter::repeat_n(b'%', 9 << 20));
+    bytes.push(b'\n');
+    bytes.extend(tail.as_bytes());
+    bytes
+}
+
+#[test]
+fn large_pdf_tail_does_not_mistake_a_longer_object_number() {
+    let dir = tempfile::tempdir().unwrap();
+    let bytes = big_pdf_with_tail(
+        "11 0 obj\n<< /Title (Capitolo 3) /Parent 10 0 R >>\nendobj\n\
+         trailer\n<< /Root 2 0 R /Info 1 0 R /Size 12 >>\nstartxref\n0\n%%EOF\n",
+    );
+    let p = write(dir.path(), "big.pdf", &bytes);
+    assert_eq!(read_metadata(&p, EbookFormat::Pdf).title, None);
+
+    let bytes = big_pdf_with_tail(
+        "1 0 obj\n<< /Title (Vero) >>\nendobj\n\
+         11 0 obj\n<< /Title (Capitolo 3) >>\nendobj\n\
+         trailer\n<< /Root 2 0 R /Info 1 0 R /Size 12 >>\nstartxref\n0\n%%EOF\n",
+    );
+    let p = write(dir.path(), "big2.pdf", &bytes);
+    assert_eq!(read_metadata(&p, EbookFormat::Pdf).title.as_deref(), Some("Vero"));
+}
+
+#[test]
+fn large_pdf_tail_decodes_octal_escapes() {
+    let dir = tempfile::tempdir().unwrap();
+    let bytes = big_pdf_with_tail(
+        "3 0 obj\n<< /Title (Caf\\351 \\(bis\\)) /Author (A\\\nB) >>\nendobj\n\
+         trailer\n<< /Root 2 0 R /Info 3 0 R /Size 4 >>\nstartxref\n0\n%%EOF\n",
+    );
+    let p = write(dir.path(), "big.pdf", &bytes);
+    let m = read_metadata(&p, EbookFormat::Pdf);
+    assert_eq!(m.title.as_deref(), Some("Café (bis)"));
+    assert_eq!(m.authors, vec!["AB"]);
+}

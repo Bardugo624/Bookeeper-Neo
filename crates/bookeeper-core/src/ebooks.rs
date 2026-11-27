@@ -203,12 +203,12 @@ pub async fn store_stream(
     .find(|f| dir.join(format!("{sha256}.{}", f.ext())).exists())
     .unwrap_or(format);
     let dest = dir.join(format!("{sha256}.{}", format.ext()));
-    if dest.exists() {
-        // Dropping the guard discards the duplicate; refresh the stored
-        // file's mtime so a sweep does not collect it right after this upload.
-        if let Ok(f) = std::fs::OpenOptions::new().write(true).open(&dest) {
-            let _ = f.set_modified(std::time::SystemTime::now());
-        }
+    // Already stored: dropping the guard discards the duplicate, after the
+    // stored file's mtime is refreshed so a sweep does not collect it right
+    // after this upload. If it vanished meanwhile (a sweep), fall through and
+    // move this copy into place instead.
+    if let Ok(f) = std::fs::OpenOptions::new().write(true).open(&dest) {
+        let _ = f.set_modified(std::time::SystemTime::now());
         return Ok(Stored {
             sha256,
             size_bytes: size,
@@ -259,25 +259,10 @@ fn epub_is_drm(path: &Path) -> Result<bool, StoreError> {
 }
 
 fn encryption_algorithms(xml: &str) -> Vec<String> {
-    let mut out = Vec::new();
-    let mut rest = xml;
-    while let Some(i) = rest.find("Algorithm") {
-        rest = &rest[i + "Algorithm".len()..];
-        let t = rest.trim_start();
-        let Some(t) = t.strip_prefix('=') else {
-            continue;
-        };
-        let t = t.trim_start();
-        let Some(q) = t.chars().next().filter(|c| *c == '"' || *c == '\'') else {
-            continue;
-        };
-        let t = &t[1..];
-        if let Some(end) = t.find(q) {
-            out.push(t[..end].trim().to_string());
-            rest = &t[end..];
-        }
-    }
-    out
+    attr_values(xml, "Algorithm")
+        .into_iter()
+        .map(|a| a.trim().to_string())
+        .collect()
 }
 
 /// A PDF is protected when `/Encrypt` appears in a trailer: those sit at the
@@ -360,12 +345,80 @@ pub fn read_metadata(path: &Path, format: EbookFormat) -> EbookMetadataRaw {
     }
 }
 
+/// rbook reads `container.xml` and the whole OPF with an unbounded copy, so it
+/// never sees the uploaded archive: it parses a small in-memory ZIP holding
+/// only bounded copies of those entries. Anything over the caps gives `None`.
 fn open_epub(path: &Path) -> Option<rbook::Epub> {
+    use std::io::Write;
+    let mut zip = zip::ZipArchive::new(File::open(path).ok()?).ok()?;
+    let container = read_capped(&mut zip, EPUB_CONTAINER, MAX_CONTAINER_BYTES)?;
+    let text = String::from_utf8_lossy(&container);
+    let mut mini = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
+    let opts = zip::write::SimpleFileOptions::default()
+        .compression_method(zip::CompressionMethod::Stored);
+    mini.start_file(EPUB_CONTAINER, opts).ok()?;
+    mini.write_all(&container).ok()?;
+    let mut total = 0u64;
+    let mut added = HashSet::new();
+    for full in attr_values(&text, "full-path") {
+        let name = full.trim_start_matches('/').to_string();
+        if name == EPUB_CONTAINER || !added.insert(name.clone()) {
+            continue;
+        }
+        let Some(opf) = read_capped(&mut zip, &name, MAX_OPF_BYTES) else {
+            continue;
+        };
+        total += opf.len() as u64;
+        if total > MAX_OPF_BYTES {
+            return None;
+        }
+        mini.start_file(name, opts).ok()?;
+        mini.write_all(&opf).ok()?;
+    }
+    let bytes = mini.finish().ok()?.into_inner();
     rbook::Epub::options()
         .skip_toc(true)
         .skip_spine(true)
-        .open(path)
+        .read(std::io::Cursor::new(bytes))
         .ok()
+}
+
+const EPUB_CONTAINER: &str = "META-INF/container.xml";
+const MAX_CONTAINER_BYTES: u64 = 1 << 20;
+const MAX_OPF_BYTES: u64 = 16 << 20;
+
+/// The whole entry, or `None` when missing or larger than `cap` once inflated
+/// (the declared size is checked, and the read is bounded in case it lies).
+fn read_capped(zip: &mut zip::ZipArchive<File>, name: &str, cap: u64) -> Option<Vec<u8>> {
+    let entry = zip.by_name(name).ok()?;
+    if entry.size() > cap {
+        return None;
+    }
+    let mut out = Vec::new();
+    entry.take(cap + 1).read_to_end(&mut out).ok()?;
+    (out.len() as u64 <= cap).then_some(out)
+}
+
+/// Values of every `attr="…"` (or `'…'`) in `xml`.
+fn attr_values<'a>(xml: &'a str, attr: &str) -> Vec<&'a str> {
+    let mut out = Vec::new();
+    let mut rest = xml;
+    while let Some(i) = rest.find(attr) {
+        rest = &rest[i + attr.len()..];
+        let Some(t) = rest.trim_start().strip_prefix('=') else {
+            continue;
+        };
+        let t = t.trim_start();
+        let Some(q) = t.chars().next().filter(|c| *c == '"' || *c == '\'') else {
+            continue;
+        };
+        let t = &t[1..];
+        if let Some(end) = t.find(q) {
+            out.push(&t[..end]);
+            rest = &t[end..];
+        }
+    }
+    out
 }
 
 fn epub_metadata(path: &Path) -> Option<EbookMetadataRaw> {
@@ -417,7 +470,8 @@ fn pdf_metadata_tail(path: &Path) -> Option<EbookMetadataRaw> {
     let num = std::str::from_utf8(it.next()?).ok()?.parse::<u32>().ok()?;
     let gen_ = std::str::from_utf8(it.next()?).ok()?.parse::<u32>().ok()?;
     let head = format!("{num} {gen_} obj");
-    let start = rfind(&tail, head.as_bytes())? + head.len();
+    // The header must start a token: "3 0 obj" also occurs inside "13 0 obj".
+    let start = rfind_token(&tail, head.as_bytes())? + head.len();
     let body = &tail[start..];
     let end = find(body, b"endobj").unwrap_or(body.len());
     let dict = &body[..end];
@@ -440,6 +494,15 @@ fn rfind(h: &[u8], n: &[u8]) -> Option<usize> {
     h.windows(n.len()).rposition(|w| w == n)
 }
 
+/// Last match of `n` at the start of `h` or right after whitespace.
+fn rfind_token(h: &[u8], n: &[u8]) -> Option<usize> {
+    h.windows(n.len())
+        .enumerate()
+        .rev()
+        .find(|(i, w)| *w == n && (*i == 0 || h[i - 1].is_ascii_whitespace()))
+        .map(|(i, _)| i)
+}
+
 /// Value of a literal `(..)` or hex `<..>` string key in a PDF dictionary.
 fn pdf_string(dict: &[u8], key: &[u8]) -> Option<String> {
     let mut i = find(dict, key)? + key.len();
@@ -449,20 +512,46 @@ fn pdf_string(dict: &[u8], key: &[u8]) -> Option<String> {
     let mut raw = Vec::new();
     match *dict.get(i)? {
         b'(' => {
-            let (mut depth, mut esc) = (0u32, false);
-            for &b in &dict[i..] {
-                if esc {
-                    raw.push(match b {
-                        b'n' => b'\n',
-                        b'r' => b'\r',
-                        b't' => b'\t',
-                        o => o,
-                    });
-                    esc = false;
-                    continue;
-                }
+            let mut depth = 0u32;
+            let s = &dict[i..];
+            let mut j = 0;
+            while j < s.len() {
+                let b = s[j];
+                j += 1;
                 match b {
-                    b'\\' => esc = true,
+                    b'\\' => {
+                        let Some(&e) = s.get(j) else { break };
+                        j += 1;
+                        match e {
+                            b'n' => raw.push(b'\n'),
+                            b'r' => raw.push(b'\r'),
+                            b't' => raw.push(b'\t'),
+                            b'b' => raw.push(0x08),
+                            b'f' => raw.push(0x0C),
+                            b'0'..=b'7' => {
+                                // Up to three octal digits; high-order overflow is ignored.
+                                let mut v = u32::from(e - b'0');
+                                for _ in 0..2 {
+                                    match s.get(j) {
+                                        Some(d @ b'0'..=b'7') => {
+                                            v = v * 8 + u32::from(d - b'0');
+                                            j += 1;
+                                        }
+                                        _ => break,
+                                    }
+                                }
+                                raw.push(v as u8);
+                            }
+                            // Line continuation: backslash + EOL is dropped.
+                            b'\r' => {
+                                if s.get(j) == Some(&b'\n') {
+                                    j += 1;
+                                }
+                            }
+                            b'\n' => {}
+                            o => raw.push(o),
+                        }
+                    }
                     b'(' => {
                         depth += 1;
                         if depth > 1 {
@@ -500,8 +589,13 @@ fn pdf_string(dict: &[u8], key: &[u8]) -> Option<String> {
             .map(|c| u16::from_be_bytes([c[0], c[1]]))
             .collect();
         Some(String::from_utf16_lossy(&units))
+    } else if let Some(utf8) = raw.strip_prefix(&[0xEF, 0xBB, 0xBF]) {
+        Some(String::from_utf8_lossy(utf8).into_owned())
+    } else if let Ok(s) = std::str::from_utf8(&raw) {
+        Some(s.to_string())
     } else {
-        Some(String::from_utf8_lossy(&raw).into_owned())
+        // PDFDocEncoding, approximated by Latin-1 (identical from 0xA0 up).
+        Some(raw.iter().map(|&b| char::from(b)).collect())
     }
 }
 
