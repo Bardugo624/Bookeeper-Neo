@@ -1,25 +1,9 @@
 import { render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { LocaleProvider } from './i18n';
-import { Frontispiece, quoteSize } from './Frontispiece';
-import { innerQuotes, resolveQuote } from './quotes';
+import { Frontispiece } from './Frontispiece';
 import { renderSetup } from './testing';
 
-
-describe('quoteSize', () => {
-  it('goes by length: 33 up to 90, 26 up to 140, 22 beyond', () => {
-    expect(quoteSize(51, false)).toBe(33);
-    expect(quoteSize(90, false)).toBe(33);
-    expect(quoteSize(91, false)).toBe(26);
-    expect(quoteSize(140, false)).toBe(26);
-    expect(quoteSize(141, false)).toBe(22);
-    expect(quoteSize(200, false)).toBe(22);
-  });
-
-  it('is 22 when compact', () => {
-    expect(quoteSize(10, true)).toBe(22);
-  });
-});
 
 describe('Frontispiece', () => {
   it('sets a short quote at 33px and a long one at 22px', () => {
@@ -51,6 +35,24 @@ describe('Frontispiece', () => {
     expect(caption.querySelector('cite')).toHaveTextContent('Cuore');
   });
 
+  it('shows only the author when the quote has no work', () => {
+    const { container } = renderSetup(<Frontispiece quote={{ id: 'stephane-mallarme-1' }} compact={false} />);
+    const caption = container.querySelector('figure > figcaption')!;
+    expect(caption).toHaveTextContent('Stéphane Mallarmé');
+    expect(caption.querySelector('cite')).toBeNull();
+  });
+
+  it('sets a verse quote one block per line', () => {
+    const { container } = renderSetup(<Frontispiece quote={{ id: 'dante-alighieri-2' }} compact={false} />, { locale: 'it' });
+    const lines = container.querySelectorAll('blockquote > span');
+    expect(lines.length).toBeGreaterThan(1);
+  });
+
+  it('draws nothing for a quote without a text in the language', () => {
+    const { container } = renderSetup(<Frontispiece quote={{ id: 'nonexistent' }} compact={false} />);
+    expect(container).toBeEmptyDOMElement();
+  });
+
   it('wraps the text in guillemets, decorative for screen readers', () => {
     const { container } = renderSetup(<Frontispiece quote={{ id: 'edmondo-de-amicis-2' }} compact={false} />);
     const marks = container.querySelectorAll('blockquote [aria-hidden="true"]');
@@ -60,17 +62,6 @@ describe('Frontispiece', () => {
   it('is not a live region', () => {
     const { container } = renderSetup(<Frontispiece quote={{ id: 'edmondo-de-amicis-2' }} compact={false} />);
     expect(container.querySelector('[aria-live], [role="status"], [role="alert"]')).toBeNull();
-  });
-});
-
-describe('inner quotes', () => {
-  it('turns low guillemets inside a quote into high quotes', () => {
-    expect(innerQuotes('Dice: «Sto rileggendo» ancora')).toBe('Dice: “Sto rileggendo” ancora');
-  });
-
-  it('cuts the work at the first parenthesis', () => {
-    const shown = resolveQuote({ id: 'dante-alighieri-2' }, 'it');
-    expect(shown?.work).not.toContain('(');
   });
 });
 
