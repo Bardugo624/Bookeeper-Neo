@@ -15,6 +15,7 @@ export function book(i: number, over: Partial<BookOut> = {}): BookOut {
     on_loan: false,
     tags: [],
     reading: null,
+    file_formats: [],
     created_at: 0,
     updated_at: 0,
     ...over,
