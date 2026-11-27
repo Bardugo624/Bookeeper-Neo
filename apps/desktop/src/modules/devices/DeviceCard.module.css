@@ -67,10 +67,3 @@
   align-items: center;
   gap: 6px;
 }
-
-/* Set apart from the harmless actions: a rule and room before the destructive one. */
-.revoke {
-  margin-inline-start: 6px;
-  padding-inline-start: 10px;
-  border-inline-start: 1px solid var(--bk-border);
-}

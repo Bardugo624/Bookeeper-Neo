@@ -6,7 +6,6 @@ import { useServerInfo } from '../devices';
 import { useSession } from '../../session';
 import { InviteDialog } from './InviteDialog';
 import { InviteList } from './InviteList';
-import { PeopleDangerZone } from './PeopleDangerZone';
 import { PersonDialogs, type OpenDialog } from './PersonDialogs';
 import { PersonRow } from './PersonRow';
 import { assignableRoles, canInvite, personActions, phoneAddress } from './model';
@@ -27,7 +26,6 @@ export function PeoplePage() {
 
   const actor = role && meId ? { id: meId, role } : null;
   const { query } = people;
-  const me = query.data?.find((p) => p.id === meId);
   const revoke = async (id: string) => {
     setError(null);
     try {
@@ -90,9 +88,6 @@ export function PeoplePage() {
       {inviter && invites.query.data ? <InviteList invites={invites.query.data} revoke={(id) => void revoke(id)} busyId={invites.revoke.isPending ? (invites.revoke.variables ?? null) : null} /> : null}
       {inviting ? (
         <InviteDialog roles={assignableRoles(role)} phoneUrl={phoneAddress(server.data)} create={(b) => invites.create.mutateAsync(b)} onClose={() => setInviting(false)} />
-      ) : null}
-      {me && query.data ? (
-        <PeopleDangerZone me={me} people={query.data} onLeave={() => setDialog({ action: 'leave', person: me })} onTransfer={(person) => setDialog({ action: 'owner', person })} />
       ) : null}
       <PersonDialogs open={dialog} actorRole={role} actions={people} onClose={() => setDialog(null)} />
     </div>
