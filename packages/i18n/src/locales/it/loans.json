@@ -118,7 +118,7 @@
   },
   "delete": {
     "title": "Elimina il prestito",
-    "description": "Il prestito di «{title}» a {name} sarà eliminato. L'operazione non si può annullare."
+    "description": "Il prestito di «{title}» a {name} sarà eliminato dallo storico. L'operazione non si può annullare."
   },
   "errors": {
     "alreadyLent": "Questo libro è già in prestito. Restituiscilo prima di prestarlo di nuovo.",

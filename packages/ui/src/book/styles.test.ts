@@ -36,3 +36,11 @@ it.each(files)('%s animates only under prefers-reduced-motion: no-preference', (
   const css = withoutMotionBlocks(strip(readFileSync(new URL(file, dir), 'utf8')));
   expect(css).not.toMatch(/\b(transition|animation)(-[a-z]+)*\s*:/);
 });
+
+it('gives the 3D book a 2:3 cover face sized by --book-face, beside the spine', () => {
+  const css = readFileSync(new URL('./Book3D.module.css', import.meta.url), 'utf8');
+  const rule = (sel: string) => new RegExp(`\\${sel}\\s*\\{([^}]*)\\}`).exec(css)?.[1] ?? '';
+  expect(rule('.cover')).toMatch(/aspect-ratio:\s*2\s*\/\s*3/);
+  expect(rule('.cover')).toMatch(/width:\s*var\(--book-face\)/);
+  expect(rule('.book')).not.toMatch(/aspect-ratio/);
+});

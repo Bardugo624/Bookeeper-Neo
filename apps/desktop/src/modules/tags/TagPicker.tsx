@@ -37,8 +37,11 @@ export function TagPicker({ value, onChange, disabled = false }: TagPickerProps)
     return () => window.removeEventListener('keydown', onEscape, true);
   }, [showList, setOpen]);
 
-  const leave =(e: FocusEvent<HTMLDivElement>) => {
-    if (!e.currentTarget.contains(e.relatedTarget)) picker.setOpen(false);
+  const leave = (e: FocusEvent<HTMLDivElement>) => {
+    if (e.currentTarget.contains(e.relatedTarget)) return;
+    // Close once the focus has landed: removing the list while the focus is between two
+    // elements makes a modal dialog's focus trap pull the focus back to the dialog itself.
+    window.setTimeout(() => setOpen(false), 0);
   };
 
   return (

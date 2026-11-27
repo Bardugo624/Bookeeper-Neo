@@ -1,0 +1,37 @@
+Leggi prima `docs/forge/fase-8a/CONTRATTO.md` (in particolare «Il tour»), `docs/forge/fase-8a/request.md`, `PRODUCT.md` e `DESIGN.md`. Sono già unite `tour-core`, `tour-start` e `tour-place-pair`: il percorso `firstBook` è completo e parte per chi può scrivere ed entra in una libreria vuota.
+
+# Desktop: il tour per chi trova già i libri, e «Rivedi il tutorial»
+
+## Cosa
+
+Le persone nuove che entrano in una libreria **già piena**, e gli **ospiti** (che non aggiungono libri), ricevono un percorso diverso, `explore`: non aggiungere, ma trovare. Inoltre il tour si rivede dalle Impostazioni. Setup di Impeccable da `apps/desktop` con `--target src/modules/tour`; leggi `reference/onboard.md`, `reference/overdrive.md` e `reference/craft-floor.md`.
+
+## Il percorso `explore`
+
+Parte dove `tour-start` oggi lascia il segno «persona nuova» senza far partire nulla: persona nuova che non può scrivere, o libreria con libri. Il segno si cancella.
+
+1. **«Trova un libro»**: riflettore su «Cerca e comandi» nella barra (ancora `nav.search`): «Scrivi un titolo o un autore». Si completa con il segnale `book-opened`, quando si apre la pagina di un libro (dalla ricerca, dalla palette o dall'elenco).
+2. **«Dove si trova»**: nella pagina del libro, riflettore sul riquadro «Dove si trova» con «Mostra sullo scaffale» (ancora `book.where`, in `modules/books/DetailAside.tsx`): «Ti porta al mobile e al ripiano». Si completa con il segnale `where-shown`, quando gli Scaffali mostrano il libro (`useWhere`, modulo `shelves`, con `?book=`). Se il libro non è collocato, la scheda lo dice e il passo si completa lo stesso.
+3. **«Segna cosa leggi»**: riflettore sul blocco della lettura della pagina del libro (ancora `book.reading`: `ReadingCard` in `DetailAside.tsx`, e il bottone «Segna come letto» in `BookDetailPage.tsx`). Funziona per ogni ruolo, ospiti compresi. Si completa con il segnale `reading-changed`, quando lo stato di lettura cambia con successo (modulo `reading`).
+- `book-opened` parte quando si apre la pagina di un libro (`BookDetailPage.tsx`). L'ancora `nav.search` sulla barra c'è già (`tour-start`).
+
+## «Rivedi il tutorial»
+
+Nelle Impostazioni, nella sezione della libreria o del dispositivo, un'azione «Rivedi il tutorial» (bottone secondario, con una riga che spiega cosa fa). Riparte dal primo passo con il percorso adatto adesso: `firstBook` se la persona può scrivere e la libreria è vuota, altrimenti `explore`. Funziona anche dopo «Salta il tutorial». La sezione è «La tua libreria» (`modules/settings/sections/library/LibrarySection.tsx`).
+
+## Testi
+
+Nel namespace `tour` (italiano e inglese): titoli e testi dei passi di `explore`, l'azione e la riga di «Rivedi il tutorial».
+
+## Test
+
+- Persona nuova in una libreria con libri, o ospite: parte `explore` e il segno sparisce.
+- I tre passi seguono i loro bersagli e si completano con `book-opened`, `where-shown`, `reading-changed`; i segnali partono dalle azioni reali; il libro non collocato completa il passo 2.
+- «Rivedi il tutorial» riparte dal primo passo con il percorso giusto, anche dopo «Salta il tutorial».
+
+## Acceptance criteria
+
+- `npm run typecheck -w @bookeeper/desktop` passa; `npx vitest run src/kit/styles.test.ts` (da `apps/desktop`) passa: i fogli di stile usano solo token esistenti; `npx vitest run src/modules/tour src/modules/settings src/modules/books src/modules/reading src/modules/shelves` (da `apps/desktop`) passa; `npm test -w @bookeeper/i18n` passa.
+- Nessun componente oltre 250 righe; nessun testo nei componenti; nessun colore letterale.
+- `.claude/skills/impeccable/scripts/impeccable detect --json` sui file cambiati non trova nulla.
+- Cambiano solo file sotto `apps/desktop/src/modules/tour/`, `settings/`, `books/`, `reading/`, `shelves/` e i file i18n `tour.json` e `settings.json` (it, en).

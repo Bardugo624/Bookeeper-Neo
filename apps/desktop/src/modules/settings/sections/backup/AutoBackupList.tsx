@@ -14,7 +14,7 @@ export function AutoBackupList() {
   const items = list.data?.items ?? [];
 
   return (
-    <SettingsBlock title={t('backup.auto.title')} description={t('backup.auto.description')}>
+    <SettingsBlock span="full" title={t('backup.auto.title')} description={t('backup.auto.description')}>
       {list.isError ? (
         <div className={styles.errorRow} role="alert">
           <p className={styles.error}>{apiErrorMessage(t, list.error)}</p>

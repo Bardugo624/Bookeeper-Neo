@@ -33,3 +33,21 @@ it.each([
 ])('spine thickness for %s pages', (pages, expected) => {
   expect(spine(pages)).toBe(expected);
 });
+
+const face = (pages?: number, width?: number) => {
+  const { container } = render(<Book3D title="T" pages={pages} width={width} />);
+  return (container.firstElementChild as HTMLElement).style.getPropertyValue('--book-face');
+};
+
+it.each([50, 947, undefined])('keeps the same cover face for %s pages: the spine never narrows it', (pages) => {
+  expect(face(pages)).toBe('192px');
+  expect(face(pages, 160)).toBe('112px');
+});
+
+it('wraps the cover image around the spine, and keeps the cloth spine without an image', () => {
+  const { container, rerender } = render(<Book3D title="X" src="/c.jpg" />);
+  const spineImg = container.querySelector('[aria-hidden="true"] img');
+  expect(spineImg).toHaveAttribute('src', '/c.jpg');
+  rerender(<Book3D title="X" />);
+  expect(container.querySelector('[aria-hidden="true"] img')).toBeNull();
+});

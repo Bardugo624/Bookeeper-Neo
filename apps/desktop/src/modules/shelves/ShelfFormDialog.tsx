@@ -1,6 +1,7 @@
 import { Field, Input } from '@bookeeper/ui/base';
 import type { RoomOut, ShelfOut } from '@bookeeper/api';
 import { useT } from '../../app';
+import { tourAnchor } from '../tour';
 import { FormDialog, apiErrorMessage, useFormState } from '../../kit';
 import { ColorPicker } from './ColorPicker';
 import { EMPTY_VALUES, validateShelf, valuesOf, type ShelfValues } from './formModel';
@@ -61,7 +62,7 @@ export function ShelfFormDialog({ shelf, rooms, save, onClose }: ShelfFormDialog
       onCancel={onClose}
     >
       <Field label={t('shelves.form.name')} error={message('name')}>
-        <Input {...text('name')} required autoComplete="off" />
+        <Input {...text('name')} {...(shelf ? {} : tourAnchor('shelf.form'))} required autoComplete="off" />
       </Field>
       <RoomField
         rooms={rooms}

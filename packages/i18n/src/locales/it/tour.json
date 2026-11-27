@@ -1,0 +1,123 @@
+{
+  "later": "Lo faccio dopo",
+  "skip": "Salta il tutorial",
+  "resume": "Riprendi",
+  "dismiss": "Non mostrare più",
+  "pill": {
+    "label": "Primi passi",
+    "progress": "{n} di {total}",
+    "more": "Altre azioni di Primi passi"
+  },
+  "card": {
+    "step": "Passo {n} di {total}",
+    "progress": "Avanzamento",
+    "announce": "Passo {n} di {total}: {title}"
+  },
+  "state": {
+    "done": "fatto",
+    "current": "in corso",
+    "todo": "da fare"
+  },
+  "gotIt": "Ho capito",
+  "firstBook": {
+    "nav": {
+      "title": "Aggiungi un libro che hai vicino",
+      "text": "Apri i Libri: la tua libreria comincia da lì."
+    },
+    "addFirst": {
+      "title": "Aggiungi un libro che hai vicino",
+      "text": "Premi «Aggiungi il primo libro» e scegli un libro che hai a portata di mano."
+    },
+    "add": {
+      "title": "Aggiungi un libro che hai vicino",
+      "text": "Premi «Aggiungi» in alto e scegli un libro che hai a portata di mano."
+    },
+    "isbn": {
+      "title": "Dov'è l'ISBN",
+      "text": "L'ISBN sta sul retro del libro, sopra il codice a barre. Se non lo trovi, puoi anche «Inserisci a mano»."
+    },
+    "save": {
+      "title": "Controlla i dati e salva",
+      "text": "Dai un'occhiata ai dati del libro, poi premi «Salva»."
+    },
+    "landed": {
+      "title": "Il tuo primo libro",
+      "text": "{title} è il primo libro della tua libreria."
+    }
+  },
+  "place": {
+    "nav": {
+      "title": "Dagli un posto",
+      "text": "Apri gli Scaffali: lì il libro trova il suo posto."
+    },
+    "new": {
+      "title": "Dagli un posto",
+      "text": "Crea il mobile dove tieni i libri: un nome e quanti ripiani."
+    },
+    "form": {
+      "title": "Dagli un posto",
+      "text": "Scegli un nome e quanti ripiani ha il mobile, poi salva."
+    },
+    "unplaced": {
+      "title": "Dagli un posto",
+      "text": "Trascina il libro su un ripiano, oppure usa «Colloca»."
+    },
+    "confirm": {
+      "title": "Dagli un posto",
+      "text": "Scegli il mobile e il ripiano, poi conferma."
+    }
+  },
+  "phone": {
+    "nav": {
+      "title": "Portalo in tasca",
+      "text": "Apri i Dispositivi: da lì colleghi il telefono."
+    },
+    "add": {
+      "title": "Portalo in tasca",
+      "text": "Premi «Aggiungi un telefono» per portare la libreria con te."
+    },
+    "qr": {
+      "title": "Portalo in tasca",
+      "text": "Inquadralo con la fotocamera del telefono."
+    }
+  },
+  "finale": {
+    "title": "La tua libreria è pronta",
+    "text": "Il tuo primo libro ha il suo posto. Buona lettura."
+  },
+  "explore": {
+    "find": {
+      "title": "Trova un libro",
+      "text": "Scrivi un titolo o un autore in «Cerca e comandi», poi apri un libro."
+    },
+    "where": {
+      "title": "Dove si trova",
+      "text": "«Mostra sullo scaffale» ti porta al mobile e al ripiano."
+    },
+    "whereBack": {
+      "title": "Dove si trova",
+      "text": "Cerca un libro e aprilo: lì trovi «Mostra sullo scaffale»."
+    },
+    "whereNone": {
+      "title": "Dove si trova",
+      "text": "Questo libro non è su nessuno scaffale, quindi non c'è un posto da mostrare. Per gli altri libri, «Mostra sullo scaffale» ti porta al mobile e al ripiano."
+    },
+    "reading": {
+      "title": "Segna cosa leggi",
+      "text": "Dici se il libro è da leggere, in corso o finito: lo vedi solo tu."
+    },
+    "readingBack": {
+      "title": "Segna cosa leggi",
+      "text": "Cerca un libro e aprilo: lì segni a che punto sei."
+    }
+  },
+  "exploreFinale": {
+    "title": "Ora sai trovare i libri",
+    "text": "Cerchi, vedi dov'è e segni cosa leggi. Buona lettura."
+  },
+  "replay": {
+    "title": "Il tutorial",
+    "description": "Riparte dal primo passo, con il percorso adatto alla tua libreria.",
+    "action": "Rivedi il tutorial"
+  }
+}

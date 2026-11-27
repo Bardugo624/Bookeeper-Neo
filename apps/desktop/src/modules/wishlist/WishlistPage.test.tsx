@@ -125,6 +125,27 @@ describe('add and edit', () => {
 });
 
 describe('delete', () => {
+  it('keeps the card trash neutral', async () => {
+    renderWishlist({ items: [wish(1, { title: 'Neutro' })] });
+    expect((await screen.findByRole('button', { name: 'Elimina Neutro' })).className).not.toContain('toneDanger');
+  });
+
+  it('has no danger zone or delete in the edit dialog', async () => {
+    renderWishlist({ items: [wish(1, { title: 'Dal modulo' })] });
+    await userEvent.click(await screen.findByRole('button', { name: 'Modifica Dal modulo' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).queryByRole('region', { name: 'Zona pericolosa' })).toBeNull();
+    expect(within(dialog).queryByRole('button', { name: 'Elimina' })).toBeNull();
+  });
+
+  it('confirms in red and states the consequence', async () => {
+    renderWishlist({ items: [wish(1, { title: 'Rosso' })] });
+    await userEvent.click(await screen.findByRole('button', { name: 'Elimina Rosso' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Eliminare dalla wishlist?' });
+    expect(within(dialog).getByText(/non si può annullare/)).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Elimina' }).className).toMatch(/danger/i);
+  });
+
   it('asks first and names the item', async () => {
     const { platform } = renderWishlist({ items: [wish(1, { title: 'Da togliere' }), wish(2)] });
     await userEvent.click(await screen.findByRole('button', { name: 'Elimina Da togliere' }));

@@ -1,4 +1,5 @@
 export { Button, type ButtonProps } from './Button';
+export { DangerAction, DangerZone, type DangerActionProps, type DangerZoneProps } from './DangerZone';
 export { Divider, type DividerProps } from './Divider';
 export { EmptyState, type EmptyStateProps } from './EmptyState';
 export { Field, type FieldProps } from './Field';

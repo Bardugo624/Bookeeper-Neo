@@ -4,6 +4,7 @@
      overwritten. Facts only, one per line. -->
 
 ## Verify
+- a throwaway desktop vitest runs from the scratchpad with a `.mts` config that spreads `apps/desktop/vite.config`, sets `root` to apps/desktop,… [apps/desktop/vite.config.ts]
 - npm ci --offline at the root, then `npx vitest run --root packages/ui` for the kit tests [packages/ui/package.json]
 - a throwaway mobile vitest can run from outside the repo with a `.mts` config that spreads `apps/mobile/vite.config` and sets `root` to apps/mobile and… [apps/mobile/vite.config.ts]
 - cargo test --offline --release -p bookeeper-core --test perf_10k -- --ignored --nocapture [crates/bookeeper-core/tests/perf_10k.rs]
@@ -18,15 +19,14 @@
 - UPDATE_OPENAPI=1 cargo test -p bookeeper-core --test openapi -- --include-ignored && npm run gen -w @bookeeper/api && npm test -w @bookeeper/api [packages/api/openapi.json]
 
 ## Known traps
-- a fresh worktree needs `npm ci --offline` at the root before `npm run gen -w @bookeeper/api` works [packages/api/package.json]
 - a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/mobile [apps/mobile/package.json]
+- a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/desktop [apps/desktop/package.json]
+- a fresh worktree needs `npm ci --offline` at the root before `npm run gen -w @bookeeper/api` works [packages/api/package.json]
 - a rejected optimistic write can restore the cache in the same batch as the optimistic render, so an effect keyed on the saved value… [apps/mobile/src/modules/reading/NoteField.tsx]
 - a fresh worktree has no node_modules; run `npm ci --offline` at the root, then `npx vitest run <path>` from apps/desktop [apps/desktop/package.json]
-- `committed_snapshot_is_current` in the openapi test is `#[ignore]`d, so a plain `cargo test --test openapi` skips the snapshot check; pass… [crates/bookeeper-core/tests/openapi.rs]
-- `apps/desktop/src/modules/settings/settings.test.tsx` asserts the real `apps/desktop/package.json` version, so a version bump… [apps/desktop/src/modules/settings/settings.test.tsx]
-- on Node 22 `node --test scripts/` fails with MODULE_NOT_FOUND because a directory argument is not searched; use a glob like `node --test… [scripts/update-manifest.test.mjs]
-- `t` from `@bookeeper/i18n` takes the locale first (`t('it', 'palette.hint')`), and the sidebar hint button's accessible name also includes its… [apps/desktop/src/shell/Sidebar.tsx]
-- a book card link has no aria-label, so its accessible name is its spans joined by spaces ("Libro 1 Autore 1"), and `textContent`… [apps/desktop/src/modules/books/BookCard.tsx]
-- `ResultList.windowing.test.tsx` "measures the row height once…" takes ~4.4s against vitest's 5s timeout and times… [apps/mobile/src/modules/search/ResultList.windowing.test.tsx]
-- mobile search BookRow has no aria-label: the link name is built from its child spans, which jsdom/axe join with spaces ("Libro 1… [apps/mobile/src/modules/search/BookRow.tsx]
+- a `.body > :where(form)` max-width in SettingsBlock.module.css caps section forms placed straight inside the block… [apps/desktop/src/modules/settings/SettingsBlock.module.css]
+- `CoachCard`'s «Più tardi» button is labelled «Lo faccio dopo» (`tour.later`), so tests must look it up by that name [packages/i18n/src/locales/it/tour.json]
+- a tour step whose real action sits outside its `data-tour` anchor is paused by `usePauseTriggers` on the press, and… [apps/desktop/src/modules/tour/usePauseTriggers.ts]
+- a tour started with `start()` before the app has mounted is wiped when the shell binds the connection, so tests must start the path after… [apps/desktop/src/modules/tour/store.ts]
+- the tour pauses on any press outside its target, so a signal caused by clicking elsewhere (a list row) needs `whilePaused` on the step [apps/desktop/src/modules/tour/model.ts]
 

@@ -25,12 +25,26 @@ export interface MenuProps {
 }
 
 export function Menu({ trigger, items, align = 'end', side = 'bottom' }: MenuProps) {
+  const isDanger = (e: MenuEntry) => e.type !== 'separator' && e.danger === true;
+  // Separators between regular entries collapse to one; none lead or trail.
+  const regular: MenuEntry[] = [];
+  for (const e of items.filter((x) => !isDanger(x))) {
+    if (e.type === 'separator' && (regular.length === 0 || regular[regular.length - 1].type === 'separator')) continue;
+    regular.push(e);
+  }
+  while (regular.length > 0 && regular[regular.length - 1].type === 'separator') regular.pop();
+  const dangerous = items.filter(isDanger);
+  // Dangerous entries always sit last, after a divider (only when something precedes them), in arrival order.
+  const ordered: MenuEntry[] =
+    dangerous.length === 0
+      ? regular
+      : [...regular, ...(regular.length > 0 ? [{ type: 'separator', id: '__danger-separator' } as const] : []), ...dangerous];
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>{trigger}</DropdownMenu.Trigger>
       <DropdownMenu.Portal>
         <DropdownMenu.Content className={styles.content} align={align} side={side} sideOffset={6}>
-          {items.map((entry) =>
+          {ordered.map((entry) =>
             entry.type === 'separator' ? (
               <DropdownMenu.Separator key={entry.id} className={styles.separator} />
             ) : (

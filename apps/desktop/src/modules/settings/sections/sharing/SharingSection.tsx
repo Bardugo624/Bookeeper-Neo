@@ -127,7 +127,7 @@ export function SharingSection() {
       </SettingsBlock>
 
       {on ? (
-        <SettingsBlock title={t('sharing.reach.title')} description={t('sharing.reach.description')}>
+        <SettingsBlock span="full" title={t('sharing.reach.title')} description={t('sharing.reach.description')}>
           <ul className={styles.list}>
             {status.addresses.map((a) => (
               <li key={a} className={styles.item}>
@@ -159,7 +159,7 @@ export function SharingSection() {
         </SettingsBlock>
       ) : null}
 
-      <SettingsBlock title={t('sharing.how.title')}>
+      <SettingsBlock span="full" title={t('sharing.how.title')}>
         <ol className={styles.steps}>
           <li>{t('sharing.how.step1')}</li>
           <li>{t('sharing.how.step2', { add: t('devices.add.computer') })}</li>

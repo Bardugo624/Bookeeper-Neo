@@ -14,6 +14,7 @@
   "add": { "button": "Add", "title": "Add to the wishlist", "submit": "Add to the wishlist" },
   "edit": { "button": "Edit", "title": "Edit the item", "submit": "Save" },
   "delete": {
+    "title": "Delete this item?",
     "button": "Delete",
     "text": "“{title}” will be removed from the wishlist. This cannot be undone.",
     "confirm": "Yes, delete",

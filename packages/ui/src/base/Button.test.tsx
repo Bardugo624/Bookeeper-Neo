@@ -55,3 +55,14 @@ it('requires loadingLabel when loading and names the spinner with it', () => {
   render(<Button loading loadingLabel="Salvataggio">Save</Button>);
   expect(screen.getByRole('status', { name: 'Salvataggio' })).toBeInTheDocument();
 });
+
+it('adds the danger tone class to ghost and secondary only when asked', () => {
+  const { rerender } = render(<Button variant="ghost" tone="danger">Del</Button>);
+  expect(screen.getByRole('button', { name: 'Del' }).className).toMatch(/toneDanger/);
+  rerender(<Button variant="secondary" tone="danger">Del</Button>);
+  expect(screen.getByRole('button', { name: 'Del' }).className).toMatch(/toneDanger/);
+  rerender(<Button variant="secondary">Del</Button>);
+  expect(screen.getByRole('button', { name: 'Del' }).className).not.toMatch(/toneDanger/);
+  rerender(<Button variant="danger" tone="danger">Del</Button>);
+  expect(screen.getByRole('button', { name: 'Del' }).className).not.toMatch(/toneDanger/);
+});

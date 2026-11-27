@@ -4,14 +4,21 @@ import styles from './SettingsBlock.module.css';
 export interface SettingsBlockProps {
   title: string;
   description?: string;
+  /** `full` takes the whole row when cards sit side by side: data, lists, danger zones. */
+  span?: 'full';
   children: ReactNode;
 }
 
+/** Makes any element of a section (a danger zone, a note) take the whole row. */
+export function SettingsFull({ children }: { children: ReactNode }) {
+  return <div className={styles.full}>{children}</div>;
+}
+
 /** A titled card inside a settings section. */
-export function SettingsBlock({ title, description, children }: SettingsBlockProps) {
+export function SettingsBlock({ title, description, span, children }: SettingsBlockProps) {
   const id = useId();
   return (
-    <section className={styles.block} aria-labelledby={id}>
+    <section className={span === 'full' ? `${styles.block} ${styles.full}` : styles.block} aria-labelledby={id}>
       <h2 id={id} className={styles.title}>
         {title}
       </h2>

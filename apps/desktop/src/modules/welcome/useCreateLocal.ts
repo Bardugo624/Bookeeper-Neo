@@ -2,7 +2,7 @@ import { useRef, useState, type FormEvent } from 'react';
 import { usePlatform } from '../../platform';
 import { useSession } from '../../session';
 import { useT } from '../../app/i18n';
-import { authenticate, deviceInfo, findLocal, newLocalConnection, reopenLocal } from './connections';
+import { asNewcomer, authenticate, deviceInfo, findLocal, newLocalConnection, reopenLocal } from './connections';
 import { apiErrors, hasErrors, type Errors } from './errors';
 import { collect, focusFirstError, nameError } from './validate';
 import { useBusy } from './useBusy';
@@ -37,12 +37,17 @@ export function useCreateLocal() {
       await local.settled();
       const device = await deviceInfo(platform);
       const connection = (await findLocal(platform)) ?? newLocalConnection();
-      await authenticate(platform, signIn, connection, (client) =>
-        client.setup({
-          library_name: values.libraryName.trim(),
-          display_name: values.displayName.trim(),
-          ...device,
-        }),
+      await authenticate(
+        platform,
+        signIn,
+        connection,
+        asNewcomer(connection, (client) =>
+          client.setup({
+            library_name: values.libraryName.trim(),
+            display_name: values.displayName.trim(),
+            ...device,
+          }),
+        ),
       );
     }, fail);
   };

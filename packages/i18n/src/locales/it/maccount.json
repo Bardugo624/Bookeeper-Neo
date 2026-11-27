@@ -53,7 +53,7 @@
   },
   "logout": {
     "title": "Scollega questo telefono",
-    "text": "Il telefono non potrà più usare la libreria finché non lo colleghi di nuovo.",
+    "text": "Il telefono smette di usare la libreria. Per riaverlo serve un nuovo codice o il QR dal computer.",
     "action": "Scollega questo telefono",
     "confirmTitle": "Scollegare questo telefono?",
     "confirmText": "Dovrai collegarlo di nuovo con un nuovo codice QR dal computer.",
@@ -62,5 +62,8 @@
     "cancel": "Annulla",
     "offline": "Non è stato possibile avvisare il server. Il telefono è scollegato qui, ma va revocato dal computer, in Dispositivi.",
     "offlineTitle": "Telefono scollegato"
+  },
+  "danger": {
+    "title": "Zona pericolosa"
   }
 }

@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { installIntersectionObserver, book } from './testkit';
 import { ok } from '../../session/fixtures';
-import { ISBN, METADATA, lookUp, openNewBook, renderWithWrites, sent } from './writeKit';
+import { ISBN, METADATA, lookUp, openGroup, openNewBook, renderWithWrites, sent } from './writeKit';
 
 beforeEach(() => {
   localStorage.clear();
@@ -103,6 +103,7 @@ describe('duplicate by either form of the ISBN', () => {
     renderWithWrites({ books: [book(5, { title: 'Già qui', isbn_13: ISBN })] });
     await openNewBook();
     await userEvent.click(screen.getByRole('button', { name: 'Inserisci a mano' }));
+    await openGroup('Edizione');
     await userEvent.type(screen.getByRole('textbox', { name: 'ISBN-10' }), '8845292614');
     expect(await screen.findByRole('link', { name: 'Apri il libro esistente' })).toHaveAttribute('href', expect.stringContaining('/books/b5'));
   });
@@ -111,6 +112,7 @@ describe('duplicate by either form of the ISBN', () => {
     const { platform } = renderWithWrites({ books: [book(5, { isbn_13: '9791032305690' })] });
     await openNewBook();
     await userEvent.click(screen.getByRole('button', { name: 'Inserisci a mano' }));
+    await openGroup('Edizione');
     await userEvent.type(screen.getByRole('textbox', { name: 'ISBN-13' }), ISBN);
     await waitFor(() => expect(platform.calls.some((c) => c.path.includes('q=9788845292613'))).toBe(true));
     expect(screen.queryByRole('link', { name: 'Apri il libro esistente' })).toBeNull();
@@ -132,6 +134,7 @@ describe('creation', () => {
     const { platform } = renderWithWrites({ books: [] });
     await openNewBook();
     await userEvent.click(screen.getByRole('button', { name: 'Inserisci a mano' }));
+    await openGroup('Raccolta');
     await waitFor(() => expect(screen.getByRole('textbox', { name: 'Numero progressivo' })).toHaveValue('7'));
     await userEvent.type(title(), '  Dune ');
     await userEvent.click(screen.getByRole('button', { name: 'Salva' }));
@@ -164,5 +167,18 @@ describe('creation', () => {
     expect(await within(dialog).findByRole('textbox', { name: 'ISBN' })).toHaveValue('');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Inserisci a mano' }));
     expect(title()).toHaveValue('');
+  });
+
+  it('"Salva e aggiungi un altro" keeps the focus inside the same dialog', async () => {
+    renderWithWrites({ books: [] });
+    await openNewBook();
+    await userEvent.click(screen.getByRole('button', { name: 'Inserisci a mano' }));
+    await userEvent.type(title(), 'Dune');
+    await userEvent.click(screen.getByRole('button', { name: 'Salva e aggiungi un altro' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Nuovo libro' });
+    const isbn = await within(dialog).findByRole('textbox', { name: 'ISBN' });
+    await new Promise((r) => setTimeout(r, 50));
+    expect(dialog.contains(document.activeElement)).toBe(true);
+    expect(isbn).toHaveFocus();
   });
 });

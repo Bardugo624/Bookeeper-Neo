@@ -188,8 +188,14 @@ describe('return, reopen, edit, delete', () => {
   it('asks for confirmation before deleting and names the loan', async () => {
     const user = userEvent.setup();
     const { platform } = renderLoans(store());
-    await user.click((await screen.findAllByRole('button', { name: 'Elimina' }))[0]!);
+    const command = (await screen.findAllByRole('button', { name: 'Elimina' }))[0]!;
+    expect(command.className).not.toContain('toneDanger');
+    expect(command.parentElement!.querySelector(':scope > span')).toBeNull();
+    await user.click(screen.getAllByRole('button', { name: 'Elimina' })[0]!);
     expect(dialog()).toHaveTextContent('Il prestito di «Libro 1» a Persona 1');
+    expect(dialog()).toHaveTextContent('dallo storico. L\'operazione non si può annullare.');
+    expect(screen.getAllByRole('button', { name: 'Elimina' })[0]).not.toHaveAttribute('title');
+    expect(within(dialog()).getByRole('button', { name: 'Elimina' }).className).toMatch(/danger/i);
     await user.click(within(dialog()).getByRole('button', { name: 'Annulla' }));
     expect(writes(platform)).toHaveLength(0);
     await user.click(screen.getAllByRole('button', { name: 'Elimina' })[0]!);

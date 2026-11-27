@@ -2,7 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FACETS, FACET_SHELVES, book, installIntersectionObserver, listCalls, makeDb, renderBooks } from './testkit';
-import { openNewBook, renderWithWrites, sent, stored } from './writeKit';
+import { openGroup, openNewBook, renderWithWrites, sent, stored } from './writeKit';
 
 // jsdom lacks the pointer-capture and scroll APIs Radix Select calls.
 const proto = window.HTMLElement.prototype as unknown as Record<string, unknown>;
@@ -33,6 +33,7 @@ const lib = () => ({ books: makeDb(4), shelves: FACET_SHELVES, facets, people })
 const last = (platform: Parameters<typeof listCalls>[0]) => listCalls(platform).filter((p) => p.get('limit') === '60').at(-1)!;
 
 async function pickOwner(name: string) {
+  await openGroup('Raccolta');
   await userEvent.click(await screen.findByRole('combobox', { name: 'Di chi è' }));
   await userEvent.click(await screen.findByRole('option', { name }));
 }

@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { TAGS, renderPicker, tag } from './testkit';
@@ -42,6 +42,22 @@ describe('TagPicker', () => {
       expect(seen).not.toContain('Escape');
     } finally {
       document.removeEventListener('keydown', onDoc, true);
+    }
+  });
+
+  it('closes the list only after the focus has landed on the next control', async () => {
+    renderPicker({ tags: [...TAGS] });
+    await userEvent.click(await box());
+    const list = await screen.findByRole('listbox');
+    const next = document.createElement('button');
+    document.body.append(next);
+    try {
+      // In a modal dialog, removing nodes while the focus is between two elements makes the focus trap pull it back.
+      fireEvent.blur(await box(), { relatedTarget: next });
+      expect(list).toBeInTheDocument();
+      await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull());
+    } finally {
+      next.remove();
     }
   });
 

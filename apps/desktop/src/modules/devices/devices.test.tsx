@@ -79,10 +79,16 @@ describe('rename', () => {
 describe('revoke', () => {
   const fleet = () => ({ devices: [device(1, { name: 'Portatile', current: true }), device(2, { name: 'Pixel', kind: 'mobile' as const })] });
 
+  it('keeps the revoke action neutral: the red is in the confirmation', async () => {
+    renderDevices(fleet());
+    expect((await screen.findByRole('button', { name: 'Revoca Pixel' })).className).not.toMatch(/danger/i);
+  });
+
   it('asks for confirmation, then revokes another device and moves it to the revoked section', async () => {
     const { platform } = renderDevices(fleet());
     await userEvent.click(await screen.findByRole('button', { name: 'Revoca Pixel' }));
     expect(platform.calls.some((c) => c.path.endsWith('/revoke'))).toBe(false);
+    expect(screen.getByRole('dialog').className).toMatch(/danger/);
     await userEvent.click(screen.getByRole('button', { name: 'Revoca' }));
     expect(await screen.findByText('Revocati (1)')).toBeInTheDocument();
     expect(useSession.getState().status).toBe('ready');

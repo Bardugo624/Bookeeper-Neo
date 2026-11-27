@@ -25,6 +25,7 @@ describe('visibility', () => {
     renderBackup({ role: 'admin' });
     await screen.findByRole('button', { name: 'Crea un backup' });
     expect(screen.queryByText('Ripristino')).toBeNull();
+    expect(screen.queryByRole('region', { name: 'Zona pericolosa' })).toBeNull();
   });
 });
 
@@ -111,6 +112,16 @@ async function pickAndOpen() {
 }
 
 describe('restore', () => {
+  it('lives in the danger zone with its consequence, and the confirmation is danger-toned', async () => {
+    renderBackup({});
+    const zone = await screen.findByRole('region', { name: 'Zona pericolosa' });
+    expect(within(zone).getByRole('button', { name: 'Ripristina da file…' })).toBeTruthy();
+    expect(within(zone).getByText(/Non si può annullare/)).toBeTruthy();
+    expect(within(zone).queryByRole('button', { name: 'Crea un backup' })).toBeNull();
+    const dialog = await pickAndOpen();
+    expect(dialog.className).toMatch(/danger/);
+  });
+
   it('enables "Ripristina" only when the library name matches, then asks for the password', async () => {
     const tokens: Array<string | undefined> = [];
     const { platform } = renderBackup({
@@ -131,6 +142,8 @@ describe('restore', () => {
     const pw = await screen.findByLabelText('Password');
     await userEvent.type(pw, 'segreta{Enter}');
     expect(await screen.findByText('Ripristino completato. Nella libreria ci sono ora:')).toBeTruthy();
+    // the hint to pick a file is not shown above the outcome
+    expect(screen.queryByText('Scegli prima un file di backup.')).toBeNull();
     expect(tokens).toEqual([undefined, 'tok']);
     expect(screen.getByText('2 utenti del backup non esistono in questa libreria.')).toBeTruthy();
     const restores = platform.calls.filter((c) => c.path === '/api/v1/restore');
@@ -164,6 +177,19 @@ describe('restore', () => {
     await userEvent.type(within(dialog).getByRole('textbox'), 'Casa Rossi');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Ripristina' }));
     expect(await screen.findByText('Il file è troppo grande per essere ripristinato.')).toBeTruthy();
+  });
+});
+
+describe('restore layout', () => {
+  it('puts the action and its consequence before the file picker, and says what is missing', async () => {
+    renderBackup({});
+    const input = await screen.findByLabelText('File di backup (.zip)');
+    const title = screen.getByText('Ripristina da file');
+    expect(title.compareDocumentPosition(input) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByText(/solo il proprietario/)).toBeTruthy();
+    expect(screen.getByText('Scegli prima un file di backup.')).toBeTruthy();
+    await userEvent.upload(input as HTMLInputElement, zip());
+    expect(screen.queryByText('Scegli prima un file di backup.')).toBeNull();
   });
 });
 

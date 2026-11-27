@@ -3,14 +3,17 @@ import { Icon, Kbd } from '@bookeeper/ui/base';
 import { useT } from '../app/i18n';
 import { isMac } from '../app/keyboard';
 import { useOverlays } from '../app/overlays';
+import { FirstStepsPill, tourAnchor } from '../modules/tour';
 import type { AppModule, NavItem } from '../app/types';
 import { LibraryBadge } from './LibraryBadge';
 import { cx } from './cx';
 import styles from './Sidebar.module.css';
 
-function items(modules: AppModule[], group: NavItem['group']): NavItem[] {
+type Entry = NavItem & { id: string };
+
+function items(modules: AppModule[], group: NavItem['group']): Entry[] {
   return modules
-    .flatMap((m) => (m.nav && m.nav.group === group ? [m.nav] : []))
+    .flatMap((m) => (m.nav && m.nav.group === group ? [{ ...m.nav, id: m.id }] : []))
     .sort((a, b) => a.order - b.order);
 }
 
@@ -25,12 +28,12 @@ function NavBadge({ use, labelKey }: { use: () => number | null; labelKey: strin
   );
 }
 
-function NavGroup({ list }: { list: NavItem[] }) {
+function NavGroup({ list }: { list: Entry[] }) {
   const t = useT();
   return (
     <>
       {list.map((n) => (
-        <NavLink key={n.to} to={n.to} className={({ isActive }) => cx(styles.item, isActive && styles.active)}>
+        <NavLink key={n.to} to={n.to} {...tourAnchor(`nav.${n.id}`)} className={({ isActive }) => cx(styles.item, isActive && styles.active)}>
           <Icon name={n.icon} size={17} />
           <span className={styles.label}>{t(n.labelKey)}</span>
           {n.useBadge && n.badgeLabelKey ? <NavBadge use={n.useBadge} labelKey={n.badgeLabelKey} /> : null}
@@ -44,7 +47,7 @@ function PaletteHint() {
   const t = useT();
   const open = useOverlays((s) => s.openPalette);
   return (
-    <button type="button" className={styles.hint} onClick={open}>
+    <button type="button" className={styles.hint} onClick={open} {...tourAnchor('nav.search')}>
       <Icon name="search" size={15} />
       <span>{t('palette.hint')}</span>
       <Kbd>{t(isMac() ? 'palette.keys.hintMac' : 'palette.keys.hint')}</Kbd>
@@ -68,6 +71,9 @@ export function Sidebar({ modules }: { modules: AppModule[] }) {
           <NavGroup list={items(modules, 'bottom')} />
         </div>
       </nav>
+      <div className={styles.steps}>
+        <FirstStepsPill />
+      </div>
       <LibraryBadge />
     </aside>
   );

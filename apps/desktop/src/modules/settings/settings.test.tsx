@@ -130,9 +130,12 @@ describe('account', () => {
     expect(screen.queryByLabelText('Nuova password')).not.toBeInTheDocument();
   });
 
-  it('signs out of this device', async () => {
+  it('signs out of this device from the danger zone', async () => {
     renderSettings({}, '/settings/account');
-    await userEvent.click(await screen.findByRole('button', { name: 'Esci da questo dispositivo' }));
+    const zone = await screen.findByRole('region', { name: 'Zona pericolosa' });
+    expect(within(zone).getAllByRole('button')).toHaveLength(1);
+    expect(within(zone).getByText(/servono email e password/)).toBeInTheDocument();
+    await userEvent.click(within(zone).getByRole('button', { name: 'Esci da questo dispositivo' }));
     await waitFor(() => expect(useSession.getState().status).toBe('welcome'));
   });
 });
@@ -165,8 +168,19 @@ describe('about', () => {
   it('shows app and server versions and the server mode', async () => {
     renderSettings({ health: { version: '2.3.4' }, server: { phone_ready: false, public_url: null, tls: 'acme' } }, '/settings/about');
     expect(await screen.findByText('2.3.4')).toBeInTheDocument();
-    expect(screen.getByText('2.0.0')).toBeInTheDocument();
+    expect(screen.getByText('2.1.0')).toBeInTheDocument();
     expect(await screen.findByText('Cifrata, con indirizzo pubblico')).toBeInTheDocument();
+  });
+
+  it('calls a server behind an HTTPS proxy encrypted', async () => {
+    renderSettings({ server: { phone_ready: true, public_url: 'https://libri.example.org', tls: 'off' } }, '/settings/about');
+    expect(await screen.findByText('Cifrata da un proxy, con indirizzo pubblico')).toBeInTheDocument();
+    expect(screen.queryByText('Rete locale, senza cifratura')).not.toBeInTheDocument();
+  });
+
+  it('keeps a server without a secure address unencrypted', async () => {
+    renderSettings({ server: { phone_ready: false, public_url: null, tls: 'off' } }, '/settings/about');
+    expect(await screen.findByText('Rete locale, senza cifratura')).toBeInTheDocument();
   });
 
   it('explains why a phone cannot connect yet', async () => {

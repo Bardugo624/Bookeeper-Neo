@@ -8,8 +8,6 @@
 
 .book {
     display: flex;
-    width: var(--book-w);
-    aspect-ratio: 2 / 3;
     transform: var(--book-rest);
     transform-style: preserve-3d;
     transform-origin: center;
@@ -17,16 +15,40 @@
 }
 
 .spine {
+    position: relative;
     flex: none;
     width: var(--book-spine);
+    overflow: hidden;
     border-radius: 2px 0 0 2px;
     background: color-mix(in srgb, var(--book-bg) 70%, var(--bk-cover-shade));
 }
 
+/* The cover wraps around the spine: its left edge, mirrored so it meets the face, in the shade of the turn. */
+.spineImg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: left center;
+    transform: scaleX(-1);
+}
+
+.spineShade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to right,
+        color-mix(in srgb, var(--bk-cover-shade) 48%, transparent),
+        color-mix(in srgb, var(--bk-cover-shade) 26%, transparent)
+    );
+}
+
 .cover {
     position: relative;
-    flex: 1;
-    min-width: 0;
+    flex: none;
+    width: var(--book-face);
+    aspect-ratio: 2 / 3;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -57,6 +79,27 @@
     font-style: italic;
     font-size: 14px;
     opacity: 0.86;
+}
+
+/* Fold and ambient light, as on the shelf covers. */
+.fold {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4%;
+    background: color-mix(in srgb, var(--bk-cover-shade) 28%, transparent);
+    pointer-events: none;
+}
+
+.light {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--bk-cover-light) 18%, transparent),
+        transparent 45%,
+        color-mix(in srgb, var(--bk-cover-shade) 14%, transparent)
+    );
+    pointer-events: none;
 }
 
 .pages {

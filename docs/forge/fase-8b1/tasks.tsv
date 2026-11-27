@@ -1,0 +1,3 @@
+# id	deps	difficulty	files	dwarf	qa	title
+fix-settings-fit	-	medium	apps/desktop/src/modules/settings	sonnet	opus	Impostazioni allineate e registro leggibile
+fix-tour-slot	-	low	apps/desktop/src/modules/tour,apps/desktop/src/modules/books/BookSheet.tsx,apps/desktop/src/modules/books/BookSheet.module.css	sonnet	opus	Tour nel pop-up del libro: il titolo resta in vista

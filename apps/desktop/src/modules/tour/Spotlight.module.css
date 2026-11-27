@@ -1,0 +1,43 @@
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--bk-z-overlay) - 1);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* The lit box: its huge shadow is the veil, its soft glow is the reading lamp. */
+.hole {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: var(--bk-radius);
+  box-shadow:
+    0 0 0 100vmax color-mix(in srgb, var(--bk-scrim) 58%, transparent),
+    0 0 28px 2px color-mix(in srgb, var(--bk-accent-control) 32%, transparent);
+  outline: 2px solid color-mix(in srgb, var(--bk-accent-control) 75%, transparent);
+  outline-offset: -1px;
+  pointer-events: none;
+  animation: lamp-on var(--bk-dur-slow) var(--bk-ease) both;
+}
+
+.hole[data-animated='true'] {
+  transition:
+    transform 420ms var(--bk-ease),
+    width 420ms var(--bk-ease),
+    height 420ms var(--bk-ease);
+}
+
+@keyframes lamp-on {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hole,
+  .hole[data-animated='true'] {
+    transition: none;
+    animation: none;
+  }
+}

@@ -173,7 +173,11 @@
       "date": "Data non valida.",
       "progressiveTaken": "Questo numero è già usato da un altro libro."
     },
-    "owner": "Di chi è"
+    "owner": "Di chi è",
+    "filled": {
+      "one": "1 compilato",
+      "other": "{count} compilati"
+    }
   },
   "cover": {
     "title": "Copertina",
@@ -215,8 +219,8 @@
       "other": "Eliminare {count} libri?"
     },
     "confirmText": {
-      "one": "Il libro selezionato sarà eliminato con la sua copertina. L'operazione non si può annullare.",
-      "other": "I {count} libri selezionati saranno eliminati con le loro copertine. L'operazione non si può annullare."
+      "one": "Insieme al libro selezionato spariscono la copertina, il posto sullo scaffale, i prestiti, gli stati di lettura e i tag assegnati. L'operazione non si può annullare.",
+      "other": "Insieme ai {count} libri selezionati spariscono le copertine, il posto sullo scaffale, i prestiti, gli stati di lettura e i tag assegnati. L'operazione non si può annullare."
     },
     "confirmButton": {
       "one": "Elimina {count} libro",
@@ -234,7 +238,7 @@
   },
   "delete": {
     "title": "Eliminare «{title}»?",
-    "text": "Il libro sarà eliminato con la sua copertina. L'operazione non si può annullare."
+    "text": "Insieme al libro spariscono la copertina, il posto sullo scaffale, i prestiti, gli stati di lettura e i tag assegnati. L'operazione non si può annullare."
   },
   "toast": {
     "created": "«{title}» aggiunto",

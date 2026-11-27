@@ -1,7 +1,6 @@
-import { Button, Icon } from '@bookeeper/ui/base';
+import { Button, DangerAction, DangerZone } from '@bookeeper/ui/base';
 import { useT } from '../../../../app/i18n';
 import { FilePicker } from '../../../../kit';
-import { SettingsBlock } from '../../SettingsBlock';
 import { useSettingsSession } from '../../useSettingsSession';
 import { RestoreDialog } from './RestoreDialog';
 import { RestoreReportView } from './RestoreReportView';
@@ -17,39 +16,44 @@ export function RestoreBlock({ ops }: { ops: BackupOps }) {
   const restoring = ops.active === 'restore';
 
   return (
-    <SettingsBlock title={t('backup.restore.title')} description={t('backup.restore.description')}>
-      <div className={styles.warning} role="note">
-        <Icon name="alert" />
-        <p>{t('backup.restore.warning')}</p>
-      </div>
-      <FilePicker
-        key={restore.inputKey}
-        label={t('common.file.choose')}
-        inputLabel={t('backup.restore.file')}
-        accept=".zip,application/zip"
-        fileName={restore.file?.name}
-        disabled={ops.busy}
-        onPick={restore.pick}
+    <DangerZone title={t('settings.danger.title')} headingLevel="h2">
+      <DangerAction
+        title={t('settings.danger.restore.title')}
+        consequence={t('settings.danger.restore.consequence')}
+        action={
+          <Button
+            variant="danger"
+            disabled={!restore.file || (ops.busy && !restoring) || libraryName === ''}
+            loading={restoring}
+            loadingLabel={t('backup.restore.working')}
+            onClick={() => restore.setAsking(true)}
+          >
+            {t('backup.restore.action')}
+          </Button>
+        }
       />
-      <Button
-        variant="danger"
-        disabled={!restore.file || (ops.busy && !restoring) || libraryName === ''}
-        loading={restoring}
-        loadingLabel={t('backup.restore.working')}
-        onClick={() => restore.setAsking(true)}
-      >
-        {t('backup.restore.action')}
-      </Button>
-      {restore.error ? (
-        <p className={styles.error} role="alert">
-          {restore.error}
-        </p>
-      ) : null}
-      {restore.report ? <RestoreReportView report={restore.report} /> : null}
+      <div className={styles.restoreBody}>
+        <FilePicker
+          key={restore.inputKey}
+          label={t('common.file.choose')}
+          inputLabel={t('backup.restore.file')}
+          accept=".zip,application/zip"
+          fileName={restore.file?.name}
+          disabled={ops.busy}
+          onPick={restore.pick}
+        />
+        {restore.file || restore.report ? null : <p className={styles.note}>{t('backup.restore.needFile')}</p>}
+        {restore.error ? (
+          <p className={styles.error} role="alert">
+            {restore.error}
+          </p>
+        ) : null}
+        {restore.report ? <RestoreReportView report={restore.report} /> : null}
+      </div>
       {restore.asking && restore.file ? (
         <RestoreDialog libraryName={libraryName} fileName={restore.file.name} onConfirm={() => void restore.start()} onCancel={() => restore.setAsking(false)} />
       ) : null}
       {restore.passwordDialog}
-    </SettingsBlock>
+    </DangerZone>
   );
 }

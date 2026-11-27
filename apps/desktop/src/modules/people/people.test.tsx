@@ -53,6 +53,8 @@ describe('menu by role', () => {
       expect(screen.getAllByRole('button', { name: /^Azioni per/ })).toHaveLength(1);
       await open('Anna');
       expect(await menuNames()).toEqual(['Rinomina', 'Esci dalla libreria']);
+      await userEvent.keyboard('{Escape}');
+      expect(screen.queryByRole('region', { name: 'Zona pericolosa' })).not.toBeInTheDocument();
       unmount();
     }
   });
@@ -73,7 +75,13 @@ describe('menu by role', () => {
     expect(await menuNames()).toEqual(['Rinomina']);
     await userEvent.keyboard('{Escape}');
     await open('Bruno');
-    expect(await menuNames()).toEqual(['Cambia ruolo', 'Rinomina', 'Rimuovi', 'Rendi proprietario']);
+    expect(await menuNames()).toEqual(['Cambia ruolo', 'Rinomina', 'Rendi proprietario', 'Rimuovi']);
+    const separator = screen.getByRole('separator');
+    const remove = screen.getByRole('menuitem', { name: 'Rimuovi' });
+    expect(separator.compareDocumentPosition(remove) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(remove.className).toMatch(/danger/);
+    await userEvent.keyboard('{Escape}');
+    expect(screen.queryByRole('region', { name: 'Zona pericolosa' })).not.toBeInTheDocument();
   });
 
   it('gives an admin the invite button and a member none', async () => {
@@ -148,6 +156,7 @@ describe('writes', () => {
     await open('Dario');
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Rimuovi' }));
     const dialog = screen.getByRole('dialog');
+    expect(dialog.className).toMatch(/danger/);
     expect(within(dialog).getByText('I suoi dispositivi vengono scollegati.')).toBeInTheDocument();
     expect(within(dialog).getByText(/stato di lettura e la sua lista dei desideri vengono cancellati/)).toBeInTheDocument();
     expect(within(dialog).getByText('I libri e i prestiti restano dove sono.')).toBeInTheDocument();
@@ -169,6 +178,7 @@ describe('writes', () => {
     const { platform } = renderPeople(library('member', [person('u0', 'Zeno', 'owner')]));
     await open('Anna');
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Esci dalla libreria' }));
+    expect(screen.getByRole('dialog').className).toMatch(/danger/);
     await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Esci dalla libreria' }));
     await waitFor(() => expect(useSession.getState().status).toBe('welcome'));
     expect(platform.calls.find((c) => c.method === 'DELETE')?.path).toBe('/api/v1/users/u1');
@@ -182,6 +192,7 @@ describe('writes', () => {
     await open('Bruno');
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Rendi proprietario' }));
     const dialog = screen.getByRole('dialog');
+    expect(dialog.className).toMatch(/danger/);
     expect(within(dialog).getByText('Tu diventi Admin.')).toBeInTheDocument();
     await userEvent.click(within(dialog).getByRole('button', { name: 'Rendi Bruno proprietario' }));
     await waitFor(() => expect(useSession.getState().me?.user.role).toBe('admin'));

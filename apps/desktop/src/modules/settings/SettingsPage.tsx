@@ -33,8 +33,10 @@ export function SettingsPage({ sections = collectSections }: SettingsPageProps) 
       <PageHeader title={t('settings.title')} />
       <div className={styles.body}>
         <SectionList sections={list} />
-        <div className={styles.content} key={current.id}>
-          {current.element}
+        <div className={styles.main}>
+          <div className={styles.content} key={current.id}>
+            {current.element}
+          </div>
         </div>
       </div>
     </div>

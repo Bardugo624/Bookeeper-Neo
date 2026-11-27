@@ -14,6 +14,38 @@ pubblicata e la mostra nella dialog "Vedi novità". Sono supportati:
 - link `[text](https://...)`
 
 
+## [2.1.0] - 2026-11-27
+
+### Added
+
+- **Tutorial al primo accesso**: ogni persona nuova trova un percorso breve,
+  fatto sui suoi dati. In una libreria vuota ti accompagna ad aggiungere un
+  libro che hai vicino, a dargli un posto sullo scaffale e a portare la
+  libreria sul telefono. Se entri in una libreria già piena, ti mostra come
+  trovare un libro, dove si trova e come segnare cosa leggi. Si salta con un
+  clic, si riprende da «Primi passi» e si rivede dalle Impostazioni.
+- **Pop-up del libro**: «Nuovo libro» e «Modifica libro» si aprono al centro
+  dello schermo e crescono man mano che compili.
+
+### Changed
+
+- **Eliminare è più tranquillo**: i comandi per eliminare restano al loro
+  posto, neutri. Il rosso compare solo nella conferma, che dice cosa
+  succede. La zona pericolosa fissa resta solo nelle Impostazioni e
+  nell'Account del telefono.
+- **Impostazioni a tutto schermo**: sugli schermi larghi le schede si
+  affiancano, e il registro attività usa tutta la larghezza.
+- Il suggerimento della libreria vuota si chiama «Popola la tua libreria».
+
+### Fixed
+
+- I menu a tendina dentro i pop-up, come la stanza di un mobile o la persona
+  di un prestito, si aprono di nuovo.
+- Con un server dietro un proxy HTTPS, «Informazioni» mostra «Cifrata da un
+  proxy» invece di «Rete locale, senza cifratura».
+- Nella scheda del libro, il libro 3D mostra intera la copertina caricata, e
+  il dorso riprende l'immagine.
+
 ## [2.0.0] - 2026-11-26
 
 Bookeeper 2.0 è una versione nuova, riscritta. Non importa i dati della 0.x:

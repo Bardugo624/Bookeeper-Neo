@@ -1,0 +1,1 @@
+Regola permanente del proprietario: «Come sempre, prima integra, poi tutti i P3 poi prossima fase». Il run 8A è integrato; questo giro corregge tutti i rilievi rimasti (P3 annotati dai revisori) e due difetti trovati guardando l'interfaccia integrata nel browser. Poi viene la release.

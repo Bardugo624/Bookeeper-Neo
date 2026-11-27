@@ -88,19 +88,10 @@
   color: var(--bk-text-muted);
 }
 
-.warning {
+.restoreBody {
   display: flex;
+  flex-direction: column;
   gap: 10px;
-  width: 100%;
-  padding: 12px 14px;
-  border: 1px solid var(--bk-warn);
-  border-radius: var(--bk-radius-md, 8px);
-  font-size: 13px;
-  color: var(--bk-text-strong);
-}
-
-.warning p {
-  margin: 0;
 }
 
 .report {

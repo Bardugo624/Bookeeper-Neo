@@ -601,3 +601,96 @@
 2026-11-26T18:00:42Z	bookeeper-fase-7c	p3-card-hover	qa	opus	PASS	-	-	-	94
 2026-11-26T18:02:01Z	bookeeper-fase-7c	version-200	dwarf	sonnet	-	trap	apps desktop src modules settings settings test tsx asserts the real apps desktop package json version so a version bump	`apps/desktop/src/modules/settings/settings.test.tsx` asserts the real `apps/desktop/package.json` version, so a version bump… [apps/desktop/src/modules/settings/settings.test.tsx]	434	1
 2026-11-26T18:03:36Z	bookeeper-fase-7c	version-200	qa	opus	PASS	trap	committed snapshot is current in the openapi test is ignore d so a plain cargo test test openapi skips the snapshot check pass	`committed_snapshot_is_current` in the openapi test is `#[ignore]`d, so a plain `cargo test --test openapi` skips the snapshot check; pass… [crates/bookeeper-core/tests/openapi.rs]	89	1
+2026-11-26T20:55:33Z	bookeeper-fase-8a	kit-dialog-grow	dwarf	sonnet	-	-	-	-	85
+2026-11-26T20:56:59Z	bookeeper-fase-8a	kit-dialog-grow	qa	opus	FAIL	-	-	-	80
+2026-11-26T20:58:03Z	bookeeper-fase-8a	kit-dialog-grow	dwarf	sonnet	-	-	-	-	58
+2026-11-26T20:59:13Z	bookeeper-fase-8a	tour-core	dwarf	sonnet	-	trap	in a vitest test of usetarget style hooks stubbing raf with vi spyon window requestanimationframe has no effect and a pending	in a vitest test of useTarget-style hooks, stubbing rAF with `vi.spyOn(window, 'requestAnimationFrame')` has no effect and a pending… [apps/desktop/src/modules/tour/useTarget.ts]	305	1
+2026-11-26T20:59:45Z	bookeeper-fase-8a	kit-dialog-grow	qa	opus	FAIL	-	-	-	95
+2026-11-26T21:00:42Z	bookeeper-fase-8a	kit-danger-tones	dwarf	sonnet	-	-	-	-	50
+2026-11-26T21:01:47Z	bookeeper-fase-8a	kit-danger-tones	qa	opus	PASS	-	-	-	60
+2026-11-26T21:01:50Z	bookeeper-fase-8a	tour-core	qa	opus	FAIL	-	-	-	150
+2026-11-26T21:02:26Z	bookeeper-fase-8a	tour-core	dwarf	sonnet	-	-	-	-	30
+2026-11-26T21:03:05Z	bookeeper-fase-8a	tour-core	qa	opus	PASS	-	-	-	32
+2026-11-26T21:18:22Z	bookeeper-fase-8a	kit-dialog-grow	dwarf	opus	-	-	-	-	74
+2026-11-26T21:19:27Z	bookeeper-fase-8a	kit-dialog-grow	qa	opus	PASS	-	-	-	59
+2026-11-26T21:20:59Z	bookeeper-fase-8a	kit-danger-zone	dwarf	sonnet	-	-	-	-	84
+2026-11-26T21:22:32Z	bookeeper-fase-8a	kit-danger-zone	qa	opus	PASS	-	-	-	87
+2026-11-26T21:24:12Z	bookeeper-fase-8a	danger-mobile	dwarf	sonnet	-	-	-	-	94
+2026-11-26T21:24:39Z	bookeeper-fase-8a	book-dialog	dwarf	sonnet	-	-	-	-	303
+2026-11-26T21:25:55Z	bookeeper-fase-8a	danger-mobile	qa	opus	FAIL	finding	mobile modules raise touch targets to 44px with direct child selectors like actions button so moving a button into a	mobile modules raise touch targets to 44px with direct-child selectors like `.actions > button`, so moving a Button into a… [apps/mobile/src/modules/wishlist/Wishlist.module.css]	97	1
+2026-11-26T21:26:26Z	bookeeper-fase-8a	danger-mobile	dwarf	sonnet	-	-	-	-	26
+2026-11-26T21:27:16Z	bookeeper-fase-8a	danger-mobile	qa	opus	PASS	-	-	-	44
+2026-11-26T21:27:57Z	bookeeper-fase-8a	fix-8a-verify	dwarf	sonnet	-	-	-	-	36
+2026-11-26T21:28:17Z	bookeeper-fase-8a	book-dialog	qa	opus	FAIL	-	-	-	212
+2026-11-26T21:28:40Z	bookeeper-fase-8a	fix-8a-verify	qa	opus	PASS	-	-	-	38
+2026-11-26T21:29:44Z	bookeeper-fase-8a	book-dialog	dwarf	sonnet	-	-	-	-	82
+2026-11-26T21:32:08Z	bookeeper-fase-8a	book-dialog	qa	opus	PASS	verify	a throwaway desktop vitest runs from the scratchpad with a mts config that spreads apps desktop vite config sets root to apps desktop	a throwaway desktop vitest runs from the scratchpad with a `.mts` config that spreads `apps/desktop/vite.config`, sets `root` to apps/desktop,… [apps/desktop/vite.config.ts]	138	1
+2026-11-26T21:34:47Z	bookeeper-fase-8a	book-cover-flight	dwarf	sonnet	-	-	-	-	151
+2026-11-26T21:37:23Z	bookeeper-fase-8a	book-cover-flight	qa	opus	FAIL	-	-	-	151
+2026-11-26T21:38:22Z	bookeeper-fase-8a	book-cover-flight	dwarf	sonnet	-	-	-	-	54
+2026-11-26T21:40:32Z	bookeeper-fase-8a	book-cover-flight	qa	opus	PASS	trap	the repo has no prettier config so npx prettier write rewrites files to double quotes while the codebase uses single quotes	the repo has no prettier config, so `npx prettier --write` rewrites files to double quotes while the codebase uses single quotes [apps/desktop/src/modules/books/useCoverFlight.ts]	124	1
+2026-11-26T21:46:20Z	bookeeper-fase-8a	tour-start	dwarf	sonnet	-	trap	modules books has no index ts and renderbooks in books testkit tsx mounts only the books module for cross module tests call	`modules/books` has no `index.ts`, and `renderBooks` in `books/testkit.tsx` mounts only the books module; for cross-module tests call… [apps/desktop/src/modules/books/testkit.tsx]	342	1
+2026-11-26T21:49:35Z	bookeeper-fase-8a	tour-start	qa	opus	PASS	-	-	-	188
+2026-11-26T21:55:00Z	bookeeper-fase-8a	tour-place-pair	dwarf	sonnet	-	trap	a devices shelves test that fakes date or timers with vi usefaketimers stalls requestanimationframe so the tour lamp	a devices/shelves test that fakes `Date` or timers with `vi.useFakeTimers` stalls `requestAnimationFrame`, so the tour lamp… [apps/desktop/src/modules/devices/devices.test.tsx]	320	1
+2026-11-26T21:57:37Z	bookeeper-fase-8a	tour-place-pair	qa	opus	FAIL	-	-	-	151
+2026-11-26T21:58:33Z	bookeeper-fase-8a	tour-place-pair	dwarf	sonnet	-	-	-	-	51
+2026-11-26T21:59:51Z	bookeeper-fase-8a	tour-place-pair	qa	opus	FAIL	-	-	-	71
+2026-11-26T22:06:40Z	bookeeper-fase-8a	tour-place-pair	dwarf	sonnet	-	-	-	-	99
+2026-11-26T22:07:32Z	bookeeper-fase-8a	tour-place-pair	qa	opus	PASS	-	-	-	46
+2026-11-26T22:12:53Z	bookeeper-fase-8a	tour-explore	dwarf	sonnet	-	trap	a tour started with start before the app has mounted is wiped when the shell binds the connection so tests must start the path after	a tour started with `start()` before the app has mounted is wiped when the shell binds the connection, so tests must start the path after… [apps/desktop/src/modules/tour/store.ts]	312	1
+2026-11-26T22:12:53Z	bookeeper-fase-8a	tour-explore	dwarf	sonnet	-	trap	the tour pauses on any press outside its target so a signal caused by clicking elsewhere a list row needs whilepaused on the step	the tour pauses on any press outside its target, so a signal caused by clicking elsewhere (a list row) needs `whilePaused` on the step [apps/desktop/src/modules/tour/model.ts]	312	1
+2026-11-26T22:14:54Z	bookeeper-fase-8a	tour-explore	qa	opus	FAIL	finding	a tour step whose real action sits outside its data tour anchor is paused by usepausetriggers on the press and	a tour step whose real action sits outside its `data-tour` anchor is paused by `usePauseTriggers` on the press, and… [apps/desktop/src/modules/tour/usePauseTriggers.ts]	114	1
+2026-11-26T22:16:30Z	bookeeper-fase-8a	tour-explore	dwarf	sonnet	-	trap	a tour step whose real action sits outside its data tour anchor is paused by usepausetriggers on the press and	a tour step whose real action sits outside its `data-tour` anchor is paused by `usePauseTriggers` on the press, and… [apps/desktop/src/modules/tour/usePauseTriggers.ts]	91	1
+2026-11-26T22:18:07Z	bookeeper-fase-8a	tour-explore	qa	opus	FAIL	finding	a tour step whose real action sits outside its data tour anchor is paused by usepausetriggers on the press and	a tour step whose real action sits outside its `data-tour` anchor is paused by `usePauseTriggers` on the press, and… [apps/desktop/src/modules/tour/usePauseTriggers.ts]	90	1
+2026-11-26T22:25:22Z	bookeeper-fase-8a	tour-explore	dwarf	opus	-	trap	coachcard s pi tardi button is labelled lo faccio dopo tour later so tests must look it up by that name	`CoachCard`'s «Più tardi» button is labelled «Lo faccio dopo» (`tour.later`), so tests must look it up by that name [packages/i18n/src/locales/it/tour.json]	160	1
+2026-11-26T22:26:30Z	bookeeper-fase-8a	tour-explore	qa	opus	PASS	-	-	-	61
+2026-11-26T22:28:18Z	bookeeper-fase-8a	danger-settings	dwarf	sonnet	-	-	-	-	100
+2026-11-26T22:29:04Z	bookeeper-fase-8a	danger-people	dwarf	sonnet	-	-	-	-	145
+2026-11-26T22:29:39Z	bookeeper-fase-8a	danger-settings	qa	opus	PASS	-	-	-	73
+2026-11-26T22:30:34Z	bookeeper-fase-8a	danger-people	qa	opus	FAIL	-	-	-	83
+2026-11-26T22:31:22Z	bookeeper-fase-8a	danger-people	dwarf	sonnet	-	-	-	-	42
+2026-11-26T22:31:55Z	bookeeper-fase-8a	danger-books	dwarf	sonnet	-	-	-	-	129
+2026-11-26T22:32:14Z	bookeeper-fase-8a	danger-people	qa	opus	PASS	-	-	-	45
+2026-11-26T22:33:37Z	bookeeper-fase-8a	danger-books	qa	opus	PASS	-	-	-	95
+2026-11-26T22:34:52Z	bookeeper-fase-8a	danger-shelves	dwarf	sonnet	-	-	-	-	151
+2026-11-26T22:36:15Z	bookeeper-fase-8a	danger-shelves	qa	opus	PASS	-	-	-	77
+2026-11-26T22:55:10Z	bookeeper-fase-8a1	fix-tour-place	dwarf	sonnet	-	-	-	-	107
+2026-11-26T22:56:26Z	bookeeper-fase-8a1	fix-book-sheet	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npx vitest run works in apps desktop	a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/desktop [apps/desktop/package.json]	183	1
+2026-11-26T22:57:00Z	bookeeper-fase-8a1	fix-tour-place	qa	opus	FAIL	finding	the tour card s dialog placement must be checked against the wide 760px sheet in the default 1280 800 window no side has room there	the tour card's dialog placement must be checked against the wide 760px sheet in the default 1280×800 window: no side has room there,… [apps/desktop/src/modules/tour/placement.ts]	103	1
+2026-11-26T22:58:21Z	bookeeper-fase-8a1	fix-tour-place	dwarf	sonnet	-	-	-	-	76
+2026-11-26T22:58:31Z	bookeeper-fase-8a1	fix-book-sheet	qa	opus	FAIL	finding	the new book dialog s salva e aggiungi un altro calls editor save true directly with no form submit event so	the new-book dialog's «Salva e aggiungi un altro» calls `editor.save(true)()` directly with no form submit event, so… [apps/desktop/src/modules/books/BookDialog.tsx]	119	1
+2026-11-26T22:59:41Z	bookeeper-fase-8a1	fix-book-sheet	dwarf	sonnet	-	-	-	-	64
+2026-11-26T22:59:50Z	bookeeper-fase-8a1	fix-tour-place	qa	opus	PASS	-	-	-	82
+2026-11-26T23:00:50Z	bookeeper-fase-8a1	fix-kit-danger	dwarf	sonnet	-	-	-	-	55
+2026-11-26T23:01:22Z	bookeeper-fase-8a1	fix-book-sheet	qa	opus	PASS	-	-	-	96
+2026-11-26T23:01:49Z	bookeeper-fase-8a1	fix-kit-danger	qa	opus	FAIL	finding	a kit wrapper class around children that already style themselves dangerzone actions around dangeraction row doubles	a kit wrapper class around children that already style themselves (DangerZone `.actions` around `DangerAction` `.row`) doubles… [packages/ui/src/base/DangerZone.tsx]	52	1
+2026-11-26T23:02:21Z	bookeeper-fase-8a1	fix-kit-danger	dwarf	sonnet	-	-	-	-	25
+2026-11-26T23:02:51Z	bookeeper-fase-8a1	fix-danger-collection	dwarf	sonnet	-	-	-	-	83
+2026-11-26T23:03:09Z	bookeeper-fase-8a1	fix-kit-danger	qa	opus	PASS	-	-	-	42
+2026-11-26T23:04:11Z	bookeeper-fase-8a1	fix-danger-collection	qa	opus	PASS	-	-	-	73
+2026-11-26T23:04:13Z	bookeeper-fase-8a1	fix-danger-settings	dwarf	sonnet	-	-	-	-	58
+2026-11-26T23:05:16Z	bookeeper-fase-8a1	fix-danger-settings	qa	opus	PASS	-	-	-	58
+2026-11-26T23:54:32Z	bookeeper-fase-8b	calm-shelves	dwarf	sonnet	-	-	-	-	107
+2026-11-26T23:55:00Z	bookeeper-fase-8b	calm-books	dwarf	sonnet	-	-	-	-	135
+2026-11-26T23:55:34Z	bookeeper-fase-8b	calm-shelves	qa	opus	PASS	-	-	-	54
+2026-11-26T23:56:25Z	bookeeper-fase-8b	calm-books	qa	opus	PASS	-	-	-	78
+2026-11-26T23:57:20Z	bookeeper-fase-8b	calm-loans	dwarf	sonnet	-	-	-	-	100
+2026-11-26T23:57:25Z	bookeeper-fase-8b	calm-wishlist	dwarf	sonnet	-	-	-	-	55
+2026-11-26T23:58:11Z	bookeeper-fase-8b	calm-wishlist	qa	opus	PASS	-	-	-	40
+2026-11-26T23:58:24Z	bookeeper-fase-8b	calm-loans	qa	opus	PASS	-	-	-	59
+2026-11-26T23:59:11Z	bookeeper-fase-8b	calm-mobile	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npx vitest run works in apps mobile	a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/mobile [apps/mobile/package.json]	40	1
+2026-11-26T23:59:48Z	bookeeper-fase-8b	calm-people	dwarf	sonnet	-	-	-	-	91
+2026-11-26T23:59:49Z	bookeeper-fase-8b	calm-mobile	qa	opus	PASS	-	-	-	32
+2026-11-27T00:00:49Z	bookeeper-fase-8b	calm-people	qa	opus	PASS	-	-	-	56
+2026-11-27T00:01:42Z	bookeeper-fase-8b	fix-8a1-p3	dwarf	sonnet	-	-	-	-	108
+2026-11-27T00:03:58Z	bookeeper-fase-8b	fix-8a1-p3	qa	opus	FAIL	finding	a tour card portaled into a dialog s in flow slot lands inside the dialog s scrolling body overflow y auto panel capped at	a tour card portaled into a dialog's in-flow slot lands inside the dialog's scrolling `.body` (overflow-y:auto, panel capped at… [packages/ui/src/overlays/Dialog.module.css]	129	1
+2026-11-27T00:05:25Z	bookeeper-fase-8b	fix-8a1-p3	dwarf	sonnet	-	-	-	-	82
+2026-11-27T00:06:26Z	bookeeper-fase-8b	fix-8a1-p3	qa	opus	PASS	-	-	-	56
+2026-11-27T00:08:16Z	bookeeper-fase-8b	settings-layout	dwarf	sonnet	-	-	-	-	104
+2026-11-27T00:09:34Z	bookeeper-fase-8b	settings-layout	qa	opus	FAIL	finding	a descendant rule in settingsblock module css such as body form also styles section specific forms placed	a descendant rule in SettingsBlock.module.css such as `.body > form` also styles section-specific forms placed… [apps/desktop/src/modules/settings/SettingsBlock.module.css]	72	1
+2026-11-27T00:10:14Z	bookeeper-fase-8b	settings-layout	dwarf	sonnet	-	trap	a body where form max width in settingsblock module css caps section forms placed straight inside the block	a `.body > :where(form)` max-width in SettingsBlock.module.css caps section forms placed straight inside the block… [apps/desktop/src/modules/settings/SettingsBlock.module.css]	35	1
+2026-11-27T00:11:05Z	bookeeper-fase-8b	settings-layout	qa	opus	PASS	-	-	-	45
+2026-11-27T02:15:20Z	bookeeper-fase-8b1	fix-tour-slot	dwarf	sonnet	-	-	-	-	150
+2026-11-27T02:15:24Z	bookeeper-fase-8b1	fix-settings-fit	dwarf	sonnet	-	-	-	-	152
+2026-11-27T02:17:15Z	bookeeper-fase-8b1	fix-settings-fit	qa	opus	PASS	-	-	-	99
+2026-11-27T02:17:31Z	bookeeper-fase-8b1	fix-tour-slot	qa	opus	PASS	-	-	-	116

@@ -1,46 +1,44 @@
-import { useId, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import type { BookOut } from '@bookeeper/api';
 import { Button } from '@bookeeper/ui/base';
-import { Drawer, useToast } from '@bookeeper/ui/overlays';
+import { Dialog, useToast } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
-import { apiErrorMessage } from '../../kit';
-import { TagPicker } from '../tags';
-import { BookFormFields } from './BookFormFields';
-import { CoverPicker } from './CoverPicker';
+import { tourAnchor } from '../tour';
+import { BookSheet } from './BookSheet';
 import { IsbnStep } from './IsbnStep';
-import { ExistingNotice, LookupNotice } from './LookupNotice';
-import { authorsOf } from './format';
 import type { SaveResult } from './useBookWrites';
 import { useBookEditor } from './useBookEditor';
+import { captureCover, type CoverHandoff } from './useCoverFlight';
 import { mayHaveCover, useCoverState } from './useCover';
-import styles from './BookForm.module.css';
 
-export interface BookDrawerProps {
+export interface BookDialogProps {
   open: boolean;
   /** The book being edited; absent for "New book". */
   book?: BookOut;
+  /** The button that opened the dialog: it grows from there and gets the focus back. Absent from the palette. */
+  origin?: HTMLElement | null;
   onClose(): void;
   /** Runs after a successful save of an existing book. */
   onSaved?(book: BookOut): void;
   /** Runs after a successful creation; `another` is true for "Save and add another". */
-  onCreated?(book: BookOut, another: boolean): void;
+  onCreated?(book: BookOut, another: boolean, cover?: CoverHandoff): void;
 }
 
-/** "New book" (ISBN step, then form) or "Edit book" (form). Mounted only while open. */
-export function BookDrawer(props: BookDrawerProps) {
-  const [round, setRound] = useState(0);
+/** "New book" (ISBN step, then the book sheet) or "Edit book" (form). Mounted only while open. */
+export function BookDialog(props: BookDialogProps) {
   if (!props.open) return null;
-  // A new `key` empties the panel for "Save and add another".
-  return <BookEditor key={round} {...props} onAnother={() => setRound((n) => n + 1)} />;
+  return <BookEditor {...props} />;
 }
 
-function BookEditor({ book, onClose, onSaved, onCreated, onAnother }: BookDrawerProps & { onAnother(): void }) {
+function BookEditor({ book, origin, onClose, onSaved, onCreated }: BookDialogProps) {
   const t = useT();
   const toast = useToast();
   const formId = useId();
   const [step, setStep] = useState<'isbn' | 'form'>(book ? 'form' : 'isbn');
   const { src: stored, status: storedStatus } = useCoverState(book?.id ?? '', mayHaveCover(book?.cover_color));
 
+  const coverRef = useRef<HTMLDivElement>(null);
+  const resetRef = useRef<() => void>(() => {});
   const done = (result: SaveResult | null, another: boolean) => {
     if (result) {
       toast.show({
@@ -55,26 +53,33 @@ function BookEditor({ book, onClose, onSaved, onCreated, onAnother }: BookDrawer
         tone: result.coverFailed || result.colorFailed || result.tagsFailed ? 'warn' : 'ok',
       });
       if (book) onSaved?.(result.book);
-      else onCreated?.(result.book, another);
+      else onCreated?.(result.book, another, another ? undefined : (captureCover(coverRef.current) ?? undefined));
     }
-    if (another) onAnother();
-    else onClose();
+    if (another) {
+      // The same dialog goes back to the ISBN step: remounting it would lose the focus.
+      resetRef.current();
+      setStep('isbn');
+    } else onClose();
   };
   const editor = useBookEditor(book, done, Boolean(stored) || storedStatus === 'failed');
-  const { form } = editor;
+  resetRef.current = editor.reset;
   const title = book ? t('books.edit.title') : t('books.new.title');
 
+  const sheet = step === 'form';
+
   return (
-    <Drawer
+    <Dialog
       open
       onOpenChange={(next) => {
         if (!next && !editor.saving) onClose();
       }}
       title={title}
       closeLabel={t('common.close')}
+      size={sheet ? 'wide' : 'default'}
+      origin={origin}
       footer={
-        step === 'form' ? (
-          <div className={styles.actions}>
+        sheet ? (
+          <>
             <Button variant="ghost" disabled={editor.saving} onClick={onClose}>
               {t('common.cancel')}
             </Button>
@@ -83,44 +88,23 @@ function BookEditor({ book, onClose, onSaved, onCreated, onAnother }: BookDrawer
                 {t('books.new.saveAnother')}
               </Button>
             )}
-            <Button type="submit" form={formId} variant="primary" loading={editor.saving} loadingLabel={t('common.saving')}>
+            <Button {...(book ? {} : tourAnchor('book.save'))} type="submit" form={formId} variant="primary" loading={editor.saving} loadingLabel={t('common.saving')}>
               {t('common.save')}
             </Button>
-          </div>
+          </>
         ) : undefined
       }
     >
-      {step === 'isbn' ? (
+      {sheet ? (
+        <BookSheet id={formId} editor={editor} storedSrc={stored} storedStatus={storedStatus} editing={Boolean(book)} coverRef={coverRef} />
+      ) : (
         <IsbnStep
           onDone={(result) => {
             editor.start(result);
             setStep('form');
           }}
         />
-      ) : (
-        <form id={formId} className={styles.form} onSubmit={editor.save(false)} noValidate>
-          {form.submitError ? (
-            <p role="alert" className={styles.error}>
-              {apiErrorMessage(t, form.submitError)}
-            </p>
-          ) : null}
-          <LookupNotice outcome={editor.outcome} />
-          <ExistingNotice existing={editor.duplicate} />
-          <BookFormFields form={form} />
-          <TagPicker value={editor.tagIds} onChange={editor.setTagIds} disabled={editor.saving} />
-          <CoverPicker
-            title={form.values.title}
-            author={authorsOf(form.values) || undefined}
-            storedSrc={stored}
-            storedStatus={storedStatus}
-            candidates={editor.candidates}
-            plan={editor.plan}
-            onPlan={editor.setPlan}
-            color={editor.color}
-            onColor={editor.setColor}
-          />
-        </form>
       )}
-    </Drawer>
+    </Dialog>
   );
 }

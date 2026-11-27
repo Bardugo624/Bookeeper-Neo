@@ -81,10 +81,12 @@ describe('managing rooms', () => {
     expect(await within(dialog).findByText('Bagno')).toBeInTheDocument();
     expect(sends(platform, 'PATCH', '/api/v1/rooms/')).toEqual([{ name: 'Bagno' }]);
 
+    expect(within(dialog).getByRole('button', { name: 'Elimina Cucina' }).className).not.toContain('toneDanger');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Elimina Cucina' }));
     const confirm = await screen.findByRole('dialog', { name: 'Eliminare la stanza?' });
     expect(within(confirm).getByText(/restano, ma senza stanza/)).toBeInTheDocument();
     expect(sends(platform, 'DELETE', '/api/v1/rooms/')).toHaveLength(0);
+    expect(within(confirm).getByRole('button', { name: 'Elimina' }).className).toContain('danger');
     await userEvent.click(within(confirm).getByRole('button', { name: 'Elimina' }));
     await waitFor(() => expect(within(dialog).queryByText('Cucina')).toBeNull());
     expect(sends(platform, 'DELETE', '/api/v1/rooms/')).toHaveLength(1);

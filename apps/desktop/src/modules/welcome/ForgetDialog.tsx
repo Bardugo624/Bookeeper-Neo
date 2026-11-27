@@ -20,6 +20,7 @@ export function ForgetDialog({ open, library, busy, onConfirm, onClose }: Forget
         if (!next) onClose();
       }}
       title={t('welcome.forget.title')}
+      tone="danger"
       description={t('welcome.forget.text', { library })}
       closeLabel={t('welcome.forget.close')}
       footer={

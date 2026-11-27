@@ -67,11 +67,41 @@ describe('book page', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Altro' }));
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Elimina' }));
     const dialog = await screen.findByRole('dialog', { name: 'Eliminare «Dune»?' });
+    expect(dialog.className).toMatch(/danger/);
     expect(sent(platform, 'DELETE', '/api/v1/books/b1')).toHaveLength(0);
     await userEvent.click(within(dialog).getByRole('button', { name: 'Elimina' }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/books'));
     expect(await screen.findByText('«Dune» eliminato')).toBeInTheDocument();
     expect(sent(platform, 'DELETE', '/api/v1/books/b1')).toHaveLength(1);
+  });
+});
+
+describe('no fixed danger zone', () => {
+  it('has no zone on the page; Elimina is the last item of the "Altro" menu and its confirmation says the consequence', async () => {
+    renderWithWrites({ books: [stored()] }, {}, '/books/b1');
+    await screen.findByRole('heading', { name: 'Dune' });
+    expect(screen.queryByRole('region', { name: 'Zona pericolosa' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Elimina libro' })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Altro' }));
+    const items = await screen.findAllByRole('menuitem');
+    expect(items[items.length - 1]).toHaveAccessibleName('Elimina');
+    await userEvent.click(items[items.length - 1]!);
+    const dialog = await screen.findByRole('dialog', { name: 'Eliminare «Dune»?' });
+    expect(dialog.className).toMatch(/danger/);
+    expect(dialog).toHaveTextContent(/copertina, il posto sullo scaffale, i prestiti, gli stati di lettura e i tag.*non si può annullare/);
+  });
+
+  it('selection delete is a normal button and its confirmation is dangerous', async () => {
+    renderWithWrites({ books: makeDb(3) });
+    await screen.findByRole('link', { name: 'Libro 1 Autore 1' });
+    await userEvent.click(screen.getByRole('button', { name: 'Seleziona' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Seleziona «Libro 1»' }));
+    const del = screen.getByRole('button', { name: 'Elimina' });
+    expect(del.className).not.toMatch(/danger/);
+    await userEvent.click(del);
+    const confirm = await screen.findByRole('dialog', { name: 'Eliminare 1 libro?' });
+    expect(confirm.className).toMatch(/danger/);
+    expect(confirm).toHaveTextContent(/posto sullo scaffale, i prestiti, gli stati di lettura e i tag.*non si può annullare/);
   });
 });
 

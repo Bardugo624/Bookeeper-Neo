@@ -118,7 +118,7 @@
   },
   "delete": {
     "title": "Delete loan",
-    "description": "The loan of “{title}” to {name} will be deleted. This can't be undone."
+    "description": "The loan of “{title}” to {name} will be removed from the history. This can't be undone."
   },
   "errors": {
     "alreadyLent": "This book is already on loan. Return it before lending it again.",
