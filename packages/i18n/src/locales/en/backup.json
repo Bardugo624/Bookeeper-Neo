@@ -26,6 +26,10 @@
     "loading": "Loading…",
     "empty": "There are no automatic backups yet."
   },
+  "ebooks": {
+    "title": "E-books",
+    "text": "E-books are not in the archive, which only lists their names. To keep them, copy the “ebooks” folder of the data. The files never change, so copying the new ones is enough."
+  },
   "restore": {
     "file": "Backup file (.zip)",
     "action": "Restore from file…",

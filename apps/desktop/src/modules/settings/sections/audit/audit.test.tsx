@@ -70,6 +70,22 @@ describe('sentences', () => {
   });
 });
 
+describe('e-book file sentences', () => {
+  it('writes the file added and removed, with the title linking to the book', async () => {
+    const entries = [
+      entry(1, { action: 'book.file.add', entity_id: 'b1', detail: { format: 'epub', name: 'dune.epub' } }),
+      entry(2, { action: 'book.file.remove', entity_id: 'b1', detail: { format: 'epub', name: 'dune.epub' } }),
+    ];
+    renderAudit({ entries, books: { b1: 'Dune' } });
+    const links = await screen.findAllByRole('link', { name: 'Dune' });
+    expect(links).toHaveLength(2);
+    expect(links[0]).toHaveAttribute('href', '/books/b1');
+    const texts = links.map((l) => l.parentElement?.textContent);
+    expect(texts).toContain('Ha aggiunto il file EPUB a «Dune»');
+    expect(texts).toContain('Ha tolto il file EPUB da «Dune»');
+  });
+});
+
 describe('people sentences', () => {
   it('has its own sentence for the actions of the people and invitations', async () => {
     const entries = [
