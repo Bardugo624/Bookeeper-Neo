@@ -1,6 +1,6 @@
 # Aggiornamenti su R2 e script `bk` — design
 
-Data: 2026-11-27. Stato: da approvare.
+Data: 2026-11-27. Stato: da approvare. Il documento è passato da un controllo indipendente; le risposte sono qui dentro.
 
 ## Perché
 
@@ -13,6 +13,7 @@ Data: 2026-11-27. Stato: da approvare.
 - **Installazioni 2.0.x e 2.1.x**, che hanno scritto dentro `https://app.neokeeper.dev/updates`: Caddy sulla VPS rimanda `/updates/*` a R2.
 - **Lo script comanda la CI**: non pubblica nulla dal PC. Le chiavi R2 stanno solo nei secret di GitHub, e le crea il proprietario. Lo script serve per le modifiche rapide senza PR.
 - **Lo script è in Node**, nel repository.
+- **Ramo:** le modifiche rapide vanno direttamente su `main`. Release e deploy partono solo da `main`, così in produzione va solo codice che è già su `main`. Le build di prova partono da qualunque ramo già su GitHub.
 
 ## Obiettivi
 
@@ -60,6 +61,10 @@ Data: 2026-11-27. Stato: da approvare.
 - `.github/workflows/vps-deploy.yml` parte a ogni push sotto `ops/vps/deploy/**`, e a ogni modifica del workflow stesso, sul ramo `claude/funny-bell-g5wrux`. Costruisce l'immagine dal commit e installa container e Caddy. Per questo oggi qualsiasi modifica a quei file è un deploy di produzione.
 - Il bucket `bookeeper-update` (regione EEUR) ha l'accesso pubblico `r2.dev` attivo. Contiene i file della 0.x sotto `desktop/`.
 - L'aggiornatore di Tauri (`tauri-plugin-updater` 2.14.1) usa `reqwest` con la regola predefinita sui rimandi: li segue, fino a 10. Il rimando della VPS quindi funziona con le app già installate.
+- `.github/workflows/vps-ops.yml` parte a ogni push di `ops/vps/run.sh`, o di sé stesso, sul ramo `claude/funny-bell-g5wrux`, e si può lanciare a mano. Esegue `run.sh` sulla VPS. `run.sh` oggi riscrive `/etc/caddy/bookeeper.caddy` con il vecchio blocco statico `/updates`: una sua esecuzione dopo il cambio cancellerebbe il rimando senza dare errori.
+- Il ramo principale del repository è `main`. GitHub fa partire un `workflow_dispatch` solo se il workflow esiste sul ramo principale. Quindi `updates.yml` e i nuovi parametri di `vps-deploy.yml` funzionano solo dopo che questo lavoro è arrivato su `main`.
+- `ci.yml` parte sui push a `main` e sulle PR.
+- La 2.1.0 esce prima di questo lavoro, dalla strada di oggi: la VPS servirà la 2.1.0 su tutti e due i canali.
 - Il numero di versione sta in 12 posti: `Cargo.toml` (`[workspace.package]`), `Cargo.lock` (le crate del workspace), `apps/desktop/src-tauri/tauri.conf.json`, i 5 `package.json` (`packages/ui`, `packages/api`, `packages/i18n`, `apps/desktop`, `apps/mobile`), `package-lock.json` (le stesse 5 voci), `packages/api/openapi.json` (`info.version`), più un test, `apps/desktop/src/modules/settings/settings.test.tsx`, che la scrive a mano. Il job `check` di `release.yml` confronta `Cargo.toml` con `tauri.conf.json` e, quando si pubblica, richiede la sezione della versione nel `CHANGELOG.md`. Le build usano `--locked`.
 
 ## Design
@@ -83,7 +88,7 @@ desktop/…                        app 0.x: non si tocca
 
 ### Pubblicazione dalla CI
 
-- Il job `publish-updates` di `release.yml` pubblica su R2 invece che sulla VPS, con le stesse regole di oggi:
+- Il job `publish-updates` di `release.yml` pubblica su R2 con le stesse regole di oggi. Finché il rimando non è acceso, pubblica anche sulla VPS, come oggi, così le app 2.0.x e 2.1.x continuano a ricevere ciò che esce. Le regole:
   - i file vanno su prima del manifest;
   - il manifest non torna mai indietro di versione;
   - una release stabile aggiorna anche `beta`;
@@ -96,6 +101,12 @@ desktop/…                        app 0.x: non si tocca
 - **Script e test:** la logica delle decisioni sta in uno script Node di `scripts/`, provato con `node --test` come gli script che ci sono già. Le decisioni sono: cosa caricare, se il manifest si può sostituire, cosa tenere e cosa cancellare. Lo script ha una modalità `--dry-run` che stampa il piano senza toccare il bucket.
 - **Nessun segreto nei log:** nessun comando stampa chiavi, intestazioni o URL firmati.
 - **Il workflow `updates.yml`** (solo `workflow_dispatch`) serve a ritirare un aggiornamento difettoso: riporta il manifest di un canale a una versione ancora presente in `v2/files/`. È l'unica eccezione alla regola «mai indietro», e la chiede il proprietario dallo script. Le app che hanno già installato la versione ritirata non tornano indietro: il ritiro ferma solo chi non l'ha ancora presa.
+
+### La copia iniziale su R2
+
+Il rimando sposta tutti e due i canali in un colpo. Se R2 non ha un canale, le app di quel canale ricevono un 404 e mostrano un errore. Se R2 ha una versione più vecchia della VPS, il manifest torna indietro. Per questo, prima del rimando, R2 riceve una copia di ciò che la VPS serve.
+- Un job manuale (`updates.yml`, azione `seed`) legge dalla VPS, solo in lettura, `stable/latest.json`, `beta/latest.json` e le cartelle di `files/` a cui puntano. I file `.sig` e gli archivi macOS esistono solo lì, perché la release su GitHub contiene solo installer e archivi del server. Poi li carica in `v2/`, con gli URL dei manifest riscritti verso `https://updates.neokeeper.dev/v2/files/…`. Le firme riguardano i file, non il manifest, quindi restano valide.
+- Così `withdraw` ha da subito una versione a cui tornare.
 
 ### L'app
 
@@ -110,7 +121,9 @@ desktop/…                        app 0.x: non si tocca
   - `caddy`: solo il file di Caddy, validato e ricaricato, con ripristino se la validazione fallisce, come fa `deploy.sh`.
 
   Il push che porta questa modifica non deve far partire un deploy. Per gli eventi di push GitHub legge il workflow dal commit spinto, quindi il nuovo file, senza `push`, non parte. Il costruttore lo verifica nella documentazione di GitHub prima di spingere. Se non è così, la modifica va spinta insieme alla release, quando il codice sul ramo è quello rilasciato.
-- Il rimando si accende solo quando R2 contiene già una release, con `bk deploy caddy`. Il proprietario ha chiesto questo cambio sulla VPS.
+- **Controllo di prontezza.** Prima di installare un file di Caddy che contiene il rimando, con `caddy` come con `server`, il workflow controlla che R2 abbia `stable/latest.json` e `beta/latest.json` raggiungibili su `https://updates.neokeeper.dev/v2/`. Ciascuno deve avere una versione non più vecchia di quella che la VPS serve in quel momento, e i file a cui punta devono rispondere. Se il controllo fallisce, il deploy si ferma prima di toccare la VPS.
+- Il rimando si accende con `bk deploy caddy`, dopo la copia iniziale e il controllo. Il proprietario ha chiesto questo cambio sulla VPS.
+- **`vps-ops.yml` parte solo a mano.** `run.sh` torna a uno script di sola lettura (stato dei container e della memoria) e non scrive più la configurazione di Caddy. Il commit che porta queste due modifiche non fa partire nulla, perché il nuovo workflow non ha più `push`; vale la stessa verifica di `vps-deploy.yml`.
 - Cancellare `/opt/bookeeper/updates` sulla VPS e il codice di pubblicazione via `scp` è un passo successivo, da fare solo con il via del proprietario.
 
 ### Lo script `bk`
@@ -122,15 +135,16 @@ desktop/…                        app 0.x: non si tocca
   - con GitHub parla solo attraverso `gh`, che deve essere installato e collegato (`gh auth login`);
   - lo stato pubblico lo legge dagli URL pubblici.
 - **Lingua:** messaggi in italiano.
+- **Rami:** `release` e `deploy` funzionano solo su `main` allineato con GitHub; altrove si fermano e spiegano perché. `build` e `ci` funzionano su qualunque ramo già spinto. `ci.yml` riceve anche `workflow_dispatch`, così `bk ci run` può avviare i controlli su un ramo che non ha una PR.
 - **Uso:** senza argomenti apre un menu numerato, che chiede ciò che serve. Con un argomento esegue il comando direttamente, con le opzioni sulla riga.
 
 | Comando | Cosa fa |
 |---|---|
 | `status` | Ramo, ultimo commit, se è già su GitHub, versione nel repository. Le ultime esecuzioni di CI, Release e VPS deploy. Le versioni sui canali stabile e beta (manifest pubblici). La versione del server (`https://app.neokeeper.dev/api/v1/server`). |
 | `build` | Avvia `release.yml` senza pubblicare, sul ramo attuale, che deve essere già su GitHub. Segue l'esecuzione; alla fine propone di scaricare gli installer in `dist/<versione>/` (ignorata da git). |
-| `release <patch\|minor\|major\|beta\|x.y.z>` | Calcola la nuova versione. `beta` aggiunge o incrementa `-beta.N`. Aggiorna la versione in tutti i posti elencati sopra, senza Rust né `npm install` sul PC. Controlla che `CHANGELOG.md` abbia la sezione della nuova versione; se manca, la crea vuota e si ferma per farla scrivere. Poi fa il commit «Release x.y.z» e il push, avvia `release.yml` con `publish`, segue l'esecuzione e alla fine controlla che il manifest del canale mostri la nuova versione. |
+| `release <patch\|minor\|major\|beta\|x.y.z>` | Calcola la nuova versione come `semver.inc` di npm. Da una stabile, `beta` dà la beta della minore successiva (2.1.0 → 2.2.0-beta.1); da una beta, `beta` incrementa N (2.2.0-beta.1 → 2.2.0-beta.2). Da una beta, `patch` e `minor` la promuovono alla sua versione (2.2.0-beta.3 → 2.2.0) e `major` va alla maggiore successiva (3.0.0). Prima di creare qualunque cosa, controlla che la nuova versione sia più alta di quelle pubblicate su tutti e due i canali; altrimenti si ferma, perché tag e release su GitHub non si tornano indietro. Aggiorna la versione in tutti i posti elencati sopra, senza Rust né `npm install` sul PC. Controlla che `CHANGELOG.md` abbia la sezione della nuova versione; se manca, la crea vuota e si ferma per farla scrivere. Poi fa il commit «Release x.y.z» e il push, avvia `release.yml` con `publish`, segue l'esecuzione e alla fine controlla che il manifest del canale mostri la nuova versione. |
 | `updates` | Mostra i due canali. `updates withdraw <canale> <versione>` avvia `updates.yml`, dopo una conferma. |
-| `ci` | Elenca le esecuzioni. `ci watch [id]`, `ci logs [id]` (solo i passi falliti), `ci rerun [id]`. |
+| `ci` | Elenca le esecuzioni. `ci run` avvia i controlli sul ramo attuale; `ci watch [id]`, `ci logs [id]` (solo i passi falliti), `ci rerun [id]`. |
 | `dist [versione]` | Stampa i link degli installer dall'indice del canale. Con `--download` li salva in `dist/<versione>/`. |
 | `deploy <server\|caddy>` | Avvia `vps-deploy.yml` solo dopo che il proprietario ha scritto `deploy` per conferma. Segue l'esecuzione e alla fine controlla la versione del server, oppure il rimando. |
 | `doctor` | Controlla Node, git, `gh` (installato, collegato, con accesso al repository), il remote, l'albero pulito e la presenza delle dipendenze npm. |
@@ -153,17 +167,29 @@ desktop/…                        app 0.x: non si tocca
 
 ### Ordine di messa in opera
 
+0. **La 2.1.0** esce dalla strada di oggi, VPS compresa.
 1. **Implementazione** (run Forge):
    - pubblicazione su R2 dietro il controllo dei secret;
    - nuova base nell'app;
    - `vps-deploy.yml` solo manuale con `target`;
    - regola di Caddy pronta ma non installata;
-   - `updates.yml`;
+   - `updates.yml`, con le azioni `seed` e `withdraw`;
+   - `vps-ops.yml` solo manuale e `run.sh` di sola lettura;
    - script `bk`.
-2. **Il proprietario** collega `updates.neokeeper.dev` al bucket, poi crea i secret e le variabili.
-3. **Prima release con R2:** pubblicazione, poi verifica di `https://updates.neokeeper.dev/v2/stable/latest.json` e dei file a cui punta.
-4. **`bk deploy caddy`**, poi verifica che `https://app.neokeeper.dev/updates/stable/latest.json` risponda 302 verso R2 e che il manifest arrivi.
-5. **Più avanti, con il via del proprietario:** pulizia della VPS e del codice `scp`.
+2. **Su `main`:** il lavoro arriva su `main` con una PR, perché i workflow manuali partono solo da lì.
+3. **Il proprietario** collega `updates.neokeeper.dev` al bucket, poi crea i secret e le variabili.
+4. **`seed`:** copia della VPS su R2, poi verifica dei due manifest su `https://updates.neokeeper.dev/v2/`.
+5. **`bk deploy caddy`**, poi verifica che `https://app.neokeeper.dev/updates/stable/latest.json` risponda 302 verso R2 e che il manifest arrivi.
+6. **Prima release dopo il cambio:** esce su R2; le app vecchie la trovano attraverso il rimando.
+7. **Più avanti, con il via del proprietario:** pulizia della VPS e del codice `scp`.
+
+## Scelte mie, da controllare
+
+- La copia iniziale dalla VPS a R2 prima del rimando, e il controllo di prontezza su tutti i deploy che installano Caddy.
+- La pubblicazione doppia, VPS e R2, finché il rimando non è acceso.
+- La regola delle versioni presa da `semver.inc` di npm, e il controllo prima di creare il tag.
+- `workflow_dispatch` su `ci.yml`, per avviare i controlli su un ramo senza PR.
+- `vps-ops.yml` solo manuale e `run.sh` di sola lettura, per non cancellare il rimando per sbaglio.
 
 ## Lasciato al costruttore
 
