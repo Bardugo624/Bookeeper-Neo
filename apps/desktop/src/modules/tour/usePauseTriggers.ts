@@ -21,7 +21,9 @@ export function usePauseTriggers(active: boolean, target: Element | null, pause:
     };
     const onDown = (e: PointerEvent) => {
       const node = e.target instanceof Element ? e.target : null;
-      if (!node || !target || target.contains(node)) return;
+      // A detached target is one the page has just replaced (the target follows a frame late):
+      // like no target at all, it cannot tell a press on the way from one away from the step.
+      if (!node || !target || !target.isConnected || target.contains(node)) return;
       // The same anchor can sit on two buttons at once (e.g. a header and an empty state).
       const id = target.getAttribute('data-tour');
       if (id && node.closest(`[data-tour="${CSS.escape(id)}"]`)) return;
