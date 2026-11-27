@@ -53,13 +53,13 @@ function Run([string]$exe, [string]$arguments) {
 function ExpectExit([string]$what, [string]$exe, [string]$arguments) {
     Expect "${what}: exit code" 0 (Run $exe $arguments)
 }
-# Waits for --smoke-ui; if it is still running after 25 s, lists WebView2's processes by type first.
+# Waits for --smoke-ui; if it is still running after 60 s, lists WebView2's processes by type first.
 function SmokeUi([int]$attempt) {
     Write-Host ">> $Setup --smoke-ui (attempt $attempt)"
     $p = Start-Process -FilePath $Setup -ArgumentList '--smoke-ui' -PassThru
     $null = $p.Handle
-    if (-not $p.WaitForExit(25000)) {
-        Write-Host '--- still running after 25 s; WebView2 processes (pid <- parent, type):'
+    if (-not $p.WaitForExit(60000)) {
+        Write-Host '--- still running after 60 s; WebView2 processes (pid <- parent, type):'
         Get-CimInstance Win32_Process -Filter "Name = 'msedgewebview2.exe'" | ForEach-Object {
             $type = [regex]::Match("$($_.CommandLine)", '--type=\S+').Value
             Write-Host "  $($_.ProcessId) <- $($_.ParentProcessId) $(if ($type) { $type } else { 'browser' })"

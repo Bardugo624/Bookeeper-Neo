@@ -39,8 +39,9 @@ pub fn route(invocation: &Invocation) -> Route {
     }
 }
 
-/// How long `--smoke-ui` waits for the interface to call `ready`.
-const SMOKE_DEADLINE: std::time::Duration = std::time::Duration::from_secs(30);
+/// How long `--smoke-ui` waits for the interface to call `ready`. On a fresh runner WebView2's first
+/// start took about a minute, blocked before its own startup while the runtime was first read.
+const SMOKE_DEADLINE: std::time::Duration = std::time::Duration::from_secs(180);
 
 pub fn run_window(smoke: bool, uninstall: bool, setup_exe: PathBuf) {
     let platform = sys::platform();
