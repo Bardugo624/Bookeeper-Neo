@@ -88,6 +88,13 @@
   }
 }
 
+.tourSlot {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  background: var(--bk-surface-raised);
+}
+
 .tourSlot:empty {
   display: none;
 }

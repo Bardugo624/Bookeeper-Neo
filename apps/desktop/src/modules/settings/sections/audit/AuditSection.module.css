@@ -110,3 +110,60 @@
   outline: 2px solid var(--bk-focus);
   outline-offset: 2px;
 }
+
+/* Quando, Chi and Dispositivo take their content's width (the 1% pulls the cell in, nowrap keeps it from wrapping); Cosa takes the rest. */
+.wide table {
+  min-width: 0;
+}
+
+.wide td:nth-child(-n + 3),
+.wide th:nth-child(-n + 3) {
+  width: 1%;
+  white-space: nowrap;
+}
+
+/* Narrow content: each entry is a block, "when · who · device" small above, "what" across the whole width. */
+@container settings-content (max-width: 720px) {
+  .wide thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .wide tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 6px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--bk-border);
+  }
+
+  .wide td {
+    padding: 0;
+    border-bottom: 0;
+  }
+
+  .wide td:nth-child(-n + 3) {
+    width: auto;
+    font-size: 12px;
+    color: var(--bk-text-muted);
+  }
+
+  .wide td:nth-child(3):empty {
+    display: none;
+  }
+
+  .wide td:nth-child(n + 2):nth-child(-n + 3)::before {
+    content: '·';
+    margin-inline-end: 6px;
+  }
+
+  .wide td:nth-child(4) {
+    flex: 1 0 100%;
+    margin-top: 4px;
+  }
+}
