@@ -1,0 +1,53 @@
+name: VPS SSH
+description: Prepares the SSH key, the pinned host key and the `vps` host alias.
+
+# Reads VPS_HOST, VPS_USER and VPS_PORT from the job environment.
+inputs:
+  key:
+    description: Private key, PEM or base64.
+    required: true
+  host-key:
+    description: Expected SHA256 fingerprint of the host key.
+    required: true
+  verify:
+    description: Run `ssh vps true` at the end.
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        VPS_SSH_KEY: ${{ inputs.key }}
+        VPS_HOST_KEY: ${{ inputs.host-key }}
+        VERIFY: ${{ inputs.verify }}
+      run: |
+        if [ -z "$VPS_SSH_KEY" ]; then
+          echo "::error::Repository secret VPS_SSH_KEY is not set"
+          exit 1
+        fi
+        mkdir -p ~/.ssh && chmod 700 ~/.ssh
+        if printf '%s' "$VPS_SSH_KEY" | grep -q 'BEGIN'; then
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_vps
+        else
+          printf '%s' "$VPS_SSH_KEY" | tr -d ' \r\n' | base64 -d > ~/.ssh/id_vps
+        fi
+        chmod 600 ~/.ssh/id_vps
+        ssh-keyscan -p "$VPS_PORT" -t ed25519 "$VPS_HOST" > ~/.ssh/known_hosts 2>/dev/null
+        if ! ssh-keygen -lf ~/.ssh/known_hosts | grep -qF "$VPS_HOST_KEY"; then
+          echo "::error::The host key of the VPS is not the expected one"
+          exit 1
+        fi
+        cat > ~/.ssh/config <<CFG
+        Host vps
+          HostName $VPS_HOST
+          User $VPS_USER
+          Port $VPS_PORT
+          IdentityFile ~/.ssh/id_vps
+          IdentitiesOnly yes
+          BatchMode yes
+          StrictHostKeyChecking yes
+          ConnectTimeout 15
+        CFG
+        chmod 600 ~/.ssh/config
+        if [ "$VERIFY" = true ]; then ssh vps true; fi

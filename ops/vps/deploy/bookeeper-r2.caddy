@@ -1,0 +1,10 @@
+mobile.neokeeper.dev, app.neokeeper.dev {
+	encode zstd gzip
+
+	# Desktop updates: served from R2.
+	handle_path /updates/* {
+		redir https://updates.neokeeper.dev/v2{uri} 302
+	}
+
+	reverse_proxy 127.0.0.1:7842
+}
