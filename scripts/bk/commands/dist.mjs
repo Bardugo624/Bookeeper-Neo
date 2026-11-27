@@ -27,7 +27,7 @@ export async function run(args = []) {
   if (!links.length) {
     from = 'release su GitHub';
     const rel = gh(['release', 'view', `v${version}`, '--json', 'assets'], { json: true });
-    links = (rel.assets ?? []).map((a) => ({ name: a.name, url: a.url }));
+    links = (rel.assets ?? []).filter((a) => /^Bookeeper_/.test(a.name)).map((a) => ({ name: a.name, url: a.url }));
   }
   console.log(`Installer della versione ${version} (da: ${from})`);
   if (!links.length) console.log('  nessun file');

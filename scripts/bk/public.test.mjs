@@ -17,7 +17,7 @@ test('channelVersions reads R2', async () => {
   const r2 = await serve({ '/stable/latest.json': { version: '2.1.0' }, '/beta/latest.json': { version: '2.2.0-beta.1' } });
   process.env.BK_UPDATES_BASE = r2.base;
   try {
-    assert.deepEqual(await channelVersions(), { stable: '2.1.0', beta: '2.2.0-beta.1', source: 'r2' });
+    assert.deepEqual(await channelVersions(), { stable: '2.1.0', beta: '2.2.0-beta.1', source: 'r2', sources: { stable: 'r2', beta: 'r2' } });
   } finally {
     r2.close();
   }
@@ -29,7 +29,7 @@ test('channelVersions falls back to the VPS when R2 does not answer', async () =
   process.env.BK_UPDATES_BASE = r2.base;
   process.env.BK_VPS_BASE = vps.base;
   try {
-    assert.deepEqual(await channelVersions(), { stable: '2.0.5', beta: '2.0.6-beta.1', source: 'vps' });
+    assert.deepEqual(await channelVersions(), { stable: '2.0.5', beta: '2.0.6-beta.1', source: 'vps', sources: { stable: 'vps', beta: 'vps' } });
   } finally {
     r2.close();
     vps.close();
@@ -43,4 +43,10 @@ test('serverVersion reads the version field; null when down', async () => {
   process.env.BK_SERVER_URL = `${s.base}/nope`;
   assert.equal(await serverVersion(), null);
   s.close();
+});
+
+test('channelVersions has no source when nothing answers', async () => {
+  process.env.BK_UPDATES_BASE = 'http://127.0.0.1:1';
+  process.env.BK_VPS_BASE = 'http://127.0.0.1:1';
+  assert.deepEqual(await channelVersions(), { stable: null, beta: null, source: null, sources: {} });
 });

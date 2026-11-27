@@ -11,6 +11,21 @@ import { installFakeGh } from './fake-gh.mjs';
 const bk = join(dirname(fileURLToPath(import.meta.url)), '..', 'bk.mjs');
 const tmp = () => mkdtempSync(join(tmpdir(), 'bk-cmd-'));
 
+// A repository on branch `work` pushed to a local bare remote: no network involved.
+function repoWithRemote() {
+  const base = tmp();
+  const remote = join(base, 'remote.git');
+  const repo = join(base, 'repo');
+  mkdirSync(repo);
+  const g = (cwd, ...a) => spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { cwd });
+  g(base, 'init', '--bare', remote);
+  g(repo, 'init', '-b', 'work');
+  g(repo, 'commit', '--allow-empty', '-m', 'x');
+  g(repo, 'remote', 'add', 'origin', remote);
+  g(repo, 'push', '-u', 'origin', 'work');
+  return repo;
+}
+
 async function serve(routes) {
   const srv = createServer((req, res) => {
     const body = routes[req.url];
@@ -67,6 +82,7 @@ test('status shows version, channels, source and server', async () => {
         { match: ['run', 'list'], stdout: [{ databaseId: 7, status: 'completed', conclusion: 'success', headBranch: 'main', createdAt: '2026-11-27T10:00:00Z' }] },
       ],
       env: { BK_UPDATES_BASE: r2.base, BK_SERVER_URL: `${srv.base}/server` },
+      cwd: repoWithRemote(),
     });
     assert.equal(r.status, 0, r.stderr);
     assert.match(r.stdout, /Versione: \d+\.\d+\.\d+/);

@@ -16,16 +16,22 @@ export async function fetchJson(url) {
 export { updatesBase };
 
 // Versions the channels serve now. R2 first; the VPS for any channel R2 does not answer.
+// `source` is 'r2' when every answer came from R2, 'vps' when any came from the VPS,
+// and null when nothing answered. `sources` has the source per channel.
 export async function channelVersions() {
-  const out = { stable: null, beta: null, source: 'r2' };
+  const out = { stable: null, beta: null, source: null, sources: {} };
   for (const ch of ['stable', 'beta']) {
     let m = await fetchJson(`${updatesBase()}/${ch}/latest.json`);
+    let src = 'r2';
     if (!m?.version) {
       m = await fetchJson(`${vpsBase()}/${ch}/latest.json`);
-      if (m?.version) out.source = 'vps';
+      src = 'vps';
     }
     out[ch] = m?.version ?? null;
+    if (out[ch]) out.sources[ch] = src;
   }
+  const used = Object.values(out.sources);
+  out.source = used.includes('vps') ? 'vps' : used.length ? 'r2' : null;
   return out;
 }
 

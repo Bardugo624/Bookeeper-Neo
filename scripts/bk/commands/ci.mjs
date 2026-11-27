@@ -13,7 +13,13 @@ function latestId(b) {
 }
 
 function follow(id) {
-  if (!watch(id)) throw new BkError(`La CI è fallita (run ${id})`, `Guarda i log con: npm run bk -- ci logs ${id}`);
+  if (!watch(id)) {
+    // Tell a failed run from gh itself failing (auth, network, wrong id): gh() throws on the latter.
+    const r = gh(['run', 'view', String(id), '--json', 'conclusion'], { json: true });
+    if (r.conclusion !== 'success') {
+      throw new BkError(`La CI è fallita (run ${id})`, `Guarda i log con: npm run bk -- ci logs ${id}`);
+    }
+  }
   console.log('✓ La CI è passata');
 }
 
@@ -40,7 +46,9 @@ export async function run(args = []) {
     case 'watch':
       return follow(id ?? latestId(b));
     case 'logs':
-      ghRaw(['run', 'view', String(id ?? latestId(b)), '--log-failed'], { inherit: true });
+      if (ghRaw(['run', 'view', String(id ?? latestId(b)), '--log-failed'], { inherit: true }).status !== 0) {
+        throw new BkError('gh non è riuscito a leggere i log', 'Controlla l’id del run: npm run bk -- ci');
+      }
       return;
     case 'rerun':
       gh(['run', 'rerun', String(id ?? latestId(b)), '--failed']);

@@ -36,9 +36,10 @@ export async function run() {
   });
   await section('Canali di aggiornamento', async () => {
     const c = await channelVersions();
-    console.log(`  stable: ${c.stable ?? 'non risponde'}`);
-    console.log(`  beta:   ${c.beta ?? 'non risponde'}`);
-    console.log(`  fonte:  ${c.source === 'r2' ? 'R2' : 'VPS (R2 non risponde)'}`);
+    const from = (ch) => (c.sources[ch] === 'vps' ? ' (dalla VPS, R2 non risponde)' : '');
+    console.log(`  stable: ${c.stable ?? 'non risponde'}${from('stable')}`);
+    console.log(`  beta:   ${c.beta ?? 'non risponde'}${from('beta')}`);
+    console.log(`  fonte:  ${c.source === 'r2' ? 'R2' : c.source === 'vps' ? 'VPS' : 'nessuna'}`);
   });
   await section('Server', async () => {
     console.log(`  Versione: ${(await serverVersion()) ?? 'non risponde'}`);
