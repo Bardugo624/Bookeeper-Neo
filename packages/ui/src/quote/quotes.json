@@ -1,0 +1,919 @@
+[
+  {
+    "id": "aldous-huxley-1",
+    "it": {
+      "text": "Le parole possono essere paragonate ai Raggi X; se si usano a dovere, attraversano ogni cosa. Leggi, e ti trapassano.",
+      "author": "Aldous Huxley",
+      "work": "Brave New World"
+    },
+    "en": {
+      "text": "Words can be like X-rays, if you use them properly – they’ll go through anything. You read and you’re pierced.",
+      "author": "Aldous Huxley",
+      "work": "Brave New World"
+    }
+  },
+  {
+    "id": "alessandro-baricco-1",
+    "it": {
+      "text": "Forse leggere migliaia di libri non è poi così inutile, pensò.",
+      "author": "Alessandro Baricco",
+      "work": "Mr Gwyn"
+    },
+    "en": null
+  },
+  {
+    "id": "alessandro-manzoni-1",
+    "it": {
+      "text": "Don Ferrante passava di grand’ore nel suo studio, dove aveva una raccolta di libri considerabile, poco meno di trecento volumi: tutta roba scelta, tutte opere delle più riputate, in varie materie; in ognuna delle quali era più o meno versato.",
+      "author": "Alessandro Manzoni",
+      "work": "I promessi sposi"
+    },
+    "en": {
+      "text": "Don Ferrante passed much time in his study, where he had a considerable collection of choice books; he had selected the most famous works on many different subjects, in each of which he was more or less versed.",
+      "author": "Alessandro Manzoni",
+      "work": "I promessi sposi"
+    }
+  },
+  {
+    "id": "anatole-france-1",
+    "it": {
+      "text": "Non conosco nessuna lettura più facile, più affascinante, più deliziosa d’un catalogo.",
+      "author": "Anatole France",
+      "work": "Le Crime de Sylvestre Bonnard"
+    },
+    "en": null
+  },
+  {
+    "id": "antonio-tabucchi-1",
+    "it": {
+      "text": "Disse: la filosofia sembra che si occupi solo della verità, ma forse dice solo fantasie, e la letteratura sembra che si occupi solo di fantasie, ma forse dice la verità.",
+      "author": "Antonio Tabucchi",
+      "work": "Sostiene Pereira"
+    },
+    "en": null
+  },
+  {
+    "id": "augustine-birrell-1",
+    "it": {
+      "text": "Le biblioteche non si fanno; crescono.",
+      "author": "Augustine Birrell",
+      "work": "Obiter Dicta"
+    },
+    "en": {
+      "text": "Libraries are not made; they grow.",
+      "author": "Augustine Birrell",
+      "work": "Obiter Dicta"
+    }
+  },
+  {
+    "id": "bertrand-russell-1",
+    "it": {
+      "text": "Due sono i motivi che spingono a leggere un libro: uno, per divertimento; l’altro, per vanità.",
+      "author": "Bertrand Russell",
+      "work": "The Conquest of Happiness"
+    },
+    "en": {
+      "text": "There are two motives for reading a book: one, that you enjoy it; the other, that you can boast about it.",
+      "author": "Bertrand Russell",
+      "work": "The Conquest of Happiness"
+    }
+  },
+  {
+    "id": "carlo-collodi-1",
+    "it": {
+      "text": "C’era una volta… – Un re! – diranno subito i miei piccoli lettori. – No, ragazzi, avete sbagliato. C’era una volta un pezzo di legno.",
+      "author": "Carlo Collodi",
+      "work": "Le avventure di Pinocchio"
+    },
+    "en": {
+      "text": "Centuries ago there lived— “A king!” my little readers will say immediately. No, children, you are mistaken. Once upon a time there was a piece of wood.",
+      "author": "Carlo Collodi",
+      "work": "Le avventure di Pinocchio"
+    }
+  },
+  {
+    "id": "carlo-collodi-2",
+    "it": {
+      "text": "Dopo poco tornò: e quando tornò, aveva in mano l’Abbecedario per il figliuolo, ma la casacca non l’aveva più. Il pover’uomo era in maniche di camicia, e fuori nevicava.",
+      "author": "Carlo Collodi",
+      "work": "Le avventure di Pinocchio"
+    },
+    "en": {
+      "text": "After a while he returned. In his hands he had the A-B-C book for his son, but the old coat was gone. The poor fellow was in his shirt sleeves and the day was cold.",
+      "author": "Carlo Collodi",
+      "work": "Le avventure di Pinocchio"
+    }
+  },
+  {
+    "id": "carlos-ruiz-zafon-1",
+    "it": {
+      "text": "Un giorno sentii dire a un cliente della libreria che poche cose impressionano un lettore quanto il primo libro capace di toccargli il cuore.",
+      "author": "Carlos Ruiz Zafón",
+      "work": "La sombra del viento"
+    },
+    "en": null
+  },
+  {
+    "id": "cesare-pavese-1",
+    "it": {
+      "text": "Leggendo non cerchiamo idee nuove, ma pensieri già da noi pensati, che acquistano sulla pagina un suggello di conferma.",
+      "author": "Cesare Pavese",
+      "work": "Il mestiere di vivere"
+    },
+    "en": {
+      "text": "When we read, we are not looking for new ideas, but to see our own thoughts given the seal of confirmation on the printed page.",
+      "author": "Cesare Pavese",
+      "work": "Il mestiere di vivere"
+    }
+  },
+  {
+    "id": "charles-dickens-1",
+    "it": {
+      "text": "Chi sa leggere non guarda un libro, nemmeno se chiuso in uno scaffale, allo stesso modo di chi non sa leggere.",
+      "author": "Charles Dickens",
+      "work": "Our Mutual Friend"
+    },
+    "en": {
+      "text": "No one who can read, ever looks at a book, even unopened on a shelf, like one who cannot.",
+      "author": "Charles Dickens",
+      "work": "Our Mutual Friend"
+    }
+  },
+  {
+    "id": "charles-lamb-1",
+    "it": {
+      "text": "Mi diletta perdermi nella mente altrui. Quando non vado a passeggio, leggo; sono incapace di star seduto a pensare. I libri pensano per me.",
+      "author": "Charles Lamb",
+      "work": "Last Essays of Elia"
+    },
+    "en": {
+      "text": "I love to lose myself in other men’s minds. When I am not walking, I am reading; I cannot sit and think. Books think for me.",
+      "author": "Charles Lamb",
+      "work": "Last Essays of Elia"
+    }
+  },
+  {
+    "id": "daniel-pennac-1",
+    "it": {
+      "text": "Il tempo per leggere, come il tempo per amare, dilata il tempo per vivere.",
+      "author": "Daniel Pennac",
+      "work": "Comme un roman"
+    },
+    "en": null
+  },
+  {
+    "id": "daniel-pennac-2",
+    "it": {
+      "text": "Una lettura ben fatta salva da tutto, compreso da se stessi.",
+      "author": "Daniel Pennac",
+      "work": "Comme un roman"
+    },
+    "en": null
+  },
+  {
+    "id": "dante-alighieri-1",
+    "it": {
+      "text": "In quella parte del libro de la mia memoria dinanzi a la quale poco si potrebbe leggere, si trova una rubrica la quale dice: Incipit vita nova.",
+      "author": "Dante Alighieri",
+      "work": "Vita nova"
+    },
+    "en": {
+      "text": "In that part of the book of my memory before the which is little that can be read, there is a rubric, saying, Incipit Vita Nova.",
+      "author": "Dante Alighieri",
+      "work": "Vita nova"
+    }
+  },
+  {
+    "id": "dante-alighieri-2",
+    "it": {
+      "text": "O de li altri poeti onore e lume,\nvagliami ’l lungo studio e ’l grande amore\nche m’ha fatto cercar lo tuo volume.",
+      "author": "Dante Alighieri",
+      "work": "Divina Commedia"
+    },
+    "en": {
+      "text": "O, of the other poets honour and light,\nAvail me the long study and great love\nThat have impelled me to explore thy volume!",
+      "author": "Dante Alighieri",
+      "work": "Divina Commedia"
+    }
+  },
+  {
+    "id": "dino-buzzati-1",
+    "it": {
+      "text": "Così una pagina lentamente si volta, si distende dalla parte opposta, aggiungendosi alle altre già finite, per ora è solamente uno strato sottile, quelle che rimangono da leggere sono in confronto un mucchio inesauribile.",
+      "author": "Dino Buzzati",
+      "work": "Il deserto dei Tartari"
+    },
+    "en": null
+  },
+  {
+    "id": "edmondo-de-amicis-1",
+    "it": {
+      "text": "Per lui, ad ogni nuovo libro che compera, è una festa a lisciarlo, a metterlo al posto e a riprenderlo per guardarlo per tutti i versi e a covarselo come un tesoro.",
+      "author": "Edmondo De Amicis",
+      "work": "Cuore"
+    },
+    "en": {
+      "text": "It is a festival for him to polish off every new book that he buys, to put it in its place, and to pick it up again to take another look at it from all sides, and to brood over it as a treasure.",
+      "author": "Edmondo De Amicis",
+      "work": "Cuore"
+    }
+  },
+  {
+    "id": "edmondo-de-amicis-2",
+    "it": {
+      "text": "S’è fatto il suo catalogo. È come un bibliotecario.",
+      "author": "Edmondo De Amicis",
+      "work": "Cuore"
+    },
+    "en": {
+      "text": "He has made himself a catalogue. He is like a librarian.",
+      "author": "Edmondo De Amicis",
+      "work": "Cuore"
+    }
+  },
+  {
+    "id": "emily-dickinson-1",
+    "it": {
+      "text": "Non c’è Vascello che eguagli un Libro\nPer portarci in Terre lontane\nNé Corsieri che eguaglino una Pagina\nDi scalpitante Poesia –",
+      "author": "Emily Dickinson",
+      "work": "There is no Frigate like a Book"
+    },
+    "en": {
+      "text": "There is no Frigate like a Book\nTo take us Lands away\nNor any Coursers like a Page\nOf prancing Poetry –",
+      "author": "Emily Dickinson",
+      "work": "There is no Frigate like a Book"
+    }
+  },
+  {
+    "id": "erri-de-luca-1",
+    "it": {
+      "text": "Leggo solo libri usati.",
+      "author": "Erri De Luca",
+      "work": "Tre cavalli"
+    },
+    "en": null
+  },
+  {
+    "id": "francis-bacon-1",
+    "it": {
+      "text": "Alcuni libri si debbono assaggiare, altri inghiottire, e altri pochi masticare e digerire.",
+      "author": "Francis Bacon",
+      "work": "Essays"
+    },
+    "en": {
+      "text": "Some books are to be tasted, others to be swallowed, and some few to be chewed and digested",
+      "author": "Francis Bacon",
+      "work": "Essays"
+    }
+  },
+  {
+    "id": "g-k-chesterton-1",
+    "it": {
+      "text": "Un buon romanzo ci svela la verità sull’eroe, ma un cattivo romanzo ci svela la verità sull’autore.",
+      "author": "G. K. Chesterton",
+      "work": "Heretics"
+    },
+    "en": {
+      "text": "A good novel tells us the truth about its hero; but a bad novel tells us the truth about its author.",
+      "author": "G. K. Chesterton",
+      "work": "Heretics"
+    }
+  },
+  {
+    "id": "gabriel-garcia-marquez-1",
+    "it": {
+      "text": "La vita non è quella che si è vissuta, ma quella che si ricorda e come la si ricorda per raccontarla.",
+      "author": "Gabriel García Márquez",
+      "work": "Vivir para contarla"
+    },
+    "en": {
+      "text": "Life is not what one lived, but what one remembers and how one remembers it in order to recount it.",
+      "author": "Gabriel García Márquez",
+      "work": "Vivir para contarla"
+    }
+  },
+  {
+    "id": "gabriel-zaid-1",
+    "it": {
+      "text": "I veri colti sono capaci di possedere migliaia di libri non letti senza perdere la calma o il desiderio di averne di più.",
+      "author": "Gabriel Zaid",
+      "work": "Los demasiados libros"
+    },
+    "en": null
+  },
+  {
+    "id": "galileo-galilei-1",
+    "it": {
+      "text": "Ma sopra tutte le invenzioni stupende, qual eminenza fu quella di colui che s’immaginò di trovar modo di comunicare i suoi più reconditi pensieri a qualsivoglia altra persona, benché distante per lunghissimo intervallo di luogo e di tempo?",
+      "author": "Galileo Galilei",
+      "work": "Dialogo sopra i due massimi sistemi del mondo"
+    },
+    "en": null
+  },
+  {
+    "id": "georg-christoph-lichtenberg-1",
+    "it": {
+      "text": "Leggere significa prendere in prestito; tirare fuori qualcosa di nuovo di ciò che si è letto significa ripagare il debito.",
+      "author": "Georg Christoph Lichtenberg",
+      "work": "Sudelbücher"
+    },
+    "en": null
+  },
+  {
+    "id": "giacomo-leopardi-1",
+    "it": {
+      "text": "E dimandandolo alcuni perchè non prendesse a filosofare anche in iscritto, come soleva fare a voce, e non deponesse i suoi pensieri nelle carte, rispose: il leggere è un conversare, che si fa con chi scrisse.",
+      "author": "Giacomo Leopardi",
+      "work": "Operette morali"
+    },
+    "en": {
+      "text": "Being asked one day why he did not give written as well as verbal expression to his philosophical views, he replied: Reading is a conversation held with the writer.",
+      "author": "Giacomo Leopardi",
+      "work": "Operette morali"
+    }
+  },
+  {
+    "id": "goliarda-sapienza-1",
+    "it": {
+      "text": "Non c’è niente da fare, come diceva mia madre, ogni dieci anni bisogna rileggere i libri che ci hanno formato se si vuol venire a capo di qualcosa.",
+      "author": "Goliarda Sapienza",
+      "work": "L’arte della gioia"
+    },
+    "en": null
+  },
+  {
+    "id": "harper-lee-1",
+    "it": {
+      "text": "Fino al giorno in cui mi minacciarono di non lasciarmi più leggere, non seppi di amare la lettura: si ama, forse, il proprio respiro?",
+      "author": "Harper Lee",
+      "work": "To Kill a Mockingbird"
+    },
+    "en": {
+      "text": "Until I feared I would lose it, I never loved to read. One does not love breathing.",
+      "author": "Harper Lee",
+      "work": "To Kill a Mockingbird"
+    }
+  },
+  {
+    "id": "helene-hanff-1",
+    "it": {
+      "text": "Mi piacciono moltissimo i libri usati che si aprono alla pagina che l’ignoto proprietario precedente apriva più spesso.",
+      "author": "Helene Hanff",
+      "work": "84, Charing Cross Road"
+    },
+    "en": null
+  },
+  {
+    "id": "henry-david-thoreau-1",
+    "it": {
+      "text": "Per quanti uomini la lettura d’un libro è stata l’inizio d’una nuova era nella loro vita!",
+      "author": "Henry David Thoreau",
+      "work": "Walden"
+    },
+    "en": {
+      "text": "How many a man has dated a new era in his life from the reading of a book.",
+      "author": "Henry David Thoreau",
+      "work": "Walden"
+    }
+  },
+  {
+    "id": "herman-melville-1",
+    "it": {
+      "text": "Per produrre un possente libro, bisogna scegliere un tema possente. Non si potrà mai scrivere libro grande e duraturo sulla pulce, anche se molti sono coloro che l’hanno tentato.",
+      "author": "Herman Melville",
+      "work": "Moby-Dick"
+    },
+    "en": {
+      "text": "To produce a mighty book, you must choose a mighty theme. No great and enduring volume can ever be written on the flea, though many there be who have tried it.",
+      "author": "Herman Melville",
+      "work": "Moby-Dick"
+    }
+  },
+  {
+    "id": "italo-calvino-1",
+    "it": {
+      "text": "I classici sono quei libri di cui si sente dire di solito: “Sto rileggendo…” e mai “Sto leggendo…”.",
+      "author": "Italo Calvino",
+      "work": "Perché leggere i classici"
+    },
+    "en": {
+      "text": "The classics are the books of which we usually hear people say: “I am rereading…” and never “I am reading….”",
+      "author": "Italo Calvino",
+      "work": "Perché leggere i classici"
+    }
+  },
+  {
+    "id": "italo-calvino-2",
+    "it": {
+      "text": "Un classico è un libro che non ha mai finito di dire quel che ha da dire.",
+      "author": "Italo Calvino",
+      "work": "Perché leggere i classici"
+    },
+    "en": {
+      "text": "A classic is a book that has never finished saying what it has to say.",
+      "author": "Italo Calvino",
+      "work": "Perché leggere i classici"
+    }
+  },
+  {
+    "id": "italo-svevo-1",
+    "it": {
+      "text": "È così che a forza di correr dietro a quelle immagini, io le raggiunsi. Ora so di averle inventate. Ma inventare è una creazione, non già una menzogna.",
+      "author": "Italo Svevo",
+      "work": "La coscienza di Zeno"
+    },
+    "en": {
+      "text": "Thus, after pursuing those images, I overtook them. Now I know that I invented them. But inventing is a creation, not a lie.",
+      "author": "Italo Svevo",
+      "work": "La coscienza di Zeno"
+    }
+  },
+  {
+    "id": "j-d-salinger-1",
+    "it": {
+      "text": "Quelli che mi lasciano proprio senza fiato sono i libri che quando li hai finiti di leggere e tutto quel che segue vorresti che l’autore fosse un tuo amico per la pelle e poterlo chiamare al telefono tutte le volte che ti gira.",
+      "author": "J. D. Salinger",
+      "work": "The Catcher in the Rye"
+    },
+    "en": {
+      "text": "What really knocks me out is a book that, when you’re all done reading it, you wish the author that wrote it was a terrific friend of yours and you could call him up on the phone whenever you felt like it.",
+      "author": "J. D. Salinger",
+      "work": "The Catcher in the Rye"
+    }
+  },
+  {
+    "id": "j-r-r-tolkien-1",
+    "it": {
+      "text": "Ma non disprezzare i racconti tramandati per lunghi anni; potrebbe darsi che le nonne rammentino alcune cose che in passato i saggi era bene conoscessero.",
+      "author": "J. R. R. Tolkien",
+      "work": "The Fellowship of the Ring"
+    },
+    "en": {
+      "text": "Do not despise the lore that has come down from distant years; for oft it may chance that old wives keep in memory word of things that once were needful for the wise to know.",
+      "author": "J. R. R. Tolkien",
+      "work": "The Fellowship of the Ring"
+    }
+  },
+  {
+    "id": "jane-austen-1",
+    "it": {
+      "text": "La persona, uomo o donna che sia, che non si diverte a leggere un buon romanzo, dev’essere intollerabilmente stupida.",
+      "author": "Jane Austen",
+      "work": "Northanger Abbey"
+    },
+    "en": {
+      "text": "The person, be it gentleman or lady, who has not pleasure in a good novel, must be intolerably stupid.",
+      "author": "Jane Austen",
+      "work": "Northanger Abbey"
+    }
+  },
+  {
+    "id": "johann-wolfgang-von-goethe-1",
+    "it": {
+      "text": "Bisognerebbe […] ogni giorno almeno ascoltare una canzoncina, leggere una bella poesia, ammirare un quadro e, se possibile, dire qualche parola sensata.",
+      "author": "Johann Wolfgang von Goethe",
+      "work": "Wilhelm Meisters Lehrjahre"
+    },
+    "en": {
+      "text": "One ought, every day at least, to hear a little song, read a good poem, see a fine picture, and, if it were possible, to speak a few reasonable words.",
+      "author": "Johann Wolfgang von Goethe",
+      "work": "Wilhelm Meisters Lehrjahre"
+    }
+  },
+  {
+    "id": "john-keats-1",
+    "it": {
+      "text": "La mia immaginazione è un monastero e io sono un monaco.",
+      "author": "John Keats",
+      "work": null
+    },
+    "en": {
+      "text": "My imagination is a monastery, and I am its monk.",
+      "author": "John Keats",
+      "work": null
+    }
+  },
+  {
+    "id": "jorge-luis-borges-1",
+    "it": {
+      "text": "Che altri si vantino delle pagine che hanno scritto;\nio sono orgoglioso di quelle che ho letto.",
+      "author": "Jorge Luis Borges",
+      "work": "Elogio de la sombra"
+    },
+    "en": null
+  },
+  {
+    "id": "jorge-luis-borges-2",
+    "it": {
+      "text": "A volte credo che i buoni lettori siano cigni anche più tenebrosi e rari che i buoni autori.",
+      "author": "Jorge Luis Borges",
+      "work": "Historia universal de la infamia"
+    },
+    "en": null
+  },
+  {
+    "id": "jules-renard-1",
+    "it": {
+      "text": "Quando penso a tutti i libri che mi restano da leggere, ho la certezza d’essere ancora felice.",
+      "author": "Jules Renard",
+      "work": "Journal"
+    },
+    "en": null
+  },
+  {
+    "id": "l-m-montgomery-1",
+    "it": {
+      "text": "La gente ride di me perché uso dei paroloni. Ma quando hai delle idee grandiose, come fai a non usare parole grandiose, per esprimerle?",
+      "author": "L. M. Montgomery",
+      "work": "Anne of Green Gables"
+    },
+    "en": {
+      "text": "And people laugh at me because I use big words. But if you have big ideas you have to use big words to express them, haven’t you?",
+      "author": "L. M. Montgomery",
+      "work": "Anne of Green Gables"
+    }
+  },
+  {
+    "id": "lewis-carroll-1",
+    "it": {
+      "text": "una volta o due aveva lanciato un’occhiata al libro che la sorella stava leggendo, ma non c’erano né figure né dialoghi, \"e a cosa serve un libro senza figure e dialoghi?\" pensava Alice",
+      "author": "Lewis Carroll",
+      "work": "Alice’s Adventures in Wonderland"
+    },
+    "en": {
+      "text": "once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it, “and what is the use of a book,” thought Alice “without pictures or conversations?”",
+      "author": "Lewis Carroll",
+      "work": "Alice’s Adventures in Wonderland"
+    }
+  },
+  {
+    "id": "luis-sepulveda-1",
+    "it": {
+      "text": "Sapeva leggere. Fu la scoperta più importante di tutta la sua vita. Sapeva leggere. Possedeva l’antidoto contro il terribile veleno della vecchiaia.",
+      "author": "Luis Sepúlveda",
+      "work": "Un viejo que leía novelas de amor"
+    },
+    "en": null
+  },
+  {
+    "id": "marcel-proust-1",
+    "it": {
+      "text": "In realtà, ogni lettore, quando legge, è il lettore di se stesso.",
+      "author": "Marcel Proust",
+      "work": "Le Temps retrouvé"
+    },
+    "en": null
+  },
+  {
+    "id": "marco-tullio-cicerone-1",
+    "it": {
+      "text": "Se presso alla biblioteca ci sarà un giardino, nulla ci mancherà.",
+      "author": "Marco Tullio Cicerone",
+      "work": "Epistulae ad familiares"
+    },
+    "en": null
+  },
+  {
+    "id": "margaret-atwood-1",
+    "it": {
+      "text": "Una parola dopo una parola dopo una parola è potere.",
+      "author": "Margaret Atwood",
+      "work": "Spelling"
+    },
+    "en": null
+  },
+  {
+    "id": "marguerite-yourcenar-1",
+    "it": {
+      "text": "Fondare biblioteche è un po’ come costruire ancora granai pubblici: ammassare riserve contro l’inverno dello spirito che da molti indizi, mio malgrado, vedo venire.",
+      "author": "Marguerite Yourcenar",
+      "work": "Mémoires d’Hadrien"
+    },
+    "en": null
+  },
+  {
+    "id": "marguerite-yourcenar-2",
+    "it": null,
+    "en": {
+      "text": "The true birthplace is that wherein for the first time one looks intelligently upon oneself; my first homelands have been books.",
+      "author": "Marguerite Yourcenar",
+      "work": "Mémoires d’Hadrien"
+    }
+  },
+  {
+    "id": "mario-vargas-llosa-1",
+    "it": {
+      "text": "La lettura trasformava il sogno in vita e la vita in sogno e poneva alla portata del piccolo uomo che ero l’universo della letteratura.",
+      "author": "Mario Vargas Llosa",
+      "work": "Elogio de la lectura y la ficción"
+    },
+    "en": {
+      "text": "Reading changed dreams into life and life into dreams and placed the universe of literature within reach of the boy I once was.",
+      "author": "Mario Vargas Llosa",
+      "work": "Elogio de la lectura y la ficción"
+    }
+  },
+  {
+    "id": "mario-vargas-llosa-2",
+    "it": {
+      "text": "Ho imparato a leggere a cinque anni, nella classe di fratel Justiniano, nel Colegio de la Salle, a Cochabamba, in Bolivia. È la cosa piú importante che mi sia successa nella vita.",
+      "author": "Mario Vargas Llosa",
+      "work": "Elogio de la lectura y la ficción"
+    },
+    "en": {
+      "text": "I learned to read at the age of five, in Brother Justiniano’s class at the De la Salle Academy in Cochabamba, Bolivia. It is the most important thing that has ever happened to me.",
+      "author": "Mario Vargas Llosa",
+      "work": "Elogio de la lectura y la ficción"
+    }
+  },
+  {
+    "id": "michael-ende-1",
+    "it": {
+      "text": "Una Storia può essere nuova eppure raccontare di tempi immemorabili. Il passato nasce con lei.",
+      "author": "Michael Ende",
+      "work": "Die unendliche Geschichte"
+    },
+    "en": null
+  },
+  {
+    "id": "montesquieu-1",
+    "it": {
+      "text": "Il grande torto dei giornalisti è di parlare solo dei libri nuovi, come se la verità fosse mai nuova. A me sembra che fino a quando non si siano letti tutti i libri antichi, non ci sia alcuna ragione di preferire i nuovi.",
+      "author": "Montesquieu",
+      "work": "Lettres persanes"
+    },
+    "en": null
+  },
+  {
+    "id": "neil-gaiman-1",
+    "it": {
+      "text": "Le storie sono ragnatele collegate filo per filo, e si segue ogni storia verso il centro perché il centro è la sua fine. Ogni persona è un filo della storia.",
+      "author": "Neil Gaiman",
+      "work": "Anansi Boys"
+    },
+    "en": null
+  },
+  {
+    "id": "oliver-goldsmith-1",
+    "it": {
+      "text": "Un libro può essere divertente con molti errori o molto noioso pur senza contenere una sola assurdità.",
+      "author": "Oliver Goldsmith",
+      "work": "The Vicar of Wakefield"
+    },
+    "en": {
+      "text": "A book may be amusing with numerous errors, or it may be very dull without a single absurdity.",
+      "author": "Oliver Goldsmith",
+      "work": "The Vicar of Wakefield"
+    }
+  },
+  {
+    "id": "oscar-wilde-1",
+    "it": {
+      "text": "Non esistono libri morali o immorali. I libri sono scritti bene o scritti male. Questo è tutto.",
+      "author": "Oscar Wilde",
+      "work": "The Picture of Dorian Gray"
+    },
+    "en": {
+      "text": "There is no such thing as a moral or an immoral book. Books are well written, or badly written. That is all.",
+      "author": "Oscar Wilde",
+      "work": "The Picture of Dorian Gray"
+    }
+  },
+  {
+    "id": "oscar-wilde-2",
+    "it": {
+      "text": "È assurdo immaginare una regola per cosa si dovrebbe e per cosa non si dovrebbe leggere. Più della metà della cultura moderna dipende da ciò che non si dovrebbe leggere.",
+      "author": "Oscar Wilde",
+      "work": "The Importance of Being Earnest"
+    },
+    "en": {
+      "text": "It is absurd to have a hard and fast rule about what one should read and what one shouldn’t. More than half of modern culture depends on what one shouldn’t read.",
+      "author": "Oscar Wilde",
+      "work": "The Importance of Being Earnest"
+    }
+  },
+  {
+    "id": "plinio-il-vecchio-1",
+    "it": {
+      "text": "Non esserci libro tanto cattivo, che non potesse in qualche parte giovare.",
+      "author": "Plinio il Vecchio",
+      "work": null
+    },
+    "en": null
+  },
+  {
+    "id": "primo-levi-1",
+    "it": {
+      "text": "Infatti, come c’è un’arte di raccontare, solidamente codificata attraverso mille prove ed errori, così c’è pure un’arte dell’ascoltare, altrettanto antica e nobile, a cui tuttavia, che io sappia, non è stata mai data norma.",
+      "author": "Primo Levi",
+      "work": "La chiave a stella"
+    },
+    "en": null
+  },
+  {
+    "id": "quinto-orazio-flacco-1",
+    "it": {
+      "text": "Ottiene la generale approvazione chi unisce l’utile al dolce, dilettando e istruendo al tempo stesso il lettore.",
+      "author": "Quinto Orazio Flacco",
+      "work": "Ars poetica"
+    },
+    "en": null
+  },
+  {
+    "id": "rainer-maria-rilke-1",
+    "it": {
+      "text": "Oh, ma come si sta bene tra uomini che leggono! Perché non sono sempre così?",
+      "author": "Rainer Maria Rilke",
+      "work": "Die Aufzeichnungen des Malte Laurids Brigge"
+    },
+    "en": null
+  },
+  {
+    "id": "ralph-waldo-emerson-1",
+    "it": {
+      "text": "Non leggete mai un libro che non sia vecchio di un anno.",
+      "author": "Ralph Waldo Emerson",
+      "work": "Society and Solitude"
+    },
+    "en": {
+      "text": "Never read any book that is not a year old.",
+      "author": "Ralph Waldo Emerson",
+      "work": "Society and Solitude"
+    }
+  },
+  {
+    "id": "ray-bradbury-1",
+    "it": {
+      "text": "Noi non siamo che copertine di libri, il cui solo significato è proteggerli dalla polvere.",
+      "author": "Ray Bradbury",
+      "work": "Fahrenheit 451"
+    },
+    "en": null
+  },
+  {
+    "id": "rene-descartes-1",
+    "it": {
+      "text": "La lettura di tutti i buoni libri è come una conversazione con i migliori uomini dei secoli passati, che ne sono stati gli autori, e anzi una conversazione premeditata, in cui essi ci fanno conoscere soltanto i loro migliori pensieri.",
+      "author": "Cartesio",
+      "work": "Discours de la méthode"
+    },
+    "en": {
+      "text": "I was aware that the reading of all good books is indeed like a conversation with the noblest men of past centuries who were the authors of them, nay a carefully studied conversation, in which they reveal to us none but the best of their thoughts.",
+      "author": "René Descartes",
+      "work": "Discours de la méthode"
+    }
+  },
+  {
+    "id": "robert-louis-stevenson-1",
+    "it": {
+      "text": "Potete leggere Kant da solo, se volete; ma uno scherzo va diviso con qualcuno.",
+      "author": "Robert Louis Stevenson",
+      "work": "Virginibus Puerisque"
+    },
+    "en": {
+      "text": "You could read Kant by yourself, if you wanted; but you must share a joke with some one else.",
+      "author": "Robert Louis Stevenson",
+      "work": "Virginibus Puerisque"
+    }
+  },
+  {
+    "id": "samuel-johnson-1",
+    "it": {
+      "text": "Ognuno dovrebbe leggere seguendo la propria inclinazione; poichè quel che si legge come un compito non è di gran giovamento.",
+      "author": "Samuel Johnson",
+      "work": null
+    },
+    "en": {
+      "text": "A man ought to read just as inclination leads him; for what he reads as a task will do him little good.",
+      "author": "Samuel Johnson",
+      "work": null
+    }
+  },
+  {
+    "id": "samuel-johnson-2",
+    "it": {
+      "text": "Uno scrittore occupa gran parte del suo tempo nel leggere, per poi scrivere: a volte si legge una mezza biblioteca per fare un unico libro.",
+      "author": "Samuel Johnson",
+      "work": null
+    },
+    "en": {
+      "text": "The greatest part of a writer’s time is spent in reading, in order to write: a man will turn over half a library to make one book.",
+      "author": "Samuel Johnson",
+      "work": null
+    }
+  },
+  {
+    "id": "simone-weil-1",
+    "it": {
+      "text": "Leggo, per quanto è possibile, soltanto ciò di cui ho fame, nel momento in cui ne ho fame, e allora non leggo: mi nutro.",
+      "author": "Simone Weil",
+      "work": "Attente de Dieu"
+    },
+    "en": null
+  },
+  {
+    "id": "stephane-mallarme-1",
+    "it": {
+      "text": "Il mondo è fatto per finire in un bel libro.",
+      "author": "Stéphane Mallarmé",
+      "work": null
+    },
+    "en": {
+      "text": "The world was made in order to result in a beautiful book.",
+      "author": "Stéphane Mallarmé",
+      "work": null
+    }
+  },
+  {
+    "id": "stephen-king-1",
+    "it": {
+      "text": "Ragazzi, il romanzesco è la verità dentro la bugia, e la verità di questo romanzo è semplice: la magia esiste.",
+      "author": "Stephen King",
+      "work": "It"
+    },
+    "en": {
+      "text": "Kids, the fiction is the truth inside the lie, and the truth of this fiction is simple enough: the magic exists.",
+      "author": "Stephen King",
+      "work": "It"
+    }
+  },
+  {
+    "id": "tennessee-williams-1",
+    "it": {
+      "text": "Le parole sono una rete per catturare la bellezza!",
+      "author": "Tennessee Williams",
+      "work": "The Field of Blue Children"
+    },
+    "en": null
+  },
+  {
+    "id": "umberto-saba-1",
+    "it": {
+      "text": "Amai trite parole che non uno\nosava. M’incantò la rima fiore\namore,\nla più antica difficile del mondo.",
+      "author": "Umberto Saba",
+      "work": "Amai"
+    },
+    "en": null
+  },
+  {
+    "id": "virginia-woolf-1",
+    "it": {
+      "text": "Ciascuno portava chiuso in sé il proprio passato, come pagine di un libro che conoscesse a memoria. Gli amici potevano soltanto leggerne il titolo.",
+      "author": "Virginia Woolf",
+      "work": "Jacob’s Room"
+    },
+    "en": {
+      "text": "Each had his past shut in him like the leaves of a book known to him by heart; and his friends could only read the title",
+      "author": "Virginia Woolf",
+      "work": "Jacob’s Room"
+    }
+  },
+  {
+    "id": "virginia-woolf-2",
+    "it": {
+      "text": "Troppo spesso le parole sono state usate, maneggiate, rivoltate, lasciate esposte alla polvere della strada. Le parole che cerchiamo pendono accanto all’albero: con l’aurora le troviamo, dolci sotto le fronde.",
+      "author": "Virginia Woolf",
+      "work": "Jacob’s Room"
+    },
+    "en": {
+      "text": "But words have been used too often; touched and turned, and left exposed to the dust of the street. The words we seek hang close to the tree. We come at dawn and find them sweet beneath the leaf.",
+      "author": "Virginia Woolf",
+      "work": "Jacob’s Room"
+    }
+  },
+  {
+    "id": "voltaire-1",
+    "it": {
+      "text": "I libri più utili sono quelli i cui lettori compiono essi stessi metà dell’opera; sviluppano i pensieri di cui si mostra loro il germe; correggono ciò che sembra loro difettoso, e fortificano con le loro riflessioni ciò che appare loro debole.",
+      "author": "Voltaire",
+      "work": "Dictionnaire philosophique"
+    },
+    "en": {
+      "text": "The most useful books are those of which readers themselves compose half; they extend the thoughts of which the germ is presented to them; they correct what seems defective to them, and they fortify by their reflections what seems to them weak.",
+      "author": "Voltaire",
+      "work": "Dictionnaire philosophique"
+    }
+  },
+  {
+    "id": "w-h-auden-1",
+    "it": {
+      "text": "Vi sono libri immeritatamente dimenticati; nessuno immeritatamente ricordato.",
+      "author": "W. H. Auden",
+      "work": "The Dyer’s Hand"
+    },
+    "en": {
+      "text": "Some books are undeservedly forgotten; none are undeservedly remembered.",
+      "author": "W. H. Auden",
+      "work": "The Dyer’s Hand"
+    }
+  },
+  {
+    "id": "w-somerset-maugham-1",
+    "it": {
+      "text": "Ciò che rende tale un classico non è il fatto che venga acclamato dai critici, analizzato dai professori, studiato nei corsi universitari, ma che i lettori, una generazione dopo l’altra, vi traggano piacere e giovamento spirituale.",
+      "author": "W. Somerset Maugham",
+      "work": null
+    },
+    "en": null
+  }
+]
