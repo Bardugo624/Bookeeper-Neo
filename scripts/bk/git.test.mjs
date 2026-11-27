@@ -36,6 +36,23 @@ test('branch, shortSha and isClean', () => {
   assert.equal(isClean(['b.txt'], w), true);
 });
 
+test('isClean allows a tracked file modified but not staged', () => {
+  const w = repo();
+  writeFileSync(join(w, 'a.txt'), 'changed');
+  assert.equal(isClean([], w), false);
+  assert.equal(isClean(['a.txt'], w), true);
+  writeFileSync(join(w, 'z.txt'), 'z');
+  assert.equal(isClean(['a.txt'], w), false);
+  assert.equal(isClean(['a.txt', 'z.txt'], w), true);
+});
+
+test('isClean handles staged renames and paths with spaces', () => {
+  const w = repo();
+  sh(w, 'mv', 'a.txt', 'a b.txt');
+  assert.equal(isClean(['a b.txt'], w), false);
+  assert.equal(isClean(['a b.txt', 'a.txt'], w), true);
+});
+
 test('isPushed is false until the branch is pushed, then true', () => {
   const w = repo();
   assert.equal(isPushed(w), false);
