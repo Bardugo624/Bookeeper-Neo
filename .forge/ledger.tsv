@@ -690,3 +690,5 @@
 2026-11-27T00:09:34Z	bookeeper-fase-8b	settings-layout	qa	opus	FAIL	finding	a descendant rule in settingsblock module css such as body form also styles section specific forms placed	a descendant rule in SettingsBlock.module.css such as `.body > form` also styles section-specific forms placed… [apps/desktop/src/modules/settings/SettingsBlock.module.css]	72	1
 2026-11-27T00:10:14Z	bookeeper-fase-8b	settings-layout	dwarf	sonnet	-	trap	a body where form max width in settingsblock module css caps section forms placed straight inside the block	a `.body > :where(form)` max-width in SettingsBlock.module.css caps section forms placed straight inside the block… [apps/desktop/src/modules/settings/SettingsBlock.module.css]	35	1
 2026-11-27T00:11:05Z	bookeeper-fase-8b	settings-layout	qa	opus	PASS	-	-	-	45
+2026-11-27T02:15:20Z	bookeeper-fase-8b1	fix-tour-slot	dwarf	sonnet	-	-	-	-	150
+2026-11-27T02:15:24Z	bookeeper-fase-8b1	fix-settings-fit	dwarf	sonnet	-	-	-	-	152
