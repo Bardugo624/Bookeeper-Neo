@@ -595,6 +595,7 @@ pub fn log_tail(state: AppStateRef<'_>) -> String {
 
 #[tauri::command]
 pub fn ready(app: AppHandle, state: AppStateRef<'_>) {
+    state.log.line("window: ready");
     crate::window::show(&app);
     if state.smoke {
         // The CI proves WebView2, the DLLs and the UI by getting here.

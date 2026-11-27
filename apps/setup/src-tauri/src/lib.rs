@@ -45,6 +45,8 @@ const SMOKE_DEADLINE: std::time::Duration = std::time::Duration::from_secs(30);
 pub fn run_window(smoke: bool, uninstall: bool, setup_exe: PathBuf) {
     let platform = sys::platform();
     let log = Log::open(platform.as_ref());
+    log.line(&format!("window: start (smoke: {smoke})"));
+    let log_path = log.path().to_path_buf();
     let state = Arc::new(AppState {
         sys: platform,
         ctx: Context {
@@ -57,11 +59,17 @@ pub fn run_window(smoke: bool, uninstall: bool, setup_exe: PathBuf) {
     });
 
     if smoke {
-        std::thread::spawn(|| {
+        let deadline_log = Log::at(log_path.clone());
+        std::thread::spawn(move || {
             std::thread::sleep(SMOKE_DEADLINE);
+            deadline_log.line(&format!(
+                "smoke: no ready after {} s",
+                SMOKE_DEADLINE.as_secs()
+            ));
             std::process::exit(2);
         });
     }
+    let page_log = Log::at(log_path.clone());
 
     let result = tauri::Builder::default()
         // First: a second launch must not get past this.
@@ -72,6 +80,9 @@ pub fn run_window(smoke: bool, uninstall: bool, setup_exe: PathBuf) {
             }
         }))
         .plugin(tauri_plugin_dialog::init())
+        .on_page_load(move |_, payload| {
+            page_log.line(&format!("window: page {:?}", payload.event()));
+        })
         .manage(state)
         .invoke_handler(tauri::generate_handler![
             commands::setup_info,
@@ -89,6 +100,7 @@ pub fn run_window(smoke: bool, uninstall: bool, setup_exe: PathBuf) {
         })
         .run(tauri::generate_context!());
     if let Err(e) = result {
+        Log::at(log_path).line(&format!("window: {e}"));
         eprintln!("bookeeper-setup: {e}");
         std::process::exit(2);
     }
