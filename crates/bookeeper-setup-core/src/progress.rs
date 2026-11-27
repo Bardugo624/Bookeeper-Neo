@@ -67,8 +67,12 @@ pub struct ProgressModel {
     shown_idx: usize,
     shown_entered: Instant,
     fraction: f64,
+    last_now: Instant,
     done: bool,
 }
+
+/// Fastest the bar may move when catching up with real progress (fraction per second).
+const CATCH_UP: f64 = 0.8;
 
 fn band(step: Step, lo: f64, hi: f64, share: f64) -> Band {
     Band { step, lo, hi, share }
@@ -111,6 +115,7 @@ impl ProgressModel {
             shown_idx: 0,
             shown_entered: start,
             fraction: 0.0,
+            last_now: start,
             done: false,
         }
     }
@@ -204,6 +209,16 @@ impl ProgressModel {
         let behind = self.shown_idx < self.real_idx;
         let cap = if behind { self.bands[self.shown_idx].hi } else { 1.0 };
         let mut f = self.target(now).min(cap);
+        // Unless the bar follows a real byte count, it glides instead of jumping.
+        let measured = self.install
+            && self.bands[self.real_idx].step == Step::Copy
+            && self.unpacked.is_some()
+            && !behind;
+        if !measured {
+            let dt = now.saturating_duration_since(self.last_now).as_secs_f64();
+            f = f.min(self.fraction + dt * CATCH_UP);
+        }
+        self.last_now = self.last_now.max(now);
         let ready = self.finished
             && !behind
             && now.saturating_duration_since(self.shown_entered) >= MIN_STEP
@@ -322,6 +337,37 @@ mod tests {
         }
         assert_eq!(order, [Step::Prepare, Step::Copy, Step::Icons, Step::Finish]);
         assert!(seen.iter().filter(|(_, s)| !s.done).all(|(_, s)| s.fraction < 1.0));
+    }
+
+    #[test]
+    fn progress_glides_instead_of_jumping() {
+        let t0 = Instant::now();
+        let mut m = ProgressModel::new_install(t0, Duration::from_secs(10));
+        let mut seen = vec![];
+        let mut t = 0;
+        for (at, s) in [
+            (300, Signal::Extracted),
+            (1000, Signal::MainComplete),
+            (1200, Signal::NsisExited),
+            (1500, Signal::Finished),
+        ] {
+            run(&mut m, t0, &mut t, at - 100, &mut seen);
+            t = at;
+            seen.push((at, m.observe(t0 + ms(at), s)));
+        }
+        run(&mut m, t0, &mut t, 3_200, &mut seen);
+        let mut worst = 0.0f32;
+        let mut prev = 0.0f32;
+        for (at, s) in seen.iter().filter(|(_, s)| !s.done) {
+            if *at > 600 {
+                worst = worst.max(s.fraction - prev);
+            }
+            prev = s.fraction;
+        }
+        assert!(worst < 0.12, "largest step {worst}");
+        // Never sits still for long once it started moving: compare 1 s windows.
+        let at = |ms: u64| seen.iter().find(|(t, _)| *t == ms).unwrap().1.fraction;
+        assert!(at(2_800) > at(1_800), "{} vs {}", at(2_800), at(1_800));
     }
 
     #[test]

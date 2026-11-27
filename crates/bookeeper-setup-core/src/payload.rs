@@ -161,7 +161,31 @@ fn certificate_start<R: Read + Seek>(r: &mut R, len: u64) -> Result<Option<u64>,
     }
     let table_end = off.saturating_add(size);
     if table_end <= len && len - table_end < 8 {
-        Ok(Some(off))
+        // Signing tools pad with up to 7 zero bytes before the table so it starts on
+        // an 8-byte boundary: the tail may end that many bytes before `off`.
+        let mut end = off;
+        let mut zeros = [0u8; 7];
+        let pad = off.min(7) as usize;
+        r.seek(SeekFrom::Start(off - pad as u64))?;
+        r.read_exact(&mut zeros[..pad])?;
+        let mut tail = [0u8; TAIL_LEN as usize];
+        let has_tail = |r: &mut R, at: u64, tail: &mut [u8]| -> Result<bool, PayloadError> {
+            if at < TAIL_LEN {
+                return Ok(false);
+            }
+            r.seek(SeekFrom::Start(at - TAIL_LEN))?;
+            r.read_exact(tail)?;
+            Ok(parse_tail(tail).is_some())
+        };
+        if !has_tail(r, off, &mut tail)? {
+            for n in 1..=pad {
+                if zeros[pad - n..].iter().all(|b| *b == 0) && has_tail(r, off - n as u64, &mut tail)? {
+                    end = off - n as u64;
+                    break;
+                }
+            }
+        }
+        Ok(Some(end))
     } else {
         Ok(None)
     }
@@ -281,6 +305,23 @@ mod tests {
         // Without the directory entry the certificate bytes hide the tail.
         f[dir..dir + 8].fill(0);
         assert!(locate(&mut Cursor::new(&f), f.len() as u64).unwrap().is_none());
+    }
+
+    #[test]
+    fn locate_finds_tail_when_signer_pads_before_certificate_table() {
+        let mut f = minimal_pe();
+        let setup_len = f.len();
+        f.extend_from_slice(b"installer");
+        f.extend(encode_tail(&sample(9), 9));
+        f.extend_from_slice(&[0, 0, 0]);
+        let cert_off = f.len();
+        let cert = vec![0xAAu8; 40];
+        f.extend_from_slice(&cert);
+        let dir = 0x80 + 24 + 112 + 4 * 8;
+        f[dir..dir + 4].copy_from_slice(&(cert_off as u32).to_le_bytes());
+        f[dir + 4..dir + 8].copy_from_slice(&(cert.len() as u32).to_le_bytes());
+        let found = locate(&mut Cursor::new(&f), f.len() as u64).unwrap().unwrap();
+        assert_eq!(found.payload_offset, setup_len as u64);
     }
 
     #[test]
