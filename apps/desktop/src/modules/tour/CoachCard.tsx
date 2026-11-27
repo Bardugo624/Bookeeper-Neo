@@ -68,11 +68,6 @@ export function CoachCard({ step, index, total, target, onLater, onSkip, note, c
   // No room beside the panel and nowhere in the dialog's flow to sit: against the anchor, as a last resort.
   if (place.side === 'inline' && !slot && lit) place = placeCard(lit, size, view);
   const inline = place.side === 'inline';
-  // In the dialog's flow the card can sit below the fold of the scrolling body: bring it into view.
-  const inSlot = inline && !!slot;
-  useEffect(() => {
-    if (inSlot) ref.current?.scrollIntoView?.({ block: 'nearest' });
-  }, [inSlot, index, closing]);
   const x = place.x - (origin?.left ?? 0);
   const y = place.y - (origin?.top ?? 0);
   const lead = closing ? null : note;

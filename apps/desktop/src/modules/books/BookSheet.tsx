@@ -112,7 +112,7 @@ export function BookSheet({ id, editor, storedSrc, storedStatus, editing, coverR
           );
         })}
       </div>
-      {/* Where the tour card sits when there is no room beside the dialog: in the flow, over nothing. */}
+      {/* Where the tour card sits when there is no room beside the dialog: last in the form, sticky at the bottom of the scrolling body, so the title stays in view. */}
       <div data-tour-slot className={styles.tourSlot} />
     </form>
   );
