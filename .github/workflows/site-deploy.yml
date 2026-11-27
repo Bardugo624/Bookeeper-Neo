@@ -1,0 +1,86 @@
+name: Site deploy
+
+# Builds the homepage (apps/site) and publishes it on the VPS as www.neokeeper.dev,
+# through apps/site/deploy/install.sh. Needs the repository secret VPS_SSH_KEY.
+# Separate from vps-deploy.yml: it never touches the server container or bookeeper.caddy.
+
+on:
+  push:
+    branches: [claude/homepage-neokeeper]
+    paths:
+      - "apps/site/**"
+      - ".github/workflows/site-deploy.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vps-ops
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      VPS_HOST: 82.165.185.245
+      VPS_USER: root
+      VPS_PORT: "22"
+      VPS_HOST_KEY: "SHA256:aT+GlEdo8ocxbB3WUGXnDAo7j7dotW8LepYZELK2Uj8"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test and build
+        run: |
+          node --test apps/site/test/*.test.mjs
+          node apps/site/build.mjs
+          tar -czf neokeeper-site.tgz -C apps/site/dist .
+      - name: SSH setup
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          if [ -z "$VPS_SSH_KEY" ]; then
+            echo "::error::Repository secret VPS_SSH_KEY is not set"
+            exit 1
+          fi
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          if printf '%s' "$VPS_SSH_KEY" | grep -q 'BEGIN'; then
+            printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_vps
+          else
+            printf '%s' "$VPS_SSH_KEY" | tr -d ' \r\n' | base64 -d > ~/.ssh/id_vps
+          fi
+          chmod 600 ~/.ssh/id_vps
+          ssh-keyscan -p "$VPS_PORT" -t ed25519 "$VPS_HOST" > ~/.ssh/known_hosts 2>/dev/null
+          if ! ssh-keygen -lf ~/.ssh/known_hosts | grep -qF "$VPS_HOST_KEY"; then
+            echo "::error::The host key of the VPS is not the expected one"
+            exit 1
+          fi
+          cat > ~/.ssh/config <<CFG
+          Host vps
+            HostName $VPS_HOST
+            User $VPS_USER
+            Port $VPS_PORT
+            IdentityFile ~/.ssh/id_vps
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            ConnectTimeout 15
+          CFG
+          chmod 600 ~/.ssh/config
+          ssh vps true
+      - name: Publish
+        run: |
+          scp neokeeper-site.tgz vps:/tmp/neokeeper-site.tgz
+          scp apps/site/deploy/neokeeper-site.caddy vps:/tmp/neokeeper-site.caddy
+          ssh vps 'bash -s' < apps/site/deploy/install.sh
+      - name: Check from outside
+        continue-on-error: true
+        run: |
+          curl -sS -o /dev/null -w 'www: %{http_code}\n' https://www.neokeeper.dev/ || echo "::warning::www.neokeeper.dev is not reachable yet (DNS record or certificate missing)"
+          curl -sS -o /dev/null -w 'apex: %{http_code} -> %{redirect_url}\n' https://neokeeper.dev/ || echo "::warning::neokeeper.dev is not reachable yet"
+      - name: Remove the key
+        if: always()
+        run: rm -f ~/.ssh/id_vps

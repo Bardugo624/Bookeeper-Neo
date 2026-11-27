@@ -64,35 +64,24 @@ Due condizioni per R2:
 
 Se nessuna fonte risponde, il pulsante porta alla pagina delle release.
 
-## Pubblicazione (proposta, non applicata)
+## Pubblicazione
 
-Il proprietario ha scelto la VPS con Caddy. Niente di quanto segue è stato fatto: serve il suo via esplicito. I file in `ops/vps/` non sono stati toccati.
+Il sito sta sulla VPS, servito da Caddy come `www.neokeeper.dev`. Il dominio senza `www` rimanda lì.
 
-1. Copiare `apps/site/dist/` sulla VPS, per esempio in `/srv/neokeeper-site/`.
-2. Aggiungere a Caddy un sito come questo:
+- **Workflow:** `.github/workflows/site-deploy.yml`. Parte da solo a ogni push su `claude/homepage-neokeeper` che tocca `apps/site/**`, oppure a mano (`workflow_dispatch`). È separato da `vps-deploy.yml`: non tocca il container del server né `bookeeper.caddy`. Usa la stessa coda (`vps-ops`), quindi due interventi sulla VPS non si sovrappongono.
+- **Cosa fa sulla VPS** (`deploy/install.sh`):
+  - mette i file in `/srv/neokeeper-site`; la versione precedente resta in `/srv/neokeeper-site.old`;
+  - installa `deploy/neokeeper-site.caddy` come `/etc/caddy/neokeeper-site.caddy`;
+  - aggiunge `import neokeeper-site.caddy` al Caddyfile;
+  - valida la configurazione e ricarica Caddy. Se la validazione fallisce, ripristina Caddyfile, file del sito e cartella.
+- **Il sito Caddy:**
+  - serve la pagina;
+  - serve in sola lettura `/updates/stable/latest.json`, preso da `/opt/bookeeper/updates`, per le novità;
+  - rimanda `neokeeper.dev` a `www`.
 
-```caddyfile
-www.neokeeper.dev {
-	root * /srv/neokeeper-site
-	encode zstd gzip
-	file_server
-	header /fonts/* Cache-Control "public, max-age=31536000, immutable"
-	header /shots/* Cache-Control "public, max-age=86400"
-	header /*.html Cache-Control "no-cache"
+### DNS (su Cloudflare, a cura del proprietario)
 
-	# Only the stable updater manifest, read-only, on the site's own origin: the page reads the notes from it.
-	handle /updates/stable/latest.json {
-		root * /opt/bookeeper
-		header Cache-Control "no-cache"
-		file_server
-	}
-}
-```
+- `www` → record A `82.165.185.245`, solo DNS (nuvola grigia). Caddy ottiene il certificato da solo.
+- `neokeeper.dev` → perché funzioni il rimando, anche il dominio senza `www` DEVE puntare a `82.165.185.245`. Con il proxy di Cloudflare attivo, la modalità SSL DEVE essere «Full».
 
-3. Validare e ricaricare Caddy, con il ripristino se la validazione fallisce, come fa già `deploy.sh`.
-
-Da decidere con il proprietario prima di pubblicare:
-
-- se `neokeeper.dev` senza `www` deve rimandare qui;
-- se la pubblicazione va in un workflow manuale a parte, senza toccare i `vps-*.yml` esistenti;
-- il record DNS di `www`.
+Finché il DNS manca, Caddy riprova da solo a ottenere il certificato e gli altri siti non ne risentono.
