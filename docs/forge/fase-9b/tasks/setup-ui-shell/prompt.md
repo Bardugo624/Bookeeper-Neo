@@ -1,18 +1,13 @@
-Leggi prima `docs/forge/fase-9b/CONTRATTO.md`, il design `docs/superpowers/specs/2026-11-27-setup-windows-design.md` («Interfaccia», «Citazioni», «Accessibilità»), il brief `apps/setup/.impeccable/surfaces/src-main-tsx.md` e le bozze `docs/superpowers/specs/2026-11-27-setup-windows/01-benvenuto.html`, `02-personalizza.html`, `11-tema-scuro.html`.
+Leggi prima `docs/forge/fase-9b/CONTRATTO.md`, il design `docs/superpowers/specs/2026-11-27-setup-windows-design.md` («Interfaccia», «Citazioni», «Accessibilità»), il brief `apps/setup/.impeccable/surfaces/src-main-tsx.md` e le bozze `docs/superpowers/specs/2026-11-27-setup-windows/01-benvenuto.html`, `02-personalizza.html`, `11-tema-scuro.html`. La task `setup-ui-base` è già unita: usa le sue chiavi `setup.*`, le icone nuove, `FillBar` con `valueText` e `apps/setup/src/quotes.json`.
 
-# Il Setup: app, ponte, guscio, frontespizio, citazioni e testi
+# Il Setup: app, ponte, guscio e frontespizio
 
 ## File
 - Crea `apps/setup/` (non `src-tauri/`):
   - `package.json`, `index.html`, `vite.config.ts`, `tsconfig.json`;
   - `src/main.tsx`, `src/test-setup.ts`;
   - `src/app/`, `src/bridge/`, `src/shell/`;
-  - `src/quotes.json`;
   - i segnaposto `src/install/index.tsx` e `src/uninstall/index.tsx`, con le firme del contratto.
-- Crea `packages/i18n/src/locales/it/setup.json` e `en/setup.json`: tutte le chiavi del contratto.
-- Modifica `packages/ui/src/base/Icon.tsx` e il suo test (icone `folder` = `FolderOpen`, `power` = `Power`, `chevron-up` = `ChevronUp`).
-- Modifica `packages/ui/src/book/FillBar.tsx` e il suo test: proprietà `valueText?: string`, resa come `aria-valuetext`.
-- Crea `scripts/setup/quotes.mjs` e `scripts/setup/quotes.test.mjs`.
 - Modifica `package-lock.json` (`npm install` per il nuovo workspace).
 
 ## Interfacce prodotte
@@ -45,9 +40,7 @@ Leggi prima `docs/forge/fase-9b/CONTRATTO.md`, il design `docs/superpowers/specs
   - le virgolette basse interne diventano “ ”;
   - dimensioni secondo il design, contando i caratteri nella lingua mostrata;
   - la citazione nuova entra con `bk-rise`; nessuna regione viva.
-- **Citazioni:**
-  - `scripts/setup/quotes.mjs` legge `docs/citazioni/citazioni.json` e `docs/citazioni/scelte.json` (solo `tieni`);
-  - scrive `apps/setup/src/quotes.json`: `[{ id, author, work, it, en }]`, con l'opera fino alla prima ` (` e i testi oltre i 200 caratteri esclusi;
+- **Citazioni** (da `apps/setup/src/quotes.json`):
   - `useQuotes().pick('welcome')` sceglie solo fra le citazioni fino a 140 caratteri nella lingua mostrata;
   - `pick('progress')` non ripete quella in vista; `pick('farewell')` vale per la disinstallazione;
   - una nuova al massimo ogni 6 s.
@@ -68,12 +61,8 @@ Leggi prima `docs/forge/fase-9b/CONTRATTO.md`, il design `docs/superpowers/specs
 - **`formatBytes`:** `24 MB`, `212,0 GB` in italiano, `212.0 GB` in inglese.
 - **`mockBridge`:** ogni scenario restituisce un `SetupInfo` valido.
 - **Lingua e tema:** italiano e inglese, classe `dark`.
-- **`packages/ui`:** le icone nuove, `FillBar` con `valueText`.
-- **`packages/i18n`:** il test esistente sulle chiavi uguali fra `it` ed `en` passa.
-- **`node --test scripts/setup/quotes.test.mjs`:** solo `tieni`, opera tagliata, esclusione oltre i 200 caratteri.
 
 ## Acceptance criteria
-- `npm run typecheck -w @bookeeper/setup`, `npm test -w @bookeeper/setup`, `npm test -w @bookeeper/ui` e `npm test -w @bookeeper/i18n` passano.
-- `node --test scripts/setup/quotes.test.mjs` passa.
+- `npm run typecheck -w @bookeeper/setup` e `npm test -w @bookeeper/setup` passano.
 - Con `npm run dev -w @bookeeper/setup` e `#scenario=welcome`, una cattura a 800×520 combacia con `01-benvenuto.png` per composizione, misure e testi. Il pannello qui è il segnaposto.
 - `impeccable detect --json` pulito sui file cambiati.

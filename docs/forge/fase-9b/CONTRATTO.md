@@ -179,9 +179,10 @@ type OpResult = { ok: true } | { ok: false; error: 'app_running' | 'payload' | '
 - Un secondo avvio con `--uninstall` emette `setup://uninstall-requested`.
 - Il **Setup leggero** (senza coda) è in modalità `uninstall` se è partito con `--uninstall`, oppure se sta nella cartella installata. Altrimenti `blocked` vale `incomplete`.
 
-### Interfaccia (task `setup-ui-shell`, `setup-ui-install`, `setup-ui-uninstall`)
+### Interfaccia (task `setup-ui-base`, `setup-ui-shell`, `setup-ui-install`, `setup-ui-uninstall`)
 
-- `setup-ui-shell` crea l'app, il ponte, la barra del titolo, il frontespizio, le citazioni, tutti i testi e due segnaposto:
+- `setup-ui-base` scrive tutti i testi, le icone nuove del kit, `valueText` di `FillBar` e `apps/setup/src/quotes.json`.
+- `setup-ui-shell` crea l'app, il ponte, la barra del titolo, il frontespizio e due segnaposto:
   - `src/install/index.tsx`: `export function InstallFlow(props: { info: SetupInfo; onUninstall(): void })`;
   - `src/uninstall/index.tsx`: `export function UninstallFlow(props: { info: SetupInfo })`.
 
@@ -190,11 +191,11 @@ type OpResult = { ok: true } | { ok: false; error: 'app_running' | 'payload' | '
   - `<SetupLayout quote={QuoteRef} compact={boolean} panelHeight={'short' | 'tall'}>{pannello}</SetupLayout>`: frontespizio sopra, pannello sotto, movimento come nel design;
   - `useQuotes(): { pick(kind: 'welcome' | 'progress' | 'farewell'): QuoteRef }`;
   - `useProgress(): ProgressEvent | null`, l'ultimo evento.
-- **Testi:** tutti in `packages/i18n/src/locales/{it,en}/setup.json`, scritti da `setup-ui-shell`. Le altre task usano le chiavi, senza aggiungerne. Le chiavi e i testi italiani sono nell'elenco qui sotto.
+- **Testi:** tutti in `packages/i18n/src/locales/{it,en}/setup.json`, scritti da `setup-ui-base`. Le altre task usano le chiavi, senza aggiungerne. Le chiavi e i testi italiani sono nell'elenco qui sotto.
 
 ### Chiavi dei testi (`setup.*`)
 
-Italiano. L'inglese lo scrive `setup-ui-shell`, con lo stesso tono.
+Italiano. L'inglese lo scrive `setup-ui-base`, con lo stesso tono.
 
 | Chiave | Testo |
 |---|---|

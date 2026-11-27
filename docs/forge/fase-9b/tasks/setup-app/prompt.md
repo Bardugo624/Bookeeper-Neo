@@ -62,6 +62,6 @@ Leggi prima `docs/forge/fase-9b/CONTRATTO.md` e il design `docs/superpowers/spec
 - `invocation_routes_quiet_and_passive_to_quiet_run`: la funzione che sceglie la strada, senza avviare nulla.
 
 ## Acceptance criteria
-- `cargo test -p bookeeper-setup` e `cargo clippy --workspace --all-targets -- -D warnings` passano su Linux.
+- `cargo test -p bookeeper-setup` e `cargo clippy -p bookeeper-setup --all-targets -- -D warnings` passano su Linux.
 - `cargo build -p bookeeper-setup` passa su Linux.
 - Cambiano solo i file dichiarati.
