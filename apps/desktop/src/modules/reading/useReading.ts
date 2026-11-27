@@ -55,7 +55,7 @@ export function useSetReading(bookId: string, pageCount?: number | null) {
       lastWrite.set(orderKey, order);
       await queryClient.cancelQueries({ queryKey: key });
       const previous = queryClient.getQueryData<ReadingOut | null>(key);
-      queryClient.setQueryData<ReadingOut | null>(key, optimisticReading(bookId, body, pageCount));
+      queryClient.setQueryData<ReadingOut | null>(key, optimisticReading(bookId, body, pageCount, previous));
       return { previous, order };
     },
     // The answer of a write that a newer one has passed must not undo what the screen shows already.

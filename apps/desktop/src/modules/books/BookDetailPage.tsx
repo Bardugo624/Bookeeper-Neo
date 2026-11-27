@@ -6,6 +6,7 @@ import { Book3D } from '@bookeeper/ui/book';
 import { useT } from '../../app';
 import { usePermission } from '../../kit';
 import { tourSignal } from '../tour';
+import { BookFiles } from './BookFiles';
 import { DetailAside } from './DetailAside';
 import { DetailToolbar } from './DetailToolbar';
 import { MarkReadButton } from '../reading';
@@ -117,6 +118,7 @@ export function BookDetailPage() {
               ))}
             </dl>
           ) : null}
+          <BookFiles book={book} />
         </div>
         <DetailAside book={book} />
       </article>

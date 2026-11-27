@@ -33,10 +33,17 @@
 
 .loan,
 .ring,
-.done {
+.done,
+.formats {
   grid-row: 1;
   grid-column: 1;
   margin: 8px;
+}
+
+/* Bottom left of the cover, clear of the loan tag and of the ring. */
+.formats {
+  align-self: end;
+  justify-self: start;
 }
 
 /* Same motion as `.lift:hover` in the kit, on the same box. */
