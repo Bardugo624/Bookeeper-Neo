@@ -1,0 +1,7 @@
+# id	deps	difficulty	files	dwarf	qa	title
+bk-version	-	low	scripts/semver.mjs,scripts/semver.test.mjs,scripts/bk/version.mjs,scripts/bk/version.test.mjs	sonnet	opus	Versioni: calcolo e cambio in tutti i posti
+app-base	-	low	apps/desktop/src-tauri/src/updates.rs,apps/desktop/src-tauri/tests/updates.rs,apps/desktop/src/modules/settings/settings.test.tsx	sonnet	opus	L app legge gli aggiornamenti da R2
+r2-scripts	bk-version	medium	scripts/updates-r2.mjs,scripts/updates-r2.test.mjs,scripts/r2	sonnet	opus	Pubblicare su R2: lo script updates-r2.mjs
+bk-core	bk-version	medium	scripts/bk.mjs,scripts/bk,docs/bk.md,package.json,.gitignore	sonnet	opus	Lo script bk: base, menu e consultazione
+r2-workflows	r2-scripts	high	.github/workflows/release.yml,.github/workflows/vps-deploy.yml,.github/workflows/vps-ops.yml,.github/workflows/updates.yml,.github/actions/vps-ssh,ops/vps,scripts/workflows.test.mjs	sonnet	opus	Workflow: R2, ritiro, copia e deploy solo a mano
+bk-publish	bk-core,r2-workflows,r2-scripts	medium	scripts/bk/commands,scripts/bk.mjs,docs/bk.md	sonnet	opus	Lo script bk: build, release, aggiornamenti e deploy

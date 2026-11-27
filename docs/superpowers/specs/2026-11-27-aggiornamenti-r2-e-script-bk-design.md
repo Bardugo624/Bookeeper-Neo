@@ -1,6 +1,6 @@
 # Aggiornamenti su R2 e script `bk` — design
 
-Data: 2026-11-27. Stato: da approvare. Il documento è passato da un controllo indipendente; le risposte sono qui dentro.
+Data: 2026-11-27. Stato: approvato dal proprietario. Il documento è passato da un controllo indipendente, e le risposte sono qui dentro. Il piano di lavoro è in `docs/forge/fase-9a/`.
 
 ## Perché
 
@@ -88,7 +88,7 @@ desktop/…                        app 0.x: non si tocca
 
 ### Pubblicazione dalla CI
 
-- Il job `publish-updates` di `release.yml` pubblica su R2 con le stesse regole di oggi. Finché il rimando non è acceso, pubblica anche sulla VPS, come oggi, così le app 2.0.x e 2.1.x continuano a ricevere ciò che esce. Le regole:
+- Il job `publish-updates` di `release.yml` pubblica su R2 con le stesse regole di oggi. Finché `UPDATES_REDIRECT` non è `on`, pubblica anche sulla VPS, come oggi, così le app 2.0.x e 2.1.x continuano a ricevere ciò che esce. Le regole:
   - i file vanno su prima del manifest;
   - il manifest non torna mai indietro di versione;
   - una release stabile aggiorna anche `beta`;
@@ -115,14 +115,15 @@ Il rimando sposta tutti e due i canali in un colpo. Se R2 non ha un canale, le a
 
 ### La VPS
 
-- In `ops/vps/deploy/bookeeper.caddy` il blocco `/updates/*` diventa un rimando temporaneo (302) a `https://updates.neokeeper.dev/v2{resto del percorso}`, con la query invariata.
+- **Due siti di Caddy.** `ops/vps/deploy/bookeeper.caddy` resta quello di oggi. Un secondo file, `ops/vps/deploy/bookeeper-r2.caddy`, contiene lo stesso sito, ma il blocco `/updates/*` è un rimando temporaneo (302) a `https://updates.neokeeper.dev/v2{resto del percorso}`, con la query invariata.
+- **La variabile `UPDATES_REDIRECT`** di GitHub decide quale dei due installa ogni deploy: `on` per il rimando, altrimenti il sito di oggi. Così un deploy normale, prima che R2 sia pronto, non accende il rimando per sbaglio. Per tornare indietro basta rimettere la variabile a `off` e rifare il deploy di Caddy.
 - `vps-deploy.yml` parte solo a mano (`workflow_dispatch`) e prende un parametro `target`:
   - `server`: immagine e container, come oggi, compreso Caddy;
   - `caddy`: solo il file di Caddy, validato e ricaricato, con ripristino se la validazione fallisce, come fa `deploy.sh`.
 
   Il push che porta questa modifica non deve far partire un deploy. Per gli eventi di push GitHub legge il workflow dal commit spinto, quindi il nuovo file, senza `push`, non parte. Il costruttore lo verifica nella documentazione di GitHub prima di spingere. Se non è così, la modifica va spinta insieme alla release, quando il codice sul ramo è quello rilasciato.
 - **Controllo di prontezza.** Prima di installare un file di Caddy che contiene il rimando, con `caddy` come con `server`, il workflow controlla che R2 abbia `stable/latest.json` e `beta/latest.json` raggiungibili su `https://updates.neokeeper.dev/v2/`. Ciascuno deve avere una versione non più vecchia di quella che la VPS serve in quel momento, e i file a cui punta devono rispondere. Se il controllo fallisce, il deploy si ferma prima di toccare la VPS.
-- Il rimando si accende con `bk deploy caddy`, dopo la copia iniziale e il controllo. Il proprietario ha chiesto questo cambio sulla VPS.
+- Il rimando si accende con `bk updates switch`, dopo la copia iniziale e il controllo: imposta `UPDATES_REDIRECT=on` e fa il deploy di Caddy. Il proprietario ha chiesto questo cambio sulla VPS.
 - **`vps-ops.yml` parte solo a mano.** `run.sh` torna a uno script di sola lettura (stato dei container e della memoria) e non scrive più la configurazione di Caddy. Il commit che porta queste due modifiche non fa partire nulla, perché il nuovo workflow non ha più `push`; vale la stessa verifica di `vps-deploy.yml`.
 - Cancellare `/opt/bookeeper/updates` sulla VPS e il codice di pubblicazione via `scp` è un passo successivo, da fare solo con il via del proprietario.
 
@@ -135,7 +136,7 @@ Il rimando sposta tutti e due i canali in un colpo. Se R2 non ha un canale, le a
   - con GitHub parla solo attraverso `gh`, che deve essere installato e collegato (`gh auth login`);
   - lo stato pubblico lo legge dagli URL pubblici.
 - **Lingua:** messaggi in italiano.
-- **Rami:** `release` e `deploy` funzionano solo su `main` allineato con GitHub; altrove si fermano e spiegano perché. `build` e `ci` funzionano su qualunque ramo già spinto. `ci.yml` riceve anche `workflow_dispatch`, così `bk ci run` può avviare i controlli su un ramo che non ha una PR.
+- **Rami:** `release` e `deploy` funzionano solo su `main` allineato con GitHub; altrove si fermano e spiegano perché. `build` e `ci` funzionano su qualunque ramo già spinto. `ci.yml` si può già avviare a mano, così `bk ci run` può lanciare i controlli su un ramo che non ha una PR.
 - **Uso:** senza argomenti apre un menu numerato, che chiede ciò che serve. Con un argomento esegue il comando direttamente, con le opzioni sulla riga.
 
 | Comando | Cosa fa |
@@ -179,7 +180,7 @@ Il rimando sposta tutti e due i canali in un colpo. Se R2 non ha un canale, le a
 2. **Su `main`:** il lavoro arriva su `main` con una PR, perché i workflow manuali partono solo da lì.
 3. **Il proprietario** collega `updates.neokeeper.dev` al bucket, poi crea i secret e le variabili.
 4. **`seed`:** copia della VPS su R2, poi verifica dei due manifest su `https://updates.neokeeper.dev/v2/`.
-5. **`bk deploy caddy`**, poi verifica che `https://app.neokeeper.dev/updates/stable/latest.json` risponda 302 verso R2 e che il manifest arrivi.
+5. **`bk updates switch`**, poi verifica che `https://app.neokeeper.dev/updates/stable/latest.json` risponda 302 verso R2 e che il manifest arrivi.
 6. **Prima release dopo il cambio:** esce su R2; le app vecchie la trovano attraverso il rimando.
 7. **Più avanti, con il via del proprietario:** pulizia della VPS e del codice `scp`.
 
@@ -187,8 +188,10 @@ Il rimando sposta tutti e due i canali in un colpo. Se R2 non ha un canale, le a
 
 - La copia iniziale dalla VPS a R2 prima del rimando, e il controllo di prontezza su tutti i deploy che installano Caddy.
 - La pubblicazione doppia, VPS e R2, finché il rimando non è acceso.
+- Due file di Caddy e la variabile `UPDATES_REDIRECT` per scegliere quale installare, invece di modificare l'unico file: un deploy normale non può accendere il rimando prima del tempo, e tornare indietro è un comando.
+- `ci.yml` si avvia già a mano ed esegue già `npm run test:scripts`: non serve cambiarlo.
 - La regola delle versioni presa da `semver.inc` di npm, e il controllo prima di creare il tag.
-- `workflow_dispatch` su `ci.yml`, per avviare i controlli su un ramo senza PR.
+- `bk ci run`, che avvia `ci.yml` a mano per i controlli su un ramo senza PR.
 - `vps-ops.yml` solo manuale e `run.sh` di sola lettura, per non cancellare il rimando per sbaglio.
 
 ## Lasciato al costruttore
