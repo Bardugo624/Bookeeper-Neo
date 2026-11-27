@@ -1,5 +1,5 @@
 import { Button, Icon } from '@bookeeper/ui/base';
-import type { DirCheck } from '../bridge';
+import type { FolderCheck } from '../bridge';
 import { useT } from '../shell';
 import { FolderField } from './FolderField';
 import { PanelTitle } from './PanelTitle';
@@ -11,7 +11,7 @@ export interface CustomizeProps {
   version: string;
   installedBytes: number;
   dir: string;
-  check: DirCheck | null;
+  check: FolderCheck | null;
   /** The folder check has not answered yet. */
   checking: boolean;
   desktopIcon: boolean;

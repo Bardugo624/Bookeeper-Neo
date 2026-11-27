@@ -10,7 +10,6 @@
 
 .quote {
     margin: 0;
-    animation: bk-rise var(--bk-dur-slow) var(--bk-ease);
 }
 
 .text {
@@ -46,8 +45,8 @@
     font-size: 14px;
 }
 
-@media (prefers-reduced-motion: reduce) {
+@media (prefers-reduced-motion: no-preference) {
     .quote {
-        animation: none;
+        animation: bk-rise var(--bk-dur-slow) var(--bk-ease);
     }
 }

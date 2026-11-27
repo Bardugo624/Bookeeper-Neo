@@ -52,6 +52,7 @@
     "title": "All'accesso",
     "toggle": "Apri Bookeeper all'accesso al computer",
     "note": "Si apre ridotto a icona. Se condividi la libreria, i telefoni la trovano finché il computer è acceso.",
-    "failed": "Non sono riuscito a cambiare l'apertura all'accesso."
+    "failed": "Non sono riuscito a cambiare l'apertura all'accesso.",
+    "readFailed": "Non riesco a leggere l'apertura all'accesso."
   }
 }

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -77,4 +77,34 @@ test('CLI exits 2 on missing arguments, bad version or missing files', () => {
   const ok = run([...full, '--version', '2.2.0']);
   assert.equal(ok.status, 0);
   assert.equal(ok.stdout.trim(), sha(readFileSync(paths.out)));
+});
+
+const cli = (paths, out) =>
+  spawnSync(process.execPath, [script, '--setup', paths.setup, '--payload', paths.payload, '--main', paths.main, '--version', '2.2.0', '--out', out], {
+    encoding: 'utf8',
+  });
+
+test('CLI creates the missing folders of --out', () => {
+  const { files, paths } = fixtures();
+  const out = join(dirname(paths.out), 'dist', 'windows', 'Bookeeper-Setup-2.2.0.exe');
+  const r = cli(paths, out);
+  assert.equal(r.status, 0, r.stderr);
+  const bytes = readFileSync(out);
+  assert.equal(r.stdout.trim(), sha(bytes));
+  assert.equal(readTail(bytes).payloadLen, files.payload.length);
+});
+
+test('CLI exits 2 with one clean line when --out cannot be written', () => {
+  const { paths } = fixtures();
+  // An existing folder is not a file that can be opened for writing.
+  const r = cli(paths, dirname(paths.out));
+  assert.equal(r.status, 2);
+  assert.match(r.stderr, /^assemble: \S/);
+  assert.equal(r.stderr.trim().split('\n').length, 1, r.stderr);
+  assert.doesNotMatch(r.stderr, /\n\s+at |node:internal|triggerUncaughtException/);
+});
+
+test('assemble rejects, once, when --out cannot be written', async () => {
+  const { paths } = fixtures();
+  await assert.rejects(assemble({ ...paths, out: dirname(paths.out), version: '2.2.0' }));
 });

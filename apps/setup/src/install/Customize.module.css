@@ -4,7 +4,6 @@
     flex-direction: column;
     gap: 16px;
     padding: 20px 40px 24px 72px;
-    animation: bk-rise var(--bk-dur) var(--bk-ease);
 }
 
 .head {
@@ -176,8 +175,8 @@
     height: 38px;
 }
 
-@media (prefers-reduced-motion: reduce) {
+@media (prefers-reduced-motion: no-preference) {
     .panel {
-        animation: none;
+        animation: bk-rise var(--bk-dur) var(--bk-ease);
     }
 }

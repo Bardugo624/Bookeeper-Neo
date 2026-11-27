@@ -17,6 +17,7 @@ export {
   useUninstall,
   useUninstallRequested,
   useWindowControls,
+  type FolderCheck,
   type Loaded,
   type Operation,
 } from './hooks';

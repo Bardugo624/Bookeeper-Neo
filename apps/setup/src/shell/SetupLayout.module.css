@@ -25,15 +25,16 @@
     height: 370px;
     background: var(--bk-surface);
     border-top: 1px solid var(--bk-border);
-    transition: transform var(--bk-dur-slow) var(--bk-ease);
+    /* Soft shadow over the frontispiece; invisible on the dark chrome, so it needs no dark rule. */
+    box-shadow: 0 -8px 24px color-mix(in srgb, var(--bk-scrim) 4%, transparent);
 }
 
 .panel[data-height='short'] {
     transform: translateY(190px);
 }
 
-@media (prefers-reduced-motion: reduce) {
+@media (prefers-reduced-motion: no-preference) {
     .panel {
-        transition: none;
+        transition: transform var(--bk-dur-slow) var(--bk-ease);
     }
 }

@@ -4,46 +4,58 @@ import { usePlatform } from '../../../../platform';
 import { SettingsBlock } from '../../SettingsBlock';
 import styles from './SharingSection.module.css';
 
-/** «All'accesso»: whether the app opens when the user signs in. Absent where the platform cannot do it. */
-export function AutostartBlock() {
-  const t = useT();
+/** The login-opening choice: read on mount, then changed by `change`. A failed read leaves the switch off but usable. */
+function useAutostart() {
   const autostart = usePlatform().autostart;
   const [on, setOn] = useState(false);
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const [problem, setProblem] = useState<'read' | 'set' | null>(null);
 
   useEffect(() => {
     let live = true;
-    autostart
-      ?.get()
-      .then((v) => {
+    autostart?.get().then(
+      (v) => {
         if (!live) return;
         setOn(v);
         setReady(true);
-      })
-      .catch(() => live && setReady(true));
+      },
+      () => {
+        if (!live) return;
+        setProblem('read');
+        setReady(true);
+      },
+    );
     return () => {
       live = false;
     };
   }, [autostart]);
 
-  if (!autostart) return null;
-
   const change = async (next: boolean) => {
+    if (!autostart) return;
     const before = on;
     setOn(next);
     setBusy(true);
-    setFailed(false);
+    setProblem(null);
     try {
       await autostart.set(next);
     } catch {
       setOn(before);
-      setFailed(true);
+      setProblem('set');
     } finally {
       setBusy(false);
     }
   };
+
+  return { available: !!autostart, on, ready, busy, problem, change };
+}
+
+/** «All'accesso»: whether the app opens when the user signs in. Absent where the platform cannot do it. */
+export function AutostartBlock() {
+  const t = useT();
+  const { available, on, ready, busy, problem, change } = useAutostart();
+
+  if (!available) return null;
 
   return (
     <SettingsBlock title={t('sharing.autostart.title')}>
@@ -59,9 +71,9 @@ export function AutostartBlock() {
         <span>{t('sharing.autostart.toggle')}</span>
       </label>
       <p className={styles.note}>{t('sharing.autostart.note')}</p>
-      {failed ? (
+      {problem ? (
         <p className={styles.error} role="alert">
-          {t('sharing.autostart.failed')}
+          {t(problem === 'read' ? 'sharing.autostart.readFailed' : 'sharing.autostart.failed')}
         </p>
       ) : null}
     </SettingsBlock>

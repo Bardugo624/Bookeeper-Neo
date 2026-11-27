@@ -97,7 +97,11 @@ export function UninstallFlow({ info }: { info: SetupInfo }) {
           </>
         ) : null}
         {phase === "running" ? (
-          <ProgressBlock titleKey="setup.progress.uninstall" event={progress} />
+          <ProgressBlock
+            titleKey="setup.progress.uninstall"
+            initialStep="removeApp"
+            event={progress}
+          />
         ) : null}
         {phase === "appRunning" ? (
           <NoticePanel

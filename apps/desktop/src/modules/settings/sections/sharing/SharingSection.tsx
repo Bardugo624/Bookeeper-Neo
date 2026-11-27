@@ -27,13 +27,20 @@ export function SharingSection() {
     if (status) setPort(String(status.port));
   }, [status?.port]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Opening at sign-in does not depend on sharing: it shows while the status loads or after it fails.
+  // The same key in both returns keeps the block, and what it read, when the status arrives.
   if (!status) {
-    return failed ? (
-      <p className={styles.error} role="alert">
-        {t('sharing.loadFailed')}
-      </p>
-    ) : (
-      <Skeleton />
+    return (
+      <>
+        {failed ? (
+          <p className={styles.error} role="alert">
+            {t('sharing.loadFailed')}
+          </p>
+        ) : (
+          <Skeleton />
+        )}
+        <AutostartBlock key="autostart" />
+      </>
     );
   }
 
@@ -105,7 +112,7 @@ export function SharingSection() {
         ) : null}
       </SettingsBlock>
 
-      <AutostartBlock />
+      <AutostartBlock key="autostart" />
 
       <SettingsBlock title={t('sharing.port.title')} description={t('sharing.port.description')}>
         <div className={styles.portRow}>

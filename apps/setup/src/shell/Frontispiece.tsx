@@ -9,8 +9,9 @@ export function quoteSize(length: number, compact: boolean): 33 | 26 | 22 {
   return length <= 90 ? 33 : length <= 140 ? 26 : 22;
 }
 
-function prefersReducedMotion(): boolean {
-  return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+/** Motion only when the person has not asked for less, as in the CSS: no `matchMedia` means no motion. */
+function allowsMotion(): boolean {
+  return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
 }
 
 export interface FrontispieceProps {
@@ -32,7 +33,7 @@ export function Frontispiece({ quote, compact }: FrontispieceProps) {
     const rect = el.getBoundingClientRect();
     const before = last.current;
     last.current = { rect, compact, size };
-    if (!before || before.compact === compact || before.rect.width === 0 || prefersReducedMotion()) return;
+    if (!before || before.compact === compact || before.rect.width === 0 || !allowsMotion()) return;
     const scale = before.size / size;
     const dx = before.rect.left - rect.left;
     const dy = before.rect.top - rect.top;

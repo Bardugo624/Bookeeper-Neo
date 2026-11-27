@@ -28,7 +28,8 @@
       "not_absolute": "Scegli una cartella di questo computer.",
       "too_long": "Il percorso è troppo lungo. Scegli una cartella più vicina all'inizio del disco.",
       "too_little_space": "Su questo disco c'è troppo poco spazio: restano {free}.",
-      "temp_too_small": "Sul disco dei file temporanei c'è troppo poco spazio: restano {free}."
+      "temp_too_small": "Sul disco dei file temporanei c'è troppo poco spazio: restano {free}.",
+      "unknown": "Non riesco a controllare questa cartella. Scegline un'altra."
     },
     "desktop": "Icona sul desktop",
     "startMenu": "Bookeeper è sempre nel menu Start: serve alle notifiche di Windows.",

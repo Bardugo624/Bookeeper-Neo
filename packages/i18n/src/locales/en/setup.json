@@ -28,7 +28,8 @@
       "not_absolute": "Pick a folder on this computer.",
       "too_long": "The path is too long. Pick a folder closer to the top of the drive.",
       "too_little_space": "This drive is too full: {free} left.",
-      "temp_too_small": "The drive for temporary files is too full: {free} left."
+      "temp_too_small": "The drive for temporary files is too full: {free} left.",
+      "unknown": "I can't check this folder. Pick another one."
     },
     "desktop": "Icon on the desktop",
     "startMenu": "Bookeeper is always in the Start menu: Windows notifications need it.",

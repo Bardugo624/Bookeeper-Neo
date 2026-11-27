@@ -31,10 +31,19 @@ describe('ProgressBlock', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Creo le icone');
   });
 
-  it('starts at the first step with no event', () => {
-    renderSetup(<ProgressBlock titleKey="setup.progress.uninstall" event={null} />);
+  it('starts at the first install step with no event', () => {
+    renderSetup(<ProgressBlock titleKey="setup.progress.install" event={null} />);
     expect(screen.getByRole('status')).toHaveTextContent("Preparo l'installazione");
     expect(screen.getByText('0%')).toBeInTheDocument();
+  });
+
+  it('starts at the step it is given, such as the first uninstall step', () => {
+    renderSetup(<ProgressBlock titleKey="setup.progress.uninstall" initialStep="removeApp" event={null} />);
+    expect(screen.getByRole('status')).toHaveTextContent("Tolgo l'app");
+    expect(screen.getByRole('progressbar', { name: 'Sto disinstallando Bookeeper' })).toHaveAttribute(
+      'aria-valuetext',
+      "Tolgo l'app, 0%",
+    );
   });
 
   it('moves focus to the title', () => {

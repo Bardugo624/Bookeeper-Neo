@@ -136,6 +136,16 @@ describe('UninstallFlow: running and end', () => {
     expect(bridge.calls).toContain('quit:0');
   });
 
+  it('names the first uninstall step before any progress arrives', async () => {
+    const bridge = mockBridge('uninstall', { tickMs: 1 });
+    const silent: MockBridge = { ...bridge, uninstall: () => new Promise(() => {}) };
+    renderSetup(<UninstallFlow info={mockInfo('uninstall')} />, { bridge: silent });
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Disinstalla' }));
+    await screen.findByRole('progressbar', { name: 'Sto disinstallando Bookeeper' });
+    expect(screen.getByRole('status')).toHaveTextContent("Tolgo l'app");
+    expect(screen.queryByText("Preparo l'installazione")).not.toBeInTheDocument();
+  });
+
   it('shows «deleted» after «Cancella tutto»', async () => {
     const { user } = setup();
     await user.click(wipe());

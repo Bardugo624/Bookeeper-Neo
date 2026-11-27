@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import type { Bridge, DirCheck, InstallRequest, OpResult, ProgressEvent, SetupInfo } from './types';
+import type { Bridge, DirCheck, FolderProblem, InstallRequest, OpResult, ProgressEvent, SetupInfo } from './types';
 
 interface OperationState {
   progress: ProgressEvent | null;
@@ -93,10 +93,13 @@ export function useSetupInfo(): Loaded<SetupInfo> {
   return state;
 }
 
-/** Checks `dir` whenever it changes; null while the answer is on its way. */
-export function useDirCheck(dir: string | null): DirCheck | null {
+/** What the UI knows about a folder: the answer of `check_dir`, or the problem `unknown` when the call itself failed. */
+export type FolderCheck = Omit<DirCheck, 'problem'> & { problem: FolderProblem | 'unknown' | null };
+
+/** Checks `dir` whenever it changes or `attempt` moves on; null while the answer is on its way. */
+export function useDirCheck(dir: string | null, attempt = 0): FolderCheck | null {
   const bridge = useBridge();
-  const [result, setResult] = useState<DirCheck | null>(null);
+  const [result, setResult] = useState<FolderCheck | null>(null);
   useEffect(() => {
     if (dir === null) {
       setResult(null);
@@ -106,12 +109,12 @@ export function useDirCheck(dir: string | null): DirCheck | null {
     setResult(null);
     bridge.checkDir(dir).then(
       (check) => live && setResult(check),
-      () => undefined,
+      () => live && setResult({ dir, problem: 'unknown', freeBytes: 0, drive: '' }),
     );
     return () => {
       live = false;
     };
-  }, [bridge, dir]);
+  }, [bridge, dir, attempt]);
   return result;
 }
 

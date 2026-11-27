@@ -230,3 +230,43 @@ describe('folder check pending', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Installa' })).toBeEnabled());
   });
 });
+
+describe('folder check fails', () => {
+  const UNKNOWN = "Non riesco a controllare questa cartella. Scegline un'altra.";
+
+  it('says so on the field, stops waiting and keeps «Installa» off', async () => {
+    const request = vi.fn();
+    const bridge = mockBridge('welcome', { tickMs: 5 });
+    bridge.checkDir = () => Promise.reject(new Error('ipc'));
+    bridge.install = (r) => (request(r), Promise.resolve({ ok: true }));
+    renderInstall('welcome', {}, bridge);
+    await userEvent.click(screen.getByRole('button', { name: 'Personalizza' }));
+    const problem = await screen.findByText(UNKNOWN);
+    const field = screen.getByLabelText('Cartella');
+    expect(field).toHaveAttribute('aria-describedby', problem.id);
+    expect(field).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByRole('button', { name: 'Installa' })).toBeDisabled();
+
+    // From the short panel, «Installa» goes back to the problem instead of installing.
+    await userEvent.click(screen.getByRole('button', { name: 'Meno scelte' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Installa' }));
+    expect(await screen.findByText(UNKNOWN)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Installa' })).toBeDisabled();
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it('turns «Installa» on once a folder passes, even the same one picked again', async () => {
+    const bridge = mockBridge('welcome', { tickMs: 5 });
+    const checkDir = bridge.checkDir;
+    let failures = 1;
+    bridge.checkDir = (dir) => (failures-- > 0 ? Promise.reject(new Error('ipc')) : checkDir(dir));
+    bridge.pickDir = (current) => Promise.resolve(current ?? null);
+    renderInstall('welcome', {}, bridge);
+    await userEvent.click(screen.getByRole('button', { name: 'Personalizza' }));
+    await screen.findByText(UNKNOWN);
+    await userEvent.click(screen.getByRole('button', { name: 'Cambia…' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Installa' })).toBeEnabled());
+    expect(screen.queryByText(UNKNOWN)).not.toBeInTheDocument();
+    expect(screen.getByText('Servono 41 MB. Sul disco C: restano 212,0 GB liberi.')).toBeInTheDocument();
+  });
+});

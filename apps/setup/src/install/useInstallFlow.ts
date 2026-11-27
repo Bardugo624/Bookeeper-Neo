@@ -35,9 +35,11 @@ export function useInstallFlow(info: SetupInfo) {
   const [choices, setChoices] = useState<Choices>(info.defaults);
   const [quote, setQuote] = useState<QuoteRef>(() => pick('welcome'));
   const [copied, setCopied] = useState(false);
-  // The folder is only checked once the person has looked at the choices.
+  // The folder is only checked once the person has looked at the choices, then again at every pick,
+  // even of the same folder: a check that failed can pass the next time.
   const [looked, setLooked] = useState(false);
-  const check = useDirCheck(looked ? choices.dir : null);
+  const [picks, setPicks] = useState(0);
+  const check = useDirCheck(looked ? choices.dir : null, picks);
   const dir = check?.dir ?? choices.dir;
 
   const last = useRef<InstallRequest | null>(null);
@@ -94,7 +96,9 @@ export function useInstallFlow(info: SetupInfo) {
     setAutostart: (autostart: boolean) => setChoices((c) => ({ ...c, autostart })),
     async changeFolder() {
       const picked = await pickFolder(dir);
-      if (picked) setChoices((c) => ({ ...c, dir: picked }));
+      if (!picked) return;
+      setChoices((c) => ({ ...c, dir: picked }));
+      setPicks((n) => n + 1);
     },
     /** A known folder problem sends the person back to the choices instead of installing. */
     install() {

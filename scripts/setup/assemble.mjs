@@ -3,9 +3,9 @@
 // Format mirrors crates/bookeeper-setup-core/src/payload.rs.
 import { createHash } from 'node:crypto';
 import { createReadStream, createWriteStream, existsSync, statSync } from 'node:fs';
-import { basename } from 'node:path';
+import { mkdir } from 'node:fs/promises';
+import { basename, dirname } from 'node:path';
 import { pipeline } from 'node:stream/promises';
-import { PassThrough } from 'node:stream';
 import { fileURLToPath } from 'node:url';
 
 export const MAGIC = Buffer.from('BKSETUP1', 'ascii');
@@ -53,22 +53,25 @@ export async function assemble(opts) {
   tail.writeBigUInt64LE(BigInt(payloadBytes), 12);
 
   const hash = createHash('sha256');
-  const sink = new PassThrough();
-  sink.on('data', (chunk) => hash.update(chunk));
-  const out = createWriteStream(opts.out);
-  const done = pipeline(sink, out);
-  for (const file of [opts.setup, opts.payload]) {
-    await new Promise((resolve, reject) => {
-      const src = createReadStream(file);
-      src.on('error', reject);
-      src.on('end', resolve);
-      src.pipe(sink, { end: false });
-    });
-  }
-  sink.write(json);
-  sink.end(tail);
-  await done;
+  await mkdir(dirname(opts.out), { recursive: true });
+  // One pipeline: a failure in any read or in the write rejects this await once and closes every stream.
+  await pipeline(
+    concat([opts.setup, opts.payload], [json, tail]),
+    async function* (chunks) {
+      for await (const chunk of chunks) {
+        hash.update(chunk);
+        yield chunk;
+      }
+    },
+    createWriteStream(opts.out),
+  );
   return { sha256: hash.digest('hex'), meta };
+}
+
+/** The bytes of `files`, one after the other, then `buffers`. */
+async function* concat(files, buffers) {
+  for (const file of files) yield* createReadStream(file);
+  yield* buffers;
 }
 
 /** Parses a buffer that ends with `metadata ‖ tail`. Returns `{ meta, payloadLen }` or null. */
@@ -102,7 +105,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     const { sha256 } = await assemble(parseArgs(process.argv.slice(2)));
     console.log(sha256);
   } catch (e) {
+    // A bad argument or a file that cannot be read or written: one line, no stack.
     console.error(`assemble: ${e.message}`);
-    process.exit(e instanceof UsageError ? 2 : 1);
+    process.exit(2);
   }
 }

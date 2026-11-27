@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router';
 import { beforeEach, expect, it, vi } from 'vitest';
 import { AppProviders } from '../../../../app/AppProviders';
 import { resetLocalePreferenceForTest } from '../../../../app/i18n';
-import { fakePlatform } from '../../../../platform/testing';
+import { fakePlatform, type FakePlatform } from '../../../../platform/testing';
 import { setSystemLanguage } from '../../testkit';
 import { AutostartBlock } from './AutostartBlock';
 
@@ -18,8 +18,10 @@ beforeEach(() => {
 
 const NAME = 'Apri Bookeeper all\'accesso al computer';
 
-function renderBlock(opts: Parameters<typeof fakePlatform>[0]) {
+/** `prepare` runs on the platform before the first render, so it can replace the first `get`. */
+function renderBlock(opts: Parameters<typeof fakePlatform>[0], prepare?: (platform: FakePlatform) => void) {
   const platform = fakePlatform(opts);
+  prepare?.(platform);
   render(
     <AppProviders platform={platform}>
       <MemoryRouter>
@@ -60,4 +62,21 @@ it('a failure shows the message and puts the switch back', async () => {
   await userEvent.setup({ delay: null }).click(sw);
   expect(await screen.findByText('Non sono riuscito a cambiare l\'apertura all\'accesso.')).toBeTruthy();
   await waitFor(() => expect(sw.checked).toBe(false));
+});
+
+it('a failed read says so and leaves the switch usable', async () => {
+  const platform = renderBlock({ autostart: { on: true } }, (p) => {
+    vi.spyOn(p.autostart!, 'get').mockRejectedValue(new Error('registry unreadable'));
+  });
+  const set = vi.spyOn(platform.autostart!, 'set');
+  const READ_FAILED = 'Non riesco a leggere l\'apertura all\'accesso.';
+  expect((await screen.findByText(READ_FAILED)).getAttribute('role')).toBe('alert');
+  const sw = screen.getByRole('switch', { name: NAME }) as HTMLInputElement;
+  expect(sw.checked).toBe(false);
+  expect(sw.disabled).toBe(false);
+  await userEvent.setup({ delay: null }).click(sw);
+  expect(set).toHaveBeenCalledWith(true);
+  await waitFor(() => expect(sw.checked).toBe(true));
+  // The choice that was just saved is known: the message goes.
+  expect(screen.queryByText(READ_FAILED)).toBeNull();
 });

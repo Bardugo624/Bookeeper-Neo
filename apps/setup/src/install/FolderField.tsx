@@ -1,12 +1,12 @@
 import { useId } from 'react';
 import { Button, Icon } from '@bookeeper/ui/base';
-import type { DirCheck } from '../bridge';
+import type { FolderCheck } from '../bridge';
 import { formatBytes, useLocale, useT } from '../shell';
 import styles from './Customize.module.css';
 
 export interface FolderFieldProps {
   dir: string;
-  check: DirCheck | null;
+  check: FolderCheck | null;
   /** Bytes the app needs on disk. */
   needBytes: number;
   onPick(): void;

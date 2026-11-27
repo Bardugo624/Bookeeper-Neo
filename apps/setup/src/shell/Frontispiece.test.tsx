@@ -86,6 +86,7 @@ describe('Frontispiece FLIP', () => {
   }
 
   it('plays the difference with translate and scale when going compact', () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({ matches: query.includes('no-preference') }));
     let current = 0;
     const spy = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(() => measure(current));
     const quote = { id: 'edmondo-de-amicis-2' };
@@ -105,10 +106,33 @@ describe('Frontispiece FLIP', () => {
     expect(frame.style.transform).toBe('');
     expect(frame.style.transition).toContain('transform');
     spy.mockRestore();
+    vi.unstubAllGlobals();
+  });
+
+  it('is immediate when the motion preference cannot be read', () => {
+    vi.stubGlobal('matchMedia', undefined);
+    let current = 0;
+    const spy = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(() => measure(current));
+    const quote = { id: 'edmondo-de-amicis-2' };
+    const { rerender, container } = render(
+      <LocaleProvider locale="it">
+        <Frontispiece quote={quote} compact={false} />
+      </LocaleProvider>,
+    );
+    current = 1;
+    rerender(
+      <LocaleProvider locale="it">
+        <Frontispiece quote={quote} compact />
+      </LocaleProvider>,
+    );
+    const frame = container.firstElementChild as HTMLElement;
+    expect(frame.style.transition).toBe('');
+    spy.mockRestore();
+    vi.unstubAllGlobals();
   });
 
   it('is immediate with reduced motion', () => {
-    vi.stubGlobal('matchMedia', () => ({ matches: true }));
+    vi.stubGlobal('matchMedia', (query: string) => ({ matches: query.includes(': reduce') }));
     let current = 0;
     const spy = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(() => measure(current));
     const quote = { id: 'edmondo-de-amicis-2' };
