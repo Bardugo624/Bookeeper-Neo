@@ -79,7 +79,8 @@ export function bumpVersion(root, to) {
 export function ensureChangelog(root, version, date) {
   const file = join(root, 'CHANGELOG.md');
   const text = readFileSync(file, 'utf8');
-  if (text.includes(`## [${version}]`)) return { existed: true };
+  const escaped = version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  if (new RegExp(`^## \\[${escaped}\\]`, 'm').test(text)) return { existed: true };
   const eol = text.includes('\r\n') ? '\r\n' : '\n';
   const section = [`## [${version}] - ${date}`, '', '### Added', '', '-', '', ''].join(eol);
   const at = text.search(/^## \[/m);

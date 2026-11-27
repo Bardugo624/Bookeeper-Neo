@@ -5,7 +5,8 @@ const RE = new RegExp(`^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-(${ID}(
 export function parse(v) {
   const m = typeof v === 'string' ? RE.exec(v) : null;
   if (!m) throw new Error(`Versione non valida: "${v}"`);
-  const pre = m[4] ? m[4].split('.').map((p) => (/^\d+$/.test(p) ? Number(p) : p)) : [];
+  // Numeric identifiers are BigInt: SemVer sets no size limit, Number would lose precision past 2^53.
+  const pre = m[4] ? m[4].split('.').map((p) => (/^\d+$/.test(p) ? BigInt(p) : p)) : [];
   return { major: Number(m[1]), minor: Number(m[2]), patch: Number(m[3]), pre };
 }
 
@@ -25,8 +26,8 @@ export function compare(a, b) {
     if (p === undefined) return -1;
     if (q === undefined) return 1;
     if (p === q) continue;
-    const pn = typeof p === 'number';
-    const qn = typeof q === 'number';
+    const pn = typeof p === 'bigint';
+    const qn = typeof q === 'bigint';
     if (pn && qn) return cmp(p, q);
     if (pn) return -1;
     if (qn) return 1;
@@ -49,8 +50,8 @@ export function inc(v, kind) {
       return wasPre && minor === 0 && patch === 0 ? `${major}.0.0` : `${major + 1}.0.0`;
     case 'beta': {
       if (!wasPre) return `${major}.${minor + 1}.0-beta.1`;
-      if (pre.length === 2 && pre[0] === 'beta' && typeof pre[1] === 'number') {
-        return `${major}.${minor}.${patch}-beta.${pre[1] + 1}`;
+      if (pre.length === 2 && pre[0] === 'beta' && typeof pre[1] === 'bigint') {
+        return `${major}.${minor}.${patch}-beta.${pre[1] + 1n}`;
       }
       throw new Error(`Non posso passare a beta da ${v}`);
     }

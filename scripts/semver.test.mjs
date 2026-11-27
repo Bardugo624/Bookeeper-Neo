@@ -28,11 +28,17 @@ test('compare', () => {
 });
 
 test('parse e errori', () => {
-  assert.deepEqual(parse('2.2.0-beta.1'), { major: 2, minor: 2, patch: 0, pre: ['beta', 1] });
+  assert.deepEqual(parse('2.2.0-beta.1'), { major: 2, minor: 2, patch: 0, pre: ['beta', 1n] });
   assert.throws(() => parse('v2.1.0'));
   assert.throws(() => parse('2.1'));
   assert.throws(() => parse('2.1.0+build'));
   assert.throws(() => inc('2.2.0-rc.1', 'beta'));
   assert.equal(isPrerelease('2.2.0-beta.1'), true);
   assert.equal(isPrerelease('2.2.0'), false);
+});
+
+test('compare non perde precisione sugli identificatori numerici enormi', () => {
+  assert.equal(compare('1.0.0-9007199254740993', '1.0.0-9007199254740992'), 1);
+  assert.equal(compare('1.0.0-beta.9007199254740993', '1.0.0-beta.9007199254740993'), 0);
+  assert.equal(inc('2.2.0-beta.9007199254740993', 'beta'), '2.2.0-beta.9007199254740994');
 });

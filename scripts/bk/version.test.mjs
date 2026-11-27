@@ -111,3 +111,14 @@ test('ensureChangelog aggiunge la sezione una volta e conserva i \\r\\n', () => 
     }
   }
 });
+
+test('ensureChangelog riconosce la sezione solo a inizio riga', () => {
+  const tmp = mkdtempSync(join(tmpdir(), 'bk-changelog-'));
+  try {
+    writeFileSync(join(tmp, 'CHANGELOG.md'), '# Changelog\n\nNelle note si cita ## [9.9.9] in mezzo al testo.\n\n## [2.1.0] - 2026-11-27\n');
+    assert.deepEqual(ensureChangelog(tmp, '9.9.9', '2026-12-01'), { existed: false });
+    assert.match(readFileSync(join(tmp, 'CHANGELOG.md'), 'utf8'), /^## \[9\.9\.9\] - 2026-12-01$/m);
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
+  }
+});
