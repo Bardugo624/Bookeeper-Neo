@@ -408,9 +408,12 @@ jobs:
           bundle="target/${TARGET}/release/bundle"
           [ -d "$bundle" ] || bundle="apps/desktop/src-tauri/target/${TARGET}/release/bundle"
           nsis=$(find "$bundle/nsis" -maxdepth 1 -name '*-setup.exe' 2>/dev/null | head -1 || true)
-          main="target/${TARGET}/release/bookeeper-desktop.exe"
-          [ -f "$main" ] || main="apps/desktop/src-tauri/target/${TARGET}/release/bookeeper-desktop.exe"
-          [ -f "$nsis" ] && [ -f "$main" ] || { echo "::error::NSIS installer or bookeeper-desktop.exe not found"; exit 1; }
+          [ -f "$nsis" ] || { echo "::error::NSIS installer not found"; exit 1; }
+          # After packaging, the bundler puts back the binary without the bundle type it wrote into the
+          # installed one: the Setup checks the installed file, so it must come from the installer.
+          7z e -y -oout/nsis-main "$nsis" bookeeper-desktop.exe > /dev/null
+          main="out/nsis-main/bookeeper-desktop.exe"
+          [ -f "$main" ] || { echo "::error::bookeeper-desktop.exe not found in the NSIS installer"; exit 1; }
           node scripts/setup/assemble.mjs \
             --setup apps/desktop/src-tauri/windows/bookeeper-setup.exe \
             --payload "$nsis" \

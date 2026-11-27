@@ -132,7 +132,11 @@ test("release.yml: assembly after Collect, then the smoke test with elevation al
   assert.match(a, /scripts\/setup\/assemble\.mjs/);
   assert.match(a, /Bookeeper-Setup-\$\{VERSION\}\.exe/);
   assert.match(a, /nsis/);
-  assert.match(a, /bookeeper-desktop\.exe/);
+  // The bundler puts the unpatched binary back in target/ after packaging: only the installer has the one it installs.
+  assert.match(a, /7z e -y -o(\S+) "\$nsis" bookeeper-desktop\.exe/);
+  assert.doesNotMatch(a, /release\/bookeeper-desktop\.exe/);
+  assert.match(a, /--main "\$main"/);
+  assert.match(a, /MAIN_EXE=\$\(pwd -W\)\/\$main/);
   const s = job.slice(smoke, job.indexOf("- uses: actions/upload-artifact@v4", smoke));
   assert.match(s, /BOOKEEPER_SETUP_ALLOW_ELEVATED: "1"/);
   assert.match(s, /scripts\/setup\/smoke\.ps1 -Setup .* -Classic .* -Main /);
