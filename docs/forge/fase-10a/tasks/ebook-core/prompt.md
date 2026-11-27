@@ -7,6 +7,7 @@ Leggi prima `docs/forge/fase-10a/CONTRATTO.md`, che fissa valori, interfacce e r
 - Crea `crates/bookeeper-core/src/ebooks.rs`, dichiaralo in `lib.rs` e aggiungi `ebooks_dir` in `state.rs`.
 - Aggiungi `rbook` e `lopdf` in `crates/bookeeper-core/Cargo.toml` e `Cargo.lock`.
 - Scrivi i test in `crates/bookeeper-core/tests/ebooks.rs`, con fixture generate nel test: un EPUB minimo (`mimetype`, `META-INF/container.xml`, OPF con titolo, autori, lingua, ISBN e copertina) e un PDF minimo con `/Info`.
+- Estendi il test delle migrazioni in `crates/bookeeper-core/tests/db.rs`.
 
 ## Migrazione 0005
 - La tabella `book_files`, con le colonne:
