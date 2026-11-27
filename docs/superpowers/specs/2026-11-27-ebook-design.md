@@ -27,6 +27,9 @@ Oggi un e-book in Bookeeper è solo una scheda, con il formato «ebook»: il fil
   - si leggono solo file senza DRM.
 - **I lettori e-ink si integrano dove è possibile**, «in maniera seamless». Vengono prima Kobo e KOReader.
 - **Il motore del lettore** è stato lasciato a me. Ho proposto foliate-js, e nessuna obiezione.
+- **Il negozio Kobo non serve:** il Kobo collegato riceve solo i libri della famiglia, senza passare le richieste al negozio Kobo.
+- **Dispositivi in casa:** iPhone, Kobo e un lettore con KOReader. Niente Android.
+- **Ordine:** gli e-book (10A, 10B, 10C) vengono dopo 9A, 9B e 9C.
 
 ## Obiettivi
 
@@ -175,12 +178,13 @@ Tre fasi, ognuna con il suo run Forge e la sua release: 10A, 10B e 10C (prima KO
 - Le posizioni aspettano in IndexedDB e si inviano al ritorno della rete.
 - Su iPhone serve la PWA installata nella schermata Home. Se non lo è, il lettore lo spiega.
 
-**Prima di cominciare**, una prova di un giorno. Si apre un EPUB grande e si girano 100 pagine su:
-- PWA installata su iPhone;
-- Android;
-- Windows (WebView2), macOS (WKWebView) e Linux (WebKitGTK).
+**Prima di cominciare**, una prova di un giorno:
+- **In automatico,** con i tre motori dei browser: Chromium per WebView2, WebKit per WKWebView e WebKitGTK, e Firefox.
+- **A mano, dal proprietario,** sulla PWA installata sul suo iPhone, con una pagina di prova preparata per questo.
 
-La prova conferma il motore oppure riapre la scelta.
+La prova apre un EPUB grande e gira 100 pagine. Conferma il motore oppure riapre la scelta.
+
+Il collaudo del Kobo e di KOReader si fa sui dispositivi del proprietario, con una lista di controlli da seguire.
 
 ### Fase 10C — Lettori e-ink
 
@@ -203,6 +207,7 @@ Con una libreria sul PC, «Lettori e-ink» spiega che serve il server.
 - Fra KOReader e il lettore Bookeeper vale la percentuale, che è approssimata. Per questo vale la regola del «Continua da …».
 
 **10C-2, Kobo di serie**
+- **Solo libri di Bookeeper:** il Kobo collegato smette di ricevere gli acquisti del negozio Kobo, perché Bookeeper non gli passa quelle richieste. Le istruzioni lo dicono prima del collegamento.
 - **Collegare il Kobo:** nelle Impostazioni, «Collega un Kobo» crea per la persona l'indirizzo `https://<server>/kobo/<token>`. Le istruzioni dicono come scriverlo in `api_endpoint`, nel file `.kobo/Kobo/Kobo eReader.conf`, via USB. Il token si può revocare.
 - **Quali libri:** sul Kobo vanno i libri che la persona mette nell'elenco «Sul mio Kobo», purché abbiano un EPUB.
 - **Cosa si sincronizza:** metadati, copertine, stato (letto, in lettura) e percentuale, nei due sensi. La Location del Kobo resta in `reading_positions`.
@@ -218,7 +223,7 @@ Con una libreria sul PC, «Lettori e-ink» spiega che serve il server.
 3. 10C-1 e una release.
 4. 10C-2 e una release.
 
-Il proprietario decide dove vanno queste fasi rispetto a 9A (R2 e lo script `bk`), 9B (l'installer) e 9C (la pagina di accesso).
+Queste fasi vengono dopo 9A (R2 e lo script `bk`), 9B (l'installer) e 9C (la pagina di accesso), come ha deciso il proprietario. Il lettore e le password dei lettori e-ink si costruiscono quindi sull'accesso nuovo della 9C.
 
 ## Scelte mie, da controllare
 
