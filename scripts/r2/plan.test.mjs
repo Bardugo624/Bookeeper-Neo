@@ -46,6 +46,7 @@ test("keysToDelete only touches versioned keys outside the keep set", () => {
 test("installer platforms are read from the file name", () => {
   const f = installerPlatform;
   assert.equal(f("Bookeeper_2.1.0_x64-setup.exe"), "windows-x86_64");
+  assert.equal(f("Bookeeper-Setup-2.2.0.exe"), "windows-x86_64");
   assert.equal(f("Bookeeper_2.1.0_aarch64.dmg"), "darwin-aarch64");
   assert.equal(f("Bookeeper_2.1.0_x64.dmg"), "darwin-x86_64");
   assert.equal(f("Bookeeper_2.1.0_amd64.AppImage"), "linux-x86_64-appimage");
@@ -53,6 +54,18 @@ test("installer platforms are read from the file name", () => {
   assert.equal(f("bookeeper-server.tar.gz"), null);
   const idx = buildIndex({ version: "2.1.0", pubDate: "d", installers: ["a_x64.dmg", "notes.txt"], base: "https://h/v2/" });
   assert.deepEqual(idx, { version: "2.1.0", pub_date: "d", files: { "darwin-x86_64": "https://h/v2/downloads/2.1.0/a_x64.dmg" } });
+});
+
+test("the Setup wins the Windows slot in any order", () => {
+  const setup = "Bookeeper-Setup-2.2.0.exe";
+  const nsis = "Bookeeper_2.2.0_x64-setup.exe";
+  const url = (n) => `https://h/v2/downloads/2.2.0/${n}`;
+  for (const installers of [[nsis, setup], [setup, nsis]]) {
+    const idx = buildIndex({ version: "2.2.0", pubDate: "d", installers, base: "https://h/v2" });
+    assert.equal(idx.files["windows-x86_64"], url(setup));
+  }
+  const only = buildIndex({ version: "2.2.0", pubDate: "d", installers: [nsis], base: "https://h/v2" });
+  assert.equal(only.files["windows-x86_64"], url(nsis));
 });
 
 test("seed rewrites URLs to the new base and rejects foreign ones", () => {

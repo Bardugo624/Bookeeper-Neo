@@ -64,7 +64,10 @@ export function installerPlatform(name) {
 export function buildIndex({ version, pubDate, installers, base }) {
   const root = trimBase(base);
   const files = {};
-  for (const name of [...installers].sort()) {
+  // The Setup is the Windows download; the classic NSIS installer is the fallback.
+  const isSetup = (n) => /^Bookeeper-Setup-.*\.exe$/i.test(n);
+  const ordered = [...installers].sort((a, b) => Number(isSetup(b)) - Number(isSetup(a)) || (a < b ? -1 : a > b ? 1 : 0));
+  for (const name of ordered) {
     const platform = installerPlatform(name);
     if (!platform || files[platform]) continue;
     files[platform] = `${root}/downloads/${encodeURIComponent(version)}/${encodeURIComponent(name)}`;
