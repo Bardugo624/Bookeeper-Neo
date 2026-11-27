@@ -105,3 +105,29 @@ it('notifications use the plugin and tell denied from prompt', async () => {
   await notifications!.send({ title: 'T', body: 'B' });
   expect(sendNotification).toHaveBeenCalledWith({ title: 'T', body: 'B' });
 });
+
+it('downloadToFile hands the command the address, the name and the session header, not the bytes', async () => {
+  invoke.mockResolvedValue({ saved: true, path: '/tmp/a.epub' });
+  const out = await tauriPlatform().downloadToFile({
+    url: '/api/v1/books/b1/files/f1/content',
+    suggestedName: 'libro.epub',
+    headers: { Authorization: 'Bearer t' },
+    connectionId: 'c1',
+  });
+  expect(out).toEqual({ saved: true, path: '/tmp/a.epub' });
+  expect(invoke).toHaveBeenCalledWith('download_file', {
+    url: '/api/v1/books/b1/files/f1/content',
+    suggested_name: 'libro.epub',
+    headers: { Authorization: 'Bearer t' },
+    connection_id: 'c1',
+  });
+});
+
+it('downloadToFile turns a failed command into a network error', async () => {
+  invoke.mockRejectedValueOnce('Cannot reach the server');
+  const failure = await tauriPlatform()
+    .downloadToFile({ url: '/api/v1/x', suggestedName: 'a' })
+    .then(() => null, (e: unknown) => e);
+  expect((failure as { code?: string }).code).toBe('network');
+  expect((failure as { status?: number }).status).toBe(0);
+});

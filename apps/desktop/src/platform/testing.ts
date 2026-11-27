@@ -1,5 +1,5 @@
 import { ApiError, type Transport, type TransportResponse } from '@bookeeper/api';
-import { NETWORK_PROBE, type Connection, type Connections, type Found, type NotificationControls, type NotificationPermission, type Platform, type ProbeOut, type SaveFileRequest, type SaveFileResult, type SharingStatus, type UpdateChannel, type UpdateProgress, type UpdateState, type WindowControls } from './types';
+import { NETWORK_PROBE, type Connection, type Connections, type DownloadRequest, type DownloadResult, type Found, type NotificationControls, type NotificationPermission, type Platform, type ProbeOut, type SaveFileRequest, type SaveFileResult, type SharingStatus, type UpdateChannel, type UpdateProgress, type UpdateState, type WindowControls } from './types';
 
 type Handler = (req: {
   method: string;
@@ -20,6 +20,10 @@ export interface FakePlatform extends Platform {
   windowCalls: string[];
   /** Every `saveFile` request, in order. */
   saved: SaveFileRequest[];
+  /** Every `downloadToFile` request, in order. */
+  downloads: DownloadRequest[];
+  /** Result of the next `downloadToFile` calls (default `{ saved: true }`). */
+  setDownloadResult(r: DownloadResult | (() => DownloadResult | Promise<DownloadResult>)): void;
   /** Result of the next `saveFile` calls (default `{ saved: true }`). */
   setSaveResult(r: SaveFileResult): void;
   setMaximized(v: boolean): void;
@@ -98,6 +102,8 @@ export function fakePlatform(opts: FakePlatformOptions = {}): FakePlatform {
   let maximized = false;
   let saveResult: SaveFileResult = { saved: true };
   const saved: SaveFileRequest[] = [];
+  const downloads: DownloadRequest[] = [];
+  let downloadResult: DownloadResult | (() => DownloadResult | Promise<DownloadResult>) = { saved: true };
   const sharingCalls: FakePlatform['sharingCalls'] = [];
   let sharingHandler: Parameters<FakePlatform['setSharingHandler']>[0] = (enabled, port, cur) => ({
     ...cur,
@@ -188,6 +194,10 @@ export function fakePlatform(opts: FakePlatformOptions = {}): FakePlatform {
     state: opts.connections ?? { active: null, items: [] },
     windowCalls,
     saved,
+    downloads,
+    setDownloadResult(r) {
+      downloadResult = r;
+    },
     sharingCalls,
     sharingState: { enabled: false, running: false, port: 7842, addresses: [], fingerprint: null, phrase: null, error: null, ...opts.sharingStatus },
     setSharingHandler(h) {
@@ -287,6 +297,10 @@ export function fakePlatform(opts: FakePlatformOptions = {}): FakePlatform {
     window: opts.window === false ? null : win,
     async deviceName() {
       return 'Test device';
+    },
+    async downloadToFile(req) {
+      downloads.push(req);
+      return typeof downloadResult === 'function' ? downloadResult() : { ...downloadResult };
     },
     async saveFile(req) {
       saved.push(req);

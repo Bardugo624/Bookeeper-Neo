@@ -12,3 +12,8 @@ export interface FromList {
 export function detailPath(id: string): string {
   return `/books/${encodeURIComponent(id)}`;
 }
+
+/** The formats of the attached e-books as one short label: "EPUB", "EPUB · PDF". */
+export function formatsOf(book: Pick<BookOut, 'file_formats'>): string {
+  return book.file_formats.map((f) => f.toUpperCase()).join(' · ');
+}

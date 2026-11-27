@@ -2,6 +2,7 @@ pub mod autostart;
 pub mod connections;
 pub mod discover;
 mod dispatch;
+pub mod download;
 pub mod files;
 pub mod remote;
 pub mod secrets;
@@ -175,6 +176,65 @@ async fn save_file(
     .map_err(|e| e.to_string())?
 }
 
+/// Saves a library file to disk as it arrives. The answer is opened first (so a refusal never
+/// opens the "Save as" window), then the user picks the place, then the bytes are streamed.
+#[tauri::command(rename_all = "snake_case")]
+async fn download_file(
+    app: tauri::AppHandle,
+    router: tauri::State<'_, CoreRouter>,
+    store: tauri::State<'_, connections::Store>,
+    url: String,
+    suggested_name: String,
+    headers: Option<std::collections::BTreeMap<String, String>>,
+    connection_id: Option<String>,
+) -> Result<download::DownloadOutcome, String> {
+    use tauri_plugin_dialog::DialogExt;
+    static DOWNLOAD_LOCK: files::SaveLock = files::SaveLock::new();
+    let Some(_permit) = DOWNLOAD_LOCK.try_acquire() else {
+        return Ok(download::DownloadOutcome::cancelled());
+    };
+    let mut opened = download::open(
+        &store,
+        router.0.clone(),
+        connection_id.as_deref(),
+        &url,
+        &headers.unwrap_or_default(),
+    )
+    .await?;
+    if !(200..300).contains(&opened.status) {
+        return Ok(download::DownloadOutcome::refused(opened.status));
+    }
+    let proposed = opened
+        .disposition
+        .as_deref()
+        .and_then(download::disposition_name)
+        .unwrap_or(suggested_name);
+    let mut dialog = app
+        .dialog()
+        .file()
+        .set_file_name(files::sanitize_name(&proposed));
+    if let Some(main) = app.get_webview_window("main") {
+        dialog = dialog.set_parent(&main);
+    }
+    let (tx, rx) = tokio::sync::oneshot::channel();
+    dialog.save_file(move |p| {
+        let _ = tx.send(p);
+    });
+    let Some(path) = rx
+        .await
+        .map_err(|e| e.to_string())?
+        .and_then(files::path_of)
+    else {
+        return Ok(download::DownloadOutcome::cancelled());
+    };
+    download::write_stream(&mut opened.source, &path).await?;
+    Ok(download::DownloadOutcome {
+        saved: true,
+        path: Some(path.display().to_string()),
+        status: None,
+    })
+}
+
 #[tauri::command]
 async fn sharing_status(
     sharing: tauri::State<'_, sharing::Sharing>,
@@ -322,6 +382,7 @@ pub fn run() {
             server_probe,
             discover,
             save_file,
+            download_file,
             sharing_status,
             sharing_set,
             update_check,

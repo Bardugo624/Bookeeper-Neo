@@ -6,7 +6,7 @@ use crate::dispatch::{
     self, bad_request, check_request, error, exposed_headers, filter_request_headers,
     raw_bad_request, raw_error, ApiResponse, RawApiResponse,
 };
-use axum::http::{HeaderMap, StatusCode};
+use axum::http::{HeaderMap, Method, StatusCode};
 use base64::{engine::general_purpose::STANDARD, Engine as _};
 use reqwest::{redirect::Policy, Client, Url};
 use rustls::{
@@ -24,6 +24,8 @@ use std::time::Duration;
 
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
 const RESPONSE_TIMEOUT: Duration = Duration::from_secs(60);
+/// Upper bound of one download (a 200 MB file on a slow link still fits).
+const DOWNLOAD_TOTAL_TIMEOUT: Duration = Duration::from_secs(6 * 60 * 60);
 
 /// True for loopback, private and link-local addresses and `.local` names.
 /// Never resolves a name.
@@ -107,7 +109,8 @@ impl Failure {
     }
 }
 
-type ClientKey = (String, Option<[u8; 32]>);
+/// Origin, pinned fingerprint, and whether the client is for long downloads (no total timeout).
+type ClientKey = (String, Option<[u8; 32]>, bool);
 
 fn clients() -> &'static Mutex<HashMap<ClientKey, Client>> {
     static CLIENTS: std::sync::OnceLock<Mutex<HashMap<ClientKey, Client>>> =
@@ -126,13 +129,23 @@ fn base_builder() -> reqwest::ClientBuilder {
 }
 
 /// The client for `(url, fingerprint)`, built once.
-fn client_for(origin: &str, fingerprint: Option<[u8; 32]>) -> Result<Client, Failure> {
-    let key = (origin.to_owned(), fingerprint);
+fn client_for(
+    origin: &str,
+    fingerprint: Option<[u8; 32]>,
+    streaming: bool,
+) -> Result<Client, Failure> {
+    let key = (origin.to_owned(), fingerprint, streaming);
     let mut map = clients().lock().unwrap_or_else(|e| e.into_inner());
     if let Some(c) = map.get(&key) {
         return Ok(c.clone());
     }
     let mut builder = base_builder();
+    if streaming {
+        // A big file takes longer than any fixed total; what must not happen is a silent stall.
+        builder = builder
+            .timeout(DOWNLOAD_TOTAL_TIMEOUT)
+            .read_timeout(RESPONSE_TIMEOUT);
+    }
     if let Some(fp) = fingerprint {
         builder = builder.use_preconfigured_tls(
             bookeeper_net::tls::pinned_client_config(fp)
@@ -172,16 +185,17 @@ struct Wire {
     body: Vec<u8>,
 }
 
-#[allow(clippy::too_many_arguments)]
-async fn send(
+/// Method, pinned fingerprint, full target and origin of a checked request.
+type Checked = (Method, Option<[u8; 32]>, Url, String);
+
+/// Checks the address and the path and returns what a request needs: the method, the pinned
+/// fingerprint and the full target. Dot segments or odd characters never leave `/api/`.
+fn checked_target(
     url: &str,
     fingerprint: Option<&str>,
     method: &str,
     path: &str,
-    body: Option<Vec<u8>>,
-    content_type: Option<&str>,
-    headers: &BTreeMap<String, String>,
-) -> Result<Wire, Failure> {
+) -> Result<Checked, Failure> {
     let method = check_request(method, path).map_err(Failure::bad)?;
     let base = parse_base(url)?;
     let origin = origin_of(&base).ok_or_else(|| Failure::bad("Invalid server address"))?;
@@ -192,13 +206,44 @@ async fn send(
     if path.chars().any(|c| c.is_whitespace() || c.is_control()) {
         return Err(Failure::bad("Invalid request"));
     }
-    // Dot segments or odd characters must not leave `/api/`.
     let target =
         Url::parse(&format!("{origin}{path}")).map_err(|_| Failure::bad("Invalid request"))?;
     if !target.path().starts_with("/api/") || origin_of(&target).as_deref() != Some(&origin) {
         return Err(Failure::bad("Path must start with /api/"));
     }
-    let client = client_for(&origin, fp)?;
+    Ok((method, fp, target, origin))
+}
+
+/// `GET` of `path` on a remote server, answered as a stream: the body is not read here.
+/// The error is the short English text of the failure.
+pub async fn open_download(
+    url: &str,
+    fingerprint: Option<&str>,
+    path: &str,
+    headers: &BTreeMap<String, String>,
+) -> Result<reqwest::Response, &'static str> {
+    let (method, fp, target, origin) =
+        checked_target(url, fingerprint, "GET", path).map_err(|f| f.message)?;
+    let client = client_for(&origin, fp, true).map_err(|f| f.message)?;
+    let mut req = client.request(method, target);
+    for (name, value) in filter_request_headers(headers, true) {
+        req = req.header(name, value);
+    }
+    req.send().await.map_err(|_| Failure::network().message)
+}
+
+#[allow(clippy::too_many_arguments)]
+async fn send(
+    url: &str,
+    fingerprint: Option<&str>,
+    method: &str,
+    path: &str,
+    body: Option<Vec<u8>>,
+    content_type: Option<&str>,
+    headers: &BTreeMap<String, String>,
+) -> Result<Wire, Failure> {
+    let (method, fp, target, origin) = checked_target(url, fingerprint, method, path)?;
+    let client = client_for(&origin, fp, false)?;
     let mut req = client.request(method, target);
     if body.is_some() {
         if let Some(ct) = content_type.filter(|c| !c.is_empty()) {
@@ -294,7 +339,7 @@ pub async fn request_raw(
 }
 
 /// Where a request goes.
-enum Target {
+pub(crate) enum Target {
     Core,
     Remote {
         url: String,
@@ -303,7 +348,7 @@ enum Target {
     Invalid(&'static str),
 }
 
-fn resolve(store: &Store, connection_id: Option<&str>) -> Target {
+pub(crate) fn resolve(store: &Store, connection_id: Option<&str>) -> Target {
     let conns = match store.load() {
         Ok(c) => c,
         Err(e) => {
