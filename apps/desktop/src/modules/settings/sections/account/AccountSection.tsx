@@ -1,6 +1,6 @@
 import { Button, DangerAction, DangerZone } from '@bookeeper/ui/base';
 import { useT } from '../../../../app/i18n';
-import { Fact, FactList, SettingsBlock } from '../../SettingsBlock';
+import { Fact, FactList, SettingsBlock, SettingsFull } from '../../SettingsBlock';
 import { useSettingsSession } from '../../useSettingsSession';
 import { PasswordForm } from './PasswordForm';
 
@@ -23,6 +23,7 @@ export function AccountSection() {
       >
         {email ? <PasswordForm /> : <p>{t('settings.account.password.needsEmail')}</p>}
       </SettingsBlock>
+      <SettingsFull>
       <DangerZone title={t('settings.danger.title')} headingLevel="h2">
         <DangerAction
           title={t('settings.danger.signOut.title')}
@@ -34,6 +35,7 @@ export function AccountSection() {
           }
         />
       </DangerZone>
+      </SettingsFull>
     </>
   );
 }

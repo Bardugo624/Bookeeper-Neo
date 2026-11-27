@@ -1,14 +1,21 @@
-.filters {
+.filters.filters {
+  max-width: none;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr)) auto;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   align-items: end;
   gap: 10px 14px;
+  width: 100%;
 }
 
-@media (max-width: 900px) {
-  .filters {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+/* One row when the card is wide: five fields and the reset button. */
+@container (min-width: 900px) {
+  .filters.filters {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) auto;
   }
+}
+
+.wide {
+  width: 100%;
 }
 
 .field {
@@ -35,6 +42,7 @@
 }
 
 .bar {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;

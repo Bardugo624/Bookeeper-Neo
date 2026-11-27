@@ -2,7 +2,7 @@ import { Icon } from '@bookeeper/ui/base';
 import { useT } from '../../../../app/i18n';
 import { useSession } from '../../../../session';
 import { APP_VERSION } from '../../appVersion';
-import { Fact, FactList, SettingsBlock } from '../../SettingsBlock';
+import { Fact, FactList, SettingsBlock, SettingsFull } from '../../SettingsBlock';
 import { serverMode } from './serverMode';
 import { useAbout } from './useAbout';
 import styles from './AboutSection.module.css';
@@ -24,6 +24,7 @@ export function AboutSection() {
         </FactList>
       </SettingsBlock>
       {phoneReady !== undefined ? (
+        <SettingsFull>
         <aside className={styles.phone} aria-label={t('settings.about.phone.title')}>
           <Icon name={phoneReady ? 'check' : 'info'} size={18} />
           <div>
@@ -31,6 +32,7 @@ export function AboutSection() {
             <p className={styles.phoneText}>{t(phoneReady ? 'settings.about.phone.readyText' : 'settings.about.phone.text')}</p>
           </div>
         </aside>
+        </SettingsFull>
       ) : null}
     </>
   );

@@ -8,7 +8,7 @@ export function NotificationsSection() {
   const { enabled, permission, ready, toggle } = useNotifications();
 
   return (
-    <SettingsBlock title={t('notifications.title')} description={t('notifications.description')}>
+    <SettingsBlock span="full" title={t('notifications.title')} description={t('notifications.description')}>
       <label className={styles.toggle}>
         <input type="checkbox" role="switch" checked={enabled} disabled={!ready} aria-busy={!ready} onChange={(e) => toggle(e.target.checked)} />
         <span>{t('notifications.overdue')}</span>

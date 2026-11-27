@@ -1,4 +1,5 @@
 import { usePermission } from '../../../../kit';
+import { SettingsFull } from '../../SettingsBlock';
 import { AutoBackupList } from './AutoBackupList';
 import { BackupNowBlock } from './BackupNowBlock';
 import { RestoreBlock } from './RestoreBlock';
@@ -13,7 +14,11 @@ export function BackupSection() {
       <BackupNowBlock ops={ops} />
       <ScheduleBlock locked={ops.busy} />
       <AutoBackupList />
-      {can('owner') ? <RestoreBlock ops={ops} /> : null}
+      {can('owner') ? (
+        <SettingsFull>
+          <RestoreBlock ops={ops} />
+        </SettingsFull>
+      ) : null}
     </>
   );
 }
