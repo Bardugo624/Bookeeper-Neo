@@ -61,3 +61,20 @@ test("not ready when a file answers 404", async () => {
   assert.equal(r.ok, false);
   assert.match(r.problems.join("\n"), /2\.2\.0-beta\.1\/a\.exe answers 404/);
 });
+
+import { test as t2 } from "node:test";
+import assert2 from "node:assert/strict";
+import { checkReady as cr } from "./ready.mjs";
+t2("VPS failure is a problem, VPS 404 is not", async () => {
+  const mk = (vpsStatus) => async (url) => {
+    const r = (s, b) => ({ status: s, text: async () => b });
+    if (url.startsWith("https://r2/")) {
+      if (url.endsWith("latest.json")) return r(200, JSON.stringify({ version: "1.0.0", platforms: {} }));
+    }
+    return r(vpsStatus, "{}");
+  };
+  const bad = await cr({ base: "https://r2", vps: "https://vps", fetch: mk(500) });
+  assert2.equal(bad.ok, false);
+  const none = await cr({ base: "https://r2", vps: "https://vps", fetch: mk(404) });
+  assert2.equal(none.ok, true);
+});

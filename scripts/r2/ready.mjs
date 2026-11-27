@@ -25,7 +25,12 @@ export async function checkReady({ base, vps, fetch: fetchFn = globalThis.fetch 
       continue;
     }
     const mine = r.json;
-    const theirs = (await readJson(`${trimBase(vps)}/${channel}/latest.json`, fetchFn)).json;
+    const vpsUrl = `${trimBase(vps)}/${channel}/latest.json`;
+    const v = await readJson(vpsUrl, fetchFn);
+    if (v.status !== 404 && (v.status !== 200 || typeof v.json?.version !== "string")) {
+      problems.push(`${channel}: VPS manifest ${vpsUrl} is not readable (${v.status ?? v.error ?? "invalid JSON"})`);
+    }
+    const theirs = v.json;
     try {
       if (typeof theirs?.version === "string" && compare(mine.version, theirs.version) < 0) {
         problems.push(`${channel}: R2 has ${mine.version}, older than ${theirs.version} on the VPS`);

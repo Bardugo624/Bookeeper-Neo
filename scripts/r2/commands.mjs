@@ -48,12 +48,16 @@ export async function publish({ bucket, base, version, updates, installers, note
   const channel = channelOf(version);
   const manifestKey = `${prefix}files/${version}/manifest.json`;
 
-  // A republish keeps the manifest already in the bucket, so pub_date and the bytes stay the same.
+  // Always built from the files being uploaded; only pub_date is reused, and only
+  // when the rest of the manifest is unchanged, so an identical republish is a no-op.
   const existing = await readJsonKey(bucket, manifestKey);
-  const manifest = existing ?? buildManifest({
+  const manifest = buildManifest({
     dir: updates, version, notes: notesFile ? readFileSync(notesFile, "utf8") : "", baseUrl: base,
     warn: (m) => log(`warning: ${m}`),
   });
+  if (existing && existing.pub_date && JSON.stringify({ ...existing, pub_date: 0 }) === JSON.stringify({ ...manifest, pub_date: 0 })) {
+    manifest.pub_date = existing.pub_date;
+  }
 
   for (const name of filesIn(updates)) await bucket.put(join(updates, name), `${prefix}files/${version}/${name}`);
   await bucket.putText(json(manifest), manifestKey);
