@@ -1,6 +1,6 @@
 # `bk`: lo script di aiuto del progetto
 
-`bk` raccoglie in un posto solo i comandi che servono per seguire la CI, vedere le versioni e scaricare gli installer. Parla con GitHub tramite `gh`.
+`bk` raccoglie in un posto solo i comandi che servono per seguire la CI, vedere le versioni, compilare e pubblicare una release, gestire gli aggiornamenti su R2 e aggiornare la VPS. Parla con GitHub tramite `gh`.
 
 ## Prima di cominciare
 
@@ -63,6 +63,54 @@ Controlla Node, `git`, `gh` (installato e collegato), l'accesso al repository, l
 npm run bk -- doctor
 ```
 
+### `build`
+
+Compila gli installer sulla CI senza pubblicare nulla. L'albero deve essere pulito e il ramo già su GitHub; va bene qualunque ramo. Alla fine chiede «Scarico gli installer in dist/?».
+
+```
+npm run bk -- build           # installer in dist/<versione>-<sha>/
+```
+
+### `release`
+
+Pubblica una nuova versione. Devi essere su `main`, con l'albero pulito (può cambiare solo `CHANGELOG.md`) e il ramo già su GitHub.
+
+```
+npm run bk -- release patch   # anche minor, major, beta
+npm run bk -- release 2.2.0   # una versione scritta da te
+```
+
+La prima volta, se manca la sezione in `CHANGELOG.md`, `bk` la aggiunge e si ferma: scrivi le novità e rilancia lo stesso comando. Poi aumenta la versione ovunque, fa il commit `Release <versione>`, lo invia, avvia la pubblicazione e controlla (fino a 15 minuti) che il canale mostri la nuova versione. La versione deve essere più alta di quelle pubblicate su `stable` e `beta`, e la release non deve esistere già su GitHub. Se la pubblicazione fallisce: `npm run bk -- ci logs <id>`.
+
+### `updates`
+
+Gestisce gli aggiornamenti serviti da R2.
+
+```
+npm run bk -- updates                              # canali, fonte e stato del rimando
+npm run bk -- updates seed                         # copia su R2 quello che c'è oggi
+npm run bk -- updates withdraw beta 2.2.0-beta.1   # ritira una versione (scrivi «ritira»)
+npm run bk -- updates switch                       # la VPS rimanda i client a R2 (scrivi «deploy»)
+npm run bk -- updates switch --off                 # la VPS torna a servire da sola (scrivi «deploy»)
+```
+
+### `deploy`
+
+Aggiorna la VPS. Devi essere su `main`, con l'albero pulito e il ramo su GitHub. Chiede sempre di scrivere «deploy»: non c'è modo di saltare la domanda.
+
+```
+npm run bk -- deploy server   # poi controlla che la versione del server sia quella del repository
+npm run bk -- deploy caddy    # poi controlla che i manifest sulla VPS rispondano
+```
+
+## Accendere R2
+
+1. `npm run bk -- updates seed`: copia su R2 i manifest e gli installer attuali.
+2. `npm run bk -- updates`: controlla che `stable` e `beta` rispondano da R2.
+3. `npm run bk -- updates switch`: verifica che R2 sia pronto, accende il rimando, aggiorna Caddy e controlla che la VPS risponda 302 verso R2. Se R2 non è pronto, non cambia nulla; se il deploy fallisce, rimette il rimando a `off`.
+
+**Tornare indietro:** `npm run bk -- updates switch --off` spegne il rimando, aggiorna Caddy e controlla che la VPS risponda 200. Per togliere una versione sbagliata: `updates withdraw`.
+
 ## Per i test
 
-Gli indirizzi si possono cambiare con `BK_UPDATES_BASE`, `BK_VPS_BASE` e `BK_SERVER_URL`. I test usano un `gh` finto (`scripts/bk/fake-gh.mjs`) e server locali: non toccano mai GitHub.
+Gli indirizzi si possono cambiare con `BK_UPDATES_BASE`, `BK_VPS_BASE` e `BK_SERVER_URL`. I test usano un `gh` finto (`scripts/bk/fake-gh.mjs`) e server locali (`BK_POLL_MS` e `BK_POLL_TIMEOUT_MS` accorciano le attese): non toccano mai GitHub.

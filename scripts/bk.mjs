@@ -8,15 +8,19 @@ import { choose, closeMenu } from './bk/menu.mjs';
 
 const dir = join(dirname(fileURLToPath(import.meta.url)), 'bk', 'commands');
 
+// Menu order: day-to-day first, then publishing; any other command follows alphabetically.
+const ORDER = ['ci', 'status', 'build', 'release', 'updates', 'deploy', 'dist', 'doctor'];
+const rank = (name) => (ORDER.includes(name) ? ORDER.indexOf(name) : ORDER.length);
+
 // Every commands/<name>.mjs with `meta` and `run` is a command.
 export async function loadCommands() {
-  const files = readdirSync(dir).filter((f) => f.endsWith('.mjs') && !f.endsWith('.test.mjs')).sort();
+  const files = readdirSync(dir).filter((f) => f.endsWith('.mjs') && !f.endsWith('.test.mjs') && !f.startsWith('_')).sort();
   const cmds = [];
   for (const f of files) {
     const mod = await import(pathToFileURL(join(dir, f)).href);
     if (mod.meta?.name && typeof mod.run === 'function') cmds.push(mod);
   }
-  return cmds;
+  return cmds.sort((a, b) => rank(a.meta.name) - rank(b.meta.name) || a.meta.name.localeCompare(b.meta.name));
 }
 
 function printHelp(cmds) {
