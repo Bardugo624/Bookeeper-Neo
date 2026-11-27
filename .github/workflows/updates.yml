@@ -1,0 +1,83 @@
+name: Updates
+
+# Manual only: copies the VPS updates into R2 (seed) or withdraws a version (withdraw).
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: What to do
+        type: choice
+        options: [seed, withdraw]
+        default: seed
+      channel:
+        description: Channel (withdraw)
+        type: choice
+        options: [stable, beta]
+        default: stable
+      version:
+        description: Version (withdraw)
+        type: string
+        default: ""
+      dry_run:
+        description: Only show what would change
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-updates
+  cancel-in-progress: false
+
+jobs:
+  updates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      VPS_HOST: 82.165.185.245
+      VPS_USER: root
+      VPS_PORT: "22"
+      VPS_HOST_KEY: "SHA256:aT+GlEdo8ocxbB3WUGXnDAo7j7dotW8LepYZELK2Uj8"
+      R2_ACCOUNT_ID: ${{ vars.R2_ACCOUNT_ID }}
+      R2_BUCKET: ${{ vars.R2_BUCKET }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      UPDATES_BASE: ${{ vars.UPDATES_BASE || 'https://updates.neokeeper.dev/v2' }}
+      ACTION: ${{ inputs.action }}
+      CHANNEL: ${{ inputs.channel }}
+      VERSION: ${{ inputs.version }}
+      DRY_RUN: ${{ inputs.dry_run }}
+    steps:
+      - name: Only from main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::This workflow runs only from main"
+          exit 1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: SSH setup
+        if: inputs.action == 'seed'
+        uses: ./.github/actions/vps-ssh
+        with:
+          key: ${{ secrets.VPS_SSH_KEY }}
+          host-key: ${{ env.VPS_HOST_KEY }}
+      - name: Seed R2 from the VPS
+        if: inputs.action == 'seed'
+        run: |
+          mkdir seed
+          # Read-only copy.
+          scp -r vps:/opt/bookeeper/updates/stable vps:/opt/bookeeper/updates/beta vps:/opt/bookeeper/updates/files seed/
+          flag=""; [ "$DRY_RUN" = true ] && flag="--dry-run"
+          node scripts/updates-r2.mjs seed --from seed --from-base https://app.neokeeper.dev/updates --base "$UPDATES_BASE" $flag
+      - name: Withdraw a version
+        if: inputs.action == 'withdraw'
+        run: |
+          flag=""; [ "$DRY_RUN" = true ] && flag="--dry-run"
+          node scripts/updates-r2.mjs withdraw --channel "$CHANNEL" --version "$VERSION" --base "$UPDATES_BASE" $flag
+      - name: Remove the key
+        if: always()
+        run: rm -f ~/.ssh/id_vps

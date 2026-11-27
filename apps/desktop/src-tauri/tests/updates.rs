@@ -12,11 +12,11 @@ fn v(s: &str) -> Version {
 fn address_follows_the_channel() {
     assert_eq!(
         manifest_url(DEFAULT_BASE, Channel::Stable),
-        "https://app.neokeeper.dev/updates/stable/latest.json"
+        "https://updates.neokeeper.dev/v2/stable/latest.json"
     );
     assert_eq!(
         manifest_url(DEFAULT_BASE, Channel::Beta),
-        "https://app.neokeeper.dev/updates/beta/latest.json"
+        "https://updates.neokeeper.dev/v2/beta/latest.json"
     );
 }
 

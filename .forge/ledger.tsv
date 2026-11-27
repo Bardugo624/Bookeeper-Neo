@@ -694,3 +694,23 @@
 2026-11-27T02:15:24Z	bookeeper-fase-8b1	fix-settings-fit	dwarf	sonnet	-	-	-	-	152
 2026-11-27T02:17:15Z	bookeeper-fase-8b1	fix-settings-fit	qa	opus	PASS	-	-	-	99
 2026-11-27T02:17:31Z	bookeeper-fase-8b1	fix-tour-slot	qa	opus	PASS	-	-	-	116
+2026-11-27T08:36:22Z	bookeeper-fase-9a	bk-version	dwarf	sonnet	-	-	-	-	91
+2026-11-27T08:37:47Z	bookeeper-fase-9a	bk-version	qa	opus	PASS	-	-	-	53
+2026-11-27T08:40:30Z	bookeeper-fase-9a	app-base	dwarf	sonnet	-	-	-	-	339
+2026-11-27T08:41:12Z	bookeeper-fase-9a	r2-scripts	dwarf	sonnet	-	-	-	-	194
+2026-11-27T08:43:55Z	bookeeper-fase-9a	app-base	qa	opus	PASS	-	-	-	198
+2026-11-27T08:45:34Z	bookeeper-fase-9a	r2-scripts	qa	opus	FAIL	-	-	-	253
+2026-11-27T08:46:07Z	bookeeper-fase-9a	r2-scripts	dwarf	sonnet	-	-	-	-	26
+2026-11-27T08:46:49Z	bookeeper-fase-9a	bk-core	dwarf	sonnet	-	-	-	-	163
+2026-11-27T08:47:19Z	bookeeper-fase-9a	r2-scripts	qa	opus	PASS	-	-	-	64
+2026-11-27T08:48:27Z	bookeeper-fase-9a	bk-core	qa	opus	FAIL	finding	bk command tests that spawn bk mjs without a temp repo cwd run git against the real checkout and ispushed then fetches from the real origin	bk command tests that spawn `bk.mjs` without a temp-repo `cwd` run git against the real checkout, and `isPushed` then fetches from the real origin [scripts/bk/commands.test.mjs]	90	1
+2026-11-27T08:48:45Z	bookeeper-fase-9a	r2-workflows	dwarf	sonnet	-	-	-	-	77
+2026-11-27T08:49:17Z	bookeeper-fase-9a	bk-core	dwarf	sonnet	-	trap	bk command tests that spawn bk mjs must pass a temp repo cwd with a local bare remote or git ispushed fetches from the real origin	bk command tests that spawn `bk.mjs` must pass a temp-repo `cwd` with a local bare remote, or `git.isPushed` fetches from the real origin [scripts/bk/commands.test.mjs]	42	1
+2026-11-27T08:50:01Z	bookeeper-fase-9a	bk-core	qa	opus	FAIL	finding	trimming the whole git status porcelain output removes the leading space of the first m line and breaks fixed column path parsing	trimming the whole `git status --porcelain` output removes the leading space of the first ` M` line and breaks fixed-column path parsing [scripts/bk/git.mjs]	36	1
+2026-11-27T08:50:24Z	bookeeper-fase-9a	r2-workflows	qa	opus	PASS	-	-	-	90
+2026-11-27T09:00:17Z	bookeeper-fase-9a	bk-core	dwarf	opus	-	trap	trimming the whole git status porcelain output removes the leading space of the first m line parse porcelain z raw instead	trimming the whole `git status --porcelain` output removes the leading space of the first ` M` line; parse `--porcelain -z` raw instead [scripts/bk/git.mjs]	29	1
+2026-11-27T09:00:48Z	bookeeper-fase-9a	bk-core	qa	opus	PASS	-	-	-	24
+2026-11-27T09:03:52Z	bookeeper-fase-9a	bk-publish	dwarf	sonnet	-	-	-	-	174
+2026-11-27T09:05:47Z	bookeeper-fase-9a	bk-publish	qa	opus	FAIL	trap	scripts bk mjs loadcommands imports every non test mjs in scripts bk commands so helper modules placed there are loaded on every bk run	scripts/bk.mjs loadCommands imports every non-.test .mjs in scripts/bk/commands, so helper modules placed there are loaded on every bk run [scripts/bk.mjs]	108	1
+2026-11-27T09:06:40Z	bookeeper-fase-9a	bk-publish	dwarf	sonnet	-	trap	scripts bk mjs loadcommands imports every non test mjs in scripts bk commands so helper modules placed there are loaded on every bk run	scripts/bk.mjs loadCommands imports every non-.test .mjs in scripts/bk/commands, so helper modules placed there are loaded on every bk run [scripts/bk.mjs]	47	1
+2026-11-27T09:07:29Z	bookeeper-fase-9a	bk-publish	qa	opus	PASS	-	-	-	41

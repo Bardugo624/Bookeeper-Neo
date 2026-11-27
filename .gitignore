@@ -4,6 +4,7 @@
 # Node / npm workspaces
 node_modules/
 apps/*/dist/
+/dist/
 
 # Local env (NEVER commit secrets)
 .env

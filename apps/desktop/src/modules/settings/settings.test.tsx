@@ -5,6 +5,7 @@ import { resetLocalePreferenceForTest } from '../../app/i18n';
 import { THEME_KEY } from '../../theme';
 import { resetThemeForTest } from '../../theme/useTheme';
 import { useSession } from '../../session';
+import { APP_VERSION } from './appVersion';
 import { renderSettings } from './testkit';
 
 beforeEach(() => {
@@ -168,7 +169,7 @@ describe('about', () => {
   it('shows app and server versions and the server mode', async () => {
     renderSettings({ health: { version: '2.3.4' }, server: { phone_ready: false, public_url: null, tls: 'acme' } }, '/settings/about');
     expect(await screen.findByText('2.3.4')).toBeInTheDocument();
-    expect(screen.getByText('2.1.0')).toBeInTheDocument();
+    expect(screen.getByText(APP_VERSION)).toBeInTheDocument();
     expect(await screen.findByText('Cifrata, con indirizzo pubblico')).toBeInTheDocument();
   });
 
