@@ -203,7 +203,10 @@ async fn reading_progress_columns_survive_a_round_trip() {
         .await
         .unwrap();
     let bytes = archive_of(&s).await;
-    assert_eq!(entry(&bytes, "data.json")["reading"][0]["progress_percent"], 50.0);
+    assert_eq!(
+        entry(&bytes, "data.json")["reading"][0]["progress_percent"],
+        50.0
+    );
     s.state
         .db
         .run(|c| c.execute("DELETE FROM reading", []))
