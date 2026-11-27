@@ -2345,6 +2345,128 @@
         ]
       }
     },
+    "/api/v1/books/{id}/files/{file_id}/position": {
+      "put": {
+        "tags": [
+          "reading"
+        ],
+        "operationId": "put_position",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "file_id",
+            "in": "path",
+            "description": "File id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PutPosition"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "The caller's reading state with the new progress; null when there is no reading yet and percent is 0",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "null"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ReadingOut"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad_request: malformed JSON or wrong content type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: guests cannot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: unknown book or file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation: invalid body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/books/{id}/placement": {
       "put": {
         "tags": [
@@ -2492,6 +2614,75 @@
           },
           "403": {
             "description": "forbidden: role too low",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: unknown book",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/books/{id}/positions": {
+      "get": {
+        "tags": [
+          "reading"
+        ],
+        "operationId": "list_positions",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The caller's positions in the book's files",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PositionOut"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: guests cannot",
             "content": {
               "application/json": {
                 "schema": {
@@ -9800,6 +9991,50 @@
           }
         }
       },
+      "PositionOut": {
+        "type": "object",
+        "required": [
+          "file_id",
+          "kind",
+          "value",
+          "updated_at"
+        ],
+        "properties": {
+          "device_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "device_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "file_id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "description": "`cfi`, `koreader` or `kobo`."
+          },
+          "percent": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "updated_at": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "value": {
+            "type": "string"
+          }
+        }
+      },
       "PutBookTags": {
         "type": "object",
         "description": "Body of `PUT /books/{id}/tags`.",
@@ -9813,6 +10048,30 @@
               "type": "string"
             },
             "description": "The full set of tags of the book; at most 20 distinct ids."
+          }
+        }
+      },
+      "PutPosition": {
+        "type": "object",
+        "description": "Body of `PUT /books/{id}/files/{file_id}/position`.",
+        "required": [
+          "kind",
+          "value",
+          "percent"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "Only `cfi` (the Bookeeper reader) can be written here."
+          },
+          "percent": {
+            "type": "number",
+            "format": "double",
+            "description": "0 to 100."
+          },
+          "value": {
+            "type": "string",
+            "description": "The position in the format of the writer, at most 4000 characters."
           }
         }
       },
@@ -10072,6 +10331,22 @@
               "string",
               "null"
             ]
+          },
+          "progress_at": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "When `progress_percent` was last written."
+          },
+          "progress_percent": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double",
+            "description": "0 to 100: the one progress of this person on this book."
           },
           "rating": {
             "type": [

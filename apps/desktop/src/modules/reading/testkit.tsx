@@ -14,6 +14,8 @@ export const reading = (over: Partial<ReadingOut> = {}): ReadingOut => ({
   note: null,
   current_page: 312,
   updated_at: 1_700_000_000,
+  progress_percent: null,
+  progress_at: null,
   ...over,
 });
 

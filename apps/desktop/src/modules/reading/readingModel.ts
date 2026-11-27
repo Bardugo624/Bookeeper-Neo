@@ -58,6 +58,8 @@ export function optimisticReading(bookId: string, body: PutReading, pageCount?: 
     note: body.note ?? null,
     current_page: toRead ? null : (body.current_page ?? (status === 'read' ? (pageCount ?? null) : null)),
     updated_at: now,
+    progress_percent: null,
+    progress_at: null,
   };
 }
 
