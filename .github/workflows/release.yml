@@ -48,6 +48,11 @@ jobs:
             echo "::error::apps/desktop/src-tauri/tauri.conf.json has version ${tauri_version}, Cargo.toml has ${version}"
             exit 1
           fi
+          setup_version=$(sed -n 's/^[[:space:]]*"version":[[:space:]]*"\([^"]*\)".*/\1/p' apps/setup/package.json | head -1)
+          if [ "$setup_version" != "$version" ]; then
+            echo "::error::apps/setup/package.json has version ${setup_version}, Cargo.toml has ${version}"
+            exit 1
+          fi
           if [ "$PUBLISH" = "true" ]; then
             if ! node scripts/release-notes.mjs --version "$version" --out /dev/null; then
               echo "::error::CHANGELOG.md has no section for ${version}"
@@ -304,17 +309,72 @@ jobs:
           sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev \
             librsvg2-dev libssl-dev libsoup-3.0-dev libjavascriptcoregtk-4.1-dev patchelf xdg-utils
       - run: npm ci
+      - name: Build the light Setup (windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          npm run tauri -w @bookeeper/setup -- build --no-bundle --target "$TARGET"
+          exe="target/${TARGET}/release/bookeeper-setup.exe"
+          [ -f "$exe" ] || exe="apps/setup/src-tauri/target/${TARGET}/release/bookeeper-setup.exe"
+          if [ ! -f "$exe" ]; then
+            echo "::error::bookeeper-setup.exe was not built for ${TARGET}"
+            exit 1
+          fi
+          cp "$exe" apps/desktop/src-tauri/windows/bookeeper-setup.exe
+          ls -l apps/desktop/src-tauri/windows/bookeeper-setup.exe
+      - name: DLL dependencies of the light Setup (windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+          $dumpbin = $null
+          if (Test-Path $vswhere) {
+            $dumpbin = & $vswhere -latest -products * -find 'VC\Tools\MSVC\**\bin\Hostx64\x64\dumpbin.exe' | Select-Object -First 1
+          }
+          if ($dumpbin) {
+            & $dumpbin /dependents apps/desktop/src-tauri/windows/bookeeper-setup.exe
+          } else {
+            Write-Host "::warning::dumpbin not found: DLL dependencies not listed"
+          }
+        continue-on-error: true
+      - name: Merge the DMG background (macos)
+        if: runner.os == 'macOS'
+        shell: bash
+        env:
+          TAURI_BUNDLER_DMG_IGNORE_CI: "true"
+        run: |
+          # Set for the Build step too (macOS only; the DMG bundler must not skip Finder styling on CI).
+          echo "TAURI_BUNDLER_DMG_IGNORE_CI=true" >> "$GITHUB_ENV"
+          tiffutil -cathidpicheck apps/desktop/src-tauri/dmg/background.png apps/desktop/src-tauri/dmg/background@2x.png \
+            -out apps/desktop/src-tauri/dmg/background.tiff
+          ls -l apps/desktop/src-tauri/dmg
       - name: Build
         shell: bash
         run: |
-          if [ -n "$TAURI_SIGNING_PRIVATE_KEY" ] && [ -n "$BOOKEEPER_UPDATER_PUBKEY" ]; then
-            # The CLI wants plugins.updater.pubkey in the configuration when it makes update artifacts.
-            cfg=$(node -e 'console.log(JSON.stringify({plugins:{updater:{pubkey:process.env.BOOKEEPER_UPDATER_PUBKEY}}}))')
-            npm run tauri build -w @bookeeper/desktop -- --target "$TARGET" --config "$cfg"
+          build() {
+            if [ -n "$TAURI_SIGNING_PRIVATE_KEY" ] && [ -n "$BOOKEEPER_UPDATER_PUBKEY" ]; then
+              # The CLI wants plugins.updater.pubkey in the configuration when it makes update artifacts.
+              cfg=$(node -e 'console.log(JSON.stringify({plugins:{updater:{pubkey:process.env.BOOKEEPER_UPDATER_PUBKEY}}}))')
+              if [ "$RUNNER_OS" = macOS ]; then
+                cfg=$(node -e 'const c=JSON.parse(process.argv[1]);c.bundle={macOS:{dmg:{background:"dmg/background.tiff"}}};console.log(JSON.stringify(c))' "$cfg")
+              fi
+              npm run tauri build -w @bookeeper/desktop -- --target "$TARGET" --config "$cfg"
+            else
+              echo "::warning::TAURI_SIGNING_PRIVATE_KEY or BOOKEEPER_UPDATER_PUBKEY is not set: building installers without update artifacts"
+              if [ "$RUNNER_OS" = macOS ]; then
+                npm run tauri build -w @bookeeper/desktop -- --target "$TARGET" \
+                  --config '{"bundle":{"createUpdaterArtifacts":false,"macOS":{"dmg":{"background":"dmg/background.tiff"}}}}'
+              else
+                npm run tauri build -w @bookeeper/desktop -- --target "$TARGET" \
+                  --config '{"bundle":{"createUpdaterArtifacts":false}}'
+              fi
+            fi
+          }
+          if [ "$RUNNER_OS" = macOS ]; then
+            # The DMG step is flaky on runners: retry once.
+            build || { echo "::warning::build failed, retrying once"; build; }
           else
-            echo "::warning::TAURI_SIGNING_PRIVATE_KEY or BOOKEEPER_UPDATER_PUBKEY is not set: building installers without update artifacts"
-            npm run tauri build -w @bookeeper/desktop -- --target "$TARGET" \
-              --config '{"bundle":{"createUpdaterArtifacts":false}}'
+            build
           fi
       - name: Collect
         shell: bash
@@ -341,6 +401,31 @@ jobs:
           fi
           if [ -z "$(ls out/installers)" ]; then echo "::error::no installer built"; exit 1; fi
           ls -l out/installers out/updates
+      - name: Assemble the Setup (windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          bundle="target/${TARGET}/release/bundle"
+          [ -d "$bundle" ] || bundle="apps/desktop/src-tauri/target/${TARGET}/release/bundle"
+          nsis=$(find "$bundle/nsis" -maxdepth 1 -name '*-setup.exe' 2>/dev/null | head -1 || true)
+          main="target/${TARGET}/release/bookeeper-desktop.exe"
+          [ -f "$main" ] || main="apps/desktop/src-tauri/target/${TARGET}/release/bookeeper-desktop.exe"
+          [ -f "$nsis" ] && [ -f "$main" ] || { echo "::error::NSIS installer or bookeeper-desktop.exe not found"; exit 1; }
+          node scripts/setup/assemble.mjs \
+            --setup apps/desktop/src-tauri/windows/bookeeper-setup.exe \
+            --payload "$nsis" \
+            --main "$main" \
+            --version "$VERSION" \
+            --out "out/installers/Bookeeper-Setup-${VERSION}.exe"
+          echo "SETUP_EXE=$(pwd -W)/out/installers/Bookeeper-Setup-${VERSION}.exe" >> "$GITHUB_ENV"
+          echo "CLASSIC_EXE=$(pwd -W)/$nsis" >> "$GITHUB_ENV"
+          echo "MAIN_EXE=$(pwd -W)/$main" >> "$GITHUB_ENV"
+      - name: Smoke test the Setup (windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          BOOKEEPER_SETUP_ALLOW_ELEVATED: "1"
+        run: pwsh scripts/setup/smoke.ps1 -Setup $env:SETUP_EXE -Classic $env:CLASSIC_EXE -Main $env:MAIN_EXE
       - uses: actions/upload-artifact@v4
         with:
           name: installers-${{ matrix.name }}
@@ -377,7 +462,7 @@ jobs:
           merge-multiple: true
       - name: Checksums
         working-directory: dist
-        run: sha256sum bookeeper-server-* Bookeeper_* > SHA256SUMS && cat SHA256SUMS
+        run: sha256sum bookeeper-server-* Bookeeper_* Bookeeper-Setup-* > SHA256SUMS && cat SHA256SUMS
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.check.outputs.version }}
@@ -389,6 +474,7 @@ jobs:
           files: |
             dist/bookeeper-server-*
             dist/Bookeeper_*
+            dist/Bookeeper-Setup-*
             dist/SHA256SUMS
 
   publish-updates:
