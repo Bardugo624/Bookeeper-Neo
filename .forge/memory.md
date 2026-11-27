@@ -4,6 +4,12 @@
      overwritten. Facts only, one per line. -->
 
 ## Verify
+- from apps/desktop, `npx vitest run src/modules/welcome src/kit/styles.test.ts` runs the welcome tests and the app's CSS lint in about 10 s [apps/desktop/src/kit/styles.test.ts]
+- cargo check --offline --target x86_64-pc-windows-msvc -p bookeeper-setup works from the committed files and type-checks the Setup's Windows-only… [apps/setup/src-tauri/Cargo.toml]
+- cargo check --target x86_64-pc-windows-msvc -p bookeeper-setup --lib --bins type-checks the Windows-only code and the manifest build step from Linux [apps/setup/src-tauri/build.rs]
+- cargo test --offline -p bookeeper-setup-core && cargo clippy --offline -p bookeeper-setup-core --all-targets -- -D warnings && cargo check… [crates/bookeeper-setup-core/Cargo.toml]
+- npm test -w @bookeeper/setup (needs `npm ci --offline` at the root first) [apps/setup/package.json]
+- cargo test -p bookeeper-setup-core && cargo check --target x86_64-pc-windows-msvc -p bookeeper-setup-core [crates/bookeeper-setup-core/Cargo.toml]
 - a throwaway desktop vitest runs from the scratchpad with a `.mts` config that spreads `apps/desktop/vite.config`, sets `root` to apps/desktop,… [apps/desktop/vite.config.ts]
 - npm ci --offline at the root, then `npx vitest run --root packages/ui` for the kit tests [packages/ui/package.json]
 - a throwaway mobile vitest can run from outside the repo with a `.mts` config that spreads `apps/mobile/vite.config` and sets `root` to apps/mobile and… [apps/mobile/vite.config.ts]
@@ -24,10 +30,4 @@
 - a fresh worktree needs `npm ci --offline` at the root before `npm run gen -w @bookeeper/api` works [packages/api/package.json]
 - a rejected optimistic write can restore the cache in the same batch as the optimistic render, so an effect keyed on the saved value… [apps/mobile/src/modules/reading/NoteField.tsx]
 - a fresh worktree has no node_modules; run `npm ci --offline` at the root, then `npx vitest run <path>` from apps/desktop [apps/desktop/package.json]
-- GitHub `shell: bash` steps run with `-eo pipefail`, so `x=$(ls a b 2>/dev/null | head -1)` aborts the step when any listed path is missing [.github/workflows/release.yml]
-- in Windows `shell: bash` steps `$PWD` is an MSYS path (`/d/a/...`); values written to GITHUB_ENV for a later pwsh step need `pwd -W` or `cygpath -w` [.github/workflows/release.yml]
-- `npx vitest run --root packages/ui` from the repo root fails DangerZone.test.tsx and Dialog.test.tsx (ENOENT on their .module.css, read… [packages/ui/src/overlays/Dialog.test.tsx]
-- `cargo generate-lockfile` rewrites the whole Cargo.lock and bumps unrelated crates; restore it from HEAD and let a plain `cargo test` add only the new entries [Cargo.lock]
-- a fresh worktree needs `npm ci --offline` at the root before `npm test -w @bookeeper/ui` or `-w @bookeeper/i18n` works [package-lock.json]
-- scripts/bk.mjs loadCommands imports every non-.test .mjs in scripts/bk/commands, so helper modules placed there are loaded on every bk run [scripts/bk.mjs]
 
