@@ -1,7 +1,8 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { mockBridge, mockInfo, type MockBridge, type OpResult, type Scenario } from '../bridge';
+import { mockBridge, mockInfo, useBusy, type MockBridge, type OpResult, type Scenario } from '../bridge';
+import { TitleBar } from '../shell';
 import { renderSetup } from '../shell/testing';
 import { UninstallFlow } from './index';
 
@@ -164,5 +165,28 @@ describe('UninstallFlow: running and end', () => {
     expect(await screen.findByRole('button', { name: 'Dettagli copiati' })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Riprova' }));
     await screen.findByRole('heading', { name: 'Bookeeper è stato disinstallato' });
+  });
+});
+
+describe('UninstallFlow: focus with the title bar', () => {
+  it('lands on the progress title after «Cancella tutto», not on the title bar', async () => {
+    const bridge = mockBridge('uninstall', { tickMs: 1 });
+    const hanging: MockBridge = { ...bridge, uninstall: () => new Promise(() => {}) };
+    function Shell() {
+      return (
+        <>
+          <TitleBar busy={useBusy()} />
+          <UninstallFlow info={mockInfo('uninstall')} />
+        </>
+      );
+    }
+    renderSetup(<Shell />, { bridge: hanging });
+    const user = userEvent.setup();
+    await user.click(wipe());
+    await user.click(screen.getByRole('button', { name: 'Disinstalla' }));
+    await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Cancella tutto' }));
+    const title = await screen.findByRole('heading', { name: 'Sto disinstallando Bookeeper' });
+    await new Promise((r) => setTimeout(r, 30));
+    expect(title).toHaveFocus();
   });
 });

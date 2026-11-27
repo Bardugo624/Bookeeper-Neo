@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@bookeeper/ui/base";
 import {
   useLogTail,
@@ -29,6 +29,22 @@ export function UninstallFlow({ info }: { info: SetupInfo }) {
   const [deleted, setDeleted] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  const flow = useRef<HTMLDivElement>(null);
+
+  // The dialog unmounts with the choice panel; its close handling then hands focus to a
+  // surviving control (the title bar). Re-focus the title once that has run.
+  useEffect(() => {
+    if (phase !== "running") return;
+    const id = setTimeout(
+      () =>
+        flow.current
+          ?.querySelector<HTMLElement>("h1")
+          ?.focus({ preventScroll: true }),
+      0,
+    );
+    return () => clearTimeout(id);
+  }, [phase]);
+
   const run = useCallback(
     async (deleteData: boolean) => {
       setConfirming(false);
@@ -53,16 +69,16 @@ export function UninstallFlow({ info }: { info: SetupInfo }) {
 
   const go = () =>
     choice === "delete" ? setConfirming(true) : void run(false);
-  const panel = phase === "choose" || phase === "running" ? "tall" : "short";
+  const panel = phase === "choose" ? "tall" : "short";
 
   return (
     <SetupLayout
       quote={quote}
-      compact={phase === "choose" || phase === "running"}
+      compact={phase === "choose"}
       panelHeight={panel}
     >
       {/* The marker is read by the app tests to tell the flows apart. */}
-      <div data-flow="uninstall" style={{ display: "contents" }}>
+      <div ref={flow} data-flow="uninstall" style={{ display: "contents" }}>
         {phase === "choose" ? (
           <>
             <ChoicePanel
