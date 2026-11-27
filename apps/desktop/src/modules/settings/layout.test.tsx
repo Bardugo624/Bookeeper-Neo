@@ -64,6 +64,16 @@ describe("settings styles", () => {
     expect(audit).toMatch(/\.wide td:nth-child\(-n \+ 3\)[^{]*\{[^}]*white-space:\s*nowrap/);
   });
 
+  it("clips a very long person or device name, with the full name in the title", () => {
+    const table = css("./sections/audit/AuditTable.tsx");
+    expect(table.match(/className=\{styles\.clip\} title=\{/g)).toHaveLength(2);
+    expect(audit).toMatch(/\.clip\s*\{[^}]*max-width:\s*14rem[^}]*overflow:\s*hidden[^}]*text-overflow:\s*ellipsis/);
+  });
+
+  it("does not let screen readers read the separator dot", () => {
+    expect(audit).toMatch(/content:\s*'·'\s*\/\s*''/);
+  });
+
   it("turns each entry into a block inside a settings-content container query", () => {
     expect(audit).toMatch(/@container settings-content \(max-width:\s*720px\)\s*\{[\s\S]*\.wide tbody tr\s*\{[^}]*display:\s*flex/);
     expect(audit).toMatch(/@container settings-content[\s\S]*\.wide thead\s*\{[^}]*clip-path/);

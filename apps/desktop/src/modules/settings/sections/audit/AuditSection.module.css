@@ -122,6 +122,15 @@
   white-space: nowrap;
 }
 
+/* A very long person or device name stops at a readable width; the full name is in the title. */
+.clip {
+  display: inline-block;
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}
+
 /* Narrow content: each entry is a block, "when · who · device" small above, "what" across the whole width. */
 @container settings-content (max-width: 720px) {
   .wide thead {
@@ -159,6 +168,8 @@
 
   .wide td:nth-child(n + 2):nth-child(-n + 3)::before {
     content: '·';
+    /* Empty alternative text: screen readers skip the dot. Engines without it keep the line above. */
+    content: '·' / '';
     margin-inline-end: 6px;
   }
 

@@ -23,20 +23,38 @@ export function AuditTable({ items }: { items: AuditOut[] }) {
     {
       id: 'who',
       header: t('audit.columns.who'),
-      cell: (e) => (e.user ? e.user.display_name : <span className={styles.muted}>{t('audit.system')}</span>),
+      cell: (e) =>
+        e.user ? (
+          <span className={styles.clip} title={e.user.display_name}>
+            {e.user.display_name}
+          </span>
+        ) : (
+          <span className={styles.muted}>{t('audit.system')}</span>
+        ),
     },
-    { id: 'device', header: t('audit.columns.device'), cell: (e) => e.device?.name ?? '' },
+    {
+      id: 'device',
+      header: t('audit.columns.device'),
+      cell: (e) =>
+        e.device ? (
+          <span className={styles.clip} title={e.device.name}>
+            {e.device.name}
+          </span>
+        ) : (
+          ''
+        ),
+    },
     { id: 'what', header: t('audit.columns.what'), cell: (e) => <AuditWhat entry={e} /> },
   ];
 
   return (
     <div className={styles.wide}>
       <DataTable
-      label={t('audit.table')}
-      columns={columns}
-      rows={items}
-      rowKey={(e) => String(e.id)}
-      empty={<EmptyState title={t('audit.empty.title')} text={t('audit.empty.description')} />}
+        label={t('audit.table')}
+        columns={columns}
+        rows={items}
+        rowKey={(e) => String(e.id)}
+        empty={<EmptyState title={t('audit.empty.title')} text={t('audit.empty.description')} />}
       />
     </div>
   );

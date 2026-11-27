@@ -90,9 +90,16 @@
 
 .tourSlot {
   position: sticky;
-  bottom: 0;
+  /* The dialog body has 16px of padding below: stick to the scroll edge, so nothing shows under the card. */
+  bottom: -16px;
+  padding-bottom: 16px;
   z-index: 1;
   background: var(--bk-surface-raised);
+}
+
+/* While the card sits at the bottom, a field reached with Tab scrolls into view above it, not behind it. */
+.sheet:has(.tourSlot:not(:empty)) :is(input, select, textarea, button, summary, [tabindex]) {
+  scroll-margin-bottom: 14rem;
 }
 
 .tourSlot:empty {

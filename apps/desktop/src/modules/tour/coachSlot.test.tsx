@@ -62,8 +62,15 @@ describe('the book sheet slot', () => {
     const css = readFileSync('src/modules/books/BookSheet.module.css', 'utf8');
     const rule = css.match(/\.tourSlot\s*\{([^}]*)\}/)![1]!;
     expect(rule).toMatch(/position:\s*sticky/);
-    expect(rule).toMatch(/bottom:\s*0/);
+    // The dialog body has 16px of padding below: the slot reaches the scroll edge, so nothing shows under the card.
+    expect(rule).toMatch(/bottom:\s*-16px/);
+    expect(rule).toMatch(/padding-bottom:\s*16px/);
     expect(rule).toMatch(/background:\s*var\(--bk-/);
     expect(css).toMatch(/\.tourSlot:empty\s*\{\s*display:\s*none/);
+  });
+
+  it('keeps a field reached with Tab above the card while the card is there', () => {
+    const css = readFileSync('src/modules/books/BookSheet.module.css', 'utf8');
+    expect(css).toMatch(/\.sheet:has\(\.tourSlot:not\(:empty\)\)\s*:is\([^)]*input[^)]*button[^)]*\)\s*\{[^}]*scroll-margin-bottom:\s*14rem/);
   });
 });
