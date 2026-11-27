@@ -14,7 +14,7 @@ const FILES = [
   'package-lock.json',
   'apps/desktop/src-tauri/tauri.conf.json',
   'packages/api/openapi.json',
-  ...['packages/ui', 'packages/api', 'packages/i18n', 'apps/desktop', 'apps/mobile'].map((p) => `${p}/package.json`),
+  ...['packages/ui', 'packages/api', 'packages/i18n', 'apps/desktop', 'apps/mobile', 'apps/setup'].map((p) => `${p}/package.json`),
 ];
 
 function copyRepo(crlf = false) {
@@ -37,7 +37,7 @@ test('bumpVersion cambia ogni posto e solo le righe con la versione di partenza'
     const changed = bumpVersion(tmp, '9.9.9');
     assert.ok(changed.includes('Cargo.toml') && changed.includes('Cargo.lock'));
     assert.ok(changed.includes('package-lock.json') && changed.includes('packages/api/openapi.json'));
-    assert.equal(changed.length, 10);
+    assert.equal(changed.length, 11);
     assert.equal(readVersion(tmp), '9.9.9');
     for (const f of FILES.filter((x) => x !== 'CHANGELOG.md')) {
       const a = lines(before[f]);
@@ -52,7 +52,7 @@ test('bumpVersion cambia ogni posto e solo le righe con la versione di partenza'
       if (f.endsWith('openapi.json')) assert.equal(j.info.version, '9.9.9');
       else if (f === 'package-lock.json') {
         for (const p of ['ui', 'api', 'i18n']) assert.equal(j.packages[`packages/${p}`].version, '9.9.9');
-        for (const p of ['desktop', 'mobile']) assert.equal(j.packages[`apps/${p}`].version, '9.9.9');
+        for (const p of ['desktop', 'mobile', 'setup']) assert.equal(j.packages[`apps/${p}`].version, '9.9.9');
         assert.equal(j.packages['node_modules/brace-expansion'].version, '2.1.0');
       } else assert.equal(j.version, '9.9.9');
     }

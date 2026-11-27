@@ -130,6 +130,26 @@ test('dist without an index falls back to the release', async () => {
   assert.match(r.stdout, /https:\/\/gh\.test\/a\.exe/);
 });
 
+test('dist shows the Setup for Windows and downloads both models', async () => {
+  const r = await runBk(['dist', '2.1.0', '--download'], {
+    scenario: [
+      { match: ['release', 'view', 'v2.1.0'], stdout: { assets: [
+        { name: 'Bookeeper-Setup-2.1.0.exe', url: 'https://gh.test/setup.exe' },
+        { name: 'Bookeeper_2.1.0_x64-setup.exe', url: 'https://gh.test/nsis.exe' },
+        { name: 'bookeeper-server-2.1.0.tar.gz', url: 'https://gh.test/server.tgz' },
+      ] } },
+      { match: ['release', 'download'], code: 0 },
+    ],
+  });
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.stdout, /Bookeeper-Setup-2\.1\.0\.exe\n\s+https:\/\/gh\.test\/setup\.exe/);
+  assert.doesNotMatch(r.stdout, /server\.tgz/);
+  const dl = r.calls().find((a) => a[0] === 'release' && a[1] === 'download');
+  assert.ok(dl, 'release download called');
+  const pats = dl.filter((_, i) => dl[i - 1] === '-p');
+  assert.deepEqual(pats, ['Bookeeper_*', 'Bookeeper-Setup-*']);
+});
+
 test('doctor flags a missing gh', async () => {
   const r = await runBk(['doctor']);
   assert.equal(r.status, 1);

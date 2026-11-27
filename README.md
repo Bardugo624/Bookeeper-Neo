@@ -12,7 +12,7 @@ Bookeeper è il gestionale per la libreria di casa. Sai quali libri hai, dove st
 
 Scarica tutto dalla [pagina delle release](https://github.com/Bardugo624/Bookeeper-Neo/releases).
 
-- **App desktop**: scarica l'installatore del tuo sistema (`Bookeeper_*`), avvialo e scegli «Crea qui».
+- **App desktop**: su Windows scarica `Bookeeper-Setup-<versione>.exe`, avvialo e segui i passi. L'installer classico (`Bookeeper_*_x64-setup.exe`) resta nella release, per chi lo preferisce. Su macOS e Linux scarica l'installatore del tuo sistema (`Bookeeper_*`), avvialo e scegli «Crea qui».
 - **Server con Docker**: `docker compose up -d`, poi apri `http://<indirizzo>:7842`. Il codice di setup si legge con `docker compose logs bookeeper`.
 - **Server come binario**: scarica `bookeeper-server-<versione>-<sistema>.tar.gz` (`.zip` su Windows), scompattalo, entra nella cartella e avvia `./bookeeper-server`.
 
