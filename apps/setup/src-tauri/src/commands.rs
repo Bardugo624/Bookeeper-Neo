@@ -10,8 +10,8 @@ use bookeeper_setup_core::sys::System;
 use bookeeper_setup_core::version;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::fs::File;
-use std::io::{self, Read, Seek, SeekFrom, Write};
+use std::fs::{File, OpenOptions};
+use std::io::{self, Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use tauri::{AppHandle, Emitter, State};
@@ -302,16 +302,6 @@ pub fn build_info(sys: &dyn System, ctx: &Context) -> SetupInfo {
     }
 }
 
-fn nearest_existing(dir: &Path) -> PathBuf {
-    let mut probe = dir.to_path_buf();
-    while !probe.exists() && probe.pop() {}
-    // Nothing exists (a Windows path on another host): ask about the folder itself.
-    if probe.as_os_str().is_empty() {
-        return dir.to_path_buf();
-    }
-    probe
-}
-
 fn drive_of(dir: &Path) -> String {
     let s = dir.to_string_lossy();
     let b = s.as_bytes();
@@ -353,14 +343,16 @@ pub fn check_exact(sys: &dyn System, dir: PathBuf, meta: Option<&Meta>) -> DirCh
     if sys.is_network_path(&dir) {
         return result(Some(ProblemCode::Network), 0);
     }
-    let probe = nearest_existing(&dir);
-    if !sys.can_write(&probe).unwrap_or(false) {
+    // `can_write` creates the missing folders, writes into the target and removes what it
+    // created: asking about an existing parent instead would refuse `C:\Bookeeper`, since a
+    // standard user may create folders at the root of C: but not files.
+    if !sys.can_write(&dir).unwrap_or(false) {
         return result(
             Some(ProblemCode::NeedsAdmin),
-            sys.free_space(&probe).unwrap_or(0),
+            sys.free_space(&dir).unwrap_or(0),
         );
     }
-    let free_target = sys.free_space(&probe).unwrap_or(0);
+    let free_target = sys.free_space(&dir).unwrap_or(0);
     let free_temp = sys.free_space(&sys.temp_dir()).unwrap_or(0);
     let (installed, payload_bytes) = meta.map_or((0, 0), |m| (m.installed_bytes, m.payload.bytes));
     match folder::check_space(free_target, free_temp, installed, payload_bytes) {
@@ -412,10 +404,10 @@ pub fn run_install(
 /// The folder to remove: the registered one, else the one the Setup sits in.
 pub fn uninstall_dir(sys: &dyn System, setup_exe: &Path) -> Option<PathBuf> {
     ops::read_state(sys).map(|s| s.dir).or_else(|| {
-        // Only a folder that really holds an installation counts.
+        // Only a folder that really holds an installation counts: the app and its uninstaller.
         setup_exe
             .parent()
-            .filter(|p| p.join(UNINSTALLER).is_file())
+            .filter(|p| p.join(UNINSTALLER).is_file() && p.join(MAIN_EXE).is_file())
             .map(Path::to_path_buf)
     })
 }
@@ -452,9 +444,14 @@ pub fn launch(sys: &dyn System, setup_exe: &Path) -> io::Result<()> {
 /// WebView2 itself); the light one starts `uninstall.exe`. Nothing here needs a window.
 pub fn webview2_fallback(sys: &dyn System, setup_exe: &Path, log: &Log) -> io::Result<()> {
     if let Some(meta) = read_payload(setup_exe) {
-        let path = extract_installer(sys, setup_exe, &meta)?;
-        log.line(&format!("no WebView2: starting {}", path.display()));
-        std::process::Command::new(&path).spawn()?;
+        let installer = extract_installer(sys, setup_exe, &meta)?;
+        log.line(&format!(
+            "no WebView2: starting {}",
+            installer.path.display()
+        ));
+        std::process::Command::new(&installer.path).spawn()?;
+        // Started: from now on the running installer keeps its own file from being changed.
+        drop(installer);
     } else {
         let dir = uninstall_dir(sys, setup_exe)
             .ok_or_else(|| io::Error::from(io::ErrorKind::NotFound))?;
@@ -465,51 +462,75 @@ pub fn webview2_fallback(sys: &dyn System, setup_exe: &Path, log: &Log) -> io::R
     Ok(())
 }
 
-fn extract_installer(sys: &dyn System, setup_exe: &Path, meta: &Meta) -> io::Result<PathBuf> {
-    let mut f = File::open(setup_exe)?;
-    let len = f.metadata()?.len();
-    let located = payload::locate(&mut f, len)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e.to_string()))?
-        .ok_or_else(|| io::Error::from(io::ErrorKind::InvalidData))?;
+/// Prefix of the folders in %TEMP% where the WebView2 fallback unpacks the classic installer.
+/// The installer is still running when the Setup exits, so a later start sweeps them.
+pub const EXTRACT_PREFIX: &str = "bookeeper-setup-classic-";
+
+/// The classic installer, unpacked and checked.
+#[derive(Debug)]
+pub struct ExtractedInstaller {
+    pub path: PathBuf,
+    /// Open read-only, sharing reads only (`ops::open_locked`): nobody can change the file
+    /// between the hash and the launch. Drop it once the installer has started.
+    pub lock: File,
+}
+
+/// Unpacks the classic installer into a new `EXTRACT_PREFIX…` folder in %TEMP%, then checks
+/// its size and SHA-256 through the handle it returns.
+pub fn extract_installer(
+    sys: &dyn System,
+    setup_exe: &Path,
+    meta: &Meta,
+) -> io::Result<ExtractedInstaller> {
     let nanos = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map_or(0, |d| d.subsec_nanos());
     let dir = sys
         .temp_dir()
-        .join(format!("bookeeper-setup-{}-{nanos:x}", std::process::id()));
+        .join(format!("{EXTRACT_PREFIX}{}-{nanos:x}", std::process::id()));
     std::fs::create_dir(&dir)?;
+    let result = unpack_checked(setup_exe, meta, &dir);
+    if result.is_err() {
+        // Every handle is closed by now, so the folder can go.
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+    result
+}
+
+fn unpack_checked(setup_exe: &Path, meta: &Meta, dir: &Path) -> io::Result<ExtractedInstaller> {
+    let mut f = File::open(setup_exe)?;
+    let len = f.metadata()?.len();
+    let located = payload::locate(&mut f, len)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e.to_string()))?
+        .ok_or_else(|| io::Error::from(io::ErrorKind::InvalidData))?;
     // Only the file name of the metadata is used, so a hostile name cannot leave the folder.
     let name = Path::new(&meta.payload.name)
         .file_name()
         .ok_or_else(|| io::Error::from(io::ErrorKind::InvalidData))?;
-    let out_path = dir.join(name);
-    let mut out = File::create(&out_path)?;
-    f.seek(SeekFrom::Start(located.payload_offset))?;
-    let mut hasher = Sha256::new();
-    let mut remaining = located.payload_len;
-    let mut buf = vec![0u8; 256 * 1024];
-    while remaining > 0 {
-        let n = buf.len().min(remaining as usize);
-        f.read_exact(&mut buf[..n])?;
-        hasher.update(&buf[..n]);
-        out.write_all(&buf[..n])?;
-        remaining -= n as u64;
+    let path = dir.join(name);
+    {
+        let mut out = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&path)?;
+        f.seek(SeekFrom::Start(located.payload_offset))?;
+        io::copy(&mut f.take(located.payload_len), &mut out)?;
     }
-    out.flush()?;
-    drop(out);
+    let mut lock = ops::open_locked(&path)?;
+    let mut hasher = Sha256::new();
+    let size = io::copy(&mut lock, &mut hasher)?;
     let hex: String = hasher
         .finalize()
         .iter()
         .map(|b| format!("{b:02x}"))
         .collect();
-    if !hex.eq_ignore_ascii_case(&meta.payload.sha256) {
-        let _ = std::fs::remove_dir_all(&dir);
+    if size != meta.payload.bytes || !hex.eq_ignore_ascii_case(&meta.payload.sha256) {
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
             "installer hash mismatch",
         ));
     }
-    Ok(out_path)
+    Ok(ExtractedInstaller { path, lock })
 }
 
 type AppStateRef<'a> = State<'a, Arc<AppState>>;

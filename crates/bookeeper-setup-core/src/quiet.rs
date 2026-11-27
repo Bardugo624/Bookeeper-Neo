@@ -2,7 +2,7 @@
 //! open, 4 newer version or 0.x) and the Setup log.
 
 use crate::cmdline::{Invocation, QuietInstallArgs, UninstallArgs};
-use crate::folder;
+use crate::folder::{self, FolderProblem};
 use crate::log::Log;
 use crate::ops::{self, InstallOptions, Mode, OpError};
 use crate::payload;
@@ -10,7 +10,7 @@ use crate::sys::System;
 use crate::version;
 use std::cmp::Ordering;
 use std::fs::File;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 pub const DONE: i32 = 0;
 pub const ERROR: i32 = 2;
@@ -115,8 +115,11 @@ fn install(sys: &dyn System, a: &QuietInstallArgs, setup_exe: &Path, log: &Log) 
         }
     };
 
-    if let Some(problem) = space_problem(sys, &dir, &meta) {
-        log.line(&format!("quiet: {problem:?}"));
+    if let Some(problem) = folder_problem(sys, &dir, &meta) {
+        log.line(&format!(
+            "quiet: refused, folder problem {problem:?} in {}",
+            dir.display()
+        ));
         return ERROR;
     }
 
@@ -132,16 +135,30 @@ fn install(sys: &dyn System, a: &QuietInstallArgs, setup_exe: &Path, log: &Log) 
     }
 }
 
-fn space_problem(
-    sys: &dyn System,
-    dir: &Path,
-    meta: &payload::Meta,
-) -> Option<folder::FolderProblem> {
-    // The folder may not exist yet: ask about the nearest folder that does.
-    let mut probe: PathBuf = dir.to_path_buf();
-    while !probe.exists() && probe.pop() {}
-    let free_target = sys.free_space(&probe).ok()?;
-    let free_temp = sys.free_space(&sys.temp_dir()).ok()?;
+/// The checks the window makes before installing (`check_dir` in the Setup app), so that
+/// `--dir` cannot skip them.
+fn folder_problem(sys: &dyn System, dir: &Path, meta: &payload::Meta) -> Option<FolderProblem> {
+    // The rules of `folder::check_path`, except that the host says what is absolute: that
+    // function reads Windows text, so it would call the `/…` paths of other hosts relative.
+    let text = dir.to_string_lossy();
+    if text.starts_with(r"\\") || text.starts_with("//") {
+        return Some(FolderProblem::Network);
+    }
+    if !dir.is_absolute() {
+        return Some(FolderProblem::NotAbsolute);
+    }
+    if text.chars().count() > folder::MAX_PATH_CHARS {
+        return Some(FolderProblem::TooLong);
+    }
+    if sys.is_network_path(dir) {
+        return Some(FolderProblem::Network);
+    }
+    // `can_write` creates the missing folders and writes into the target itself, as the window does.
+    if !sys.can_write(dir).unwrap_or(false) {
+        return Some(FolderProblem::NeedsAdmin);
+    }
+    let free_target = sys.free_space(dir).unwrap_or(0);
+    let free_temp = sys.free_space(&sys.temp_dir()).unwrap_or(0);
     folder::check_space(
         free_target,
         free_temp,

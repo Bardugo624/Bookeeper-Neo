@@ -98,6 +98,21 @@ fn run(f: &Fixture, inv: &Invocation) -> i32 {
     quiet::run(&*f.sys, inv, &f.setup)
 }
 
+fn log_text(f: &Fixture) -> String {
+    std::fs::read_to_string(f.sys.temp_dir().join("Bookeeper-Setup.log")).unwrap_or_default()
+}
+
+/// Exit code 2 without running NSIS, and the log names the folder problem.
+fn assert_refused(f: &Fixture, dir: &Path, problem: &str) {
+    assert_eq!(run(f, &install_args(Some(dir))), 2, "{}", dir.display());
+    assert!(f.sys.runs.lock().unwrap().is_empty());
+    assert!(
+        log_text(f).contains(&format!("folder problem {problem}")),
+        "{problem}: {}",
+        log_text(f)
+    );
+}
+
 #[test]
 fn quiet_codes() {
     let _g = ENV.lock().unwrap_or_else(|e| e.into_inner());
@@ -164,6 +179,51 @@ fn quiet_codes() {
     let f = fixture();
     f.sys.on_run(|_| RunOutcome::Exited(1));
     assert_eq!(run(&f, &install_args(None)), 2);
+}
+
+#[test]
+fn quiet_install_checks_the_folder_like_the_window() {
+    let _g = ENV.lock().unwrap_or_else(|e| e.into_inner());
+    std::env::remove_var("BOOKEEPER_SETUP_ALLOW_ELEVATED");
+    const MB: u64 = 1024 * 1024;
+
+    let f = fixture();
+    assert_refused(&f, Path::new("Bookeeper"), "NotAbsolute");
+    let f = fixture();
+    assert_refused(&f, Path::new(r"relative\Bookeeper"), "NotAbsolute");
+
+    let f = fixture();
+    let share = f.root.join("Share");
+    f.sys.network_prefixes.lock().unwrap().push(share.clone());
+    assert_refused(&f, &share.join("Bookeeper"), "Network");
+    let f = fixture();
+    assert_refused(&f, Path::new(r"\\server\share\Bookeeper"), "Network");
+
+    let f = fixture();
+    assert_refused(&f, &f.root.join("a".repeat(250)), "TooLong");
+
+    let f = fixture();
+    let apps = f.root.join("Apps");
+    std::fs::create_dir_all(&apps).unwrap();
+    f.sys.unwritable_prefixes.lock().unwrap().push(apps.clone());
+    assert_refused(&f, &apps.join("Bookeeper"), "NeedsAdmin");
+
+    // The fixture needs 5 MB plus the 50 MB margin on the target disk.
+    let f = fixture();
+    let apps = f.root.join("Apps");
+    std::fs::create_dir_all(&apps).unwrap();
+    f.sys
+        .free_by_prefix
+        .lock()
+        .unwrap()
+        .push((apps.clone(), 54 * MB));
+    assert_refused(&f, &apps.join("Bookeeper"), "TooLittleSpace");
+
+    // %TEMP% must hold the installer (500 bytes here).
+    let f = fixture();
+    let temp = f.sys.temp_dir();
+    f.sys.free_by_prefix.lock().unwrap().push((temp, 499));
+    assert_refused(&f, &f.root.join("Bookeeper"), "TempTooSmall");
 }
 
 #[test]

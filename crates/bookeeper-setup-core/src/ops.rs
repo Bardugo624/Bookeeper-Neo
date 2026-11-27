@@ -113,7 +113,7 @@ pub fn data_summary(sys: &dyn System) -> DataSummary {
 
 /// Opens the extracted installer read-only, sharing reads only, so nobody can change
 /// it while it is hashed and while NSIS runs.
-fn open_locked(path: &Path) -> io::Result<File> {
+pub fn open_locked(path: &Path) -> io::Result<File> {
     let mut o = OpenOptions::new();
     o.read(true);
     #[cfg(windows)]

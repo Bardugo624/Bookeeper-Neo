@@ -2,7 +2,8 @@
 
 use bookeeper_setup_core::cmdline::{parse_invocation, Invocation};
 use bookeeper_setup_core::{log::Log, quiet, sys};
-use bookeeper_setup_lib::{commands, route, run_window, Route};
+use bookeeper_setup_lib::{commands, route, run_window, window, Route};
+use std::time::SystemTime;
 
 #[cfg(windows)]
 fn restrict_dll_search() {
@@ -55,6 +56,13 @@ fn main() {
         Route::Quiet => std::process::exit(quiet::run(platform.as_ref(), &invocation, &setup_exe)),
         Route::Window { smoke, uninstall } => (smoke, uninstall),
     };
+
+    // Classic installers unpacked by earlier runs without WebView2: they were running then.
+    window::sweep_stale(
+        &platform.temp_dir(),
+        commands::EXTRACT_PREFIX,
+        SystemTime::now(),
+    );
 
     // Without WebView2 there is no window: hand over to the classic installer.
     if cfg!(windows) && !platform.has_webview2() {

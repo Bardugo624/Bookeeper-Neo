@@ -216,6 +216,10 @@ fn autostart_set(app: tauri::AppHandle, on: bool) -> Result<(), String> {
 
 /// Brings the main window back: a second launch lands here.
 fn focus_main(app: &tauri::AppHandle) {
+    let outcome = app.try_state::<startup::Outcome>().map(|s| *s);
+    if !startup::second_launch_shows_main(outcome) {
+        return;
+    }
     if let Some(w) = app.get_webview_window("main") {
         let _ = w.unminimize();
         let _ = w.show();
@@ -278,6 +282,7 @@ pub fn run() {
             let db = match Db::open(&dir.join("bookeeper.sqlite")) {
                 Ok(db) => db,
                 Err(bookeeper_core::DbError::NewerSchema { .. }) => {
+                    app.manage(startup::Outcome::NewerLibrary);
                     report_newer_library(app.handle());
                     return Ok(());
                 }
@@ -303,6 +308,7 @@ pub fn run() {
             let updated = marker.exists();
             let _ = std::fs::remove_file(&marker);
             let args: Vec<String> = std::env::args().collect();
+            app.manage(startup::Outcome::Ready);
             show_main(app.handle(), startup::launch_mode(&args, updated));
             Ok(())
         })

@@ -9,33 +9,31 @@ pub const LABEL: &str = "main";
 pub const WEBVIEW_PREFIX: &str = "bookeeper-setup-webview-";
 const STALE_AFTER: Duration = Duration::from_secs(24 * 60 * 60);
 
-/// Removes `bookeeper-setup-webview-*` folders in `temp` not touched for a day.
-/// Returns how many were removed.
-pub fn sweep_stale(temp: &Path, now: SystemTime) -> usize {
+/// Folders in `temp` named `<prefix>…` and not touched for a day: what earlier runs left.
+pub fn stale_dirs(temp: &Path, prefix: &str, now: SystemTime) -> Vec<PathBuf> {
     let Ok(rd) = std::fs::read_dir(temp) else {
-        return 0;
+        return Vec::new();
     };
-    let mut removed = 0;
-    for entry in rd.flatten() {
-        if !entry
-            .file_name()
-            .to_string_lossy()
-            .starts_with(WEBVIEW_PREFIX)
-        {
-            continue;
-        }
-        let old = entry
-            .metadata()
-            .ok()
-            .filter(|m| m.is_dir())
-            .and_then(|m| m.modified().ok())
-            .and_then(|t| now.duration_since(t).ok())
-            .is_some_and(|age| age > STALE_AFTER);
-        if old && std::fs::remove_dir_all(entry.path()).is_ok() {
-            removed += 1;
-        }
-    }
-    removed
+    rd.flatten()
+        .filter(|e| e.file_name().to_string_lossy().starts_with(prefix))
+        .filter(|e| {
+            e.metadata()
+                .ok()
+                .filter(|m| m.is_dir())
+                .and_then(|m| m.modified().ok())
+                .and_then(|t| now.duration_since(t).ok())
+                .is_some_and(|age| age > STALE_AFTER)
+        })
+        .map(|e| e.path())
+        .collect()
+}
+
+/// Removes the `stale_dirs`, skipping any that cannot be removed. Returns how many went.
+pub fn sweep_stale(temp: &Path, prefix: &str, now: SystemTime) -> usize {
+    stale_dirs(temp, prefix, now)
+        .iter()
+        .filter(|d| std::fs::remove_dir_all(d).is_ok())
+        .count()
 }
 
 fn private_data_dir(temp: &Path) -> PathBuf {
@@ -51,7 +49,7 @@ fn private_data_dir(temp: &Path) -> PathBuf {
 
 pub fn create(app: &AppHandle) -> tauri::Result<()> {
     let temp = std::env::temp_dir();
-    sweep_stale(&temp, SystemTime::now());
+    sweep_stale(&temp, WEBVIEW_PREFIX, SystemTime::now());
     WebviewWindowBuilder::new(app, LABEL, WebviewUrl::App("index.html".into()))
         .title("Bookeeper Setup")
         .inner_size(800.0, 520.0)
@@ -95,13 +93,16 @@ mod tests {
         std::fs::create_dir_all(&other).unwrap();
         // Pretend it is two days later.
         let later = SystemTime::now() + Duration::from_secs(2 * 24 * 60 * 60);
-        assert_eq!(sweep_stale(tmp.path(), later), 1);
+        assert_eq!(sweep_stale(tmp.path(), WEBVIEW_PREFIX, later), 1);
         assert!(!old.exists());
         assert!(other.exists());
         // Fresh folders stay.
         let fresh = tmp.path().join(format!("{WEBVIEW_PREFIX}new"));
         std::fs::create_dir_all(&fresh).unwrap();
-        assert_eq!(sweep_stale(tmp.path(), SystemTime::now()), 0);
+        assert_eq!(
+            sweep_stale(tmp.path(), WEBVIEW_PREFIX, SystemTime::now()),
+            0
+        );
         assert!(fresh.exists());
     }
 }

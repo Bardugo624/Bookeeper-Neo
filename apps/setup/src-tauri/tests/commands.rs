@@ -4,11 +4,15 @@ use bookeeper_setup_core::payload::{encode_tail, FileMeta, Meta};
 use bookeeper_setup_core::progress::{Snapshot, Step};
 use bookeeper_setup_core::sys::{InstallState, MockSystem};
 use bookeeper_setup_lib::commands::{
-    build_info, check_target, Blocked, Context, ErrorCode, OpResult, ProblemCode, ProgressEvent,
-    SetupMode,
+    build_info, check_target, extract_installer, uninstall_dir, Blocked, Context, ErrorCode,
+    OpResult, ProblemCode, ProgressEvent, SetupMode, EXTRACT_PREFIX,
 };
+use bookeeper_setup_lib::window::{stale_dirs, sweep_stale, WEBVIEW_PREFIX};
 use bookeeper_setup_lib::{route, Route};
+use sha2::{Digest, Sha256};
+use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
+use std::time::{Duration, SystemTime};
 
 const MB: u64 = 1024 * 1024;
 
@@ -58,6 +62,25 @@ fn full_setup(dir: &Path) -> PathBuf {
     ));
     std::fs::write(&exe, bytes).unwrap();
     exe
+}
+
+/// A full Setup carrying `installer`, whose metadata gives it the hash `sha256`.
+fn setup_carrying(dir: &Path, installer: &[u8], sha256: &str) -> (PathBuf, Meta) {
+    let mut m = meta(installer.len() as u64);
+    m.payload.sha256 = sha256.into();
+    let exe = dir.join("Bookeeper-Setup-2.2.0.exe");
+    let mut bytes = vec![1u8; 100];
+    bytes.extend_from_slice(installer);
+    bytes.extend_from_slice(&encode_tail(&m, installer.len() as u64));
+    std::fs::write(&exe, bytes).unwrap();
+    (exe, m)
+}
+
+fn sha256_hex(b: &[u8]) -> String {
+    Sha256::digest(b)
+        .iter()
+        .map(|x| format!("{x:02x}"))
+        .collect()
 }
 
 fn light_setup(dir: &Path) -> PathBuf {
@@ -330,4 +353,99 @@ fn invocation_routes_quiet_and_passive_to_quiet_run() {
         parse_invocation("setup.exe").unwrap(),
         Invocation::Gui
     ));
+}
+
+#[test]
+fn unregistered_folder_needs_the_app_and_its_uninstaller() {
+    let f = fixture();
+    // Another program's uninstaller next to the Setup is not an installation.
+    let downloads = f.root.join("Downloads");
+    let exe = light_setup(&downloads);
+    std::fs::write(downloads.join("uninstall.exe"), b"u").unwrap();
+    assert_eq!(uninstall_dir(&f.sys, &exe), None);
+    std::fs::write(downloads.join("bookeeper-desktop.exe"), b"app").unwrap();
+    assert_eq!(uninstall_dir(&f.sys, &exe), Some(downloads));
+
+    let only_app = f.root.join("OnlyApp");
+    let exe = light_setup(&only_app);
+    std::fs::write(only_app.join("bookeeper-desktop.exe"), b"app").unwrap();
+    assert_eq!(uninstall_dir(&f.sys, &exe), None);
+}
+
+#[test]
+fn fallback_unpacks_the_installer_and_keeps_it_open_read_only() {
+    let f = fixture();
+    let installer = b"classic NSIS installer".repeat(50);
+    let (exe, m) = setup_carrying(&f.root, &installer, &sha256_hex(&installer));
+
+    let mut out = extract_installer(&f.sys, &exe, &m).unwrap();
+    let dir = out.path.parent().unwrap();
+    assert_eq!(dir.parent().unwrap(), f.sys.temp);
+    assert!(dir
+        .file_name()
+        .unwrap()
+        .to_string_lossy()
+        .starts_with(EXTRACT_PREFIX));
+    assert_eq!(
+        out.path.file_name().unwrap(),
+        "Bookeeper_2.2.0_x64-setup.exe"
+    );
+    assert_eq!(std::fs::read(&out.path).unwrap(), installer);
+
+    // The handle is open on that file, for reading only.
+    out.lock.seek(SeekFrom::Start(0)).unwrap();
+    let mut seen = vec![];
+    out.lock.read_to_end(&mut seen).unwrap();
+    assert_eq!(seen, installer);
+    assert!(out.lock.write_all(b"x").is_err());
+
+    // While it is held, nobody else may write or delete the file.
+    #[cfg(windows)]
+    {
+        let path = out.path.clone();
+        assert!(std::fs::OpenOptions::new().write(true).open(&path).is_err());
+        assert!(std::fs::remove_file(&path).is_err());
+        drop(out);
+        assert!(std::fs::OpenOptions::new().write(true).open(&path).is_ok());
+    }
+}
+
+#[test]
+fn fallback_refuses_an_installer_that_does_not_match() {
+    let f = fixture();
+    let installer = b"classic NSIS installer".repeat(50);
+    let (exe, m) = setup_carrying(&f.root, &installer, &"00".repeat(32));
+    let err = extract_installer(&f.sys, &exe, &m).unwrap_err();
+    assert_eq!(err.kind(), std::io::ErrorKind::InvalidData);
+    // Its folder is gone too.
+    assert_eq!(std::fs::read_dir(&f.sys.temp).unwrap().count(), 0);
+}
+
+#[test]
+fn stale_classic_installer_folders_are_picked_by_prefix_and_age() {
+    let tmp = tempfile::tempdir().unwrap();
+    let temp = tmp.path();
+    let folder = |name: String| {
+        let p = temp.join(name);
+        std::fs::create_dir_all(&p).unwrap();
+        p
+    };
+    let a = folder(format!("{EXTRACT_PREFIX}1f2e-3d"));
+    let b = folder(format!("{EXTRACT_PREFIX}4c5b-6a"));
+    folder(format!("{WEBVIEW_PREFIX}7a"));
+    folder("Bookeeper-Setup-0123456789abcdef".into());
+    folder("other".into());
+    std::fs::write(temp.join(format!("{EXTRACT_PREFIX}file")), b"x").unwrap();
+
+    // Less than a day old: nothing yet.
+    assert!(stale_dirs(temp, EXTRACT_PREFIX, SystemTime::now()).is_empty());
+
+    // Two days later: only the folders with the prefix.
+    let later = SystemTime::now() + Duration::from_secs(2 * 24 * 60 * 60);
+    let mut stale = stale_dirs(temp, EXTRACT_PREFIX, later);
+    stale.sort();
+    assert_eq!(stale, vec![a.clone(), b.clone()]);
+    assert_eq!(sweep_stale(temp, EXTRACT_PREFIX, later), 2);
+    assert!(!a.exists() && !b.exists());
+    assert_eq!(std::fs::read_dir(temp).unwrap().count(), 4);
 }
