@@ -95,6 +95,14 @@ describe('people sentences', () => {
 });
 
 describe('detail', () => {
+  it('uses the wide layout: full-width block, filters row and table wrapper', async () => {
+    renderAudit({ entries: [entry(1)] });
+    const block = await screen.findByRole('region', { name: 'Registro attività' });
+    expect(block.className).toMatch(/full/);
+    expect(screen.getByRole('search').className).toMatch(/filters/);
+    expect((await screen.findByRole('table')).closest('[class*="wide"]')).not.toBeNull();
+  });
+
   it('shows the detail as text, never as HTML', async () => {
     const evil = '<script>alert(1)</script>';
     const { container } = renderAudit({ entries: [entry(1, { action: 'book.update', detail: { note: evil } })] });
