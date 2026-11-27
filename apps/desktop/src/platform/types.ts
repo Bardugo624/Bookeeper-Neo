@@ -134,6 +134,13 @@ export interface Platform {
   updates: UpdateControls | null;
   /** `null` where the app cannot show system notifications. */
   notifications: NotificationControls | null;
+  /** Opening the app at login. Only the desktop app has it. */
+  autostart?: AutostartControls;
+}
+
+export interface AutostartControls {
+  get(): Promise<boolean>;
+  set(on: boolean): Promise<void>;
 }
 
 export const NETWORK_PROBE: ProbeOut = {

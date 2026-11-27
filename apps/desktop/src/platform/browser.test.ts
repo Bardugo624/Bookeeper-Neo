@@ -77,3 +77,7 @@ describe('notifications', () => {
     expect(ctor).toHaveBeenCalledWith('T', { body: 'B' });
   });
 });
+
+it('has no autostart', () => {
+  expect(browserPlatform('http://x').autostart).toBeUndefined();
+});

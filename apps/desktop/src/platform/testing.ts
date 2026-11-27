@@ -61,6 +61,8 @@ export interface FakeNotifications {
 export interface FakePlatformOptions {
   /** Gives the platform notifications with this permission (default: `null`, like a browser without them). */
   notifications?: { permission?: NotificationPermission; answer?: 'granted' | 'denied' };
+  /** Gives the platform the login-opening choice, starting as `on` (default: absent, like the browser). */
+  autostart?: { on?: boolean; failSet?: boolean };
   /** Gives the platform updates; `state` is what the checks answer (default `Disabled`). Absent: `updates` is null. */
   updates?: { state?: UpdateState };
   connections?: Connections;
@@ -142,6 +144,16 @@ export function fakePlatform(opts: FakePlatformOptions = {}): FakePlatform {
     },
     async send(n) {
       notificationsFake.sent.push({ ...n });
+    },
+  };
+  let autostartOn = opts.autostart?.on ?? false;
+  const autostart = {
+    async get() {
+      return autostartOn;
+    },
+    async set(on: boolean) {
+      if (opts.autostart?.failSet) throw new Error('failed');
+      autostartOn = on;
     },
   };
   const calls: FakePlatform['calls'] = [];
@@ -271,6 +283,7 @@ export function fakePlatform(opts: FakePlatformOptions = {}): FakePlatform {
         }
       : null,
     notifications: opts.notifications ? notifications : null,
+    ...(opts.autostart ? { autostart } : {}),
     window: opts.window === false ? null : win,
     async deviceName() {
       return 'Test device';

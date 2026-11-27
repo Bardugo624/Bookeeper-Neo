@@ -4,6 +4,7 @@ import { Skeleton } from '@bookeeper/ui/base';
 import { useT } from '../../../../app/i18n';
 import { SettingsBlock } from '../../SettingsBlock';
 import { useSettingsSession } from '../../useSettingsSession';
+import { AutostartBlock } from './AutostartBlock';
 import { CopyButton } from './CopyButton';
 import { PORT_MAX, PORT_MIN, parsePort, phraseWords } from './sharingModel';
 import { useSharing } from './useSharing';
@@ -103,6 +104,8 @@ export function SharingSection() {
           </p>
         ) : null}
       </SettingsBlock>
+
+      <AutostartBlock />
 
       <SettingsBlock title={t('sharing.port.title')} description={t('sharing.port.description')}>
         <div className={styles.portRow}>
