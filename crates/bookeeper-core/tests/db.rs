@@ -175,7 +175,7 @@ fn a_version_1_database_is_migrated_without_losing_data() {
         (title.as_str(), status.as_str(), rating, page),
         ("Dune", "read", 5, None)
     );
-    assert_eq!(version, 4);
+    assert_eq!(version, 5);
     assert!(db
         .with(|c| c.execute("UPDATE reading SET current_page = -1", []))
         .is_err());
@@ -230,7 +230,7 @@ fn migration_0003_applies_to_a_populated_version_2_database() {
             )
         })
         .unwrap();
-    assert_eq!((rows, with_id, version), (2, 0, 4));
+    assert_eq!((rows, with_id, version), (2, 0, 5));
     // New rows take an id; the id is unique, a missing one is not.
     db.with(|c| {
         c.execute(
@@ -245,6 +245,73 @@ fn migration_0003_applies_to_a_populated_version_2_database() {
             []
         ))
         .is_err());
+    drop(db);
+    std::fs::remove_dir_all(&dir).ok();
+}
+
+#[test]
+fn migration_0005_applies_to_a_populated_version_4_database() {
+    let dir = std::env::temp_dir().join(format!("bk-db-v4-{}", uuid::Uuid::now_v7()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let path = dir.join("old.db");
+    {
+        let conn = rusqlite::Connection::open(&path).unwrap();
+        conn.execute_batch(include_str!("../src/db/migrations/0001_schema.sql"))
+            .unwrap();
+        conn.execute_batch(include_str!(
+            "../src/db/migrations/0002_reading_progress.sql"
+        ))
+        .unwrap();
+        conn.execute_batch(include_str!("../src/db/migrations/0003_invites.sql"))
+            .unwrap();
+        conn.execute_batch(include_str!("../src/db/migrations/0004_perf.sql"))
+            .unwrap();
+        conn.pragma_update(None, "user_version", 4).unwrap();
+        conn.execute_batch(
+            "INSERT INTO libraries VALUES ('l','Casa',0);
+             INSERT INTO users (id,library_id,display_name,role,created_at) VALUES ('u','l','A','owner',0);
+             INSERT INTO books (id,library_id,title,created_at,updated_at) VALUES ('b','l','Dune',0,0);
+             INSERT INTO reading (id,library_id,user_id,book_id,status,updated_at)
+               VALUES ('r','l','u','b','reading',9);",
+        )
+        .unwrap();
+    }
+    let db = Db::open(&path).unwrap();
+    let (percent, version): (Option<f64>, i64) = db
+        .with(|c| {
+            c.query_row(
+                "SELECT progress_percent, (SELECT user_version FROM pragma_user_version) FROM reading",
+                [],
+                |r| Ok((r.get(0)?, r.get(1)?)),
+            )
+        })
+        .unwrap();
+    assert_eq!((percent, version), (None, 5));
+    db.with(|c| {
+        c.execute_batch(
+            "INSERT INTO book_files (id,library_id,book_id,format,sha256,size_bytes,original_name,koreader_hash,created_at)
+               VALUES ('f','l','b','epub','s',1,'a.epub','h',0);
+             INSERT INTO reading_positions (id,library_id,user_id,file_id,kind,value,updated_at)
+               VALUES ('p','l','u','f','cfi','x',0);
+             UPDATE reading SET progress_percent = 100;",
+        )
+    })
+    .unwrap();
+    assert!(db
+        .with(|c| c.execute("UPDATE reading SET progress_percent = 101", []))
+        .is_err());
+    assert!(db
+        .with(|c| c.execute("UPDATE book_files SET format = 'txt'", []))
+        .is_err());
+    assert!(db
+        .with(|c| c.execute("UPDATE reading_positions SET kind = 'x'", []))
+        .is_err());
+    // Deleting the book cascades to its files and their positions.
+    db.with(|c| c.execute("DELETE FROM books", [])).unwrap();
+    let n: i64 = db
+        .with(|c| c.query_row("SELECT count(*) FROM reading_positions", [], |r| r.get(0)))
+        .unwrap();
+    assert_eq!(n, 0);
     drop(db);
     std::fs::remove_dir_all(&dir).ok();
 }
