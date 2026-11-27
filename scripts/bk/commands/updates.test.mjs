@@ -130,6 +130,19 @@ test('switch on turns the variable back off when the deploy fails', async () => 
   }
 });
 
+test('switch on turns the variable back off when gh workflow run itself fails', async () => {
+  const w = await world();
+  try {
+    const { dir } = repo();
+    const r = await runBk(['updates', 'switch'], { scenario: okRules([{ match: ['workflow', 'run'], code: 1, stderr: 'HTTP 422' }]), cwd: dir, input: 'deploy\n', env: w.env });
+    assert.equal(r.status, 1);
+    const sets = r.calls().filter((a) => a[0] === 'variable').map((a) => a[4]);
+    assert.deepEqual(sets, ['on', 'off']);
+  } finally {
+    w.close();
+  }
+});
+
 test('switch --off needs the word deploy, then sets off, deploys and checks 200', async () => {
   const vps = await serve({ '/stable/latest.json': { version: '2.1.0' } });
   try {

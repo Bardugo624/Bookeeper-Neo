@@ -40,7 +40,13 @@ async function switchOn() {
   ready();
   if (!(await confirm('Accendo il rimando: i client scaricheranno gli aggiornamenti da R2.', 'deploy'))) return console.log('Annullato: non ho cambiato nulla.');
   setRedirect('on');
-  const r = await dispatch('vps-deploy.yml', 'main', ['target=caddy']);
+  let r;
+  try {
+    r = await dispatch('vps-deploy.yml', 'main', ['target=caddy']);
+  } catch (e) {
+    setRedirect('off');
+    throw new BkError(`Il deploy non è partito: ho rimesso il rimando a off (${e.message})`, e.hint);
+  }
   if (!r.ok) {
     setRedirect('off');
     throw new BkError(`Il deploy è fallito: ho rimesso il rimando a off (run ${r.id}: ${r.url})`, `Guarda i log con: npm run bk -- ci logs ${r.id}`);

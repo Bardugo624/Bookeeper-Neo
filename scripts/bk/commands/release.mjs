@@ -48,7 +48,11 @@ export async function run(args = []) {
       throw new BkError(`La versione ${nuova} non è più alta di quella pubblicata sul canale ${ch} (${pub[ch]})`, 'Scegli una versione più alta');
     }
   }
-  if (ghRaw(['release', 'view', `v${nuova}`]).status === 0) {
+  const view = ghRaw(['release', 'view', `v${nuova}`]);
+  if (view.status !== 0 && !/not found/i.test(view.stderr || '')) {
+    throw new BkError(`Non riesco a controllare la release v${nuova} su GitHub: ${(view.stderr || '').trim().split('\n')[0] || `gh è uscito con codice ${view.status}`}`, 'Controlla con: gh auth status');
+  }
+  if (view.status === 0) {
     throw new BkError(`La release v${nuova} esiste già su GitHub`, 'Guarda il run interrotto: npm run bk -- ci');
   }
 

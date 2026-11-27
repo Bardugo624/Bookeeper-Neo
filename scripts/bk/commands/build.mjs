@@ -1,3 +1,4 @@
+import { join } from 'node:path';
 import { BkError } from '../errors.mjs';
 import { gh } from '../gh.mjs';
 import * as git from '../git.mjs';
@@ -16,7 +17,7 @@ export async function run() {
   if (!r.ok) throw failedRun('La compilazione', r);
   console.log('✓ Installer compilati');
   if (await confirm('Scarico gli installer in dist/?')) {
-    const dir = `dist/${readVersion(root)}-${git.shortSha(root)}`;
+    const dir = join(root, 'dist', `${readVersion(root)}-${git.shortSha(root)}`);
     gh(['run', 'download', String(r.id), '-p', 'installers-*', '-D', dir], { inherit: true });
     console.log(`✓ Salvati in ${dir}`);
   }

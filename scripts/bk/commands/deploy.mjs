@@ -1,4 +1,5 @@
 import { BkError } from '../errors.mjs';
+import { ghRaw } from '../gh.mjs';
 import * as git from '../git.mjs';
 import { confirm } from '../menu.mjs';
 import { serverVersion } from '../public.mjs';
@@ -26,6 +27,8 @@ export async function run(args = []) {
   } else {
     const s = await statusOf(vpsManifest());
     console.log(`Caddy: ${vpsManifest()} risponde ${s ? s.status : 'nulla'}`);
-    if (!s || s.status >= 500) throw new BkError('Caddy non risponde come previsto', 'Guarda i log del deploy: npm run bk -- ci');
+    const red = ghRaw(['variable', 'get', 'UPDATES_REDIRECT']);
+    const want = red.status === 0 && red.stdout.trim() === 'on' ? 302 : 200;
+    if (s?.status !== want) throw new BkError('Caddy non risponde come previsto', 'Guarda i log del deploy: npm run bk -- ci');
   }
 }

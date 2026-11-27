@@ -10,7 +10,7 @@ test('build starts release.yml with publish=false on the current branch and down
   const dl = r.calls().find((a) => a[0] === 'run' && a[1] === 'download');
   assert.deepEqual(dl.slice(0, 5), ['run', 'download', '7', '-p', 'installers-*']);
   assert.equal(dl[5], '-D');
-  assert.match(dl[6], /^dist\/\d+\.\d+\.\d+-[0-9a-f]+$/);
+  assert.match(dl[6], /\/dist\/\d+\.\d+\.\d+-[0-9a-f]+$/);
 });
 
 test('build does not download on no', async () => {

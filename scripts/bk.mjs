@@ -14,7 +14,7 @@ const rank = (name) => (ORDER.includes(name) ? ORDER.indexOf(name) : ORDER.lengt
 
 // Every commands/<name>.mjs with `meta` and `run` is a command.
 export async function loadCommands() {
-  const files = readdirSync(dir).filter((f) => f.endsWith('.mjs') && !f.endsWith('.test.mjs')).sort();
+  const files = readdirSync(dir).filter((f) => f.endsWith('.mjs') && !f.endsWith('.test.mjs') && !f.startsWith('_')).sort();
   const cmds = [];
   for (const f of files) {
     const mod = await import(pathToFileURL(join(dir, f)).href);
