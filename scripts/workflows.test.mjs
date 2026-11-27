@@ -200,16 +200,28 @@ test("smoke.ps1: a failure shows what WebView2 left in the Setup's data folders"
   assert.ok(prefix);
   const fail = t.slice(t.indexOf("function Fail"), t.indexOf("function Expect"));
   assert.ok(fail.includes(`'${prefix}*'`));
-  assert.match(fail, /chrome_debug\.log/);
 });
 
-test("release.yml: the smoke test turns on WebView2's own log", () => {
+test("release.yml: the smoke test leaves WebView2's arguments to the Setup", () => {
   const job = desktopJob();
   const smoke = stepAt(job, "Smoke test the Setup (windows)");
   const s = job.slice(smoke, job.indexOf("- uses: actions/upload-artifact@v4", smoke));
-  // The variable takes the place of wry's arguments: they stay, so the test runs the Setup as shipped.
-  assert.match(
-    s,
-    /WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --enable-logging --v=1"/,
-  );
+  assert.doesNotMatch(s, /WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS/);
+});
+
+test("smoke.ps1: a stuck --smoke-ui shows WebView2's processes and log, then tries once more", () => {
+  const t = read("scripts/setup/smoke.ps1");
+  const name = /WEBVIEW_LOG: &str = "([^"]+)"/.exec(read("apps/setup/src-tauri/src/window.rs"))?.[1];
+  assert.ok(name);
+  assert.ok(t.includes(`Join-Path ([IO.Path]::GetTempPath()) '${name}'`));
+  const fail = t.slice(t.indexOf("function Fail"), t.indexOf("function Expect"));
+  assert.match(fail, /Get-Content -LiteralPath \$WebviewLog -Tail \d+/);
+  const ui = t.slice(t.indexOf("function SmokeUi"), t.indexOf("function ExpectPath"));
+  assert.match(ui, /WaitForExit\(\d+\)/);
+  assert.match(ui, /msedgewebview2\.exe/);
+  assert.match(ui, /--type=/);
+  const step = t.slice(t.indexOf("== 1. --smoke-ui"), t.indexOf("== 2. quiet install"));
+  assert.match(step, /SmokeUi 1/);
+  assert.match(step, /SmokeUi 2/);
+  assert.match(step, /Fail '--smoke-ui: exit code'/);
 });

@@ -18,6 +18,7 @@ $InstallKey = 'HKCU:\Software\bookeeper\Bookeeper'
 $RunKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
 $Credentials = @("smoke-one.$DataId", "smoke-two.$DataId")
 $SetupLog = Join-Path ([IO.Path]::GetTempPath()) 'Bookeeper-Setup.log'
+$WebviewLog = Join-Path ([IO.Path]::GetTempPath()) 'Bookeeper-Setup-webview.log'
 
 function Fail([string]$what, $expected, $found) {
     Write-Host "FAIL: $what"
@@ -29,15 +30,15 @@ function Fail([string]$what, $expected, $found) {
     } else {
         Write-Host "--- no Setup log at $SetupLog"
     }
+    if (Test-Path -LiteralPath $WebviewLog) {
+        Write-Host "--- end of $WebviewLog"
+        Get-Content -LiteralPath $WebviewLog -Tail 120 | ForEach-Object { Write-Host "  $_" }
+    }
     $temp = [IO.Path]::GetTempPath()
     foreach ($w in @(Get-ChildItem -LiteralPath $temp -Directory -Filter 'bookeeper-setup-webview-*' -ErrorAction SilentlyContinue)) {
         Write-Host "--- $($w.FullName)"
         Get-ChildItem -LiteralPath $w.FullName -Recurse -Depth 1 -ErrorAction SilentlyContinue |
             ForEach-Object { Write-Host "  $($_.FullName.Substring($w.FullName.Length))" }
-        foreach ($log in @(Get-ChildItem -LiteralPath $w.FullName -Recurse -Filter 'chrome_debug.log' -ErrorAction SilentlyContinue)) {
-            Write-Host "--- end of $($log.FullName)"
-            Get-Content -LiteralPath $log.FullName -Tail 80 | ForEach-Object { Write-Host "  $_" }
-        }
     }
     exit 1
 }
@@ -51,6 +52,21 @@ function Run([string]$exe, [string]$arguments) {
 }
 function ExpectExit([string]$what, [string]$exe, [string]$arguments) {
     Expect "${what}: exit code" 0 (Run $exe $arguments)
+}
+# Waits for --smoke-ui; if it is still running after 25 s, lists WebView2's processes by type first.
+function SmokeUi([int]$attempt) {
+    Write-Host ">> $Setup --smoke-ui (attempt $attempt)"
+    $p = Start-Process -FilePath $Setup -ArgumentList '--smoke-ui' -PassThru
+    $null = $p.Handle
+    if (-not $p.WaitForExit(25000)) {
+        Write-Host '--- still running after 25 s; WebView2 processes (pid <- parent, type):'
+        Get-CimInstance Win32_Process -Filter "Name = 'msedgewebview2.exe'" | ForEach-Object {
+            $type = [regex]::Match("$($_.CommandLine)", '--type=\S+').Value
+            Write-Host "  $($_.ProcessId) <- $($_.ParentProcessId) $(if ($type) { $type } else { 'browser' })"
+        }
+        $p.WaitForExit()
+    }
+    return $p.ExitCode
 }
 function ExpectPath([string]$what, [string]$path, [bool]$present) {
     Expect "$what ($path) exists" $present (Test-Path -LiteralPath $path)
@@ -77,7 +93,12 @@ function Install() {
 $expectedUninstall = "`"$Dir\bookeeper-setup.exe`" --uninstall"
 
 Write-Host '== 1. --smoke-ui'
-ExpectExit '--smoke-ui' $Setup '--smoke-ui'
+$first = SmokeUi 1
+if ($first -ne 0) {
+    # Still a failure; the second attempt only tells whether the same machine gets stuck again.
+    Write-Host "--- attempt 1 ended with $first; attempt 2 ended with $(SmokeUi 2)"
+    Fail '--smoke-ui: exit code' 0 $first
+}
 
 Write-Host '== 2. quiet install'
 Install

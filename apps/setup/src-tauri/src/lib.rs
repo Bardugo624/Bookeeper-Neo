@@ -100,7 +100,7 @@ pub fn run_window(smoke: bool, uninstall: bool, setup_exe: PathBuf) {
         ])
         .setup(move |app| {
             setup_log.line("window: creating");
-            window::create(app.handle())?;
+            window::create(app.handle(), smoke)?;
             setup_log.line("window: created");
             Ok(())
         })

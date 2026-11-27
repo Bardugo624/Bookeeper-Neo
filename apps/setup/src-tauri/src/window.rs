@@ -47,10 +47,23 @@ fn private_data_dir(temp: &Path) -> PathBuf {
     ))
 }
 
-pub fn create(app: &AppHandle) -> tauri::Result<()> {
+/// The WebView2 arguments wry passes by default: `additional_browser_args` replaces them.
+const WRY_BROWSER_ARGS: &str = "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection";
+/// In `--smoke-ui`, WebView2 writes its own log here, in the temp folder.
+pub const WEBVIEW_LOG: &str = "Bookeeper-Setup-webview.log";
+
+/// wry's arguments plus WebView2's own log, for the CI's look at the window.
+fn smoke_browser_args(temp: &Path) -> String {
+    format!(
+        "{WRY_BROWSER_ARGS} --enable-logging --v=1 --log-file=\"{}\"",
+        temp.join(WEBVIEW_LOG).display()
+    )
+}
+
+pub fn create(app: &AppHandle, smoke: bool) -> tauri::Result<()> {
     let temp = std::env::temp_dir();
     sweep_stale(&temp, WEBVIEW_PREFIX, SystemTime::now());
-    WebviewWindowBuilder::new(app, LABEL, WebviewUrl::App("index.html".into()))
+    let mut builder = WebviewWindowBuilder::new(app, LABEL, WebviewUrl::App("index.html".into()))
         .title("Bookeeper Setup")
         .inner_size(800.0, 520.0)
         .resizable(false)
@@ -58,8 +71,11 @@ pub fn create(app: &AppHandle) -> tauri::Result<()> {
         .decorations(false)
         .center()
         .visible(false)
-        .data_directory(private_data_dir(&temp))
-        .build()?;
+        .data_directory(private_data_dir(&temp));
+    if smoke {
+        builder = builder.additional_browser_args(&smoke_browser_args(&temp));
+    }
+    builder.build()?;
     Ok(())
 }
 
@@ -104,5 +120,14 @@ mod tests {
             0
         );
         assert!(fresh.exists());
+    }
+
+    #[test]
+    fn smoke_browser_args_keep_wry_defaults_and_add_the_log() {
+        let args = smoke_browser_args(Path::new(r"C:\Temp dir"));
+        assert!(args.starts_with("--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection "));
+        assert!(args.contains("--enable-logging --v=1"));
+        let log = Path::new(r"C:\Temp dir").join(WEBVIEW_LOG);
+        assert!(args.ends_with(&format!("--log-file=\"{}\"", log.display())));
     }
 }
