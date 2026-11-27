@@ -10,6 +10,7 @@ axum = "0.8"
 chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
 csv = "1"
 datamatrix = "0.3"
+futures-util = "0.3"
 hex = "0.4"
 http-body-util = "0.1"
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
@@ -33,7 +34,6 @@ uuid = { version = "1", features = ["v7", "serde"] }
 zip = { version = "2", default-features = false, features = ["deflate"] }
 
 [dev-dependencies]
-futures-util = "0.3"
 tempfile = "3"
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "time"] }
 tower = { version = "0.5", features = ["util"] }

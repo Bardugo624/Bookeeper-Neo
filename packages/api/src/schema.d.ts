@@ -317,6 +317,61 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/books/{id}/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The files attached to a book, oldest first. */
+        get: operations["list_files"];
+        put?: never;
+        /**
+         * Attach a file already uploaded with `PUT /ebook-files` to a book. If the
+         *     book has no cover and the file has one, the cover goes to the book.
+         */
+        post: operations["attach_file"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/books/{id}/files/{file_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Takes the file off the book. The file on disk goes too, unless another book uses it. */
+        delete: operations["detach_file"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/books/{id}/files/{file_id}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The file, streamed. It answers `Range` requests: 206 with `Content-Range`, or 416. */
+        get: operations["download_file"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/books/{id}/placement": {
         parameters: {
             query?: never;
@@ -423,6 +478,43 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["revoke"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ebook-files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Upload an e-book as the raw request body. The body is streamed to disk,
+         *     never held in memory. A file nobody attaches to a book is deleted after 24 hours.
+         */
+        put: operations["put_ebook_file"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ebook-files/{sha256}/cover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The cover taken from a stored file, as `image/jpeg`. */
+        get: operations["get_ebook_cover"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1038,6 +1130,13 @@ export interface components {
          * @description Documentation-only schema of the restore request body.
          */
         ArchiveBody: string;
+        /** @description Body of `POST /books/{id}/files`. */
+        AttachFile: {
+            /** @description Original file name, for display. */
+            name: string;
+            /** @description SHA-256 of a file uploaded with `PUT /ebook-files`. */
+            sha256: string;
+        };
         AuditActions: {
             items: string[];
         };
@@ -1137,6 +1236,20 @@ export interface components {
             /** Format: int64 */
             deleted: number;
         };
+        BookFileOut: {
+            book_id: string;
+            /** Format: int64 */
+            created_at: number;
+            /** @description `epub`, `pdf`, `mobi`, `azw3`, `fb2` or `cbz`. */
+            format: string;
+            id: string;
+            /** @description True when the file is not on the server's disk any more. */
+            missing: boolean;
+            name: string;
+            /** Format: int64 */
+            size_bytes: number;
+            uploaded_by?: null | components["schemas"]["PersonRef"];
+        };
         BookList: {
             items: components["schemas"]["BookOut"][];
             /**
@@ -1154,6 +1267,8 @@ export interface components {
             /** Format: int64 */
             created_at: number;
             description?: string | null;
+            /** @description Formats of the attached e-book files, without repeats, in alphabetical order. */
+            file_formats: string[];
             /** @description `hardcover`, `paperback`, `ebook` or `audiobook`. */
             format?: string | null;
             genre?: string | null;
@@ -1320,6 +1435,31 @@ export interface components {
             revoked_at?: number | null;
             user_id: string;
             user_name: string;
+        };
+        /** @description A stored file with what was read from it. */
+        EbookFileInfo: {
+            /** @description `epub`, `pdf`, `mobi`, `azw3`, `fb2` or `cbz`. */
+            format: string;
+            /** @description True when a cover can be taken from the file. */
+            has_cover: boolean;
+            metadata: components["schemas"]["EbookMetadata"];
+            /** @description The name the file had when uploaded. */
+            name: string;
+            /** @description Lowercase hexadecimal SHA-256 of the content. */
+            sha256: string;
+            /** Format: int64 */
+            size_bytes: number;
+        };
+        /** @description Metadata read from the file itself; every field may be missing. */
+        EbookMetadata: {
+            authors: string[];
+            description?: string | null;
+            isbn_13?: string | null;
+            language?: string | null;
+            /** Format: int64 */
+            published_year?: number | null;
+            publisher?: string | null;
+            title?: string | null;
         };
         /**
          * @description A book in the JSON export: `BookOut` without `placement` and `on_loan`,
@@ -3676,6 +3816,269 @@ export interface operations {
             };
         };
     };
+    list_files: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Book id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Files of the book */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookFileOut"][];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot use files */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description not_found: unknown book */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    attach_file: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Book id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttachFile"];
+            };
+        };
+        responses: {
+            /** @description Attached */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookFileOut"];
+                };
+            };
+            /** @description bad_request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot use files */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description not_found: unknown book or file */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description file_already_attached */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description validation */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    detach_file: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Book id */
+                id: string;
+                /** @description File id */
+                file_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot use files */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description not_found: unknown book or file */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    download_file: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description A single byte range, for example `bytes=0-99` */
+                Range?: string | null;
+            };
+            path: {
+                /** @description Book id */
+                id: string;
+                /** @description File id */
+                file_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The whole file */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": number[];
+                };
+            };
+            /** @description Part of the file */
+            206: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": number[];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot use files */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description not_found: unknown book or file; file_missing: not on disk */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description range_not_satisfiable */
+            416: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
     place_book: {
         parameters: {
             query?: never;
@@ -4236,6 +4639,128 @@ export interface operations {
                 };
             };
             /** @description not_found: unknown device */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    put_ebook_file: {
+        parameters: {
+            query: {
+                /** @description Original file name */
+                name: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/octet-stream": number[];
+            };
+        };
+        responses: {
+            /** @description Stored (or already stored) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EbookFileInfo"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot use files */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unsupported_format */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description validation or drm_protected */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    get_ebook_cover: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description SHA-256 of the file */
+                sha256: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description JPEG image */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/jpeg": number[];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot use files */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description not_found: unknown file, or cover_not_found */
             404: {
                 headers: {
                     [name: string]: unknown;
