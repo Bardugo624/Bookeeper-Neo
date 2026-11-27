@@ -35,3 +35,8 @@ it.each(files)('%s animates only under prefers-reduced-motion: no-preference', (
   const css = withoutMotionBlocks(strip(readFileSync(new URL(file, dir), 'utf8')));
   expect(css).not.toMatch(/\b(transition|animation)(-[a-z]+)*\s*:/);
 });
+
+it('carries on only the words of a verse that do not fit, not a balanced half', () => {
+  const css = strip(readFileSync(new URL('Quotation.module.css', dir), 'utf8'));
+  expect(css).toMatch(/\.verse\s*\{[^}]*\btext-wrap:\s*wrap;/);
+});

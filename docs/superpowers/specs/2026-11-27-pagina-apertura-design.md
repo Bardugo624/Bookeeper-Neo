@@ -106,7 +106,7 @@ Le 7 citazioni che il proprietario ha tenuto sono tutte verificate in tutte e du
 Misura del testo:
 
 - 33 px fino a 90 caratteri, 26 px fino a 140, 22 px oltre. È la scala del Setup.
-- Per le poesie si prende il gradino più grande a cui il verso più lungo sta intero nella colonna, scendendo fino a 20 px. Negli schizzi Dickinson in inglese scende a 22 px; con la stima del contratto della 9C, 0,55 em per carattere, scende a 20.
+- Per le poesie si prende il gradino più grande a cui il verso più lungo sta intero nella colonna, scendendo fino a 20 px. La larghezza si misura con gli avanzamenti di Lora 500: Dickinson in inglese sta a 22 px, come negli schizzi. La stima del contratto della 9C, 0,55 em per carattere, la portava a 20.
 - Alcuni versi non stanno interi nemmeno a 20 px: Dante in tutte e due le lingue, Borges e Dickinson in italiano. Per loro si usano 22 px. Il verso che non sta continua sulla riga sotto, rientrato di 1 em, come nei libri di poesia. Così non sembra un verso nuovo e tutte le citazioni verificate restano nella pagina.
 - La larghezza della colonna è un parametro: il Setup la usa larga, la pagina d'apertura a 348 px.
 

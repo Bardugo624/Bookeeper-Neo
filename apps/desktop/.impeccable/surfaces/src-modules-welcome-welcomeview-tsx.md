@@ -24,7 +24,7 @@ STORY: Chi apre l'app vede subito una citazione nuova, poi la sceglie o la ignor
 
 FIRST VIEWPORT: Finestra 1280×800. Pannello di 440 px con margini 40, 44, 36 e 48 px. In alto l'icona dell'app (22 px) e «Bookeeper» in Lora 18. Al centro la citazione in Lora 500, colonna di 348 px, 33, 26 o 22 px secondo la lunghezza, con autore e opera sotto (Inter 13, opera in Lora corsivo 14). In fondo la promessa «Una libreria che resta tua…» in Inter 13 `--bk-text-muted`. A destra la colonna di oggi.
 
-FORM: «Pannello della citazione», scelto dal proprietario fra tre strutture: pannello della citazione, frontespizio in alto, promessa più citazione.
+FORM: «Pannello della citazione», scelto dal proprietario fra tre strutture: pannello della citazione, frontespizio in alto, promessa più citazione. seed: none (pinned) «aveva una quote di uno scrittore, la rivoglio ma modernizzata»; scelta: «Quote panel».
 
 SIGNATURE: All'apertura la citazione entra con `bk-rise` (`--bk-dur-slow`), poi resta ferma: niente si muove mentre si scrive. I versi restano versi: quello che non sta nella colonna continua rientrato di 1 em. Con `prefers-reduced-motion` la citazione è subito ferma.
 

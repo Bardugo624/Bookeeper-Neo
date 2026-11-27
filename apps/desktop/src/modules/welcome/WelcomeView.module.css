@@ -21,6 +21,7 @@
   font-family: var(--bk-font-serif);
   font-size: 18px;
   font-weight: 600;
+  line-height: 1;
   color: var(--bk-text-strong);
 }
 

@@ -15,10 +15,11 @@
     display: block;
 }
 
-/* A verse that outgrows the column carries on one em in. */
+/* A verse that outgrows the column carries its last words on, one em in. */
 .verse {
     padding-left: 1em;
     text-indent: -1em;
+    text-wrap: wrap;
 }
 
 .mark {
