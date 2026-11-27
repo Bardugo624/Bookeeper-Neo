@@ -11,6 +11,7 @@ Leggi prima `docs/forge/fase-10a/CONTRATTO.md`, che fissa valori, interfacce e r
 1. **Blocco «File»** nella scheda del libro, per chi non è `guest`. Ogni file mostra formato, dimensione e «Scarica»: `fetch` con l'autenticazione, poi un blob e il salvataggio del browser.
 2. **«Aggiungi il file»** (`<input type="file">` con i sei formati), per chi può modificare. I messaggi d'errore sono quelli del computer.
 3. **L'anello** usa `progress_percent` quando c'è.
+   Un aggiornamento ottimista della lettura conserva `progress_percent` e `progress_at` della lettura in cache, così l'anello non si azzera.
 4. **Bersagli:** tutti di almeno 44 px.
 
 ## Test

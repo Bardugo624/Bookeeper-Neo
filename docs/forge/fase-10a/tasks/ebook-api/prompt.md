@@ -8,6 +8,8 @@ Leggi prima `docs/forge/fase-10a/CONTRATTO.md`, che fissa valori, interfacce e r
 - Modifica `api/books.rs`: `file_formats` in `BookOut`, e la pulizia dei file quando un libro si cancella.
 - Aggiorna `packages/api` (OpenAPI e client generato).
 - Scrivi i test in `crates/bookeeper-core/tests/ebook_api.rs`.
+- In `crates/bookeeper-core/Cargo.toml`, `futures-util` passa da `[dev-dependencies]` a `[dependencies]`: `file_body` lo usa a runtime.
+- `file_formats` è obbligatorio in `BookOut`: aggiungi `file_formats: []` all'helper `book()` di `apps/desktop/src/modules/books/testkit.tsx` e di `apps/desktop/src/modules/palette/testkit.tsx`.
 
 ## Cosa fare
 - Le rotte e le risposte del contratto, alla lettera. I file si leggono in streaming con `ebooks::store_stream`, MAI con `read_body`.
@@ -33,3 +35,4 @@ Leggi prima `docs/forge/fase-10a/CONTRATTO.md`, che fissa valori, interfacce e r
 ## Acceptance criteria
 - `cargo test -p bookeeper-core`, `cargo clippy -p bookeeper-core -- -D warnings` e `npm test -w @bookeeper/api` passano.
 - `npm run typecheck` passa alla radice.
+- `cargo fmt --all -- --check` passa.

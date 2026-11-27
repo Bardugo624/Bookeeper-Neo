@@ -24,6 +24,7 @@ Leggi prima `docs/forge/fase-10a/CONTRATTO.md`, che fissa valori, interfacce e r
 
    Il nome proposto è quello di `Content-Disposition`.
 3. **L'anello** (`ReadingCard`, `BookCard` e la scheda) mostra `progress_percent` quando c'è, altrimenti il calcolo di oggi sulla pagina.
+   Un aggiornamento ottimista della lettura conserva `progress_percent` e `progress_at` della lettura in cache, così l'anello non si azzera.
 4. **Le card** dei libri con file mostrano una piccola etichetta dei formati (`file_formats`), per esempio «EPUB».
 
 ## Test
@@ -37,3 +38,4 @@ Leggi prima `docs/forge/fase-10a/CONTRATTO.md`, che fissa valori, interfacce e r
 - `npx vitest run src/modules/books src/modules/reading src/platform src/kit/styles.test.ts src/kit/translationKeys.test.ts` (da `apps/desktop`) passa.
 - `cargo test -p bookeeper-desktop` passa.
 - `impeccable detect --json` pulito sui file cambiati.
+- `cargo fmt --all -- --check` passa.

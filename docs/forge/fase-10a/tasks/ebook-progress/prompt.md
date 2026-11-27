@@ -7,6 +7,7 @@ Leggi prima `docs/forge/fase-10a/CONTRATTO.md`, che fissa valori, interfacce e r
 - Crea `crates/bookeeper-core/src/api/positions.rs` e registralo.
 - Aggiorna `packages/api`.
 - Scrivi i test in `crates/bookeeper-core/tests/positions.rs` e aggiorna quelli della lettura.
+- I due campi nuovi di `ReadingOut` sono obbligatori. Dove le app costruiscono un `ReadingOut` mettili a `null`: `optimisticReading` in `readingModel.ts` e l'helper in `testkit.tsx`, sia in `apps/desktop/src/modules/reading/` sia in `apps/mobile/src/modules/reading/`, e `apps/desktop/src/modules/stats/YearDialog.test.tsx`.
 
 ## Regole
 - `ReadingOut` riceve `progress_percent` e `progress_at`.
@@ -34,3 +35,4 @@ Leggi prima `docs/forge/fase-10a/CONTRATTO.md`, che fissa valori, interfacce e r
 ## Acceptance criteria
 - `cargo test -p bookeeper-core`, `cargo clippy -p bookeeper-core -- -D warnings` e `npm test -w @bookeeper/api` passano.
 - `npm run typecheck` passa alla radice: i tipi nuovi non rompono le app.
+- `cargo fmt --all -- --check` passa.
