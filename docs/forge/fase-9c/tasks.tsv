@@ -2,4 +2,4 @@
 quote-data	-	medium	scripts/quotes.mjs,scripts/quotes.test.mjs,packages/ui/src/quote/quotes.json	sonnet	opus	Citazioni verificate: generatore e file condiviso
 quote-ui	quote-data	medium	packages/ui/src/quote,packages/ui/package.json,packages/ui/tsconfig.json	sonnet	opus	@bookeeper/ui/quote: dati, misura, mazzo e componente
 quote-setup	quote-ui	medium	apps/setup/src/shell,apps/setup/src/install,apps/setup/src/uninstall,apps/setup/src/quotes.json,scripts/setup/quotes.mjs,scripts/setup/quotes.test.mjs	sonnet	opus	Setup: dati e composizione condivisi
-welcome-panel	quote-ui	medium	apps/desktop/src/modules/welcome,packages/i18n/src/locales/it/shell.json,packages/i18n/src/locales/en/shell.json	sonnet	opus	App desktop: il frontespizio della pagina d'apertura
+welcome-panel	quote-ui	medium	apps/desktop/src/modules/welcome,packages/i18n/src/locales/it/welcome.json,packages/i18n/src/locales/en/welcome.json	sonnet	opus	App desktop: il frontespizio della pagina d'apertura

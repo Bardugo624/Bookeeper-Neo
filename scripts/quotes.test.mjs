@@ -82,9 +82,18 @@ test('captions use the five AUTHORS entries', () => {
     'jean-paul-1', 'marco-tullio-cicerone-1', 'plinio-il-vecchio-1',
     'quinto-orazio-flacco-1', 'rene-descartes-1',
   ]);
-  const { data } = run([q('rene-descartes-1', 'x', 'y', { author: 'René Descartes (Cartesio)' })]);
-  assert.equal(data[0].it.author, 'Cartesio');
-  assert.equal(data[0].en.author, 'René Descartes');
+  const expected = {
+    'plinio-il-vecchio-1': ['Plinio il Vecchio', 'Pliny the Elder'],
+    'marco-tullio-cicerone-1': ['Marco Tullio Cicerone', 'Cicero'],
+    'quinto-orazio-flacco-1': ['Quinto Orazio Flacco', 'Horace'],
+    'rene-descartes-1': ['Cartesio', 'René Descartes'],
+    'jean-paul-1': ['Jean Paul', 'Jean Paul'],
+  };
+  for (const [id, [it, en]] of Object.entries(expected)) {
+    const { data } = run([q(id, 'x', 'y', { author: 'Nome (Name)' })]);
+    assert.equal(data[0].it.author, it, id);
+    assert.equal(data[0].en.author, en, id);
+  }
 });
 
 test('WORKS with null gives a caption without a work', () => {

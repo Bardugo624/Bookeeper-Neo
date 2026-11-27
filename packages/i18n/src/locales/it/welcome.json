@@ -1,12 +1,7 @@
 {
   "brand": { "label": "Bookeeper" },
   "hero": {
-    "title": "I tuoi libri,\nin ordine.",
-    "text": "Una libreria che resta tua: sul tuo computer, o su un server che scegli tu.",
-    "cover1": "Il nome della rosa",
-    "cover2": "Cent'anni di solitudine",
-    "cover3": "Le città invisibili",
-    "cover4": "Se una notte d'inverno"
+    "text": "Una libreria che resta tua: sul tuo computer, o su un server che scegli tu."
   },
   "heading": "Come vuoi iniziare?",
   "subheading": "Puoi cambiare idea più tardi dalle impostazioni.",

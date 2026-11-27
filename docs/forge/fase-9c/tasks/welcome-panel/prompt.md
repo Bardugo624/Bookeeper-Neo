@@ -8,7 +8,7 @@ Leggi prima `docs/forge/fase-9c/CONTRATTO.md` («La pagina d'apertura», «Inter
   - `WelcomeView.tsx` e `WelcomeView.module.css`;
   - `welcome.test.tsx`.
 - Crea `apps/desktop/src/modules/welcome/mark.png`, copia esatta di `apps/setup/src/shell/mark.png`.
-- Modifica `packages/i18n/src/locales/it/shell.json` e `en/shell.json`: togli `welcome.hero.title` e `welcome.hero.cover1` … `cover4`.
+- Modifica `packages/i18n/src/locales/it/welcome.json` e `en/welcome.json`: togli `welcome.hero.title` e `welcome.hero.cover1` … `cover4`.
 
 ## Interfacce consumate
 `@bookeeper/ui/quote` della task `quote-ui`: `useOpeningQuote`, `Quotation`, `quoteSize`. La lingua dell'app viene da `useLocale()` di `apps/desktop/src/app/i18n.tsx`.

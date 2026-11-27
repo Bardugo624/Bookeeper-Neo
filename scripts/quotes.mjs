@@ -63,7 +63,7 @@ export function typeset(text) {
     .replace(/ -$/gm, ' –');
 }
 
-/** Verified in `lang`: high confidence, checked in that language, not discarded is decided by the caller. */
+/** Verified in `lang`: high confidence and found again in the source in that language. Quotes marked `scarta` are left out by the caller. */
 export function isVerified(quote, lang) {
   return (
     quote.confidence === 'high' &&
