@@ -8,42 +8,52 @@
 .brandPanel {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   gap: 32px;
-  padding: 40px;
+  padding: 40px 44px 36px 48px;
   background: var(--bk-chrome);
 }
 
 .brand {
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-family: var(--bk-font-serif);
   font-size: 18px;
   font-weight: 600;
   color: var(--bk-text-strong);
 }
 
-.hero {
-  margin: 0 0 12px;
-  font-family: var(--bk-font-serif);
-  font-size: 38px;
-  font-weight: 600;
-  line-height: 1.15;
-  white-space: pre-line;
-  color: var(--bk-text-strong);
+.mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+}
+
+.quoteSlot {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.quotation {
+  width: 348px;
+  max-width: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .quotation {
+    animation: global(bk-rise) var(--bk-dur-slow) var(--bk-ease);
+  }
 }
 
 .heroText {
   margin: 0;
+  max-width: 30ch;
   font-weight: 400;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.5;
   color: var(--bk-text-muted);
-}
-
-.covers {
-  display: flex;
-  align-items: flex-end;
-  gap: 16px;
 }
 
 .column {

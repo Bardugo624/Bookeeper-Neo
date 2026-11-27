@@ -1,29 +1,24 @@
-import { BookCover } from '@bookeeper/ui/book';
-import { useT } from '../../app/i18n';
+import { Quotation, quoteSize, useOpeningQuote } from '@bookeeper/ui/quote';
+import { useLocale, useT } from '../../app/i18n';
+import mark from './mark.png';
 import styles from './WelcomeView.module.css';
 
-const COVERS = [
-  { key: 'cover1', width: 78 },
-  { key: 'cover2', width: 92 },
-  { key: 'cover3', width: 70 },
-  { key: 'cover4', width: 100 },
-] as const;
-
-/** The left side of the first screen: brand, the promise, and four placeholder covers. */
+/** The left side of the first screen: the brand, a writer's quotation, and today's promise. */
 export function BrandPanel() {
   const t = useT();
+  const locale = useLocale();
+  const entry = useOpeningQuote(locale);
+  const quote = entry[locale];
   return (
     <aside className={styles.brandPanel}>
-      <p className={styles.brand}>{t('welcome.brand.label')}</p>
-      <div>
-        <p className={styles.hero}>{t('welcome.hero.title')}</p>
-        <p className={styles.heroText}>{t('welcome.hero.text')}</p>
+      <p className={styles.brand}>
+        <img className={styles.mark} src={mark} alt="" width={22} height={22} />
+        {t('welcome.brand.label')}
+      </p>
+      <div className={styles.quoteSlot}>
+        {quote ? <Quotation className={styles.quotation} quote={quote} size={quoteSize(quote.text, { columnPx: 348 })} /> : null}
       </div>
-      <div className={styles.covers} aria-hidden="true">
-        {COVERS.map((c) => (
-          <BookCover key={c.key} title={t(`welcome.hero.${c.key}`)} width={c.width} />
-        ))}
-      </div>
+      <p className={styles.heroText}>{t('welcome.hero.text')}</p>
     </aside>
   );
 }
