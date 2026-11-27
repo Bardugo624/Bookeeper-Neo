@@ -20,6 +20,7 @@ pub mod labels;
 pub mod loans;
 pub mod lookup;
 pub mod pairing;
+pub mod positions;
 pub mod readers;
 pub mod reading;
 pub mod rooms;
@@ -74,6 +75,7 @@ pub fn router(state: AppState) -> Router {
         .merge(covers::routes())
         .merge(ebook_files::routes())
         .merge(book_files::routes())
+        .merge(positions::routes())
         .merge(transfer::routes())
         .merge(confirm::routes())
         .merge(backup::routes())

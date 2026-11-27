@@ -45,7 +45,7 @@ pub const STATUSES: [&str; 4] = ["to_read", "reading", "read", "abandoned"];
 
 const MAX_NOTE: usize = 2_000;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
 pub struct ReadingOut {
     pub book_id: String,
     /// `to_read`, `reading`, `read` or `abandoned`.
@@ -56,6 +56,10 @@ pub struct ReadingOut {
     pub note: Option<String>,
     pub current_page: Option<i64>,
     pub updated_at: i64,
+    /// 0 to 100: the one progress of this person on this book.
+    pub progress_percent: Option<f64>,
+    /// When `progress_percent` was last written.
+    pub progress_at: Option<i64>,
 }
 
 /// The caller's reading state as shown inside a book.
@@ -189,8 +193,17 @@ pub fn resolve(input: PutReading, page_count: Option<i64>, now: i64) -> ApiResul
     Ok(out)
 }
 
+/// `current_page / page_count × 100`, one decimal; `None` without both.
+pub fn page_percent(current_page: Option<i64>, page_count: Option<i64>) -> Option<f64> {
+    let (p, c) = (current_page?, page_count?);
+    if c <= 0 {
+        return None;
+    }
+    Some(((p as f64 / c as f64 * 1000.0).round() / 10.0).clamp(0.0, 100.0))
+}
+
 const SELECT_READING: &str = "SELECT book_id, status, started_at, finished_at, rating, note, \
-    current_page, updated_at FROM reading";
+    current_page, updated_at, progress_percent, progress_at FROM reading";
 
 fn map_reading(r: &rusqlite::Row<'_>) -> rusqlite::Result<ReadingOut> {
     Ok(ReadingOut {
@@ -202,10 +215,12 @@ fn map_reading(r: &rusqlite::Row<'_>) -> rusqlite::Result<ReadingOut> {
         note: r.get(5)?,
         current_page: r.get(6)?,
         updated_at: r.get(7)?,
+        progress_percent: r.get(8)?,
+        progress_at: r.get(9)?,
     })
 }
 
-fn fetch_reading(
+pub(crate) fn fetch_reading(
     conn: &Connection,
     who: &AuthUser,
     book_id: &str,
@@ -219,7 +234,7 @@ fn fetch_reading(
 }
 
 /// `Some(page_count)` when the book exists in the caller's library.
-fn book_page_count(
+pub(crate) fn book_page_count(
     conn: &Connection,
     who: &AuthUser,
     book_id: &str,
@@ -294,14 +309,36 @@ pub async fn put_reading(
                 Ok(r) => r,
                 Err(e) => return Ok(Err(e)),
             };
+            // A page typed by hand is also the progress, but only when it
+            // actually changed: clients resend the saved page with every edit
+            // of a note or rating, and that must not rewrite the progress.
+            let old_page: Option<i64> = tx
+                .query_row(
+                    "SELECT current_page FROM reading WHERE user_id = ?1 AND book_id = ?2",
+                    params![who.user_id, id],
+                    |row| row.get(0),
+                )
+                .optional()?
+                .flatten();
+            let page_changed = r.current_page != old_page;
+            let clear_progress = page_changed && r.current_page.is_none();
+            let (percent, percent_at, percent_device) = match page_percent(r.current_page, page_count)
+            {
+                Some(p) if page_changed => (Some(p), Some(now), Some(who.device_id.clone())),
+                _ => (None, None, None),
+            };
             tx.execute(
                 "INSERT INTO reading (id, library_id, user_id, book_id, status, started_at, \
-                 finished_at, rating, note, current_page, updated_at) \
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11) \
+                 finished_at, rating, note, current_page, updated_at, progress_percent, \
+                 progress_at, progress_device_id) \
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14) \
                  ON CONFLICT(user_id, book_id) DO UPDATE SET status = excluded.status, \
                  started_at = excluded.started_at, finished_at = excluded.finished_at, \
                  rating = excluded.rating, note = excluded.note, \
-                 current_page = excluded.current_page, updated_at = excluded.updated_at",
+                 current_page = excluded.current_page, updated_at = excluded.updated_at, \
+                 progress_percent = CASE WHEN ?15 THEN NULL ELSE COALESCE(excluded.progress_percent, progress_percent) END, \
+                 progress_at = CASE WHEN ?15 THEN NULL ELSE COALESCE(excluded.progress_at, progress_at) END, \
+                 progress_device_id = CASE WHEN ?15 THEN NULL ELSE COALESCE(excluded.progress_device_id, progress_device_id) END",
                 params![
                     new_id(),
                     who.library_id,
@@ -313,7 +350,11 @@ pub async fn put_reading(
                     r.rating,
                     r.note,
                     r.current_page,
-                    now
+                    now,
+                    percent,
+                    percent_at,
+                    percent_device,
+                    clear_progress
                 ],
             )?;
             audit::record(
@@ -422,7 +463,8 @@ pub async fn list_reading(
             )?;
             let mut stmt = conn.prepare(
                 "SELECT r.book_id, r.status, r.started_at, r.finished_at, r.rating, r.note, \
-                 r.current_page, r.updated_at, b.title, b.authors_json, b.cover_color, b.page_count \
+                 r.current_page, r.updated_at, r.progress_percent, r.progress_at, \
+                 b.title, b.authors_json, b.cover_color, b.page_count \
                  FROM reading r JOIN books b ON b.id = r.book_id \
                  WHERE r.user_id = ?1 AND r.library_id = ?2 AND (?3 IS NULL OR r.status = ?3) \
                  ORDER BY r.updated_at DESC, r.id DESC LIMIT ?4 OFFSET ?5",
@@ -432,14 +474,14 @@ pub async fn list_reading(
                     params![who.user_id, who.library_id, q.status, limit, offset],
                     |r| {
                         let reading = map_reading(r)?;
-                        let authors_json: String = r.get(9)?;
+                        let authors_json: String = r.get(11)?;
                         Ok(ReadingItem {
                             book: ReadingBook {
                                 id: reading.book_id.clone(),
-                                title: r.get(8)?,
+                                title: r.get(10)?,
                                 authors: serde_json::from_str(&authors_json).unwrap_or_default(),
-                                cover_color: r.get(10)?,
-                                page_count: r.get(11)?,
+                                cover_color: r.get(12)?,
+                                page_count: r.get(13)?,
                             },
                             reading,
                         })

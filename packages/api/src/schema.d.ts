@@ -372,6 +372,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/books/{id}/files/{file_id}/position": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["put_position"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/books/{id}/placement": {
         parameters: {
             query?: never;
@@ -383,6 +399,22 @@ export interface paths {
         put: operations["place_book"];
         post?: never;
         delete: operations["unplace_book"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/books/{id}/positions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_positions"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1996,10 +2028,34 @@ export interface components {
             /** Format: int64 */
             slot_index: number;
         };
+        PositionOut: {
+            device_id?: string | null;
+            device_name?: string | null;
+            file_id: string;
+            /** @description `cfi`, `koreader` or `kobo`. */
+            kind: string;
+            /** Format: double */
+            percent?: number | null;
+            /** Format: int64 */
+            updated_at: number;
+            value: string;
+        };
         /** @description Body of `PUT /books/{id}/tags`. */
         PutBookTags: {
             /** @description The full set of tags of the book; at most 20 distinct ids. */
             tag_ids: string[];
+        };
+        /** @description Body of `PUT /books/{id}/files/{file_id}/position`. */
+        PutPosition: {
+            /** @description Only `cfi` (the Bookeeper reader) can be written here. */
+            kind: string;
+            /**
+             * Format: double
+             * @description 0 to 100.
+             */
+            percent: number;
+            /** @description The position in the format of the writer, at most 4000 characters. */
+            value: string;
         };
         /** @description Body of `PUT /books/{id}/reading`. */
         PutReading: {
@@ -2088,6 +2144,16 @@ export interface components {
             /** Format: int64 */
             finished_at?: number | null;
             note?: string | null;
+            /**
+             * Format: int64
+             * @description When `progress_percent` was last written.
+             */
+            progress_at?: number | null;
+            /**
+             * Format: double
+             * @description 0 to 100: the one progress of this person on this book.
+             */
+            progress_percent?: number | null;
             /** Format: int64 */
             rating?: number | null;
             /** Format: int64 */
@@ -4079,6 +4145,89 @@ export interface operations {
             };
         };
     };
+    put_position: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Book id */
+                id: string;
+                /** @description File id */
+                file_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PutPosition"];
+            };
+        };
+        responses: {
+            /** @description The caller's reading state with the new progress; null when there is no reading yet and percent is 0 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": null | components["schemas"]["ReadingOut"];
+                };
+            };
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description not_found: unknown book or file */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description validation: invalid body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
     place_book: {
         parameters: {
             query?: never;
@@ -4198,6 +4347,56 @@ export interface operations {
                 };
             };
             /** @description forbidden: role too low */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description not_found: unknown book */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    list_positions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Book id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The caller's positions in the book's files */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PositionOut"][];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot */
             403: {
                 headers: {
                     [name: string]: unknown;
