@@ -19,14 +19,14 @@
 - UPDATE_OPENAPI=1 cargo test -p bookeeper-core --test openapi -- --include-ignored && npm run gen -w @bookeeper/api && npm test -w @bookeeper/api [packages/api/openapi.json]
 
 ## Known traps
+- a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/mobile [apps/mobile/package.json]
 - a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/desktop [apps/desktop/package.json]
 - a fresh worktree needs `npm ci --offline` at the root before `npm run gen -w @bookeeper/api` works [packages/api/package.json]
-- a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/mobile [apps/mobile/package.json]
 - a rejected optimistic write can restore the cache in the same batch as the optimistic render, so an effect keyed on the saved value… [apps/mobile/src/modules/reading/NoteField.tsx]
 - a fresh worktree has no node_modules; run `npm ci --offline` at the root, then `npx vitest run <path>` from apps/desktop [apps/desktop/package.json]
+- a `.body > :where(form)` max-width in SettingsBlock.module.css caps section forms placed straight inside the block… [apps/desktop/src/modules/settings/SettingsBlock.module.css]
 - `CoachCard`'s «Più tardi» button is labelled «Lo faccio dopo» (`tour.later`), so tests must look it up by that name [packages/i18n/src/locales/it/tour.json]
 - a tour step whose real action sits outside its `data-tour` anchor is paused by `usePauseTriggers` on the press, and… [apps/desktop/src/modules/tour/usePauseTriggers.ts]
 - a tour started with `start()` before the app has mounted is wiped when the shell binds the connection, so tests must start the path after… [apps/desktop/src/modules/tour/store.ts]
 - the tour pauses on any press outside its target, so a signal caused by clicking elsewhere (a list row) needs `whilePaused` on the step [apps/desktop/src/modules/tour/model.ts]
-- a devices/shelves test that fakes `Date` or timers with `vi.useFakeTimers` stalls `requestAnimationFrame`, so the tour lamp… [apps/desktop/src/modules/devices/devices.test.tsx]
 

@@ -670,3 +670,23 @@
 2026-11-26T23:04:11Z	bookeeper-fase-8a1	fix-danger-collection	qa	opus	PASS	-	-	-	73
 2026-11-26T23:04:13Z	bookeeper-fase-8a1	fix-danger-settings	dwarf	sonnet	-	-	-	-	58
 2026-11-26T23:05:16Z	bookeeper-fase-8a1	fix-danger-settings	qa	opus	PASS	-	-	-	58
+2026-11-26T23:54:32Z	bookeeper-fase-8b	calm-shelves	dwarf	sonnet	-	-	-	-	107
+2026-11-26T23:55:00Z	bookeeper-fase-8b	calm-books	dwarf	sonnet	-	-	-	-	135
+2026-11-26T23:55:34Z	bookeeper-fase-8b	calm-shelves	qa	opus	PASS	-	-	-	54
+2026-11-26T23:56:25Z	bookeeper-fase-8b	calm-books	qa	opus	PASS	-	-	-	78
+2026-11-26T23:57:20Z	bookeeper-fase-8b	calm-loans	dwarf	sonnet	-	-	-	-	100
+2026-11-26T23:57:25Z	bookeeper-fase-8b	calm-wishlist	dwarf	sonnet	-	-	-	-	55
+2026-11-26T23:58:11Z	bookeeper-fase-8b	calm-wishlist	qa	opus	PASS	-	-	-	40
+2026-11-26T23:58:24Z	bookeeper-fase-8b	calm-loans	qa	opus	PASS	-	-	-	59
+2026-11-26T23:59:11Z	bookeeper-fase-8b	calm-mobile	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npx vitest run works in apps mobile	a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/mobile [apps/mobile/package.json]	40	1
+2026-11-26T23:59:48Z	bookeeper-fase-8b	calm-people	dwarf	sonnet	-	-	-	-	91
+2026-11-26T23:59:49Z	bookeeper-fase-8b	calm-mobile	qa	opus	PASS	-	-	-	32
+2026-11-27T00:00:49Z	bookeeper-fase-8b	calm-people	qa	opus	PASS	-	-	-	56
+2026-11-27T00:01:42Z	bookeeper-fase-8b	fix-8a1-p3	dwarf	sonnet	-	-	-	-	108
+2026-11-27T00:03:58Z	bookeeper-fase-8b	fix-8a1-p3	qa	opus	FAIL	finding	a tour card portaled into a dialog s in flow slot lands inside the dialog s scrolling body overflow y auto panel capped at	a tour card portaled into a dialog's in-flow slot lands inside the dialog's scrolling `.body` (overflow-y:auto, panel capped at… [packages/ui/src/overlays/Dialog.module.css]	129	1
+2026-11-27T00:05:25Z	bookeeper-fase-8b	fix-8a1-p3	dwarf	sonnet	-	-	-	-	82
+2026-11-27T00:06:26Z	bookeeper-fase-8b	fix-8a1-p3	qa	opus	PASS	-	-	-	56
+2026-11-27T00:08:16Z	bookeeper-fase-8b	settings-layout	dwarf	sonnet	-	-	-	-	104
+2026-11-27T00:09:34Z	bookeeper-fase-8b	settings-layout	qa	opus	FAIL	finding	a descendant rule in settingsblock module css such as body form also styles section specific forms placed	a descendant rule in SettingsBlock.module.css such as `.body > form` also styles section-specific forms placed… [apps/desktop/src/modules/settings/SettingsBlock.module.css]	72	1
+2026-11-27T00:10:14Z	bookeeper-fase-8b	settings-layout	dwarf	sonnet	-	trap	a body where form max width in settingsblock module css caps section forms placed straight inside the block	a `.body > :where(form)` max-width in SettingsBlock.module.css caps section forms placed straight inside the block… [apps/desktop/src/modules/settings/SettingsBlock.module.css]	35	1
+2026-11-27T00:11:05Z	bookeeper-fase-8b	settings-layout	qa	opus	PASS	-	-	-	45
