@@ -5,11 +5,13 @@ use crate::{error::ApiError, state::AppState};
 pub mod audit;
 pub mod auth;
 pub mod backup;
+pub mod book_files;
 pub mod books;
 pub mod books_search;
 pub mod confirm;
 pub mod covers;
 pub mod devices;
+pub mod ebook_files;
 pub mod facets;
 pub mod health;
 pub mod invites;
@@ -44,6 +46,8 @@ async fn method_not_allowed_fallback() -> ApiError {
 }
 
 pub fn router(state: AppState) -> Router {
+    // Startup sweep of uploaded files nobody attached (once an hour at most).
+    ebook_files::maybe_sweep(&state);
     Router::new()
         .route("/api/v1/health", get(health::health))
         .route("/api/v1/server", get(server::server_info))
@@ -68,6 +72,8 @@ pub fn router(state: AppState) -> Router {
         .merge(stats::routes())
         .merge(lookup::routes())
         .merge(covers::routes())
+        .merge(ebook_files::routes())
+        .merge(book_files::routes())
         .merge(transfer::routes())
         .merge(confirm::routes())
         .merge(backup::routes())
