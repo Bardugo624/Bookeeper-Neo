@@ -188,9 +188,27 @@ pub async fn store_stream(
         .await
         .map_err(std::io::Error::other)??;
 
+    // Same bytes already stored under another extension (MOBI vs AZW3 is
+    // decided by the name): reuse that copy instead of storing a second one.
+    let format = [
+        format,
+        EbookFormat::Epub,
+        EbookFormat::Pdf,
+        EbookFormat::Mobi,
+        EbookFormat::Azw3,
+        EbookFormat::Fb2,
+        EbookFormat::Cbz,
+    ]
+    .into_iter()
+    .find(|f| dir.join(format!("{sha256}.{}", f.ext())).exists())
+    .unwrap_or(format);
     let dest = dir.join(format!("{sha256}.{}", format.ext()));
     if dest.exists() {
-        // Dropping the guard discards the duplicate.
+        // Dropping the guard discards the duplicate; refresh the stored
+        // file's mtime so a sweep does not collect it right after this upload.
+        if let Ok(f) = std::fs::OpenOptions::new().write(true).open(&dest) {
+            let _ = f.set_modified(std::time::SystemTime::now());
+        }
         return Ok(Stored {
             sha256,
             size_bytes: size,
@@ -367,6 +385,9 @@ fn epub_metadata(path: &Path) -> Option<EbookMetadataRaw> {
 }
 
 fn pdf_metadata(path: &Path) -> Option<EbookMetadataRaw> {
+    if std::fs::metadata(path).ok()?.len() > PDF_FULL_LOAD_MAX {
+        return pdf_metadata_tail(path);
+    }
     let m = lopdf::Document::load_metadata(path).ok()?;
     let authors = m
         .author
@@ -381,6 +402,109 @@ fn pdf_metadata(path: &Path) -> Option<EbookMetadataRaw> {
     })
 }
 
+/// Large PDFs: finds `/Info N G R` and the object itself in the last
+/// `PDF_TAIL_BYTES`, never loading the whole file. Empty when not found there.
+fn pdf_metadata_tail(path: &Path) -> Option<EbookMetadataRaw> {
+    let mut f = File::open(path).ok()?;
+    let len = f.metadata().ok()?.len();
+    f.seek(SeekFrom::Start(len.saturating_sub(PDF_TAIL_BYTES))).ok()?;
+    let mut tail = Vec::new();
+    f.take(PDF_TAIL_BYTES).read_to_end(&mut tail).ok()?;
+    let at = rfind(&tail, b"/Info")? + 5;
+    let mut it = tail[at..]
+        .split(|b| b.is_ascii_whitespace())
+        .filter(|t| !t.is_empty());
+    let num = std::str::from_utf8(it.next()?).ok()?.parse::<u32>().ok()?;
+    let gen_ = std::str::from_utf8(it.next()?).ok()?.parse::<u32>().ok()?;
+    let head = format!("{num} {gen_} obj");
+    let start = rfind(&tail, head.as_bytes())? + head.len();
+    let body = &tail[start..];
+    let end = find(body, b"endobj").unwrap_or(body.len());
+    let dict = &body[..end];
+    let authors = pdf_string(dict, b"/Author")
+        .map(|a| a.split([';', '\n']).filter_map(clean).collect())
+        .unwrap_or_default();
+    Some(EbookMetadataRaw {
+        title: pdf_string(dict, b"/Title").as_deref().and_then(clean),
+        authors,
+        description: pdf_string(dict, b"/Subject").as_deref().and_then(clean),
+        ..Default::default()
+    })
+}
+
+fn find(h: &[u8], n: &[u8]) -> Option<usize> {
+    h.windows(n.len()).position(|w| w == n)
+}
+
+fn rfind(h: &[u8], n: &[u8]) -> Option<usize> {
+    h.windows(n.len()).rposition(|w| w == n)
+}
+
+/// Value of a literal `(..)` or hex `<..>` string key in a PDF dictionary.
+fn pdf_string(dict: &[u8], key: &[u8]) -> Option<String> {
+    let mut i = find(dict, key)? + key.len();
+    while dict.get(i)?.is_ascii_whitespace() {
+        i += 1;
+    }
+    let mut raw = Vec::new();
+    match *dict.get(i)? {
+        b'(' => {
+            let (mut depth, mut esc) = (0u32, false);
+            for &b in &dict[i..] {
+                if esc {
+                    raw.push(match b {
+                        b'n' => b'\n',
+                        b'r' => b'\r',
+                        b't' => b'\t',
+                        o => o,
+                    });
+                    esc = false;
+                    continue;
+                }
+                match b {
+                    b'\\' => esc = true,
+                    b'(' => {
+                        depth += 1;
+                        if depth > 1 {
+                            raw.push(b);
+                        }
+                    }
+                    b')' => {
+                        depth -= 1;
+                        if depth == 0 {
+                            break;
+                        }
+                        raw.push(b);
+                    }
+                    _ => raw.push(b),
+                }
+            }
+        }
+        b'<' => {
+            let hex: Vec<u8> = dict[i + 1..]
+                .iter()
+                .copied()
+                .take_while(|b| *b != b'>')
+                .filter(|b| b.is_ascii_hexdigit())
+                .collect();
+            for p in hex.chunks(2) {
+                let s = std::str::from_utf8(p).ok()?;
+                raw.push(u8::from_str_radix(s, 16).ok()? << if p.len() == 1 { 4 } else { 0 });
+            }
+        }
+        _ => return None,
+    }
+    if raw.starts_with(&[0xFE, 0xFF]) {
+        let units: Vec<u16> = raw[2..]
+            .chunks_exact(2)
+            .map(|c| u16::from_be_bytes([c[0], c[1]]))
+            .collect();
+        Some(String::from_utf16_lossy(&units))
+    } else {
+        Some(String::from_utf8_lossy(&raw).into_owned())
+    }
+}
+
 /// The EPUB cover image, `None` for other formats or when there is none.
 pub fn extract_cover(path: &Path, format: EbookFormat) -> Option<Vec<u8>> {
     if format != EbookFormat::Epub {
@@ -388,8 +512,23 @@ pub fn extract_cover(path: &Path, format: EbookFormat) -> Option<Vec<u8>> {
     }
     let epub = open_epub(path)?;
     let cover = epub.manifest().cover_image()?;
-    cover.read_bytes().ok()
+    let key = cover.resource();
+    let key = key.key().value()?.trim_start_matches('/').to_string();
+    let mut zip = zip::ZipArchive::new(File::open(path).ok()?).ok()?;
+    let entry = zip.by_name(&key).ok()?;
+    if entry.size() > MAX_COVER_BYTES {
+        return None;
+    }
+    // Bounded read: the declared size can lie in a hostile archive.
+    let mut out = Vec::new();
+    entry.take(MAX_COVER_BYTES + 1).read_to_end(&mut out).ok()?;
+    (out.len() as u64 <= MAX_COVER_BYTES).then_some(out)
 }
+
+const MAX_COVER_BYTES: u64 = 20 << 20;
+/// Above this size the PDF is not loaded whole: `/Info` is read from the tail.
+const PDF_FULL_LOAD_MAX: u64 = 8 << 20;
+const PDF_TAIL_BYTES: u64 = 2 << 20;
 
 fn isbn13_from(raw: &str) -> Option<String> {
     let digits: String = raw
@@ -449,7 +588,7 @@ pub fn sweep_staged(
 ) -> std::io::Result<usize> {
     let mut removed = 0;
     for entry in std::fs::read_dir(dir)? {
-        let entry = entry?;
+        let Ok(entry) = entry else { continue };
         let name = entry.file_name().to_string_lossy().into_owned();
         let stale = if name.starts_with(TMP_PREFIX) {
             true
@@ -458,11 +597,11 @@ pub fn sweep_staged(
         } else {
             false
         };
-        if !stale || !entry.file_type()?.is_file() {
+        if !stale || !entry.file_type().is_ok_and(|t| t.is_file()) {
             continue;
         }
-        let age = entry
-            .metadata()?
+        let Ok(meta) = entry.metadata() else { continue };
+        let age = meta
             .modified()
             .ok()
             .and_then(|m| m.elapsed().ok())

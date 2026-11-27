@@ -288,3 +288,34 @@ fn sweep_removes_unreferenced_and_orphan_temporaries_only() {
     );
     assert_eq!(names(dir.path()), vec![kept, "notes.txt".to_string()]);
 }
+
+#[tokio::test]
+async fn same_bytes_other_extension_is_not_stored_twice() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut data = vec![0u8; 80];
+    data[60..68].copy_from_slice(b"BOOKMOBI");
+    let body = || axum::body::Body::from(data.clone());
+    let a = bookeeper_core::ebooks::store_stream(dir.path(), "a.mobi", body(), 1 << 20)
+        .await
+        .unwrap();
+    let b = bookeeper_core::ebooks::store_stream(dir.path(), "a.azw3", body(), 1 << 20)
+        .await
+        .unwrap();
+    assert_eq!(a.format, b.format);
+    assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 1);
+}
+
+#[test]
+fn large_pdf_metadata_is_read_from_the_tail() {
+    let dir = tempfile::tempdir().unwrap();
+    let base = pdf(false);
+    let nl = base.iter().position(|b| *b == b'\n').unwrap() + 1;
+    let mut bytes = base[..nl].to_vec();
+    bytes.extend(std::iter::repeat_n(b'%', 9 << 20));
+    bytes.push(b'\n');
+    bytes.extend(&base[nl..]);
+    let p = write(dir.path(), "big.pdf", &bytes);
+    let m = read_metadata(&p, EbookFormat::Pdf);
+    assert_eq!(m.title.as_deref(), Some("Dune"));
+    assert_eq!(m.authors, vec!["Frank Herbert", "Brian Herbert"]);
+}
