@@ -1,0 +1,34 @@
+.summary {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.summary li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--bk-text);
+}
+
+.summary svg {
+    flex: none;
+    color: var(--bk-text-faint);
+}
+
+.dir {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .summary {
+        animation: bk-rise var(--bk-dur) var(--bk-ease);
+    }
+}

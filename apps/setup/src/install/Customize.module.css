@@ -1,0 +1,183 @@
+.panel {
+    height: 370px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px 40px 24px 72px;
+    animation: bk-rise var(--bk-dur) var(--bk-ease);
+}
+
+.head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.field {
+    max-width: 560px;
+}
+
+.label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--bk-text-strong);
+}
+
+.fieldRow {
+    display: flex;
+    gap: 8px;
+}
+
+.fieldRow > button {
+    height: 38px;
+}
+
+.input {
+    flex: 1;
+    min-width: 0;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    border: 1px solid var(--bk-border-strong);
+    border-radius: 8px;
+    background: var(--bk-surface);
+    color: var(--bk-text-faint);
+}
+
+.input svg {
+    flex: none;
+}
+
+.input input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    font: inherit;
+    font-size: 13px;
+    color: var(--bk-text);
+    text-overflow: ellipsis;
+}
+
+.input:focus-within {
+    outline: 2px solid var(--bk-focus);
+    outline-offset: 1px;
+}
+
+.input input:focus {
+    outline: none;
+}
+
+.help {
+    margin: 6px 0 0;
+    min-height: 18px;
+    font-size: 12px;
+    color: var(--bk-text-muted);
+}
+
+.help[data-problem] {
+    color: var(--bk-danger-strong);
+}
+
+.options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--bk-text-strong);
+    cursor: pointer;
+}
+
+.box {
+    position: relative;
+    flex: none;
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+}
+
+.box input {
+    appearance: none;
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    border: 1.5px solid var(--bk-border-strong);
+    border-radius: 4px;
+    background: var(--bk-surface);
+    cursor: pointer;
+}
+
+.box input:checked {
+    border-color: var(--bk-accent-control);
+    background: var(--bk-accent-control);
+}
+
+.box input:focus-visible {
+    outline: 2px solid var(--bk-focus);
+    outline-offset: 2px;
+}
+
+.tick {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--bk-on-primary);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.box input:checked + .tick {
+    opacity: 1;
+}
+
+.note {
+    display: block;
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--bk-text-muted);
+}
+
+.fixed {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 0;
+    font-size: 13px;
+    color: var(--bk-text-muted);
+}
+
+.fixed svg {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+    color: var(--bk-accent-text);
+}
+
+.foot {
+    margin-top: auto;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.foot > button {
+    height: 38px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .panel {
+        animation: none;
+    }
+}
