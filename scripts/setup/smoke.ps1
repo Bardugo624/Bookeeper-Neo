@@ -33,7 +33,7 @@ function Run([string]$exe, [string]$arguments) {
     return $p.ExitCode
 }
 function ExpectExit([string]$what, [string]$exe, [string]$arguments) {
-    Expect "$what: exit code" 0 (Run $exe $arguments)
+    Expect "${what}: exit code" 0 (Run $exe $arguments)
 }
 function ExpectPath([string]$what, [string]$path, [bool]$present) {
     Expect "$what ($path) exists" $present (Test-Path -LiteralPath $path)

@@ -416,9 +416,9 @@ jobs:
             --main "$main" \
             --version "$VERSION" \
             --out "out/installers/Bookeeper-Setup-${VERSION}.exe"
-          echo "SETUP_EXE=$PWD/out/installers/Bookeeper-Setup-${VERSION}.exe" >> "$GITHUB_ENV"
-          echo "CLASSIC_EXE=$PWD/$nsis" >> "$GITHUB_ENV"
-          echo "MAIN_EXE=$PWD/$main" >> "$GITHUB_ENV"
+          echo "SETUP_EXE=$(pwd -W)/out/installers/Bookeeper-Setup-${VERSION}.exe" >> "$GITHUB_ENV"
+          echo "CLASSIC_EXE=$(pwd -W)/$nsis" >> "$GITHUB_ENV"
+          echo "MAIN_EXE=$(pwd -W)/$main" >> "$GITHUB_ENV"
       - name: Smoke test the Setup (windows)
         if: runner.os == 'Windows'
         shell: pwsh
