@@ -1,6 +1,6 @@
 # Pagina d'apertura con la citazione — design
 
-Data: 2026-11-27. Stato: da approvare. Gli schizzi stanno in `2026-11-27-pagina-apertura/`, accanto a questo file.
+Data: 2026-11-27. Stato: da approvare. Il documento è passato da un controllo indipendente: le risposte sono qui dentro, e quella che spetta al proprietario è in fondo. Gli schizzi stanno in `2026-11-27-pagina-apertura/`, accanto a questo file.
 
 ## Perché
 
@@ -54,7 +54,7 @@ Le 7 citazioni che il proprietario ha tenuto sono tutte verificate in tutte e du
 
 - In una lingua compare un testo che in quella lingua non è verificato.
 - Nella finestra minima, 960×600, una citazione lunga esce dal pannello o copre la promessa.
-- Un verso di una poesia si spezza a metà.
+- Un verso di una poesia va a capo senza rientro, e sembra un verso nuovo.
 - La citazione si muove mentre si scrive la password.
 - La didascalia dice una cosa falsa: per esempio «W. Somerset Maugham · Pride and Prejudice», come se Maugham avesse scritto il romanzo. Oppure l'interfaccia italiana mostra descrizioni in inglese come «Remark to Jules Huret».
 - Il Setup e l'app compongono la stessa citazione in due modi diversi.
@@ -105,7 +105,8 @@ Le 7 citazioni che il proprietario ha tenuto sono tutte verificate in tutte e du
 Misura del testo:
 
 - 33 px fino a 90 caratteri, 26 px fino a 140, 22 px oltre. È la scala del Setup.
-- Per le poesie si prende il gradino più grande a cui il verso più lungo sta intero nella colonna, scendendo fino a 20 px. Negli schizzi, Dickinson scende a 22 px.
+- Per le poesie si prende il gradino più grande a cui il verso più lungo sta intero nella colonna, scendendo fino a 20 px. Negli schizzi, Dickinson in inglese scende a 22 px.
+- Alcuni versi non stanno interi nemmeno a 20 px: Dante in tutte e due le lingue, Borges e Dickinson in italiano. Per loro si usano 22 px. Il verso che non sta continua sulla riga sotto, rientrato di 1 em, come nei libri di poesia. Così non sembra un verso nuovo e tutte le citazioni verificate restano nella pagina.
 - La larghezza della colonna è un parametro: il Setup la usa larga, la pagina d'apertura a 348 px.
 
 Il `Frontespizio` del Setup usa `Quotation` dentro la sua cornice. La compattazione con FLIP resta del Setup.
@@ -131,11 +132,23 @@ Gli schizzi la mostrano com'è; i valori:
 - **Movimento:** all'apertura la citazione entra con `bk-rise` (`--bk-dur-slow`), solo con `prefers-reduced-motion: no-preference`. Poi resta ferma.
 - **Accessibilità:** il pannello resta un `aside`, e la citazione si legge come testo. I contrasti sono quelli dei token, già controllati in tutti e due i temi.
 
+## Scelte mie, da controllare
+
+- La promessa di oggi resta in fondo al pannello, in piccolo; il titolo «I tuoi libri, in ordine.» esce.
+- L'icona dell'app entra accanto a «Bookeeper», come nel Setup.
+- Le didascalie dei pochi casi descrittivi mostrano solo l'autore: nessun testo nuovo scritto da noi.
+- I versi troppo lunghi per la colonna continuano rientrati, invece di uscire dalla pagina.
+- Se l'ultima citazione del Setup e la prima dell'app coincidono, non conta come ripetizione: capita circa una volta su 60, e per evitarlo bisognerebbe collegare i due programmi.
+
 ## Lasciato al costruttore
 
 - La tabella delle didascalie, con il test che la tiene completa.
-- Come misurare il verso più lungo: stima a caratteri o misura vera.
+- Come misurare il verso più lungo: stima a caratteri o misura vera con il font. Per decidere i casi di confine come Dickinson in italiano serve la misura vera.
 - I nomi dei file e dei tipi oltre a quelli fissati qui.
+
+## Domanda per il proprietario
+
+Per chi torna, sopra la scheda «Bentornato in Casa Rossi» restano «Come vuoi iniziare?» e «Puoi cambiare idea più tardi dalle impostazioni.» (schizzi 02 e 04). La scheda ha già il suo titolo, e chi torna non sta iniziando. Proposta: per chi torna, sopra la scheda non c'è niente. La risposta è del proprietario, perché la parte destra doveva restare com'era.
 
 ## Schizzi
 
