@@ -9,7 +9,7 @@ use tauri::{AppHandle, Emitter};
 use tauri_plugin_updater::UpdaterExt;
 
 /// Where manifests live unless `BOOKEEPER_UPDATE_BASE` says otherwise.
-pub const DEFAULT_BASE: &str = "https://app.neokeeper.dev/updates";
+pub const DEFAULT_BASE: &str = "https://updates.neokeeper.dev/v2";
 /// Event with `{ downloaded, total }` sent to the webview while an update downloads.
 pub const PROGRESS_EVENT: &str = "update://progress";
 
