@@ -73,6 +73,16 @@ it('updates call the commands with the channel and turn failures into codes', as
   await expect(updates!.install('stable')).rejects.toBe('install');
 });
 
+it('autostart calls its two commands', async () => {
+  const { autostart } = tauriPlatform();
+  invoke.mockResolvedValueOnce(true);
+  expect(await autostart!.get()).toBe(true);
+  expect(invoke).toHaveBeenCalledWith('autostart_get');
+  invoke.mockResolvedValueOnce(undefined);
+  await autostart!.set(false);
+  expect(invoke).toHaveBeenCalledWith('autostart_set', { on: false });
+});
+
 it('notifications use the plugin and tell denied from prompt', async () => {
   const { notifications } = tauriPlatform();
   isPermissionGranted.mockResolvedValueOnce(true);

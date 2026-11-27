@@ -47,5 +47,11 @@
     "step1": "Sull'altro computer apri Bookeeper e scegli di collegarti a una libreria.",
     "step2": "Su questo computer vai a Dispositivi e premi «{add}» per avere un codice.",
     "step3": "Sull'altro computer scegli questa libreria, controlla la frase di verifica e inserisci il codice."
+  },
+  "autostart": {
+    "title": "All'accesso",
+    "toggle": "Apri Bookeeper all'accesso al computer",
+    "note": "Si apre ridotto a icona. Se condividi la libreria, i telefoni la trovano finché il computer è acceso.",
+    "failed": "Non sono riuscito a cambiare l'apertura all'accesso."
   }
 }
