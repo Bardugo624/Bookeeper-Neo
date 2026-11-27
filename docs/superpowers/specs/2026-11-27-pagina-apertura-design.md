@@ -1,6 +1,6 @@
 # Pagina d'apertura con la citazione — design
 
-Data: 2026-11-27. Stato: da approvare. Il documento è passato da un controllo indipendente: le risposte sono qui dentro, e quella che spetta al proprietario è in fondo. Gli schizzi stanno in `2026-11-27-pagina-apertura/`, accanto a questo file.
+Data: 2026-11-27. Stato: approvato dal proprietario. Il documento è passato da un controllo indipendente: le risposte sono qui dentro. Gli schizzi stanno in `2026-11-27-pagina-apertura/`, accanto a questo file.
 
 ## Perché
 
@@ -14,6 +14,7 @@ Data: 2026-11-27. Stato: da approvare. Il documento è passato da un controllo i
 - **Struttura:** il pannello di sinistra diventa un frontespizio con la citazione, come nella 0.x e nel Setup. La parte destra resta com'è.
 - **Quando cambia:** a ogni apertura una citazione nuova, mai una delle ultime uscite. Mentre la pagina è aperta resta ferma.
 - **Setup:** anche il Setup usa le citazioni verificate.
+- **Chi torna:** sopra la scheda «Bentornato in …» non c'è niente. «Come vuoi iniziare?» e il suo sottotitolo restano solo al primo avvio.
 
 ## Cosa vuol dire «verificata»
 
@@ -44,7 +45,7 @@ Le 7 citazioni che il proprietario ha tenuto sono tutte verificate in tutte e du
 
 ## Non obiettivi
 
-- La parte destra della pagina: le tre strade, «Bentornato» e i moduli restano come sono. Fa eccezione la domanda in fondo a questo documento.
+- La parte destra della pagina: le tre strade, «Bentornato» e i moduli restano come sono. L'unica eccezione è il titolo sopra «Bentornato», che per chi torna non c'è più.
 - La PWA del telefono.
 - Citazioni nuove, traduzioni nostre, testi ritoccati: le parole restano quelle della fonte.
 - Il modo di accedere e le password.
@@ -145,19 +146,3 @@ Gli schizzi la mostrano com'è; i valori:
 - La tabella delle didascalie, con il test che la tiene completa.
 - Come misurare il verso più lungo: stima a caratteri o misura vera con il font. Per decidere i casi di confine come Dickinson in italiano serve la misura vera.
 - I nomi dei file e dei tipi oltre a quelli fissati qui.
-
-## Domanda per il proprietario
-
-Per chi torna, sopra la scheda «Bentornato in Casa Rossi» restano «Come vuoi iniziare?» e «Puoi cambiare idea più tardi dalle impostazioni.» (schizzi 02 e 04). La scheda ha già il suo titolo, e chi torna non sta iniziando. Proposta: per chi torna, sopra la scheda non c'è niente. La risposta è del proprietario, perché la parte destra doveva restare com'era.
-
-## Schizzi
-
-Sono disegnati sulla pagina vera, con i token dell'app; le immagini sono a 2×.
-
-| Schizzo | Cosa mostra |
-|---|---|
-| `01-primo-avvio` | Primo avvio, tema chiaro, 1280×800: Calvino a 26 px, virgolette interne alte |
-| `02-bentornato-scuro` | «Bentornato», tema scuro: Mallarmé a 33 px, didascalia con il solo autore |
-| `03-finestra-minima` | Finestra minima 960×600: Galileo, 239 caratteri, a 22 px, il caso più lungo |
-| `04-bentornato-minima` | «Bentornato» nella finestra minima: Pavese a 26 px |
-| `05-inglese` | Interfaccia inglese: Dickinson in versi a 22 px, ogni verso intero |
