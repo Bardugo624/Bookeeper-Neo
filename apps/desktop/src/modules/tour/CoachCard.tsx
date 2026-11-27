@@ -12,6 +12,7 @@ import type { Target } from './useTarget';
 
 /** How long the closing card stays when nobody clicks it away. */
 export const FINALE_MS = 6000;
+const CARD_WIDTH = 320;
 
 export interface CoachCardProps {
   step: TourStep;
@@ -58,10 +59,15 @@ export function CoachCard({ step, index, total, target, onLater, onSkip, note, c
   // Inside a dialog (which may move with a transform) coordinates are relative to it.
   const origin = host ? host.getBoundingClientRect() : null;
   // Beside the dialog's panel, never over its controls.
-  const place =
+  const slot = host?.querySelector<HTMLElement>('[data-tour-slot]') ?? null;
+  const preferred = { width: Math.min(CARD_WIDTH, view.width - 24), height: size.height };
+  let place =
     lit && origin
-      ? placeBesidePanel(lit, { x: origin.left, y: origin.top, width: origin.width, height: origin.height }, size, view)
+      ? placeBesidePanel(lit, { x: origin.left, y: origin.top, width: origin.width, height: origin.height }, preferred, view)
       : placeCard(lit, size, view);
+  // No room beside the panel and nowhere in the dialog's flow to sit: against the anchor, as a last resort.
+  if (place.side === 'inline' && !slot && lit) place = placeCard(lit, size, view);
+  const inline = place.side === 'inline';
   const x = place.x - (origin?.left ?? 0);
   const y = place.y - (origin?.top ?? 0);
   const lead = closing ? null : note;
@@ -78,13 +84,19 @@ export function CoachCard({ step, index, total, target, onLater, onSkip, note, c
       className={styles.card}
       data-side={place.side}
       data-hosted={host ? '' : undefined}
-      style={{
-        left: x,
-        top: y,
-        ['--tour-arrow' as string]: `${place.arrow}px`,
-      }}
+      data-inline={inline ? '' : undefined}
+      style={
+        inline
+          ? undefined
+          : {
+              left: x,
+              top: y,
+              width: place.width,
+              ['--tour-arrow' as string]: `${place.arrow}px`,
+            }
+      }
     >
-      {place.side !== 'none' ? <span className={styles.arrow} data-vertical={vertical ? '' : undefined} aria-hidden="true" /> : null}
+      {place.side !== 'none' && !inline ? <span className={styles.arrow} data-vertical={vertical ? '' : undefined} aria-hidden="true" /> : null}
       {lead ? <p className={styles.note}>{t(lead.textKey, lead.params)}</p> : null}
       {closing ? (
         <div className={styles.progress}>
@@ -121,5 +133,5 @@ export function CoachCard({ step, index, total, target, onLater, onSkip, note, c
       </div>
     </section>
   );
-  return host ? createPortal(card, host) : card;
+  return host ? createPortal(card, inline && slot ? slot : host) : card;
 }

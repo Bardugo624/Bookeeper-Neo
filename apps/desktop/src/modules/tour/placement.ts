@@ -5,7 +5,8 @@ export interface Rect {
   height: number;
 }
 
-export type Side = 'top' | 'bottom' | 'left' | 'right' | 'none';
+/** `inline`: no room beside the panel, the card belongs in the dialog's own flow. */
+export type Side = 'top' | 'bottom' | 'left' | 'right' | 'none' | 'inline';
 
 export interface Placement {
   side: Side;
@@ -13,11 +14,14 @@ export interface Placement {
   y: number;
   /** Where the arrow sits along the card's edge, from the card's own corner. */
   arrow: number;
+  /** Set when the card had to be narrower than asked to fit beside the panel. */
+  width?: number;
 }
 
 const MARGIN = 12;
 const ARROW_INSET = 20;
-const ORDER: Exclude<Side, 'none'>[] = ['bottom', 'right', 'top', 'left'];
+const MIN_NARROW = 220;
+const ORDER: Exclude<Side, 'none' | 'inline'>[] = ['bottom', 'right', 'top', 'left'];
 
 export const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
@@ -31,7 +35,7 @@ export function placeCard(target: Rect | null, card: { width: number; height: nu
   if (!target) {
     return { side: 'none', x: Math.max(MARGIN, view.width - card.width - 24), y: Math.max(MARGIN, view.height - card.height - 24), arrow: 0 };
   }
-  const room: Record<Exclude<Side, 'none'>, number> = {
+  const room: Record<Exclude<Side, 'none' | 'inline'>, number> = {
     bottom: view.height - (target.y + target.height) - gap - MARGIN,
     top: target.y - gap - MARGIN,
     right: view.width - (target.x + target.width) - gap - MARGIN,
@@ -69,17 +73,24 @@ export function placeBesidePanel(anchor: Rect, panel: Rect, card: { width: numbe
     bottom: view.height - (panel.y + panel.height) - gap - MARGIN,
   };
   const fits = (s: keyof typeof room) => room[s] >= (s === 'left' || s === 'right' ? card.width : card.height);
-  const side = (['right', 'left', 'top', 'bottom'] as const).find(fits);
-  // Nowhere beside the panel: lay the card against the anchor itself, which at least keeps it off the control.
-  if (!side) return placeCard(anchor, card, view, gap);
+  let side = (['right', 'left', 'top', 'bottom'] as const).find(fits);
+  let width: number | undefined;
+  if (!side) {
+    // A narrower card beside the panel, when that much room is left.
+    const narrow = (['right', 'left'] as const).find((s) => room[s] >= MIN_NARROW);
+    if (!narrow) return { side: 'inline', x: 0, y: 0, arrow: 0 };
+    side = narrow;
+    width = Math.floor(room[narrow]);
+  }
+  const w = width ?? card.width;
   const cx = anchor.x + anchor.width / 2;
   const cy = anchor.y + anchor.height / 2;
-  const maxX = Math.max(MARGIN, view.width - card.width - MARGIN);
+  const maxX = Math.max(MARGIN, view.width - w - MARGIN);
   const maxY = Math.max(MARGIN, view.height - card.height - MARGIN);
   if (side === 'left' || side === 'right') {
     const y = clamp(cy - card.height / 2, MARGIN, maxY);
-    const x = clamp(side === 'right' ? panel.x + panel.width + gap : panel.x - gap - card.width, MARGIN, maxX);
-    return { side, x, y, arrow: clamp(cy - y, ARROW_INSET, card.height - ARROW_INSET) };
+    const x = clamp(side === 'right' ? panel.x + panel.width + gap : panel.x - gap - w, MARGIN, maxX);
+    return { side, x, y, arrow: clamp(cy - y, ARROW_INSET, card.height - ARROW_INSET), width };
   }
   const x = clamp(cx - card.width / 2, MARGIN, maxX);
   const y = clamp(side === 'bottom' ? panel.y + panel.height + gap : panel.y - gap - card.height, MARGIN, maxY);

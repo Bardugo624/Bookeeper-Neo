@@ -46,12 +46,34 @@ describe('placeBesidePanel', () => {
     expect(['top', 'bottom']).toContain(p.side);
     expect(p.y + CARD.height <= wide.y || p.y >= wide.y + wide.height).toBe(true);
   });
-  it('with no room on any side, stays off the anchor instead of over the footer buttons', () => {
-    const view = { width: 1280, height: 800 };
+  // The wide book dialog's interactive boxes, simulated: group toggles and fields on the right, Save below.
+  const interactive = (panel: { x: number; y: number; width: number; height: number }) => [
+    { x: panel.x + panel.width - 400, y: panel.y + 200, width: 380, height: 44 },
+    { x: panel.x + 224, y: panel.y + 300, width: 500, height: 40 },
+    { x: panel.x + panel.width - 90, y: panel.y + panel.height - 56, width: 70, height: 36 },
+  ];
+  it.each([
+    [1280, 800],
+    [1024, 768],
+  ])('never covers the wide dialog\'s controls at %ix%i', (w, h) => {
+    const view = { width: w, height: h };
+    const panel = { x: (w - 760) / 2, y: 20, width: 760, height: h - 40 };
+    const [, , save] = interactive(panel);
+    const p = placeBesidePanel(save, panel, { width: 320, height: 200 }, view);
+    if (p.side === 'inline') return; // drawn in the dialog's flow, over nothing
+    const cw = p.width ?? 320;
+    for (const r of interactive(panel)) {
+      const over = p.x < r.x + r.width && p.x + cw > r.x && p.y < r.y + r.height && p.y + 200 > r.y;
+      expect(over).toBe(false);
+    }
+    expect(p.x + cw).toBeLessThanOrEqual(w);
+  });
+  it('narrows the card to the room beside the panel, and goes inline when even that is not there', () => {
     const wide = { x: 260, y: 20, width: 760, height: 760 };
-    const save = { x: 926, y: 690, width: 70, height: 36 };
-    const p = placeBesidePanel(save, wide, { width: 320, height: 200 }, view);
-    const over = p.x < save.x + save.width && p.x + 320 > save.x && p.y < save.y + save.height && p.y + 200 > save.y;
-    expect(over).toBe(false);
+    const narrow = placeBesidePanel({ x: 926, y: 690, width: 70, height: 36 }, wide, { width: 320, height: 200 }, { width: 1280, height: 800 });
+    expect(narrow.side).toBe('right');
+    expect(narrow.width).toBeGreaterThanOrEqual(220);
+    const tight = { x: 132, y: 20, width: 760, height: 728 };
+    expect(placeBesidePanel({ x: 800, y: 690, width: 70, height: 36 }, tight, { width: 320, height: 200 }, { width: 1024, height: 768 }).side).toBe('inline');
   });
 });
