@@ -45,7 +45,10 @@ const SMOKE_DEADLINE: std::time::Duration = std::time::Duration::from_secs(30);
 pub fn run_window(smoke: bool, uninstall: bool, setup_exe: PathBuf) {
     let platform = sys::platform();
     let log = Log::open(platform.as_ref());
-    log.line(&format!("window: start (smoke: {smoke})"));
+    let webview = tauri::webview_version().unwrap_or_else(|e| format!("unknown ({e})"));
+    log.line(&format!(
+        "window: start (smoke: {smoke}, WebView2 {webview})"
+    ));
     let log_path = log.path().to_path_buf();
     let state = Arc::new(AppState {
         sys: platform,
@@ -70,6 +73,7 @@ pub fn run_window(smoke: bool, uninstall: bool, setup_exe: PathBuf) {
         });
     }
     let page_log = Log::at(log_path.clone());
+    let setup_log = Log::at(log_path.clone());
 
     let result = tauri::Builder::default()
         // First: a second launch must not get past this.
@@ -94,8 +98,10 @@ pub fn run_window(smoke: bool, uninstall: bool, setup_exe: PathBuf) {
             commands::ready,
             commands::quit,
         ])
-        .setup(|app| {
+        .setup(move |app| {
+            setup_log.line("window: creating");
             window::create(app.handle())?;
+            setup_log.line("window: created");
             Ok(())
         })
         .run(tauri::generate_context!());

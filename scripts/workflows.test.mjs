@@ -193,3 +193,23 @@ test("smoke.ps1: a failure shows the end of the Setup log", () => {
   const fail = t.slice(t.indexOf("function Fail"), t.indexOf("function Expect"));
   assert.match(fail, /Get-Content -LiteralPath \$SetupLog -Tail \d+/);
 });
+
+test("smoke.ps1: a failure shows what WebView2 left in the Setup's data folders", () => {
+  const t = read("scripts/setup/smoke.ps1");
+  const prefix = /WEBVIEW_PREFIX: &str = "([^"]+)"/.exec(read("apps/setup/src-tauri/src/window.rs"))?.[1];
+  assert.ok(prefix);
+  const fail = t.slice(t.indexOf("function Fail"), t.indexOf("function Expect"));
+  assert.ok(fail.includes(`'${prefix}*'`));
+  assert.match(fail, /chrome_debug\.log/);
+});
+
+test("release.yml: the smoke test turns on WebView2's own log", () => {
+  const job = desktopJob();
+  const smoke = stepAt(job, "Smoke test the Setup (windows)");
+  const s = job.slice(smoke, job.indexOf("- uses: actions/upload-artifact@v4", smoke));
+  // The variable takes the place of wry's arguments: they stay, so the test runs the Setup as shipped.
+  assert.match(
+    s,
+    /WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --enable-logging --v=1"/,
+  );
+});

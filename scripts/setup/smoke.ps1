@@ -29,6 +29,16 @@ function Fail([string]$what, $expected, $found) {
     } else {
         Write-Host "--- no Setup log at $SetupLog"
     }
+    $temp = [IO.Path]::GetTempPath()
+    foreach ($w in @(Get-ChildItem -LiteralPath $temp -Directory -Filter 'bookeeper-setup-webview-*' -ErrorAction SilentlyContinue)) {
+        Write-Host "--- $($w.FullName)"
+        Get-ChildItem -LiteralPath $w.FullName -Recurse -Depth 1 -ErrorAction SilentlyContinue |
+            ForEach-Object { Write-Host "  $($_.FullName.Substring($w.FullName.Length))" }
+        foreach ($log in @(Get-ChildItem -LiteralPath $w.FullName -Recurse -Filter 'chrome_debug.log' -ErrorAction SilentlyContinue)) {
+            Write-Host "--- end of $($log.FullName)"
+            Get-Content -LiteralPath $log.FullName -Tail 80 | ForEach-Object { Write-Host "  $_" }
+        }
+    }
     exit 1
 }
 function Expect([string]$what, $expected, $found) {
