@@ -217,6 +217,9 @@ const TABLES: [Table; 11] = [
             ("note", Text),
             ("current_page", Int),
             ("updated_at", Int),
+            ("progress_percent", Real),
+            ("progress_at", Int),
+            ("progress_device_id", Text),
         ],
         from: "reading t WHERE t.library_id = ?1",
     },
@@ -893,6 +896,7 @@ pub fn restore_archive(
     };
     let mut reading_seen: HashSet<(String, String)> = HashSet::new();
     let mut files_seen: HashSet<(String, String)> = HashSet::new();
+    let mut files_kept: HashSet<String> = HashSet::new();
     let mut positions_seen: HashSet<(String, String, String)> = HashSet::new();
 
     for ti in 0..TABLES.len() {
@@ -953,8 +957,19 @@ pub fn restore_archive(
                 if !files_seen.insert(key) {
                     continue;
                 }
+                files_kept.insert(text_of(row, "id").unwrap_or_default());
+            }
+            for col in ["percent", "progress_percent"] {
+                if let Some(Sql::Real(f)) = row.get(col) {
+                    if !f.is_finite() || !(0.0..=100.0).contains(f) {
+                        return invalid("percentage out of range");
+                    }
+                }
             }
             if ti == T_POSITIONS {
+                if !files_kept.contains(&text_of(row, "file_id").unwrap_or_default()) {
+                    continue;
+                }
                 let key = (
                     text_of(row, "user_id").unwrap_or_default(),
                     text_of(row, "file_id").unwrap_or_default(),

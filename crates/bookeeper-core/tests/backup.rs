@@ -170,3 +170,98 @@ async fn old_archive_without_the_new_tables_restores() {
     assert_eq!(count(&s.state, "books").await, 1);
     assert_eq!(count(&s.state, "book_files").await, 0);
 }
+
+fn rewrite(bytes: &[u8], edit: impl FnOnce(&mut Value)) -> Vec<u8> {
+    let mut data = entry(bytes, "data.json");
+    edit(&mut data);
+    let manifest = entry(bytes, "manifest.json");
+    let mut w = zip::ZipWriter::new(Cursor::new(Vec::new()));
+    let opts = zip::write::SimpleFileOptions::default();
+    w.start_file("manifest.json", opts).unwrap();
+    w.write_all(manifest.to_string().as_bytes()).unwrap();
+    w.start_file("data.json", opts).unwrap();
+    w.write_all(data.to_string().as_bytes()).unwrap();
+    w.finish().unwrap().into_inner()
+}
+
+#[tokio::test]
+async fn reading_progress_columns_survive_a_round_trip() {
+    let s = seed(Role::Owner, None, None).await;
+    let book = insert_book(&s.state, &s.library_id, "Libro").await;
+    let (b, l, u) = (book.clone(), s.library_id.clone(), s.user_id.clone());
+    s.state
+        .db
+        .run(move |c| {
+            c.execute(
+                "INSERT INTO reading (id, library_id, user_id, book_id, status, updated_at, \
+                 progress_percent, progress_at, progress_device_id) \
+                 VALUES ('r1', ?1, ?2, ?3, 'reading', 1, 50, 100, 'dev')",
+                rusqlite::params![l, u, b],
+            )?;
+            Ok(())
+        })
+        .await
+        .unwrap();
+    let bytes = archive_of(&s).await;
+    assert_eq!(entry(&bytes, "data.json")["reading"][0]["progress_percent"], 50.0);
+    s.state
+        .db
+        .run(|c| c.execute("DELETE FROM reading", []))
+        .await
+        .unwrap();
+    restore(&s.state, &s, bytes).await;
+    let (p, at, dev): (f64, i64, String) = s
+        .state
+        .db
+        .run(|c| {
+            c.query_row(
+                "SELECT progress_percent, progress_at, progress_device_id FROM reading",
+                [],
+                |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
+            )
+        })
+        .await
+        .unwrap();
+    assert_eq!((p, at, dev.as_str()), (50.0, 100, "dev"));
+}
+
+#[tokio::test]
+async fn out_of_range_percent_is_rejected() {
+    let s = seed(Role::Owner, None, None).await;
+    let book = insert_book(&s.state, &s.library_id, "Libro").await;
+    attach_file(&s, &book).await;
+    let bytes = archive_of(&s).await;
+    let bad = rewrite(&bytes, |d| {
+        d["reading_positions"][0]["percent"] = json!(1e300);
+    });
+    let parsed = analyze_archive(&bad).unwrap();
+    let (state, w) = (s.state.clone(), who(&s));
+    let res = state
+        .db
+        .run(move |c| Ok(restore_archive(c, &state.files, &w, parsed, 20)))
+        .await
+        .unwrap();
+    assert!(res.is_err());
+    assert_eq!(count(&s.state, "reading_positions").await, 1);
+}
+
+#[tokio::test]
+async fn position_of_a_skipped_duplicate_file_is_skipped() {
+    let s = seed(Role::Owner, None, None).await;
+    let book = insert_book(&s.state, &s.library_id, "Libro").await;
+    attach_file(&s, &book).await;
+    let bytes = archive_of(&s).await;
+    let dup = rewrite(&bytes, |d| {
+        let mut f = d["book_files"][0].clone();
+        f["id"] = json!("dup-file");
+        d["book_files"].as_array_mut().unwrap().push(f);
+        let mut p = d["reading_positions"][0].clone();
+        p["id"] = json!("dup-pos");
+        p["file_id"] = json!("dup-file");
+        p["kind"] = json!("other");
+        d["reading_positions"].as_array_mut().unwrap().push(p);
+    });
+    restore(&s.state, &s, dup).await;
+    assert_eq!(count(&s.state, "book_files").await, 1);
+    assert_eq!(count(&s.state, "reading_positions").await, 1);
+}
