@@ -138,6 +138,8 @@ impl ProgressModel {
 
     pub fn observe(&mut self, now: Instant, signal: Signal) -> Snapshot {
         if !self.done {
+            // Time passed under the old state; then the signal changes the plan.
+            self.advance(now);
             self.apply(now, signal);
             self.advance(now);
         }
@@ -199,37 +201,96 @@ impl ProgressModel {
         b.lo + span * x
     }
 
+    /// Seconds from `last_now` until `t` (zero if already past).
+    fn secs_until(&self, t: Instant) -> f64 {
+        t.saturating_duration_since(self.last_now).as_secs_f64()
+    }
+
+    /// When the bar is paced (the shown band trails the real one, or the work is
+    /// finished), the moment the bar should reach the shown band's end. The bar
+    /// moves in a straight line from where it is to that point, so it never fills
+    /// a band early and then waits at its edge.
+    fn pace_deadline(&self) -> Option<f64> {
+        let behind = self.shown_idx < self.real_idx;
+        if !behind && !self.finished {
+            return None;
+        }
+        let f = self.fraction;
+        let shown = &self.bands[self.shown_idx];
+        let w0 = (shown.hi - f).max(0.0);
+        let min0 = self
+            .secs_until(self.shown_entered + MIN_STEP)
+            .max(w0 / CATCH_UP);
+        if !self.finished {
+            return Some(min0);
+        }
+        // Finished: spread what is left over the earliest moment `done` may arrive,
+        // which is after every remaining step's 600 ms and after the 3 s total.
+        let rest = &self.bands[self.shown_idx + 1..];
+        let widths: Vec<f64> = rest.iter().map(|b| b.hi - b.lo).collect();
+        let mins: f64 = widths.iter().map(|w| MIN_STEP.as_secs_f64().max(w / CATCH_UP)).sum();
+        let sum_min = min0 + mins;
+        let total = sum_min.max(self.secs_until(self.start + MIN_TOTAL));
+        let surplus = total - sum_min;
+        let sum_w = w0 + widths.iter().sum::<f64>();
+        let share = if sum_w > 0.0 {
+            w0 / sum_w
+        } else {
+            1.0 / (rest.len() + 1) as f64
+        };
+        Some(min0 + surplus * share)
+    }
+
     fn advance(&mut self, now: Instant) {
-        if self.shown_idx < self.real_idx
-            && now.saturating_duration_since(self.shown_entered) >= MIN_STEP
-        {
+        let now = now.max(self.last_now);
+        // A paced band that ends inside this tick hands what is left of the tick to
+        // the next band, so the bar does not idle at the edge until the next tick.
+        while let Some(left) = self.pace_deadline() {
+            let dt = (now - self.last_now).as_secs_f64();
+            if self.shown_idx >= self.real_idx || dt <= left || left <= 0.0 {
+                break;
+            }
+            self.fraction = self.fraction.max(self.bands[self.shown_idx].hi);
+            self.last_now = (self.last_now + Duration::from_secs_f64(left)).min(now);
             self.shown_idx += 1;
             self.shown_entered = now;
         }
-        let behind = self.shown_idx < self.real_idx;
-        let cap = if behind { self.bands[self.shown_idx].hi } else { 1.0 };
-        let mut f = self.target(now).min(cap);
-        // Unless the bar follows a real byte count, it glides instead of jumping.
-        let measured = self.install
-            && self.bands[self.real_idx].step == Step::Copy
-            && self.unpacked.is_some()
-            && !behind;
-        if !measured {
-            let dt = now.saturating_duration_since(self.last_now).as_secs_f64();
-            f = f.min(self.fraction + dt * CATCH_UP);
-        }
-        self.last_now = self.last_now.max(now);
-        let ready = self.finished
-            && !behind
-            && now.saturating_duration_since(self.shown_entered) >= MIN_STEP
-            && now.saturating_duration_since(self.start) >= MIN_TOTAL;
-        if ready {
-            self.done = true;
-            f = 1.0;
-        } else {
-            f = f.min(0.995);
-        }
+        let dt = (now - self.last_now).as_secs_f64();
+        let paced = self.pace_deadline();
+        let f = match paced {
+            Some(left) => {
+                let hi = self.bands[self.shown_idx].hi;
+                if dt >= left {
+                    hi
+                } else {
+                    self.fraction + (hi - self.fraction) * dt / left
+                }
+            }
+            None => {
+                let target = self.target(now);
+                // Unless the bar follows a real byte count, it glides instead of jumping.
+                let measured = self.install
+                    && self.bands[self.real_idx].step == Step::Copy
+                    && self.unpacked.is_some();
+                if measured {
+                    target
+                } else {
+                    target.min(self.fraction + dt * CATCH_UP)
+                }
+            }
+        };
         self.fraction = self.fraction.max(f);
+        self.last_now = now;
+        if paced.is_some() && self.fraction >= self.bands[self.shown_idx].hi {
+            if self.shown_idx < self.real_idx {
+                self.shown_idx += 1;
+                self.shown_entered = now;
+            } else if self.finished {
+                // The plan only reaches 1.0 after the minimum times, so this is `done`.
+                self.done = true;
+                self.fraction = 1.0;
+            }
+        }
     }
 
     fn snapshot(&self) -> Snapshot {
@@ -337,6 +398,7 @@ mod tests {
         }
         assert_eq!(order, [Step::Prepare, Step::Copy, Step::Icons, Step::Finish]);
         assert!(seen.iter().filter(|(_, s)| !s.done).all(|(_, s)| s.fraction < 1.0));
+        assert_keeps_moving(&seen);
     }
 
     #[test]
@@ -365,9 +427,21 @@ mod tests {
             prev = s.fraction;
         }
         assert!(worst < 0.12, "largest step {worst}");
-        // Never sits still for long once it started moving: compare 1 s windows.
-        let at = |ms: u64| seen.iter().find(|(t, _)| *t == ms).unwrap().1.fraction;
-        assert!(at(2_800) > at(1_800), "{} vs {}", at(2_800), at(1_800));
+        assert_keeps_moving(&seen);
+        let done_at = seen.iter().find(|(_, s)| s.done).map(|(t, _)| *t).unwrap();
+        assert!((3000..=3200).contains(&done_at), "done at {done_at}");
+    }
+
+    /// Every 100 ms tick moves the bar until `done`: it never holds at a band edge
+    /// or just below 100% waiting for the minimum times.
+    fn assert_keeps_moving(seen: &[(u64, Snapshot)]) {
+        let end = seen.iter().position(|(_, s)| s.done).expect("never done");
+        for w in seen[..=end].windows(2) {
+            let ((t1, a), (t2, b)) = (w[0], w[1]);
+            if t2 > t1 {
+                assert!(b.fraction > a.fraction, "held at {} from {t1} to {t2} ms", a.fraction);
+            }
+        }
     }
 
     #[test]
@@ -419,6 +493,7 @@ mod tests {
                 last = s.fraction;
             }
             assert!(seen.last().unwrap().1.done);
+            assert_keeps_moving(&seen);
             order
         };
         assert_eq!(steps(false), [Step::RemoveApp, Step::Finish]);
