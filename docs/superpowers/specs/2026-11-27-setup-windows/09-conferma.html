@@ -32,6 +32,8 @@ svg.i{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-widt
 .opts{display:flex;flex-direction:column;gap:10px}
 .opt{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--strong)}
 .opt small{display:block;margin-top:2px;font-size:12px;color:var(--muted)}
+.opt.fixed{font-size:13px;color:var(--muted)}
+.opt.fixed svg{width:16px;height:16px;margin-top:2px;color:var(--acc-t)}
 .cb{flex:none;width:16px;height:16px;margin-top:2px;border:1.5px solid var(--border-strong);border-radius:4px;background:var(--surface);display:grid;place-items:center}
 .cb.on{border-color:var(--acc-c);background:var(--acc-c)}
 .cb.on svg{width:12px;height:12px;stroke:#fff;stroke-width:3}
@@ -67,7 +69,7 @@ body.dark{--bg:#0e0d0b;--surface:#161512;--chrome:#131210;--inset:#1f1d1a;--bord
 body.dark .task{box-shadow:none}
 
 .top{height:226px}.quote{margin-top:auto;margin-bottom:auto}
-blockquote{font-size:24px}
+blockquote{font-size:22px}
 figcaption{margin-top:10px;font-size:12px}
 .task{height:294px;padding:22px 40px 22px 72px;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:16px}
 .task .meta{margin-top:4px}
@@ -84,6 +86,7 @@ figcaption{margin-top:10px;font-size:12px}
 .dlg{position:absolute;left:50%;top:50%;width:440px;transform:translate(-50%,-50%);padding:22px 24px 20px;border:2px solid var(--danger);border-radius:16px;background:var(--surface);box-shadow:var(--sh3)}
 .dlg h2{display:flex;align-items:center;gap:10px;margin:0;font:600 19px/1.25 var(--serif);color:var(--strong)}
 .dlg h2 svg{width:20px;height:20px;color:var(--danger-strong)}
+.dlg .x{position:absolute;right:12px;top:12px;width:28px;height:28px;display:grid;place-items:center;border-radius:6px;color:var(--faint)}
 .dlg p{margin:10px 0 0;font-size:14px;color:var(--text)}
 .dlg p.note{font-size:13px;color:var(--muted)}
 .dlg .pf{margin-top:20px}
@@ -105,7 +108,7 @@ body{--danger:#b4493b;--danger-strong:#98382b;--danger-fill:#b4493b}
 <div class="pf"><span class="btn ghost">Annulla</span><span class="btn primary">Disinstalla</span></div>
 </section>
 <div class="scrim"></div>
-<div class="dlg" role="alertdialog"><h2><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>Cancellare tutta la libreria?</h2>
+<div class="dlg" role="alertdialog"><span class="x"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span><h2><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>Cancellare tutta la libreria?</h2>
 <p>Spariscono da questo computer i libri, le copertine e i backup automatici: 312 MB. Non si può annullare.</p>
 <p class="note">Le librerie su un server restano dove sono.</p>
 <div class="pf"><span class="btn secondary">Annulla</span><span class="btn danger">Cancella tutto</span></div></div>
