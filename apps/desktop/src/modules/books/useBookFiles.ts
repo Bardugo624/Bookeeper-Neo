@@ -6,7 +6,7 @@ import { createAuthTransport, useClient, useSession } from '../../session';
 import { bookFilesApi, contentPath, type BookFile } from './bookFiles';
 import { readFileBytes } from './coverFile';
 
-function useFilesApi() {
+export function useFilesApi() {
   const platform = usePlatform();
   return useMemo(() => bookFilesApi(createAuthTransport(platform)), [platform]);
 }

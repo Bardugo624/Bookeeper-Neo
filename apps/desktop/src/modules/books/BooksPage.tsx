@@ -8,6 +8,8 @@ import { ManageTagsDialog } from '../tags';
 import { FirstBookHint, useFirstBook } from '../onboarding';
 import { tourExpects, tourNote, tourSignal } from '../tour';
 import { BookDialog } from './BookDialog';
+import { EbookImportDialog } from './EbookImportDialog';
+import { useEbookDrop } from './useEbookDrop';
 import { BookGrid, GridSkeleton } from './BookGrid';
 import { BookTable, TableSkeleton } from './BookTable';
 import { BooksHeader } from './BooksHeader';
@@ -45,6 +47,9 @@ export function BooksPage() {
   // The button that opened "New book"; absent when it comes from the palette (`?new=1`).
   const [origin, setOrigin] = useState<HTMLElement | null>(null);
   const [managingTags, setManagingTags] = useState(false);
+  // E-books dropped on the page; `key` makes each drop a fresh dialog.
+  const [dropped, setDropped] = useState<{ key: number; files: File[] } | null>(null);
+  const drop = useEbookDrop(canWrite, (files) => setDropped((d) => ({ key: (d?.key ?? 0) + 1, files })));
   const connectionId = useSession((s) => s.connection?.id);
   const firstBook = useFirstBook(() => {
     setOrigin(null);
@@ -141,7 +146,7 @@ export function BooksPage() {
   }
 
   return (
-    <div className={styles.page}>
+    <div className={drop.over ? `${styles.page} ${styles.dropping}` : styles.page} {...drop.props}>
       <BooksHeader
         params={params}
         total={total}
@@ -189,6 +194,12 @@ export function BooksPage() {
           if (isFirst) session.current.first = created;
         }}
       />
+      {dropped ? <EbookImportDialog key={dropped.key} open files={dropped.files} onClose={() => setDropped(null)} /> : null}
+      {drop.over ? (
+        <p className={styles.dropHint} aria-hidden="true">
+          {t('ebooks.drop')}
+        </p>
+      ) : null}
       {firstBook.element}
     </div>
   );

@@ -1,0 +1,39 @@
+{
+  "title": "Aggiungi e-book",
+  "description": "Controlla titolo e autori di ogni file: a conferma nascono i libri e i file vi si attaccano.",
+  "drop": "Rilascia gli e-book per aggiungerli alla libreria",
+  "list": "E-book trascinati",
+  "saving": "Aggiungo i libri",
+  "confirm": {
+    "one": "Aggiungi {count} libro",
+    "other": "Aggiungi {count} libri"
+  },
+  "close": "Chiudi",
+  "row": {
+    "uploading": "Carico {name}",
+    "uploadingShort": "Carico il file…",
+    "title": "Titolo",
+    "titleMissing": "Serve un titolo.",
+    "authors": "Autori",
+    "authorsHint": "Separati da un punto e virgola.",
+    "same": "In libreria c’è già «{title}».",
+    "attach": "Attacca a quel libro",
+    "remove": "Togli {name}",
+    "added": "Libro aggiunto",
+    "attached": "File attaccato"
+  },
+  "summary": {
+    "added": {
+      "one": "{count} libro aggiunto.",
+      "other": "{count} libri aggiunti."
+    },
+    "attached": {
+      "one": "{count} file attaccato a un libro già presente.",
+      "other": "{count} file attaccati a libri già presenti."
+    },
+    "failed": {
+      "one": "{count} file non è andato a buon fine.",
+      "other": "{count} file non sono andati a buon fine."
+    }
+  }
+}
