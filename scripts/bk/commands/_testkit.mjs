@@ -14,7 +14,7 @@ export const tmp = () => mkdtempSync(join(tmpdir(), 'bk-pub-'));
 
 const VERSION_FILES = [
   'Cargo.toml', 'Cargo.lock', 'package-lock.json', 'CHANGELOG.md', 'apps/desktop/src-tauri/tauri.conf.json', 'packages/api/openapi.json',
-  ...['packages/ui', 'packages/api', 'packages/i18n', 'apps/desktop', 'apps/mobile'].map((p) => `${p}/package.json`),
+  ...['packages/ui', 'packages/api', 'packages/i18n', 'apps/desktop', 'apps/mobile', 'apps/setup'].map((p) => `${p}/package.json`),
 ];
 
 export const git = (cwd, ...a) => spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { cwd, encoding: 'utf8' });

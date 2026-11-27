@@ -124,3 +124,24 @@ describe('coexistence with vite/client', () => {
     expect(errors).toEqual([]);
   });
 });
+
+it('placeholders match between locales for every key', () => {
+  const flat = (o: Messages, p = ''): Record<string, string> =>
+    Object.fromEntries(
+      Object.entries(o).flatMap(([k, v]) =>
+        typeof v === 'object' ? Object.entries(flat(v, `${p}${k}.`)) : [[`${p}${k}`, v]],
+      ),
+    );
+  const vars = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
+  const it = namespaces('it');
+  const en = namespaces('en');
+  const mismatched: string[] = [];
+  for (const ns of Object.keys(it)) {
+    const a = flat(it[ns]!);
+    const b = flat(en[ns] ?? {});
+    for (const k of Object.keys(a))
+      if (k in b && vars(a[k]!).join() !== vars(b[k]!).join()) mismatched.push(`${ns}.${k}`);
+  }
+  expect(mismatched).toEqual([]);
+  expect(Object.keys(it)).toContain('setup');
+});

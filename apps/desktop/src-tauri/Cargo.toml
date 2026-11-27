@@ -38,6 +38,13 @@ url = "2"
 time = { version = "0.3", features = ["formatting"] }
 keyring = { version = "3", default-features = false, features = ["apple-native", "windows-native", "sync-secret-service", "crypto-rust", "vendored"] }
 tauri-plugin-notification = "2"
+tauri-plugin-single-instance = "2"
+
+[target.'cfg(windows)'.dependencies]
+bookeeper-setup-core = { path = "../../../crates/bookeeper-setup-core" }
+
+[target.'cfg(not(windows))'.dependencies]
+tauri-plugin-autostart = "2"
 
 [dev-dependencies]
 tempfile = "3"

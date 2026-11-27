@@ -1,0 +1,53 @@
+.frame {
+    margin: auto 72px;
+    max-width: 600px;
+    transform-origin: top left;
+}
+
+.frame[data-compact] {
+    margin: 14px 72px auto;
+}
+
+.quote {
+    margin: 0;
+    animation: bk-rise var(--bk-dur-slow) var(--bk-ease);
+}
+
+.text {
+    margin: 0;
+    font-family: var(--bk-font-serif);
+    font-weight: 500;
+    line-height: 1.24;
+    color: var(--bk-text-strong);
+    text-wrap: balance;
+    white-space: pre-line;
+    /* The opening guillemet hangs in the margin. */
+    text-indent: -0.5em;
+}
+
+.mark {
+    color: var(--bk-accent-text);
+}
+
+.caption {
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--bk-text-muted);
+}
+
+.frame[data-compact] .caption {
+    margin-top: 8px;
+    font-size: 12px;
+}
+
+.work {
+    font-family: var(--bk-font-serif);
+    font-style: italic;
+    font-size: 14px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .quote {
+        animation: none;
+    }
+}

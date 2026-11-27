@@ -1,0 +1,42 @@
+.bar {
+    position: absolute;
+    inset: 0 0 auto 0;
+    z-index: 2;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8px 0 20px;
+}
+
+/* Clicks fall through to the drag region. */
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.mark {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+}
+
+.word {
+    font-family: var(--bk-font-serif);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--bk-text-strong);
+}
+
+.controls {
+    display: flex;
+    gap: 2px;
+}
+
+.hint {
+    display: inline-flex;
+    border-radius: 8px;
+}

@@ -7,13 +7,15 @@ export interface FillBarProps {
   value: number;
   tone?: 'ok' | 'warn' | 'danger' | 'auto';
   label: string;
+  /** Spoken value, for when the percentage alone says too little. */
+  valueText?: string;
 }
 
 export function autoTone(v: number): 'ok' | 'warn' | 'danger' {
   return v >= 0.95 ? 'danger' : v >= 0.75 ? 'warn' : 'ok';
 }
 
-export function FillBar({ value, tone = 'auto', label }: FillBarProps) {
+export function FillBar({ value, tone = 'auto', label, valueText }: FillBarProps) {
   const v = clamp01(value);
   const resolved = tone === 'auto' ? autoTone(v) : tone;
   return (
@@ -24,6 +26,7 @@ export function FillBar({ value, tone = 'auto', label }: FillBarProps) {
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={Math.round(v * 100)}
+      aria-valuetext={valueText}
       data-tone={resolved}
     >
       <div className={cx(styles.fill, styles[resolved])} style={{ transform: `scaleX(${v})` } as CSSProperties} />

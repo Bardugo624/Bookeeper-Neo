@@ -5,7 +5,7 @@
 //! network. Everything that does not need the plugin is a plain function so it can be tested.
 
 use serde::Serialize;
-use tauri::{AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_updater::UpdaterExt;
 
 /// Where manifests live unless `BOOKEEPER_UPDATE_BASE` says otherwise.
@@ -206,6 +206,10 @@ pub async fn install(app: &AppHandle, channel: &str) -> Result<(), String> {
         .await
         .map_err(fail)?
         .ok_or_else(|| "manifest".to_string())?;
+    // The restart after the install is not a login: tell the next start to show the window.
+    if let Ok(dir) = app.path().app_data_dir() {
+        let _ = std::fs::write(dir.join(crate::startup::UPDATE_MARKER), b"");
+    }
     let mut downloaded: u64 = 0;
     let handle = app.clone();
     update

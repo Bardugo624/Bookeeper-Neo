@@ -1,0 +1,31 @@
+[package]
+name = "bookeeper-setup"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[lib]
+name = "bookeeper_setup_lib"
+path = "src/lib.rs"
+
+[[bin]]
+name = "bookeeper-setup"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+bookeeper-setup-core = { path = "../../../crates/bookeeper-setup-core" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-single-instance = "2"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_System_LibraryLoader", "Win32_System_Environment"] }
+
+[dev-dependencies]
+tempfile = "3"

@@ -97,6 +97,10 @@ export function tauriPlatform(): Platform {
     },
     updates: tauriUpdates,
     notifications: tauriNotifications,
+    autostart: {
+      get: () => invoke<boolean>('autostart_get'),
+      set: (on) => invoke<void>('autostart_set', { on }),
+    },
     window: {
       minimize: () => win.minimize(),
       toggleMaximize: () => win.toggleMaximize(),
