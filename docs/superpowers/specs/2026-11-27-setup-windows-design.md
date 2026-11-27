@@ -1,6 +1,6 @@
 # Bookeeper Setup per Windows e sfondo del DMG — design
 
-Data: 2026-11-27. Stato: bozza, da approvare. Il documento è passato da un controllo indipendente: le risposte sono qui dentro. Le schermate approvate stanno in `2026-11-27-setup-windows/`, accanto a questo file.
+Data: 2026-11-27. Stato: approvato dal proprietario. Il documento è passato da un controllo indipendente: le risposte sono qui dentro. Il piano di lavoro è in `docs/forge/fase-9b/`. Le schermate approvate stanno in `2026-11-27-setup-windows/`, accanto a questo file.
 
 ## Perché
 
@@ -12,15 +12,15 @@ Data: 2026-11-27. Stato: bozza, da approvare. Il documento è passato da un cont
 
 - **Strada A:** un piccolo «Bookeeper Setup» fatto come l'app, con dentro l'installer NSIS di oggi che lavora in silenzio.
 - **Impeccable** per il disegno.
-- **Scelte offerte:** la cartella, l'icona sul desktop, la voce nel menu Start, l'apertura all'accesso a Windows. NON l'installazione per tutti gli utenti.
+- **Scelte offerte:** la cartella, l'icona sul desktop, l'apertura all'accesso a Windows. NON l'installazione per tutti gli utenti.
+- **Menu Start:** la voce di Bookeeper c'è sempre, perché serve alle notifiche di Windows.
 - **Disinstallare:** si sceglie fra tenere la libreria e cancellare tutto. «Tieni la libreria» è già selezionato. «Cancella tutto» chiede una conferma rossa che dice cosa si perde.
 - **Struttura:** «La citazione», scelta fra tre strutture estratte. In alto un frontespizio con la citazione di uno scrittore, sotto un solo pannello di lavoro.
-- **Da decidere:** la voce nel menu Start. Vedi «Icone e notifiche».
 
 ## Obiettivi
 
 1. Chi scarica Bookeeper per Windows riceve `Bookeeper-Setup-<versione>.exe`: una finestra con l'aspetto dell'app, che installa con un tasto.
-2. «Personalizza» cambia cartella, icone e apertura all'accesso.
+2. «Personalizza» cambia cartella, icona sul desktop e apertura all'accesso.
 3. Il Setup riconosce un'installazione esistente e propone di aggiornarla, ripararla o disinstallarla.
 4. Da «App» nelle Impostazioni di Windows, «Disinstalla» apre il disinstallatore di Bookeeper, anche dopo gli aggiornamenti automatici.
 5. Gli aggiornamenti dall'app continuano a funzionare come oggi, in silenzio.
@@ -60,9 +60,9 @@ Data: 2026-11-27. Stato: bozza, da approvare. Il documento è passato da un cont
 - Compilarlo dentro con `include_bytes!`: servono due compilazioni, perché lo stesso programma deve stare anche dentro l'installer NSIS, come disinstallatore.
 - **Scelta: accodarlo all'eseguibile.** Si compila il Setup una volta sola. Il file che si scarica è il Setup, seguito dall'installer NSIS, dai metadati e da una coda di 24 byte. Lo stesso Setup senza nulla in coda è il disinstallatore che NSIS installa. È la tecnica degli archivi autoestraenti, che NSIS stesso usa.
 
-**Come rispettare le scelte delle icone.**
+**Come rispettare la scelta dell'icona sul desktop.**
 - Passare `/NS` a NSIS e creare noi i collegamenti: bisognerebbe rifare l'AppUserModelID che NSIS imposta sui collegamenti.
-- **Scelta: lasciare che NSIS crei i collegamenti, poi togliere quelli non voluti.** Negli aggiornamenti NSIS non li ricrea, quindi la scelta resta.
+- **Scelta: lasciare che NSIS crei i collegamenti, poi togliere l'icona sul desktop se non è voluta.** Negli aggiornamenti NSIS non la ricrea, quindi la scelta resta.
 
 **Come il disinstallatore toglie sé stesso.**
 - Copiarsi in `%TEMP%`, rilanciarsi da lì e uscire: chi aspetta la fine (Windows, la pagina di NSIS, la modalità silenziosa) la vedrebbe subito, a lavoro non fatto.
@@ -87,7 +87,7 @@ Fatti verificati nel modello NSIS di Tauri (`tauri-cli` 2.12.6), nei sorgenti di
   - la cartella, senza virgolette, sta anche in `HKCU\Software\bookeeper\Bookeeper` (il produttore è `bookeeper`);
   - `QuietUninstallString` non viene scritto.
 - **Aggiornamenti dall'app:** il plugin lancia l'installer con `/P /UPDATE /R /ARGS …`. In modalità aggiornamento NSIS non esegue mai `UninstallString`.
-- **Pagina di reinstallazione:** nell'installer classico, lanciato a mano, la scelta «disinstalla prima di installare» è già selezionata. Esegue `UninstallString` con `/P` (se passivo) e ` _?=<cartella>`, aspetta, e protesta se il codice non è 0 o se `bookeeper.exe` è ancora lì.
+- **Pagina di reinstallazione:** nell'installer classico, lanciato a mano, la scelta «disinstalla prima di installare» è già selezionata. Esegue `UninstallString` con `/P` (se passivo) e ` _?=<cartella>`, aspetta, e protesta se il codice non è 0 o se `bookeeper-desktop.exe` è ancora lì.
 - **Disinstallazione NSIS:** toglie il valore `Bookeeper` da `HKCU\…\Run`. Cancella `%APPDATA%\org.bookeeper.desktop` e `%LOCALAPPDATA%\org.bookeeper.desktop` solo se si spunta una casella, che in silenzio non c'è.
 - **Notifiche:** l'app manda le notifiche di Windows con l'ID `org.bookeeper.desktop`. Windows le mostra solo per un ID registrato, e oggi lo registra il collegamento nel menu Start.
 - **Dati dell'app:**
@@ -126,7 +126,7 @@ coda (24 byte) = "BKSETUP1" ‖ lunghezza metadati (u32 LE) ‖ lunghezza instal
 metadati (JSON UTF-8) = {
   "version": "2.2.0",
   "payload": { "name": "Bookeeper_2.2.0_x64-setup.exe", "bytes": …, "sha256": "…" },
-  "main": { "name": "bookeeper.exe", "bytes": …, "sha256": "…" },
+  "main": { "name": "bookeeper-desktop.exe", "bytes": …, "sha256": "…" },
   "installed_bytes": …
 }
 ```
@@ -138,7 +138,7 @@ metadati (JSON UTF-8) = {
 - **Estrazione:**
   - in una cartella nuova con un nome casuale dentro `%TEMP%`, creata in modo esclusivo: se esiste già, errore;
   - il Setup tiene l'installer aperto in sola lettura, impedendo ad altri di scriverlo, mentre ne calcola lo SHA-256 e mentre lo lancia. Se lo SHA-256 non coincide: errore, e NSIS NON parte.
-- `installed_bytes` è la somma di `bookeeper.exe` e del Setup leggero. Serve per lo spazio richiesto.
+- `installed_bytes` è la somma di `bookeeper-desktop.exe` e del Setup leggero. Serve per lo spazio richiesto.
 
 ### Sicurezza del Setup
 
@@ -151,26 +151,26 @@ metadati (JSON UTF-8) = {
 
 1. Il Setup legge la cartella dal valore predefinito di `HKCU\Software\bookeeper\Bookeeper`. Se manca, usa `InstallLocation` della chiave di disinstallazione, senza virgolette.
 2. Legge la versione da `DisplayVersion`.
-3. Considera l'installazione valida solo se la cartella esiste e contiene `bookeeper.exe`.
+3. Considera l'installazione valida solo se la cartella esiste e contiene `bookeeper-desktop.exe`.
 4. Una versione sotto la 2.0.0 è la 0.x: «Su questo computer c'è Bookeeper 0.2.1, una versione molto vecchia. Disinstallala da Impostazioni › App, poi riapri il Setup.»
 
 ### Installare
 
 1. Senza installazione il Setup mostra il benvenuto:
    - cartella predefinita `%LOCALAPPDATA%\Bookeeper`;
-   - icone accese (vedi «Icone e notifiche»);
+   - icona sul desktop accesa (vedi «Icone e notifiche»);
    - apertura all'accesso spenta.
 2. **«Installa»:**
    - controlla che Bookeeper non sia aperto da quella cartella; se lo è, mostra «Chiudi Bookeeper per continuare»;
    - estrae e controlla l'installer;
    - lancia NSIS con una riga di comando scritta a mano (`CommandExt::raw_arg`): `"<installer>" /S /D=<cartella>`. NSIS gira con `TEMP` e `TMP` puntati a una cartella privata, dentro quella dell'estrazione;
    - aspetta la fine, al massimo 10 minuti. Oltre, chiude NSIS e mostra l'errore;
-   - controlla che `bookeeper.exe` abbia la dimensione e lo SHA-256 dei metadati. Altrimenti è un errore, anche se NSIS è uscito con 0;
-   - toglie i collegamenti non voluti, solo se puntano a `<cartella>\bookeeper.exe`;
+   - controlla che `bookeeper-desktop.exe` abbia la dimensione e lo SHA-256 dei metadati. Altrimenti è un errore, anche se NSIS è uscito con 0;
+   - se l'icona sul desktop non è voluta, la toglie, solo se punta a `<cartella>\bookeeper-desktop.exe`;
    - con l'apertura all'accesso la accende (vedi «Apertura all'accesso»);
    - cancella la cartella temporanea.
 3. La schermata finale dice «Bookeeper è pronto» e «Lo trovi sul desktop e nel menu Start.». Senza l'icona sul desktop dice «Lo trovi nel menu Start.».
-4. «Apri Bookeeper» avvia `bookeeper.exe` e chiude il Setup.
+4. «Apri Bookeeper» avvia `bookeeper-desktop.exe` e chiude il Setup.
 
 **L'avanzamento ha quattro passi.**
 
@@ -181,10 +181,10 @@ metadati (JSON UTF-8) = {
 | Icone | «Creo le icone» | 90–96% |
 | Fine | «Ultimi ritocchi» | 96–100% |
 
-- NSIS scompatta prima tutto in un file temporaneo: `bookeeper.exe` resta a 0 byte e poi si riempie in un attimo. La barra NON DEVE seguire la sua dimensione.
+- NSIS scompatta prima tutto in un file temporaneo: `bookeeper-desktop.exe` resta a 0 byte e poi si riempie in un attimo. La barra NON DEVE seguire la sua dimensione.
 - Durante «Copio», la barra segue la dimensione del file di scompattamento (`ns*.tmp`) nella cartella temporanea privata di NSIS, rispetto alla somma dei file installati.
-- Se quel file non si trova, la barra avanza con il tempo, su una stima, rallentando: non arriva mai al 90% prima che `bookeeper.exe` sia completo.
-- I traguardi veri fanno avanzare la barra di colpo: `bookeeper.exe` completo vale 90%, la fine di NSIS 96%.
+- Se quel file non si trova, la barra avanza con il tempo, su una stima, rallentando: non arriva mai al 90% prima che `bookeeper-desktop.exe` sia completo.
+- I traguardi veri fanno avanzare la barra di colpo: `bookeeper-desktop.exe` completo vale 90%, la fine di NSIS 96%.
 - La barra non torna mai indietro.
 - Ogni passo resta visibile almeno 600 ms, e tutta l'installazione almeno 3 secondi: un'installazione di un secondo e mezzo non deve sembrare un lampo.
 
@@ -196,21 +196,17 @@ metadati (JSON UTF-8) = {
   - Cartelle di rete e dischi di rete collegati NON si accettano: «Scegli una cartella di questo computer.»
   - Sul disco della cartella servono `installed_bytes` più 50 MB; sul disco di `%TEMP%` serve il peso dell'installer. Altrimenti: «Su questo disco c'è troppo poco spazio: restano 12 MB.»
   - Con un errore sotto il campo, «Installa» è disattivato.
-  - Sotto il campo, quando è tutto a posto: «Servono 24 MB. Sul disco C: restano 212 GB liberi.»
-- **Icone:** vedi «Icone e notifiche».
+  - Sotto il campo, quando è tutto a posto: «Servono 41 MB. Sul disco C: restano 212 GB liberi.»
+- **Icona sul desktop:** un interruttore; la voce nel menu Start c'è sempre (vedi «Icone e notifiche»).
 - **All'accesso:** «Apri Bookeeper all'accesso a Windows». Sotto: «Si apre ridotto a icona. Se condividi la libreria in rete, i telefoni la trovano finché il computer è acceso.»
 
 ### Icone e notifiche
 
-Windows mostra le notifiche di Bookeeper (per esempio i prestiti scaduti) solo se l'ID dell'app è registrato. Oggi lo registra la voce nel menu Start. Senza quella voce le notifiche spariscono in silenzio. Senza nessuna delle due icone, l'app resta nascosta in una cartella di sistema.
+Windows mostra le notifiche di Bookeeper (per esempio i prestiti scaduti) solo se l'ID dell'app è registrato, e lo registra la voce nel menu Start. Senza quella voce le notifiche spariscono in silenzio.
 
-Il proprietario sceglie una di queste:
-
-- **Voce nel menu Start sempre presente (consigliata).** Il pannello offre solo «Icona sul desktop». Al posto del secondo interruttore c'è una riga fissa: «Bookeeper è sempre nel menu Start: serve alle notifiche di Windows.»
-- **Voce nel menu Start facoltativa.**
-  - Il Setup registra l'ID in `HKCU\Software\Classes\AppUserModelId\org.bookeeper.desktop`, con nome e icona, e lo toglie quando si disinstalla.
-  - Prima della costruzione bisogna provare su Windows che le notifiche arrivino.
-  - Con tutte e due le icone spente, sotto compare: «Senza icone, Bookeeper si apre solo dalla cartella in cui lo installi.»
+- La voce nel menu Start c'è sempre. Il pannello offre solo «Icona sul desktop».
+- Al posto di un secondo interruttore c'è una riga fissa: «Bookeeper è sempre nel menu Start: serve alle notifiche di Windows.»
+- Il Setup toglie solo l'icona sul desktop, se non è voluta.
 
 ### Aggiornare e riparare
 
@@ -223,7 +219,7 @@ Se Bookeeper 2.x è già installato, il Setup confronta le versioni:
 | Più nuova | «C'è già una versione più recente». «Su questo computer c'è la 2.3.0. Una libreria della 2.3.0 non si apre con la 2.2.0: per tornare indietro bisogna disinstallare con «Cancella tutto».» | «Disinstalla», «Chiudi» |
 
 - «Aggiorna» e «Ripara» lanciano `"<installer>" /S /UPDATE /D=<cartella installata>`. La cartella e i collegamenti restano come sono.
-- Durante un aggiornamento, `bookeeper.exe` è quello vecchio finché NSIS non lo svuota: l'avanzamento lo ignora finché non è stato riscritto.
+- Durante un aggiornamento, `bookeeper-desktop.exe` è quello vecchio finché NSIS non lo svuota: l'avanzamento lo ignora finché non è stato riscritto.
 - Il Setup NON DEVE mai installare una versione più vecchia sopra una più nuova: i dati dell'app migrano solo in avanti.
 - Il Setup leggero, senza installer in coda, offre solo «Disinstalla» e «Chiudi».
 - Se arriva `--uninstall` mentre il Setup è già aperto su questa schermata, passa alla disinstallazione. Se sta lavorando, lo ignora.
@@ -251,14 +247,13 @@ Se Bookeeper 2.x è già installato, il Setup confronta le versioni:
 4. **Esecuzione**, tutta nello stesso processo:
    - controlla che Bookeeper non sia aperto;
    - lancia `"<cartella>\uninstall.exe" /S _?=<cartella>` con `raw_arg` e aspetta;
-   - controlla che `bookeeper.exe` non ci sia più;
+   - controlla che `bookeeper-desktop.exe` non ci sia più;
    - cancella `uninstall.exe`, poi sposta il proprio eseguibile fuori dalla cartella con `self_replace::self_delete_outside_path`, e toglie la cartella se è vuota;
    - toglie i valori `Bookeeper` da `Run` e da `Explorer\StartupApproved\Run`.
 5. **Con «Cancella tutto»**, in più:
    - cancella dal Gestore credenziali tutte le credenziali il cui nome finisce in `.org.bookeeper.desktop`, anche quelle che `connections.json` non elenca più;
    - cancella `%APPDATA%\org.bookeeper.desktop` e `%LOCALAPPDATA%\org.bookeeper.desktop`;
-   - cancella la chiave `HKCU\Software\bookeeper\Bookeeper`, e `HKCU\Software\bookeeper` se resta vuota;
-   - con la voce nel menu Start facoltativa, toglie anche la registrazione dell'ID.
+   - cancella la chiave `HKCU\Software\bookeeper\Bookeeper`, e `HKCU\Software\bookeeper` se resta vuota.
 6. **Fine.**
    - Con la libreria tenuta: «La tua libreria è ancora su questo computer: se reinstalli Bookeeper, la ritrovi.»
    - Altrimenti: «Su questo computer non restano i tuoi dati di Bookeeper.»
@@ -299,7 +294,7 @@ Se Bookeeper 2.x è già installato, il Setup confronta le versioni:
 ### Apertura all'accesso
 
 - **Una sola implementazione per Windows**, in `bookeeper-setup-core` (`autostart::{enable, disable, is_enabled}`):
-  - `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`, valore `Bookeeper` = `"<cartella>\bookeeper.exe" --autostart`;
+  - `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`, valore `Bookeeper` = `"<cartella>\bookeeper-desktop.exe" --autostart`;
   - `HKCU\…\Explorer\StartupApproved\Run`, valore `Bookeeper` = «acceso»;
   - è acceso solo se ci sono tutti e due, e il secondo non dice «spento» (come quando lo si spegne da Gestione attività).
 - Il Setup la usa durante l'installazione. L'app la usa su Windows; sul Mac e su Linux usa `tauri-plugin-autostart`.
@@ -319,11 +314,12 @@ Oggi, se il database è di una versione più nuova, l'app si chiude senza dire n
 Serve agli amministratori e alle prove automatiche.
 
 ```
-Bookeeper-Setup-2.2.0.exe --quiet [--dir=<cartella>] [--no-desktop] [--no-start-menu] [--autostart]
+Bookeeper-Setup-2.2.0.exe --quiet [--dir=<cartella>] [--no-desktop] [--autostart]
 bookeeper-setup.exe --uninstall --quiet [--delete-data]
 ```
 
 - Non avvia Tauri né WebView2, e non usa l'istanza unica.
+- Con i permessi di amministratore si ferma come la finestra, salvo `BOOKEEPER_SETUP_ALLOW_ELEVATED=1`: serve alla prova di fumo sui runner di GitHub, che girano da amministratore.
 - Il Setup è un programma con finestra: chi lo lancia DEVE aspettarlo con `Start-Process -Wait -PassThru` in PowerShell, o `start /wait` in cmd.
 - Con la stessa versione installata ripara. Con una più vecchia aggiorna, nella sua cartella: un `--dir` diverso è un errore. Con una più nuova esce con 4.
 
@@ -431,8 +427,8 @@ La direzione è nel brief `apps/setup/.impeccable/surfaces/src-main-tsx.md`, con
 2. costruisce l'app come oggi, con il gancio;
 3. assembla `out/installers/Bookeeper-Setup-<v>.exe` con `scripts/setup/assemble.mjs`;
 4. **prova di fumo** su Windows, in modalità silenziosa, in una cartella con uno spazio e una lettera accentata (`C:\Prova Bookeeper\Libreria è`):
-   - installa e controlla file, hash di `bookeeper.exe`, registro (`UninstallString` = `"<cartella>\bookeeper-setup.exe" --uninstall`) e collegamenti;
-   - disinstalla con `--uninstall /P _?=<cartella>`, come fa la pagina di NSIS: il comando DEVE finire solo a lavoro fatto, con 0, e `bookeeper.exe` non DEVE esserci più;
+   - installa e controlla file, hash di `bookeeper-desktop.exe`, registro (`UninstallString` = `"<cartella>\bookeeper-setup.exe" --uninstall`) e collegamenti;
+   - disinstalla con `--uninstall /P _?=<cartella>`, come fa la pagina di NSIS: il comando DEVE finire solo a lavoro fatto, con 0, e `bookeeper-desktop.exe` non DEVE esserci più;
    - reinstalla, crea dati e credenziali finte, disinstalla tenendo i dati e controlla che restino;
    - reinstalla, disinstalla con `--delete-data` e controlla che non restino né dati né credenziali.
 
