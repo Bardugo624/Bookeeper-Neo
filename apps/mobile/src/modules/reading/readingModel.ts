@@ -58,6 +58,8 @@ export function optimisticReading(bookId: string, body: PutReading, pageCount?: 
   const now = nowSeconds();
   const status = body.status;
   const toRead = status === 'to_read';
+  const current_page = toRead ? null : (body.current_page ?? (status === 'read' ? (pageCount ?? null) : null));
+  const samePage = current_page === (previous?.current_page ?? null);
   return {
     book_id: bookId,
     status,
@@ -65,11 +67,12 @@ export function optimisticReading(bookId: string, body: PutReading, pageCount?: 
     finished_at: toRead ? null : (body.finished_at ?? (status === 'read' ? now : null)),
     rating: body.rating ?? null,
     note: body.note ?? null,
-    current_page: toRead ? null : (body.current_page ?? (status === 'read' ? (pageCount ?? null) : null)),
+    current_page,
     updated_at: now,
     // The position in the file is not part of this write: keep what the cache holds so the ring does not reset.
-    progress_percent: previous?.progress_percent ?? null,
-    progress_at: previous?.progress_at ?? null,
+    // A typed page changes the percent in the core (or clears it): keep the cached one only when the page stays.
+    progress_percent: samePage ? (previous?.progress_percent ?? null) : null,
+    progress_at: samePage ? (previous?.progress_at ?? null) : null,
   };
 }
 

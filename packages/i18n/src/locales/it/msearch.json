@@ -168,6 +168,7 @@
     "downloadLabel": "Scarica {format}, {size}",
     "downloading": "Scarico il file…",
     "add": "Aggiungi il file",
+    "retry": "Riprova",
     "adding": "Carico il file…",
     "errors": {
       "unsupported_format": "Questo formato non è supportato. Usa EPUB, PDF, MOBI, AZW3, FB2 o CBZ.",

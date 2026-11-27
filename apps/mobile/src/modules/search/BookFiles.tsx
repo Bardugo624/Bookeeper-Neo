@@ -26,15 +26,24 @@ export function BookFiles({ book, canAdd }: { book: BookOut; canAdd: boolean }) 
   const failure = add.error ?? download.error;
   const items = files.data ?? [];
   if (files.isPending && !files.isError) return null;
-  if (files.isError && !canAdd) return null;
-  if (items.length === 0 && !canAdd && !failure) return null;
+  if (items.length === 0 && !canAdd && !failure && !files.isError) return null;
 
   return (
     <section className={blocks.block} aria-labelledby="files-title">
       <h2 id="files-title" className={blocks.heading}>
         {t('msearch.files.title')}
       </h2>
-      {items.length === 0 ? <p className={styles.none}>{t('msearch.files.none')}</p> : null}
+      {files.isError ? (
+        <>
+          <p role="alert" className={styles.error}>
+            {apiErrorMessage(t, files.error)}
+          </p>
+          <Button variant="secondary" className={styles.action} onClick={() => void files.refetch()}>
+            {t('msearch.files.retry')}
+          </Button>
+        </>
+      ) : null}
+      {!files.isError && items.length === 0 ? <p className={styles.none}>{t('msearch.files.none')}</p> : null}
       <ul className={styles.list}>
         {items.map((file) => (
           <li key={file.id} className={styles.item}>

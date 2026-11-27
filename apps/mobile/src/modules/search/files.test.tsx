@@ -27,6 +27,7 @@ const raw = (status: number, body: Uint8Array | object = new Uint8Array(), heade
 interface Setup {
   role?: string;
   files?: unknown[];
+  listError?: boolean;
   raw?: (req: RawRequest) => RawResponse;
   attach?: { status: number; body: unknown };
 }
@@ -38,7 +39,7 @@ function open(s: Setup = {}) {
       override: (call) => {
         const path = call.path.replace('/api/v1', '');
         if (path === '/me') return ok({ ...ME, user: { ...ME.user, role: s.role ?? 'owner' } });
-        if (path === '/books/b1/files' && call.method === 'GET') return ok(s.files ?? [file()]);
+        if (path === '/books/b1/files' && call.method === 'GET') return s.listError ? { status: 500, body: { error_code: 'internal', message: 'x' } } : ok(s.files ?? [file()]);
         if (path === '/books/b1/files' && call.method === 'POST') return s.attach ?? { status: 201, body: file({ id: 'f2', format: 'pdf', name: 'x.pdf' }) };
         return undefined;
       },
@@ -64,6 +65,15 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe('files block', () => {
+  it('says the list failed, not that there are no files, and offers a retry', async () => {
+    open({ listError: true });
+    // The query retries before it gives up.
+    const b = within(await screen.findByRole('region', { name: 'File' }, { timeout: 12_000 }));
+    expect(await b.findByRole('alert')).toBeInTheDocument();
+    expect(b.queryByText(/Nessun file/)).toBeNull();
+    expect(b.getByRole('button', { name: 'Riprova' })).toBeInTheDocument();
+  }, 15_000);
+
   it('lists each file with format and size', async () => {
     open();
     const b = await block();

@@ -22,9 +22,14 @@ describe('ring percent', () => {
 });
 
 describe('optimistic write', () => {
-  it('keeps the percent and the time of the cached reading', () => {
-    const previous = reading({ progress_percent: 55, progress_at: 1_700_000_050 });
+  it('keeps the percent and the time of the cached reading when the page stays', () => {
+    const previous = reading({ current_page: 10, progress_percent: 55, progress_at: 1_700_000_050 });
     const next = optimisticReading('b1', { status: 'reading', current_page: 10 } as never, 503, previous);
     expect(next).toMatchObject({ progress_percent: 55, progress_at: 1_700_000_050 });
+  });
+  it('drops the cached percent when a new page is typed', () => {
+    const previous = reading({ current_page: 300, progress_percent: 55, progress_at: 1_700_000_050 });
+    const next = optimisticReading('b1', { status: 'reading', current_page: 10 } as never, 503, previous);
+    expect(next).toMatchObject({ progress_percent: null, progress_at: null });
   });
 });
