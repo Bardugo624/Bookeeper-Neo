@@ -27,8 +27,8 @@ Si decide per lingua: l'italiano mostra solo i testi verificati in italiano, l'i
 
 | | Verificate | Fino a 110 caratteri e 2 righe | Fino a 200 caratteri |
 |---|---|---|---|
-| Italiano | 80 | 35 | 69 |
-| Inglese | 48 | 22 | 44 |
+| Italiano | 80 | 34 | 69 |
+| Inglese | 48 | 21 | 44 |
 
 Le 7 citazioni che il proprietario ha tenuto sono tutte verificate in tutte e due le lingue. Una citazione segnata «scarta» resterebbe fuori; oggi non ce ne sono.
 
@@ -41,7 +41,7 @@ Le 7 citazioni che il proprietario ha tenuto sono tutte verificate in tutte e du
    - in fondo, in piccolo, la promessa di oggi.
 2. A ogni apertura esce una citazione nuova nella lingua dell'app. Nessuna torna finché non sono uscite tutte.
 3. Il Setup e l'app usano gli stessi dati e la stessa composizione della citazione.
-4. Nel Setup il frontespizio compatto passa da 2 citazioni a 35 in italiano e 22 in inglese.
+4. Nel Setup il frontespizio compatto passa da 2 citazioni a 34 in italiano e 21 in inglese, contate sui testi già composti, dove i versi vanno a capo.
 
 ## Non obiettivi
 
@@ -106,7 +106,7 @@ Le 7 citazioni che il proprietario ha tenuto sono tutte verificate in tutte e du
 Misura del testo:
 
 - 33 px fino a 90 caratteri, 26 px fino a 140, 22 px oltre. È la scala del Setup.
-- Per le poesie si prende il gradino più grande a cui il verso più lungo sta intero nella colonna, scendendo fino a 20 px. Negli schizzi, Dickinson in inglese scende a 22 px.
+- Per le poesie si prende il gradino più grande a cui il verso più lungo sta intero nella colonna, scendendo fino a 20 px. Negli schizzi Dickinson in inglese scende a 22 px; con la stima del contratto della 9C, 0,55 em per carattere, scende a 20.
 - Alcuni versi non stanno interi nemmeno a 20 px: Dante in tutte e due le lingue, Borges e Dickinson in italiano. Per loro si usano 22 px. Il verso che non sta continua sulla riga sotto, rientrato di 1 em, come nei libri di poesia. Così non sembra un verso nuovo e tutte le citazioni verificate restano nella pagina.
 - La larghezza della colonna è un parametro: il Setup la usa larga, la pagina d'apertura a 348 px.
 
