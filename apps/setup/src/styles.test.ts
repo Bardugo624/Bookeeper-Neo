@@ -63,6 +63,27 @@ function withoutAllowedMotion(css: string): string {
 
 const MOTION = /(?<![\w-])(animation(-[a-z-]+)?|transition(-[a-z-]+)?)\s*:|@keyframes/i;
 
+const ANIMATION_WORDS = new Set(
+  `none infinite normal reverse alternate alternate-reverse forwards backwards both running paused ease ease-in ease-out
+ease-in-out linear step-start step-end initial inherit unset revert`.split(/\s+/),
+);
+
+/**
+ * The keyframes a module plays that it neither defines nor marks `global(…)`. CSS Modules rename those to a local
+ * name that no keyframes carry, so the animation never runs.
+ */
+function unreachableKeyframes(css: string): string[] {
+  const local = new Set([...css.matchAll(/@keyframes\s+([\w-]+)/g)].map((m) => m[1]!));
+  const out: string[] = [];
+  for (const m of css.matchAll(/(?<![\w-])animation(?:-name)?\s*:\s*([^;}]+)/g)) {
+    const words = m[1]!.replace(/global\([^)]*\)/g, ' ').replace(/[\w-]*\((?:[^()]|\([^()]*\))*\)/g, ' ');
+    for (const word of words.split(/[\s,]+/)) {
+      if (word && !ANIMATION_WORDS.has(word) && !/^[\d.]/.test(word) && !local.has(word)) out.push(word);
+    }
+  }
+  return out;
+}
+
 const srcDir = fileURLToPath(new URL('.', import.meta.url));
 const uiDir = fileURLToPath(new URL('../../../packages/ui/src/', import.meta.url));
 
@@ -118,6 +139,16 @@ describe('setup stylesheets', () => {
 
   it.each(named)('%s moves only where motion is allowed', (_n, file) => {
     expect(withoutAllowedMotion(read(file))).not.toMatch(MOTION);
+  });
+
+  it('detects keyframes a module cannot reach', () => {
+    expect(unreachableKeyframes('.a { animation: bk-rise var(--bk-dur) var(--bk-ease); }')).toEqual(['bk-rise']);
+    expect(unreachableKeyframes('.a { animation: global(bk-rise) var(--bk-dur) var(--bk-ease); }')).toEqual([]);
+    expect(unreachableKeyframes('.a { animation: x calc(var(--d) * 2) 3 both; } @keyframes x { from { opacity: 0 } }')).toEqual([]);
+  });
+
+  it.each(named.filter(([n]) => n.endsWith('.module.css')))('%s plays only keyframes it can reach', (_n, file) => {
+    expect(unreachableKeyframes(read(file))).toEqual([]);
   });
 });
 

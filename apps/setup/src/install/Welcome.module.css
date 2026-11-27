@@ -29,6 +29,6 @@
 
 @media (prefers-reduced-motion: no-preference) {
     .summary {
-        animation: bk-rise var(--bk-dur) var(--bk-ease);
+        animation: global(bk-rise) var(--bk-dur) var(--bk-ease);
     }
 }

@@ -47,6 +47,6 @@
 
 @media (prefers-reduced-motion: no-preference) {
     .quote {
-        animation: bk-rise var(--bk-dur-slow) var(--bk-ease);
+        animation: global(bk-rise) var(--bk-dur-slow) var(--bk-ease);
     }
 }
