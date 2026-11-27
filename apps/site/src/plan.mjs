@@ -20,8 +20,11 @@ export function answer(book, lang, t) {
     room: room[lang],
     furniture: f[lang],
     shelf: `${ord} ${t.planShelf}`,
+    sentence: `${room[lang]}, ${f[lang].charAt(0).toLowerCase()}${f[lang].slice(1)}, ${ord} ${t.planShelf}.`,
     furnitureId: f.id,
     front: f.front,
+    tag: f.tag,
+    shelfNo: book.shelf,
     route: [ENTRY, ...f.route],
   };
 }
@@ -52,7 +55,7 @@ export function renderPlan(lang, t, selected) {
   // Walls: outer 14, inner 8, cut with poché hatching; gaps erase door and window openings.
   out.push(`<g class="walls" aria-hidden="true">`);
   for (const layer of ['wall-edge', 'wall-fill']) {
-    out.push(`<path class="${layer} inner" d="M520 40V720M40 400H520M520 300H960M700 300V720M300 400V720"/>`);
+    out.push(`<path class="${layer} inner" d="M520 40V720M40 400H520M520 300H960M700 300V720"/>`);
     out.push(`<rect x="40" y="40" width="920" height="680" class="${layer} outer"/>`);
   }
   for (const d of doors) out.push(`<line class="gap" x1="${d.gap[0]}" y1="${d.gap[1]}" x2="${d.gap[2]}" y2="${d.gap[3]}"/>`);
@@ -69,10 +72,9 @@ export function renderPlan(lang, t, selected) {
   out.push(`<g class="cases">`);
   for (const f of furniture) {
     const on = f.id === a.furnitureId ? ' is-found' : '';
-    out.push(`<g class="case${on}" data-furniture="${f.id}"><rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" style="--wood:${f.color}"/></g>`);
+    out.push(`<g class="case${on}" data-furniture="${f.id}"><rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}"/></g>`);
   }
   out.push(`</g>`);
-
   out.push(`<g class="labels" aria-hidden="true">`);
   for (const r of rooms) {
     const [x, y] = r.label;
@@ -81,7 +83,14 @@ export function renderPlan(lang, t, selected) {
   out.push(`</g>`);
 
   out.push(`<polyline class="route" points="${pts(a.route)}"/>`);
+  const f = furniture.find((x) => x.id === a.furnitureId);
+  const cx = f.x + f.w / 2;
+  const cy = f.y + f.h / 2;
+  out.push(`<line class="leader" x1="${cx}" y1="${cy}" x2="${a.tag[0]}" y2="${a.tag[1]}"/>`);
   out.push(`<circle class="spot" cx="${a.front[0]}" cy="${a.front[1]}" r="9"/>`);
+  // Section mark: the elevation below is "view A" of the found bookcase.
+  const [mx, my] = f.mark;
+  out.push(`<g class="mark" aria-hidden="true"><circle cx="${mx}" cy="${my}" r="17"/><text x="${mx}" y="${my + 6}">A</text></g>`);
   out.push(`<g class="entry" aria-hidden="true"><path d="M610 782l-10-14h20z"/><text x="632" y="780">${esc(t.planDoor)}</text></g>`);
   out.push(`</svg>`);
   return out.join('');
@@ -104,16 +113,18 @@ export function renderDetail(book, lang, t) {
   const a = answer(book, lang, t);
   const f = furniture.find((x) => x.id === book.furniture);
   const rand = rng(f.id);
-  const W = 420;
+  const W = 460;
   const shelfH = 58;
+  const left = 34;
   const H = f.shelves * shelfH + 16;
   const out = [];
   out.push(`<svg class="elevation" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(`${a.furniture}: ${a.title}, ${a.shelf}`)}">`);
-  out.push(`<rect x="2" y="2" width="${W - 4}" height="${H - 4}" class="carcass" style="--wood:${f.color}"/>`);
+  out.push(`<rect x="${left}" y="2" width="${W - left - 2}" height="${H - 4}" class="carcass" style="--wood:${f.color}"/>`);
   for (let s = 1; s <= f.shelves; s++) {
     const base = 8 + s * shelfH;
-    let x = 14;
+    let x = left + 12;
     let slot = 0;
+    out.push(`<text x="${left - 12}" y="${base - 18}" class="shelf-no${s === book.shelf ? ' is-target' : ''}">${s}</text>`);
     while (x < W - 40) {
       slot += 1;
       const w = 14 + Math.floor(rand() * 12);
@@ -131,7 +142,7 @@ export function renderDetail(book, lang, t) {
       x += (isTarget ? 22 : w) + 2;
       if (rand() < 0.05) x += 22;
     }
-    out.push(`<line x1="6" y1="${base}" x2="${W - 6}" y2="${base}" class="board"/>`);
+    out.push(`<line x1="${left + 4}" y1="${base}" x2="${W - 6}" y2="${base}" class="board"/>`);
   }
   out.push(`</svg>`);
   return out.join('');

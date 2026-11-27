@@ -102,7 +102,7 @@ export function renderPage(t, { downloadsOrder = 'index,github' } = {}) {
 <main id="main">
 <section class="hero" aria-labelledby="h1">
   <div class="block">
-    <h1 id="h1">${esc(t.h1)}</h1>
+    <h1 id="h1"><span class="h1-q">${esc(t.h1Ask)} <cite id="h1-title">${esc(a.title)}</cite>?</span> <span class="h1-a" id="h1-answer" aria-live="polite">${esc(a.sentence)}</span></h1>
     <p class="lede">${esc(t.lede)}</p>
     <div class="get" data-state="loading">
       <a class="btn primary" id="dl-primary" href="${RELEASES_URL}">${icon.download}<span class="btn-label">${esc(t.dlGeneric)}</span></a>
@@ -117,20 +117,20 @@ export function renderPage(t, { downloadsOrder = 'index,github' } = {}) {
     <p class="cells"><span>${esc(t.planExample)}</span><span>${esc(t.planScale)}</span><span id="rev">${esc(t.footRev)} —</span></p>
   </div>
 
-  <figure class="drawing" id="dove" aria-labelledby="ask">
+  <figure class="drawing" id="dove" aria-label="${esc(t.planExample)}">
     <div class="ask" id="ask">
-      <p class="ask-q"><span>${esc(t.planWhere)}</span> <em id="ask-title">${esc(a.title)}</em>?</p>
-      <div class="chips" role="group" aria-label="${esc(t.planAsk)}">${chips}</div>
+      <p class="ask-label" id="ask-label">${esc(t.planAsk)}</p>
+      <div class="chips" role="group" aria-labelledby="ask-label">${chips}</div>
     </div>
     <div class="plan-wrap">
       ${renderPlan(t.lang, t, sel)}
-      <p class="tag" id="tag" data-below="${a.front[1] < 260}" style="--x:${a.front[0] / 10}%;--y:${(a.front[1] / 790) * 100}%" aria-live="polite">
+      <p class="tag" id="tag" aria-hidden="true" style="--x:${a.tag[0] / 10}%;--y:${(a.tag[1] / 790) * 100}%">
         <span class="tag-room">${esc(a.room)}</span><span class="tag-case">${esc(a.furniture)}</span><span class="tag-shelf">${esc(a.shelf)}</span>
       </p>
     </div>
     <figcaption class="detail">
-      <span class="detail-name"><span>${esc(t.planDetail)}</span>: <b id="detail-name">${esc(a.furniture)}</b></span>
       <div class="detail-art" id="detail-art">${renderDetail(sel, t.lang, t)}</div>
+      <p class="detail-name"><span class="mark-chip" aria-hidden="true">A</span><span>${esc(t.planDetail)}</span><b id="detail-name">${esc(a.furniture)}</b><span class="detail-shelf" id="detail-shelf">${esc(a.shelf)}</span></p>
     </figcaption>
   </figure>
 </section>
@@ -143,8 +143,8 @@ export function renderPage(t, { downloadsOrder = 'index,github' } = {}) {
   <figure class="elevation-shot">
     ${shot('desktop-shelf', t.appShotAlt, 'main-shot', '(min-width: 1100px) 1040px, 100vw')}
     <ul class="notes" aria-hidden="true">
-      <li class="note n2"><span>${esc(t.noteWhere)}</span></li>
-      <li class="note n3"><span>${esc(t.noteSpine)}</span></li>
+      <li class="note" style="--tx:19.5%;--ty:26.1%"><span>${esc(t.noteWhere)}</span></li>
+      <li class="note" style="--tx:21.6%;--ty:72.2%"><span>${esc(t.noteSpine)}</span></li>
     </ul>
   </figure>
   <div class="figs">
@@ -173,6 +173,11 @@ export function renderPage(t, { downloadsOrder = 'index,github' } = {}) {
     <div class="mode">
       <h3>${esc(t.netAloneTitle)}</h3>
       <p>${esc(t.netAloneText)}</p>
+      <svg class="schema schema-alone" viewBox="0 0 220 190" role="img" aria-label="${esc(`${t.schemaComputer}: ${t.schemaFile}`)}">
+        <g class="s-node"><rect x="20" y="20" width="180" height="116" rx="6"/><path d="M20 112h180M88 160h44M110 136v24"/></g>
+        <g class="s-node is-core"><path d="M88 42h34l14 14v40H88z"/><path d="M122 42v14h14"/></g>
+        <text x="112" y="182">${esc(t.schemaFile)}</text>
+      </svg>
     </div>
     <div class="mode is-wide">
       <h3>${esc(t.netHomeTitle)}</h3>

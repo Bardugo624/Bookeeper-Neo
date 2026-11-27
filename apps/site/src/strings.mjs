@@ -20,9 +20,9 @@ export const strings = {
     themeToLight: 'Tema chiaro',
     themeToDark: 'Tema scuro',
 
-    h1: 'Ogni libro di casa, sempre al suo posto.',
+    h1Ask: 'Dov’è',
     lede:
-      'Bookeeper è il catalogo della biblioteca di famiglia: i libri, gli scaffali e le stanze, i prestiti, le letture di ognuno. E resta tuo, sul tuo computer o sul tuo server.',
+      'Ogni libro di casa, sempre al suo posto. Bookeeper è il catalogo della biblioteca di famiglia: libri, scaffali e stanze, prestiti, le letture di ognuno. E resta tuo, sul tuo computer o sul tuo server.',
     dlFor: 'Scarica per',
     dlGeneric: 'Scarica Bookeeper',
     dlOther: 'Altri sistemi',
@@ -35,11 +35,11 @@ export const strings = {
     dlIntelHint: 'Mac con Intel?',
     dlDebHint: 'Preferisci il pacchetto .deb?',
 
-    planAsk: 'Chiedi alla casa',
+    planAsk: 'Chiedi alla casa:',
     planWhere: 'Dov’è',
     planExample: "Casa d'esempio, dati inventati",
     planShelf: 'ripiano',
-    planDetail: 'Il mobile visto di fronte',
+    planDetail: 'Prospetto A',
     planScale: 'Scala 1:100',
     planDoor: 'Ingresso',
 
@@ -182,9 +182,9 @@ export const strings = {
     themeToLight: 'Light theme',
     themeToDark: 'Dark theme',
 
-    h1: 'Every book in the house, always in its place.',
+    h1Ask: 'Where is',
     lede:
-      'Bookeeper is the catalogue of your family library: the books, the shelves and the rooms, the loans, what each of you is reading. And it stays yours, on your computer or on your own server.',
+      'Every book in the house, always in its place. Bookeeper is the catalogue of your family library: books, shelves and rooms, loans, what each of you is reading. And it stays yours, on your computer or on your own server.',
     dlFor: 'Download for',
     dlGeneric: 'Download Bookeeper',
     dlOther: 'Other systems',
@@ -197,11 +197,11 @@ export const strings = {
     dlIntelHint: 'Mac with Intel?',
     dlDebHint: 'Prefer the .deb package?',
 
-    planAsk: 'Ask the house',
+    planAsk: 'Ask the house:',
     planWhere: 'Where is',
     planExample: 'Example house, made-up data',
     planShelf: 'shelf',
-    planDetail: 'The bookcase, seen from the front',
+    planDetail: 'Elevation A',
     planScale: 'Scale 1:100',
     planDoor: 'Entrance',
 

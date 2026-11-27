@@ -38,10 +38,10 @@ function show(id, animate) {
   const a = answer(book, T.lang, T);
   const old = $('svg.plan', planWrap);
   old.outerHTML = renderPlan(T.lang, T, book);
-  $('#ask-title').textContent = a.title;
-  tag.style.setProperty('--x', `${a.front[0] / 10}%`);
-  tag.style.setProperty('--y', `${(a.front[1] / 790) * 100}%`);
-  tag.dataset.below = String(a.front[1] < 260);
+  $('#h1-title').textContent = a.title;
+  $('#h1-answer').textContent = a.sentence;
+  tag.style.setProperty('--x', `${a.tag[0] / 10}%`);
+  tag.style.setProperty('--y', `${(a.tag[1] / 790) * 100}%`);
   tag.innerHTML = '';
   for (const [cls, text] of [['tag-room', a.room], ['tag-case', a.furniture], ['tag-shelf', a.shelf]]) {
     const s = document.createElement('span');
@@ -50,6 +50,7 @@ function show(id, animate) {
     tag.append(s);
   }
   $('#detail-name').textContent = a.furniture;
+  $('#detail-shelf').textContent = a.shelf;
   $('#detail-art').innerHTML = renderDetail(book, T.lang, T);
   for (const c of document.querySelectorAll('.chip')) c.setAttribute('aria-pressed', String(c.dataset.book === id));
   if (animate && !reduced.matches) draw();
