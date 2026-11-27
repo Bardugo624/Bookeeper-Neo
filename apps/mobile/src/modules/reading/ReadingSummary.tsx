@@ -10,7 +10,7 @@ export function ReadingSummary({ reading, book }: { reading: ReadingOut; book: B
   const locale = useLocale();
   const total = book.page_count;
   const status = isStatus(reading.status) ? t(`mreading.status.${reading.status}`) : reading.status;
-  const ring = reading.status === 'reading' && !!total && total > 0;
+  const ring = reading.status === 'reading' && ((!!total && total > 0) || reading.progress_percent != null);
   let page = null;
   if (reading.current_page != null && reading.status === 'reading') {
     page = total ? t('mreading.pageOf', { page: reading.current_page, total }) : t('mreading.page', { page: reading.current_page });

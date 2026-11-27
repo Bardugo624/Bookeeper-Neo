@@ -18,6 +18,17 @@ export function percentOf(status: string, currentPage: number | null | undefined
   return Math.min(100, Math.round(((currentPage ?? 0) / pageCount) * 100));
 }
 
+/** Percent for the ring: full when read, else what the e-book file says, else the page over the total. */
+export function ringPercent(
+  reading: { status: string; current_page?: number | null; progress_percent?: number | null },
+  pageCount: number | null | undefined,
+): number | null {
+  if (reading.status === 'read') return 100;
+  const fromFile = reading.progress_percent;
+  if (fromFile != null && Number.isFinite(fromFile)) return Math.max(0, Math.min(100, Math.round(fromFile)));
+  return percentOf(reading.status, reading.current_page, pageCount);
+}
+
 const nowSeconds = () => Math.floor(Date.now() / 1000);
 
 /** The current state as a full `PUT` body (the route replaces the state), with `patch` applied. */
@@ -43,7 +54,7 @@ export function statusBody(reading: ReadingOut | null, status: ReadingStatus): P
 }
 
 /** What the core will most likely answer, to show at once. */
-export function optimisticReading(bookId: string, body: PutReading, pageCount?: number | null): ReadingOut {
+export function optimisticReading(bookId: string, body: PutReading, pageCount?: number | null, previous?: ReadingOut | null): ReadingOut {
   const now = nowSeconds();
   const status = body.status;
   const toRead = status === 'to_read';
@@ -56,8 +67,9 @@ export function optimisticReading(bookId: string, body: PutReading, pageCount?: 
     note: body.note ?? null,
     current_page: toRead ? null : (body.current_page ?? (status === 'read' ? (pageCount ?? null) : null)),
     updated_at: now,
-    progress_percent: null,
-    progress_at: null,
+    // The position in the file is not part of this write: keep what the cache holds so the ring does not reset.
+    progress_percent: previous?.progress_percent ?? null,
+    progress_at: previous?.progress_at ?? null,
   };
 }
 

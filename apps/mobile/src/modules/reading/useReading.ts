@@ -68,7 +68,7 @@ export function useSetReading(bookId: string, pageCount?: number | null) {
   return useWrite<PutReading>(
     bookId,
     (body) => client.setReading(bookId, body),
-    (body) => optimisticReading(bookId, body, pageCount),
+    (body, previous) => optimisticReading(bookId, body, pageCount, previous),
   );
 }
 
