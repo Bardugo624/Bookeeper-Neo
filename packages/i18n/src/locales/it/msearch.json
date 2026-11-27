@@ -41,7 +41,7 @@
       "title": "Dove si trova",
       "shelf": "Mobile",
       "none": "Non collocato",
-      "phrase": "{shelf}\u00a0· ripiano\u00a0{row}\u00a0· posto\u00a0{slot}",
+      "phrase": "{shelf} · ripiano {row} · posto {slot}",
       "button": "Dov'è?",
       "row": "Ripiano {row}",
       "unit": "Apri il mobile"
@@ -159,5 +159,22 @@
     },
     "titleField": "Titolo"
   },
-  "shelves": "Scaffali"
+  "shelves": "Scaffali",
+  "files": {
+    "title": "File",
+    "none": "Nessun file collegato a questo libro.",
+    "missing": "Il file non è sul server",
+    "download": "Scarica",
+    "downloadLabel": "Scarica {format}, {size}",
+    "downloading": "Scarico il file…",
+    "add": "Aggiungi il file",
+    "retry": "Riprova",
+    "adding": "Carico il file…",
+    "errors": {
+      "unsupported_format": "Questo formato non è supportato. Usa EPUB, PDF, MOBI, AZW3, FB2 o CBZ.",
+      "drm_protected": "Il file è protetto da DRM e non si può aggiungere.",
+      "file_already_attached": "Questo file è già collegato al libro.",
+      "payload_too_large": "Il file è troppo grande."
+    }
+  }
 }
