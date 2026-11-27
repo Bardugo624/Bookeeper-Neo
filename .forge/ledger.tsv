@@ -714,3 +714,26 @@
 2026-11-27T09:05:47Z	bookeeper-fase-9a	bk-publish	qa	opus	FAIL	trap	scripts bk mjs loadcommands imports every non test mjs in scripts bk commands so helper modules placed there are loaded on every bk run	scripts/bk.mjs loadCommands imports every non-.test .mjs in scripts/bk/commands, so helper modules placed there are loaded on every bk run [scripts/bk.mjs]	108	1
 2026-11-27T09:06:40Z	bookeeper-fase-9a	bk-publish	dwarf	sonnet	-	trap	scripts bk mjs loadcommands imports every non test mjs in scripts bk commands so helper modules placed there are loaded on every bk run	scripts/bk.mjs loadCommands imports every non-.test .mjs in scripts/bk/commands, so helper modules placed there are loaded on every bk run [scripts/bk.mjs]	47	1
 2026-11-27T09:07:29Z	bookeeper-fase-9a	bk-publish	qa	opus	PASS	-	-	-	41
+2026-11-27T11:22:40Z	bookeeper-fase-9b	setup-ui-base	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npm test w bookeeper ui or w bookeeper i18n works	a fresh worktree needs `npm ci --offline` at the root before `npm test -w @bookeeper/ui` or `-w @bookeeper/i18n` works [package-lock.json]	90	1
+2026-11-27T11:25:35Z	bookeeper-fase-9b	setup-core-logic	dwarf	sonnet	-	trap	cargo generate lockfile rewrites the whole cargo lock and bumps unrelated crates restore it from head and let a plain cargo test add only the new entries	`cargo generate-lockfile` rewrites the whole Cargo.lock and bumps unrelated crates; restore it from HEAD and let a plain `cargo test` add only the new entries [Cargo.lock]	264	1
+2026-11-27T11:25:35Z	bookeeper-fase-9b	setup-core-logic	dwarf	sonnet	-	verify	cargo test p bookeeper setup core cargo check target x86 64 pc windows msvc p bookeeper setup core	cargo test -p bookeeper-setup-core && cargo check --target x86_64-pc-windows-msvc -p bookeeper-setup-core [crates/bookeeper-setup-core/Cargo.toml]	264	1
+2026-11-27T11:26:03Z	bookeeper-fase-9b	setup-ui-base	qa	opus	PASS	-	-	-	194
+2026-11-27T11:27:16Z	bookeeper-fase-9b	setup-dmg	dwarf	sonnet	-	-	-	-	64
+2026-11-27T11:28:17Z	bookeeper-fase-9b	setup-dmg	qa	opus	PASS	-	-	-	54
+2026-11-27T11:31:38Z	bookeeper-fase-9b	setup-core-logic	qa	opus	FAIL	-	-	-	355
+2026-11-27T11:32:32Z	bookeeper-fase-9b	setup-core-logic	dwarf	sonnet	-	-	-	-	48
+2026-11-27T11:34:40Z	bookeeper-fase-9b	setup-core-logic	qa	opus	FAIL	-	-	-	119
+2026-11-27T11:35:28Z	bookeeper-fase-9b	setup-ui-shell	dwarf	sonnet	-	-	-	-	423
+2026-11-27T11:40:39Z	bookeeper-fase-9b	setup-ui-shell	qa	opus	PASS	trap	npx vitest run root packages ui from the repo root fails dangerzone test tsx and dialog test tsx enoent on their module css read	`npx vitest run --root packages/ui` from the repo root fails DangerZone.test.tsx and Dialog.test.tsx (ENOENT on their .module.css, read… [packages/ui/src/overlays/Dialog.test.tsx]	304	1
+2026-11-27T11:43:02Z	bookeeper-fase-9b	setup-ui-uninstall	dwarf	sonnet	-	-	-	-	135
+2026-11-27T11:45:24Z	bookeeper-fase-9b	setup-ui-uninstall	qa	opus	FAIL	finding	a kit dialog unmounted together with its opener the state change both closes it and swaps the panel sends focus to a surviving earlier	a kit `Dialog` unmounted together with its opener (the state change both closes it and swaps the panel) sends focus to a surviving earlier… [packages/ui/src/overlays/Dialog.tsx]	134	1
+2026-11-27T11:45:24Z	bookeeper-fase-9b	setup-ui-uninstall	qa	opus	FAIL	trap	a throwaway vitest config outside the repo needs resolve alias for react testing library and vitest pointing at the root node modules or imports	a throwaway vitest config outside the repo needs `resolve.alias` for react, @testing-library/* and vitest pointing at the root node_modules, or imports… [apps/setup/vite.config.ts]	134	1
+2026-11-27T11:45:29Z	bookeeper-fase-9b	setup-ui-install	dwarf	sonnet	-	verify	npm test w bookeeper setup needs npm ci offline at the root first	npm test -w @bookeeper/setup (needs `npm ci --offline` at the root first) [apps/setup/package.json]	283	1
+2026-11-27T11:45:29Z	bookeeper-fase-9b	setup-ui-install	dwarf	sonnet	-	trap	the it en setup json texts use a straight apostrophe where the contract table shows a curly one so test strings must match the json	the it/en setup.json texts use a straight apostrophe (') where the contract table shows a curly one, so test strings must match the JSON [packages/i18n/src/locales/it/setup.json]	283	1
+2026-11-27T11:46:07Z	bookeeper-fase-9b	setup-ui-uninstall	dwarf	sonnet	-	finding	a kit dialog unmounted together with its opener the state change both closes it and swaps the panel sends focus to a surviving earlier	a kit `Dialog` unmounted together with its opener (the state change both closes it and swaps the panel) sends focus to a surviving earlier… [packages/ui/src/overlays/Dialog.tsx]	36	1
+2026-11-27T11:46:47Z	bookeeper-fase-9b	setup-ui-uninstall	qa	opus	PASS	-	-	-	33
+2026-11-27T11:47:23Z	bookeeper-fase-9b	setup-downloads	dwarf	sonnet	-	-	-	-	29
+2026-11-27T11:48:16Z	bookeeper-fase-9b	setup-ui-install	qa	opus	FAIL	-	-	-	159
+2026-11-27T11:48:22Z	bookeeper-fase-9b	setup-downloads	qa	opus	PASS	-	-	-	50
+2026-11-27T11:48:54Z	bookeeper-fase-9b	setup-ui-install	dwarf	sonnet	-	-	-	-	32
+2026-11-27T11:49:45Z	bookeeper-fase-9b	setup-ui-install	qa	opus	PASS	-	-	-	44
