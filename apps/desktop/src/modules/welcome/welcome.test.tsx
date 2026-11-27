@@ -1,6 +1,7 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { quotesIn, type QuoteLang } from '@bookeeper/ui/quote';
 import type { AuthOut } from '@bookeeper/api';
 import { fakeConnection, fakePlatform, type FakePlatform } from '../../platform/testing';
 import type { ProbeOut } from '../../platform';
@@ -60,8 +61,8 @@ const posts = (p: FakePlatform, path: string) => p.calls.filter((c) => c.method 
 const credentialPosts = (p: FakePlatform) => p.calls.filter((c) => c.method === 'POST');
 const ready = () => waitFor(() => expect(useSession.getState().status).toBe('ready'));
 
-function show(platform: FakePlatform) {
-  renderApp({ platform, modules: [welcome], route: '/welcome' });
+function show(platform: FakePlatform, locale: QuoteLang = 'it') {
+  return renderApp({ platform, modules: [welcome], route: '/welcome', locale });
 }
 // The toast provider keeps an empty `alert` live region mounted; only alerts with text count here.
 const alerts = () => screen.queryAllByRole('alert').filter((a) => a.textContent);
@@ -596,5 +597,93 @@ describe('Bentornato', () => {
     show(p);
     expect(await screen.findByRole('button', { name: 'Apri' })).toBeInTheDocument();
     expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();
+  });
+});
+
+describe('Il frontespizio', () => {
+  const deckOf = (lang: QuoteLang) => {
+    const entries = quotesIn(lang);
+    localStorage.setItem(`bookeeper.quotes.${lang}`, JSON.stringify({ order: entries.map((e) => e.id), next: 0 }));
+    return entries;
+  };
+  const shown = () => document.querySelector('blockquote')?.textContent ?? '';
+  const caption = () => document.querySelector('figcaption')?.textContent ?? '';
+  const expectCard = (e: ReturnType<typeof quotesIn>[number], lang: QuoteLang) => {
+    const q = e[lang]!;
+    expect(shown()).toContain(q.text.split('\n')[0]);
+    expect(caption()).toContain(q.author);
+    if (q.work) expect(caption()).toContain(q.work);
+  };
+
+  it('shows a quotation, the promise and the title on first start, and no covers', async () => {
+    const cards = deckOf('it');
+    show(platformWith());
+    expect(await screen.findByRole('heading', { name: 'Come vuoi iniziare?' })).toBeInTheDocument();
+    expectCard(cards[0]!, 'it');
+    expect(document.querySelector('aside')).toHaveTextContent(/Una libreria che resta tua/);
+    expect(document.querySelector('aside [class*="cover"]')).toBeNull();
+    expect(document.querySelectorAll('aside img')).toHaveLength(1);
+  });
+
+  it('keeps the title and subtitle for first start only, even after "Usa un\'altra libreria"', async () => {
+    const connection = fakeConnection({ id: 'c1', kind: 'remote', url: 'https://casa.example', library_name: 'Casa Rossi', user_name: 'Anna' });
+    show(platformWith({ 'GET /api/v1/me': fail(401, 'unauthorized'), 'POST /api/v1/auth/refresh': fail(401, 'refresh_invalid') }, { connections: { active: 'c1', items: [connection] } }));
+    expect(await screen.findByRole('heading', { name: 'Bentornato in Casa Rossi' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Come vuoi iniziare?' })).not.toBeInTheDocument();
+    await user().click(screen.getByRole('button', { name: "Usa un'altra libreria" }));
+    expect(screen.queryByRole('heading', { name: 'Come vuoi iniziare?' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
+    expect(document.querySelector('figure')).not.toBeNull();
+  });
+
+  it('keeps the same quotation while typing, changing path and after a failed sign-in', async () => {
+    deckOf('it');
+    const p = platformWith({ 'POST /api/v1/pairing/inspect': fail(404, 'not_found') });
+    show(p);
+    const u = user();
+    await type(u, 'Nome della libreria', 'Casa');
+    const before = shown();
+    expect(before).not.toBe('');
+    await openCard(u, /Unisciti/);
+    expect(shown()).toBe(before);
+    await u.click(await screen.findByRole('button', { name: /Crea qui/ }));
+    expect(shown()).toBe(before);
+  });
+
+  it('keeps the quotation after a failed sign-in', async () => {
+    deckOf('it');
+    localStorage.setItem('bookeeper.welcome.login.c1', JSON.stringify({ email: 'anna@example.org', libraryId: 'l1' }));
+    const connection = fakeConnection({ id: 'c1', kind: 'remote', url: 'https://casa.example', library_name: 'Casa Rossi', user_name: 'Anna' });
+    show(
+      platformWith(
+        { 'GET /api/v1/me': fail(401, 'unauthorized'), 'POST /api/v1/auth/refresh': fail(401, 'refresh_invalid'), 'POST /api/v1/auth/login': fail(401, 'invalid_credentials') },
+        { connections: { active: 'c1', items: [connection] } },
+      ),
+    );
+    const u = user();
+    await u.type(await screen.findByLabelText('Password'), 'sbagliata-di-molto');
+    const before = shown();
+    await u.click(screen.getByRole('button', { name: 'Accedi' }));
+    expect(await findAlert()).toHaveTextContent('Email o password non corrette');
+    expect(shown()).toBe(before);
+  });
+
+  it('takes the next card of the deck on a new mount', async () => {
+    const cards = deckOf('it');
+    const first = show(platformWith());
+    await screen.findByRole('heading', { name: 'Come vuoi iniziare?' });
+    expectCard(cards[0]!, 'it');
+    first.unmount();
+    show(platformWith());
+    await screen.findByRole('heading', { name: 'Come vuoi iniziare?' });
+    expectCard(cards[1]!, 'it');
+  });
+
+  it('shows a verified English text in English', async () => {
+    const cards = deckOf('en');
+    show(platformWith(), 'en');
+    await screen.findByRole('heading', { level: 1 });
+    expectCard(cards[0]!, 'en');
+    expect(quotesIn('en').map((e) => e.en!.text)).toContain(cards[0]!.en!.text);
   });
 });
