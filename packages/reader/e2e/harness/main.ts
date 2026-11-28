@@ -41,3 +41,9 @@ engine.on('relocate', (m) => {
 });
 
 (window as unknown as { bk: unknown }).bk = { engine, layout, load, state };
+
+// Every message from the engine page but the frequent `relocate`, for the runner's diagnosis.
+window.addEventListener('message', (e) => {
+  const type = (e.data as { msg?: { type?: string } } | null)?.msg?.type;
+  if (type && type !== 'relocate') console.log(`frame: ${type}`);
+});

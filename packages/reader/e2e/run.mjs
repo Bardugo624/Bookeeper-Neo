@@ -80,7 +80,8 @@ async function openPage(browser, viewport, base) {
     document.addEventListener('securitypolicyviolation', () => window.__bkViolations++, true);
   });
   const page = await context.newPage();
-  const watch = { errors: [], outside: new Map() };
+  const watch = { errors: [], outside: new Map(), console: [] };
+  page.on('console', (m) => watch.console.push(`${m.type()} ${m.text().slice(0, 200)}`));
   const outside = (url) => !(url.startsWith(`${base}/`) || /^(blob:|data:|about:)/.test(url));
   page.on('request', (r) => outside(r.url()) && watch.outside.set(r.url(), 'request'));
   page.on('requestfailed', (r) => outside(r.url()) && watch.outside.set(r.url(), r.failure()?.errorText ?? 'failed'));
@@ -189,7 +190,32 @@ const scenarios = {
   },
 
   async hostile({ page, watch }) {
-    await page.evaluate(OPEN, { book: 'ostile.epub', fraction: null, fontSize: 18 });
+    // Where the opening stands, if it does not end: which frames exist and how far foliate-js got.
+    const opening = page.evaluate(OPEN, { book: 'ostile.epub', fraction: null, fontSize: 18 });
+    const stalled = await Promise.race([opening.then(() => false), new Promise((r) => setTimeout(() => r(true), 30_000))]);
+    if (stalled) {
+      const frames = [];
+      for (const frame of page.frames()) {
+        frames.push(
+          await frame
+            .evaluate(() => {
+              const v = document.querySelector('foliate-view');
+              return {
+                url: location.href.slice(0, 60),
+                ready: document.readyState,
+                view: !!v,
+                book: !!v?.book,
+                sections: v?.book?.sections?.length ?? null,
+                renderer: !!v?.renderer,
+                iframes: document.querySelectorAll('iframe').length,
+              };
+            })
+            .catch((e) => ({ url: frame.url().slice(0, 60), error: String(e).slice(0, 120) })),
+        );
+      }
+      return { ok: false, error: 'the hostile book did not open within 30 s', frames, console: watch.console.slice(-30), errors: watch.errors.slice(-10) };
+    }
+    await opening;
     await page.waitForTimeout(1000);
     // The chapter's inline handlers would run on these events if the policy did not reach its frame.
     for (const frame of page.frames()) {
@@ -265,6 +291,7 @@ try {
         results.push(record);
         const detail = record.p95 != null ? ` p95 ${record.p95} ms (median ${record.median}, max ${record.max})` : '';
         console.log(`${record.ok ? 'ok  ' : 'FAIL'} ${engine} ${record.viewport} ${scenario}${detail}${record.error ? `: ${record.error}` : ''}`);
+        if (!record.ok && (record.frames || record.console)) console.log(JSON.stringify({ frames: record.frames, console: record.console, errors: record.errors }, null, 1));
       }
     }
     await browser.close();
