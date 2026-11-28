@@ -1,0 +1,15 @@
+{
+  "back": "Torna al libro",
+  "loading": "Preparo il libro",
+  "failed": {
+    "title": "Non riesco ad aprire il libro",
+    "text": "Il libro non è raggiungibile o il file non è quello atteso. Riprova fra poco."
+  },
+  "noFile": {
+    "title": "Questo libro non ha un file da leggere",
+    "text": "Aggiungi un e-book dalla scheda del libro per poterlo leggere qui."
+  },
+  "save": {
+    "filter": "Markdown"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "back": "Back to the book",
+  "loading": "Preparing the book",
+  "failed": {
+    "title": "I can't open the book",
+    "text": "The library can't be reached or the file isn't the one expected. Try again in a moment."
+  },
+  "noFile": {
+    "title": "This book has no file to read",
+    "text": "Add an e-book from the book's page to read it here."
+  },
+  "save": {
+    "filter": "Markdown"
+  }
+}
