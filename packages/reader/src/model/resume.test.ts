@@ -36,6 +36,16 @@ describe('resume', () => {
     expect(openingTarget(local, [own], 'me')).toBeNull();
     expect(openingTarget(null, [dev()], 'me')).toBeNull();
   });
+  it('own_copy_of_another_file_gives_only_a_fraction', () => {
+    expect(openingTarget(null, [dev({ deviceId: 'me', sameFile: false, percent: 30 })], 'me')).toEqual({ fraction: 0.3 });
+    const other = dev({ deviceId: 'me', sameFile: false, value: 'x' });
+    expect(openingTarget(null, [other, dev({ deviceId: 'me', value: 'cfi-own' })], 'me')).toEqual({ cfi: 'cfi-own' });
+  });
+  it('offer_is_measured_against_the_own_server_copy', () => {
+    const own = dev({ deviceId: 'me', percent: 50, at: 1000 });
+    expect(decideResume(null, [own, dev({ percent: 45, at: 2000 })], 'me')).toBeNull();
+    expect(decideResume({ ...local, percent: 10.1 }, [dev({ percent: 11.1 })], 'me')).not.toBeNull();
+  });
   it('a_hand_typed_page_is_offered_with_its_page', () => {
     const o = decideResume(local, [{ kind: 'page', page: 212, percent: 45, at: 2000 }], 'me');
     expect(o).toMatchObject({ page: 212, percent: 45, target: { fraction: 0.45 } });

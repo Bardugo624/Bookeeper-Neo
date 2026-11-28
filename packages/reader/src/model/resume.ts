@@ -36,18 +36,34 @@ function targetOf(source: ResumeSource): Target {
   return { fraction: Math.min(1, Math.max(0, source.percent / 100)) };
 }
 
+/** This device's saved copy on the server, preferring the one for this file. */
+function ownCopy(
+  sources: readonly ResumeSource[],
+  deviceId: string,
+): Extract<ResumeSource, { kind: 'device' }> | null {
+  let found: Extract<ResumeSource, { kind: 'device' }> | null = null;
+  for (const s of sources) {
+    if (s.kind !== 'device' || s.deviceId !== deviceId) continue;
+    if (s.sameFile) return s;
+    found ??= s;
+  }
+  return found;
+}
+
 /** Another source is further ahead (by 1 point or more) and newer than the local position. Never jumps by itself. */
 export function decideResume(
   local: LocalPosition | null,
   sources: readonly ResumeSource[],
   deviceId: string,
 ): ResumeOffer | null {
-  const percent = local?.percent ?? 0;
-  const at = local?.at ?? -Infinity;
+  // Without a local position the book opens at this device's own server copy, so that is the baseline.
+  const own = ownCopy(sources, deviceId);
+  const percent = local?.percent ?? own?.percent ?? 0;
+  const at = local?.at ?? own?.at ?? -Infinity;
   let best: ResumeSource | null = null;
   for (const s of sources) {
     if (s.kind === 'device' && s.deviceId === deviceId) continue;
-    if (s.percent - percent < MIN_LEAD || s.at <= at) continue;
+    if (s.percent - percent < MIN_LEAD - 1e-9 || s.at <= at) continue;
     if (!best || s.percent > best.percent || (s.percent === best.percent && s.at > best.at)) best = s;
   }
   if (!best) return null;
@@ -67,7 +83,10 @@ export function openingTarget(
   deviceId: string,
 ): Target | null {
   if (local) return null;
-  const own = sources.find((s) => s.kind === 'device' && s.deviceId === deviceId);
-  if (!own || own.kind !== 'device') return null;
-  return own.value ? { cfi: own.value } : { fraction: Math.min(1, Math.max(0, own.percent / 100)) };
+  const own = ownCopy(sources, deviceId);
+  if (!own) return null;
+  // A copy of another file of the book has no usable CFI here: only its percentage carries over.
+  return own.sameFile && own.value
+    ? { cfi: own.value }
+    : { fraction: Math.min(1, Math.max(0, own.percent / 100)) };
 }

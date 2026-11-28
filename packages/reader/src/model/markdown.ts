@@ -29,29 +29,27 @@ export function exportMarkdown(meta: ExportMeta, items: readonly ExportItem[], l
   const blocks: string[] = [`# ${meta.title}`];
   if (meta.author) blocks.push(meta.author);
 
-  const chapters = new Map<string, ExportItem[]>();
-  for (const item of items) {
-    if (item.kind !== 'highlight') continue;
-    const key = item.chapter ?? '';
-    const list = chapters.get(key);
-    if (list) list.push(item);
-    else chapters.set(key, [item]);
-  }
-  for (const [chapter, list] of chapters) {
-    if (chapter) blocks.push(`## ${chapter}`);
-    for (const h of list) {
-      blocks.push(
-        h.text
-          .split('\n')
-          .map((l) => (l ? `> ${l}` : '>'))
-          .join('\n'),
-      );
-      if (h.note && h.note.trim()) blocks.push(h.note.replace(/\s+$/, ''));
-      blocks.push(`*${pct(h.percent)}${h.color ? ` · ${labels.colors[h.color]}` : ''}*`);
+  const byPercent = (a: ExportItem, b: ExportItem): number => a.percent - b.percent;
+  // Book order; each run of the same chapter is one block (a run without a chapter is set off by a rule).
+  const highlights = items.filter((i) => i.kind === 'highlight').sort(byPercent);
+  let current: string | null | undefined;
+  for (const h of highlights) {
+    if (h.chapter !== current) {
+      current = h.chapter;
+      if (h.chapter) blocks.push(`## ${h.chapter}`);
+      else if (blocks.length > (meta.author ? 2 : 1)) blocks.push('---');
     }
+    blocks.push(
+      h.text
+        .split('\n')
+        .map((l) => (l ? `> ${l}` : '>'))
+        .join('\n'),
+    );
+    if (h.note && h.note.trim()) blocks.push(h.note.replace(/\s+$/, ''));
+    blocks.push(`*${pct(h.percent)}${h.color ? ` · ${labels.colors[h.color]}` : ''}*`);
   }
 
-  const bookmarks = items.filter((i) => i.kind === 'bookmark');
+  const bookmarks = items.filter((i) => i.kind === 'bookmark').sort(byPercent);
   if (bookmarks.length) {
     blocks.push(`## ${labels.bookmarks}`);
     blocks.push(
