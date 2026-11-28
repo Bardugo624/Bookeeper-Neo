@@ -171,9 +171,12 @@ describe('bootFrame', () => {
     move(0.2, 'snap');
     move(0.6, 'page');
     move(0.6, 'snap');
-    await until(() => received.filter((m) => m.type === 'relocate').length === 3);
+    move(0, 'page');
+    // Back off the chapter's first page: foliate-js's blank page before it, then the chapter before.
+    move(-0.1, 'snap');
+    await until(() => received.length === 7);
     expect(received.map((m) => (m.type === 'swipe' ? `swipe ${m.direction}` : m.type))).toEqual([
-      'swipe next', 'relocate', 'swipe prev', 'relocate', 'relocate',
+      'swipe next', 'relocate', 'swipe prev', 'relocate', 'relocate', 'relocate', 'swipe prev',
     ]);
   });
 

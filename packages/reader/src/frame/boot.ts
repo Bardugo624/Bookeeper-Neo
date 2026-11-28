@@ -274,9 +274,14 @@ export function bootFrame(options: BootOptions = {}): () => void {
       send({ type: 'mark-click', id: mark.id, rect: toFrameRect(range.getBoundingClientRect(), range.startContainer.ownerDocument ?? document) });
     });
     let lastAt = '';
-    let lastFraction = -1;
+    let lastPlace = -Infinity;
     const onRelocate = (e: Event) => {
       const { index, fraction, range, reason } = (e as CustomEvent).detail as { index: number; fraction?: number; range: Range | null; reason?: string };
+      // The raw fraction: a swipe off a chapter's edge first lands on foliate-js's blank page, below 0 or at 1.
+      const place = index + (Number.isFinite(fraction) ? fraction! : 0);
+      // Before the place, so the app counts the page as turned when the place arrives.
+      if (reason === 'snap' && place !== lastPlace) send({ type: 'swipe', direction: place < lastPlace ? 'prev' : 'next' });
+      lastPlace = place;
       const inSection = Number.isFinite(fraction) ? Math.min(Math.max(fraction!, 0), 1) : 0;
       let tocHref: string | null = null;
       try {
@@ -297,9 +302,6 @@ export function bootFrame(options: BootOptions = {}): () => void {
       const key = JSON.stringify(at);
       if (key === lastAt) return;
       lastAt = key;
-      // Before the place, so the app counts the page as turned when the place arrives.
-      if (reason === 'snap') send({ type: 'swipe', direction: at.fraction < lastFraction ? 'prev' : 'next' });
-      lastFraction = at.fraction;
       send({ type: 'relocate', at });
     };
     view.renderer.addEventListener('relocate', onRelocate);
