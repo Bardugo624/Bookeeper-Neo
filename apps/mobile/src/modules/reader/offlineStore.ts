@@ -1,5 +1,5 @@
 import { ApiError, type Transport } from '@bookeeper/api';
-import { opfsLibrary, streamOf, type OfflineMeta } from './opfsLibrary';
+import { opfsLibrary, type OfflineMeta } from './opfsLibrary';
 
 /** Where a file is: not on the phone, on its way, or kept. */
 export interface OfflineState {
@@ -37,6 +37,26 @@ export async function refreshOffline(sha: string): Promise<void> {
   else set(sha, NONE);
 }
 
+const PIECE = 1024 * 1024;
+
+/** The file as a stream, asked for a piece at a time: a server that ignores `Range` sends it whole in one. */
+function rangedStream(transport: Transport, path: string, total: number, signal: AbortSignal): ReadableStream<Uint8Array> {
+  let at = 0;
+  return new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      signal.throwIfAborted();
+      const res = await transport.requestRaw!({ method: 'GET', path, headers: { range: `bytes=${at}-${at + PIECE - 1}` } });
+      signal.throwIfAborted();
+      if (res.status === 416 && at > 0) return controller.close();
+      if (res.status !== 200 && res.status !== 206) throw new ApiError(res.status, 'download_failed', `Unexpected response (${res.status})`);
+      if (res.bytes.byteLength > 0) controller.enqueue(res.bytes);
+      at += res.bytes.byteLength;
+      const whole = res.status === 200;
+      if (whole || res.bytes.byteLength === 0 || (total > 0 ? at >= total : res.bytes.byteLength < PIECE)) controller.close();
+    },
+  });
+}
+
 /** Fetches the file with the session's token and keeps it on the phone. */
 export async function downloadOffline(meta: OfflineMeta, fileId: string, transport: Transport): Promise<void> {
   const sha = meta.sha256;
@@ -47,13 +67,10 @@ export async function downloadOffline(meta: OfflineMeta, fileId: string, transpo
   try {
     if (!transport.requestRaw) throw new ApiError(0, 'unsupported', 'raw requests unsupported');
     const path = `/api/v1/books/${encodeURIComponent(meta.bookId)}/files/${encodeURIComponent(fileId)}/content`;
-    const res = await transport.requestRaw({ method: 'GET', path });
-    ctl.signal.throwIfAborted();
-    if (res.status < 200 || res.status >= 300) throw new ApiError(res.status, 'download_failed', `Unexpected response (${res.status})`);
-    // The transport hands over the whole body: the bar follows the writing to the phone.
+    // The file arrives piece by piece (Range), so the bar and «Annulla» follow the real transfer.
     const saved = await opfsLibrary().save(
-      { ...meta, sizeBytes: res.bytes.byteLength },
-      streamOf(res.bytes),
+      meta,
+      rangedStream(transport, path, meta.sizeBytes, ctl.signal),
       (f) => set(sha, { status: 'saving', progress: f, sizeBytes: meta.sizeBytes, failed: false }),
       ctl.signal,
     );

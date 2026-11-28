@@ -101,6 +101,7 @@ export function createOpfsLibrary(options: OpfsLibraryOptions = {}): OfflineLibr
   const index = options.index ?? idbIndex();
   const clock = options.clock ?? Date.now;
   let asked = false;
+  const writing = new Set<string>();
 
   /** The first save asks the browser not to clear the data; the answer changes nothing here. */
   async function persist(): Promise<void> {
@@ -122,6 +123,20 @@ export function createOpfsLibrary(options: OpfsLibraryOptions = {}): OfflineLibr
     await index.delete(sha256);
   }
 
+  /** Files without a list entry are saves that a closed tab cut short: they go. */
+  async function sweep(dir: FileSystemDirectoryHandle): Promise<void> {
+    const keys = (dir as unknown as { keys?: () => AsyncIterable<string> }).keys;
+    if (typeof keys !== 'function') return;
+    try {
+      const kept = new Set((await index.all()).map((b) => fileName(b.sha256, b.format)));
+      const names: string[] = [];
+      for await (const name of keys.call(dir)) names.push(name);
+      for (const name of names) if (!kept.has(name) && !writing.has(name)) await dir.removeEntry(name).catch(() => undefined);
+    } catch {
+      /* the next save tries again */
+    }
+  }
+
   return {
     async has(sha256) {
       const book = await index.get(sha256);
@@ -140,6 +155,50 @@ export function createOpfsLibrary(options: OpfsLibraryOptions = {}): OfflineLibr
       signal.throwIfAborted();
       const dir = await directory();
       const name = fileName(meta.sha256, meta.format);
+      // Already kept: a second save must never put the good copy at risk.
+      const kept = await index.get(meta.sha256);
+      if (kept && (await dir.getFileHandle(fileName(kept.sha256, kept.format)).then(() => true, () => false))) {
+        onProgress(1);
+        return kept;
+      }
+      await sweep(dir);
+      signal.throwIfAborted();
+      writing.add(name);
+      try {
+        return await write(dir, name, meta, stream, onProgress, signal);
+      } finally {
+        writing.delete(name);
+      }
+    },
+    async open(sha256) {
+      const book = await index.get(sha256);
+      if (!book) return null;
+      try {
+        return await (await (await directory()).getFileHandle(fileName(sha256, book.format))).getFile();
+      } catch {
+        await index.delete(sha256);
+        return null;
+      }
+    },
+    async remove(sha256) {
+      await drop(await index.get(sha256), sha256);
+    },
+    list: () => index.all(),
+    async usage() {
+      const all = await index.all();
+      return { count: all.length, bytes: all.reduce((sum, b) => sum + b.sizeBytes, 0) };
+    },
+  };
+
+  async function write(
+    dir: FileSystemDirectoryHandle,
+    name: string,
+    meta: OfflineMeta,
+    stream: ReadableStream<Uint8Array>,
+    onProgress: (fraction: number) => void,
+    signal: AbortSignal,
+  ): Promise<OfflineBook> {
+    {
       const handle = await dir.getFileHandle(name, { create: true });
       if (typeof handle.createWritable !== 'function') throw new Error('The browser cannot write files here');
       const writable = await handle.createWritable();
@@ -171,26 +230,8 @@ export function createOpfsLibrary(options: OpfsLibraryOptions = {}): OfflineLibr
       }
       onProgress(1);
       return book;
-    },
-    async open(sha256) {
-      const book = await index.get(sha256);
-      if (!book) return null;
-      try {
-        return await (await (await directory()).getFileHandle(fileName(sha256, book.format))).getFile();
-      } catch {
-        await index.delete(sha256);
-        return null;
-      }
-    },
-    async remove(sha256) {
-      await drop(await index.get(sha256), sha256);
-    },
-    list: () => index.all(),
-    async usage() {
-      const all = await index.all();
-      return { count: all.length, bytes: all.reduce((sum, b) => sum + b.sizeBytes, 0) };
-    },
-  };
+    }
+  }
 }
 
 let shared: OfflineLibrary | null = null;

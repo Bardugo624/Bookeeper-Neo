@@ -39,6 +39,9 @@ export function fakeDirectory() {
       if (!files.has(name) && !opts?.create) throw new DOMException('missing', 'NotFoundError');
       return handle(name);
     },
+    async *keys() {
+      yield* [...files.keys()];
+    },
     async removeEntry(name: string) {
       if (!files.delete(name)) throw new DOMException('missing', 'NotFoundError');
     },

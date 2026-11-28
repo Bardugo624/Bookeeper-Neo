@@ -4,6 +4,7 @@
     "text": "I can't open the book. Check the connection and try again."
   },
   "offline": {
+    "missing": "You're offline and this book isn't on the phone.",
     "download": "Download to read offline",
     "saving": "Downloading… {percent}%",
     "menuCancel": "Downloading… {percent}% · Cancel",

@@ -58,4 +58,21 @@ describe('the library on the phone', () => {
     await library.save(meta, streamOf(bytes, 4), (f) => seen.push(f), new AbortController().signal);
     expect(seen).toEqual([0.4, 0.8, 1, 1]);
   });
+
+  it('a_second_save_of_a_kept_book_changes_nothing_even_when_cancelled', async () => {
+    const { library, files } = fakeLibrary();
+    await library.save(meta, streamOf(bytes, 4), () => {}, new AbortController().signal);
+    const ctl = new AbortController();
+    ctl.abort();
+    await library.save(meta, streamOf(bytes, 4), () => {}, ctl.signal).catch(() => undefined);
+    expect(files.has('abc.epub')).toBe(true);
+    expect(await library.has('abc')).toBe(true);
+  });
+
+  it('a_file_left_by_a_closed_tab_is_swept_at_the_next_save', async () => {
+    const { library, files } = fakeLibrary();
+    files.set('old.epub', new Uint8Array());
+    await library.save(meta, streamOf(bytes, 4), () => {}, new AbortController().signal);
+    expect([...files.keys()]).toEqual(['abc.epub']);
+  });
 });
