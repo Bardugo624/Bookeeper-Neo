@@ -866,3 +866,7 @@
 2026-11-28T11:38:59Z	bookeeper-fase-10b	reader-view	dwarf	sonnet	-	-	-	-	313
 2026-11-28T11:39:24Z	bookeeper-fase-10b	reader-sync	dwarf	sonnet	-	-	-	-	25
 2026-11-28T11:40:26Z	bookeeper-fase-10b	reader-sync	qa	opus	FAIL	-	-	-	55
+2026-11-28T11:41:50Z	bookeeper-fase-10b	reader-view	qa	opus	FAIL	finding	a document level keydown handler for the reader must skip events a component already handled e defaultprevented or arrows on	a document-level keydown handler for the reader must skip events a component already handled (`e.defaultPrevented`), or arrows on… [packages/reader/src/ui/view/useReaderKeys.ts]	163	1
+2026-11-28T11:41:53Z	bookeeper-fase-10b	reader-sync	dwarf	opus	-	-	-	-	38
+2026-11-28T11:42:24Z	bookeeper-fase-10b	reader-sync	qa	opus	PASS	-	-	-	23
+2026-11-28T11:42:49Z	bookeeper-fase-10b	reader-view	dwarf	sonnet	-	trap	a document level keydown handler for the reader must skip events a component already handled e defaultprevented or arrows on	a document-level keydown handler for the reader must skip events a component already handled (`e.defaultPrevented`), or arrows on… [packages/reader/src/ui/view/useReaderKeys.ts]	52	1
