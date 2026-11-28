@@ -106,6 +106,9 @@ function Body({ layout, format, settings, onChange }: Omit<AppearancePanelProps,
   const number = new Intl.NumberFormat(locale, { minimumFractionDigits: 1 });
   const lines: SegmentedOption<(typeof LINES)[number]>[] = LINES.map((v) => ({ value: v, label: number.format(v) }));
 
+  // On the phone the margins are S, M and L so they share a row with the line spacing; the full name stays accessible.
+  const marginOptions = option('margins', MARGINS).map((o) => (layout === 'phone' ? { ...o, label: t(`rlook.margins_short.${o.value}`), name: o.label } : o));
+
   return (
     <div className={styles.panel} data-layout={layout}>
       <Row label={t('rlook.appearance.theme')}>
@@ -144,12 +147,14 @@ function Body({ layout, format, settings, onChange }: Omit<AppearancePanelProps,
           </button>
         </div>
       </Row>
-      <Row label={t('rlook.appearance.line')}>
-        <Segmented label={t('rlook.appearance.line')} value={settings.lineHeight} options={lines} onChange={(v) => set('lineHeight', v)} disabled={pdf} />
-      </Row>
-      <Row label={t('rlook.appearance.margins')}>
-        <Segmented label={t('rlook.appearance.margins')} value={settings.margins} options={option('margins', MARGINS)} onChange={(v) => set('margins', v)} disabled={pdf} />
-      </Row>
+      <div className={styles.pair}>
+        <Row label={t('rlook.appearance.line')}>
+          <Segmented label={t('rlook.appearance.line')} value={settings.lineHeight} options={lines} onChange={(v) => set('lineHeight', v)} disabled={pdf} />
+        </Row>
+        <Row label={t('rlook.appearance.margins')}>
+          <Segmented label={t('rlook.appearance.margins')} value={settings.margins} options={marginOptions} onChange={(v) => set('margins', v)} disabled={pdf} />
+        </Row>
+      </div>
       <Row label={t('rlook.appearance.flow')}>
         <Segmented label={t('rlook.appearance.flow')} value={settings.flow} options={option('flow', FLOWS)} onChange={(v) => set('flow', v)} disabled={pdf} />
       </Row>
@@ -187,7 +192,7 @@ export function AppearancePanel(props: AppearancePanelProps) {
   const body = <Body {...props} />;
   if (layout === 'phone') {
     return (
-      <Sheet open={open} onOpenChange={onOpenChange} title={t('rlook.appearance.title')} footer={footer}>
+      <Sheet fit open={open} onOpenChange={onOpenChange} title={t('rlook.appearance.title')} footer={footer}>
         {body}
       </Sheet>
     );

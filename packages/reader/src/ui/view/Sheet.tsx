@@ -10,6 +10,8 @@ export interface SheetProps {
   description?: string;
   children?: ReactNode;
   footer?: ReactNode;
+  /** Open as tall as the content, up to 92% of the screen, instead of at 70%. */
+  fit?: boolean;
 }
 
 const FLAG = 'readerSheet';
@@ -21,10 +23,10 @@ const CONTROL = 'button,a[href],input,select,textarea,[role="button"]';
 /**
  * The phone's sheet from the bottom: a `Dialog` anchored to the bottom edge, as `BottomSheet` in the
  * app. `Dialog` takes no class name, so a hidden anchor inside the content finds its own dialog, marks
- * it and `Sheet.module.css` restyles it. It opens at 70% of the height; pulling the top band takes it
+ * it and `Sheet.module.css` restyles it. It opens at 70% of the height (`fit`: as tall as its content, at most 92%); pulling the top band takes it
  * up to the full height.
  */
-export function Sheet({ open, onOpenChange, title, description, children, footer }: SheetProps) {
+export function Sheet({ open, onOpenChange, title, description, children, footer, fit = false }: SheetProps) {
   const t = useReaderT();
   const [dialog, setDialog] = useState<HTMLElement | null>(null);
   const anchor = useCallback((el: HTMLSpanElement | null) => {
@@ -43,6 +45,8 @@ export function Sheet({ open, onOpenChange, title, description, children, footer
   useEffect(() => {
     if (!dialog) return;
     dialog.dataset.readerSheetDialog = '';
+    if (fit) dialog.dataset.readerSheetFit = '';
+    else delete dialog.dataset.readerSheetFit;
     let startY = 0;
     let startH = 0;
     let pulling = false;
@@ -76,8 +80,9 @@ export function Sheet({ open, onOpenChange, title, description, children, footer
       dialog.removeEventListener('pointerup', up);
       dialog.removeEventListener('pointercancel', up);
       delete dialog.dataset.readerSheetDialog;
+      delete dialog.dataset.readerSheetFit;
     };
-  }, [dialog]);
+  }, [dialog, fit]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} title={title} description={description} footer={footer} closeLabel={t('reader.sheet.close')}>

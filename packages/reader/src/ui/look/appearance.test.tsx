@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { Sheet } from '../view/Sheet';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
@@ -126,5 +128,31 @@ describe('AppearancePanel', () => {
   it('two_pages_row_is_not_on_the_phone', () => {
     panel({ layout: 'phone' });
     expect(screen.queryByRole('switch', { name: "Due pagine quando c'è spazio" })).not.toBeInTheDocument();
+  });
+
+  it('phone_appearance_sheet_fits_its_rows', async () => {
+    const user = userEvent.setup();
+    const p = panel({ layout: 'phone' });
+    const dialog = screen.getByRole('dialog', { name: 'Aspetto' });
+    expect(dialog).toHaveAttribute('data-reader-sheet-fit');
+    const line = screen.getByRole('radiogroup', { name: 'Interlinea' });
+    const margins = screen.getByRole('radiogroup', { name: 'Margini' });
+    expect(line.parentElement!.parentElement).toBe(margins.parentElement!.parentElement);
+    expect(within(margins).getAllByRole('radio').map((r) => r.textContent)).toEqual(['S', 'M', 'L']);
+    await user.click(within(margins).getByRole('radio', { name: 'Ampi' }));
+    expect(last(p).margins).toBe('wide');
+    expect(screen.getByRole('switch', { name: "Stili dell'editore" })).toBeInTheDocument();
+  });
+
+  it('other_sheets_still_open_at_70_percent', () => {
+    render(
+      <ReaderLocale locale="it">
+        <Sheet open onOpenChange={() => {}} title="Note">contenuto</Sheet>
+      </ReaderLocale>,
+    );
+    expect(screen.getByRole('dialog', { name: 'Note' })).not.toHaveAttribute('data-reader-sheet-fit');
+    const css = readFileSync(`${process.cwd()}/src/ui/view/Sheet.css`, 'utf8');
+    expect(css).toMatch(/height:\s*var\(--reader-sheet-h,\s*70dvh\)/);
+    expect(css).toMatch(/\[data-reader-sheet-fit\]\s*{[^}]*max-height:\s*var\(--reader-sheet-h,\s*92dvh\)/s);
   });
 });
