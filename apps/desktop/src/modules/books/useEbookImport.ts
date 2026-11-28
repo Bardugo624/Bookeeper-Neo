@@ -52,6 +52,8 @@ export function useEbookImport(files: File[]) {
   const removed = useRef(new Set<string>());
   const checking = useRef(new Set<Promise<void>>());
   const confirming = useRef(false);
+  // Every book this dialog made, even one whose file then failed to attach: it is in the library.
+  const created = useRef(new Set<string>());
   const [confirmBusy, setConfirmBusy] = useState(false);
 
   const commit = useCallback((update: (all: ImportRow[]) => ImportRow[]) => {
@@ -126,7 +128,7 @@ export function useEbookImport(files: File[]) {
     if (confirming.current) return;
     confirming.current = true;
     setConfirmBusy(true);
-    const result: ImportSummary = { added: 0, attached: 0, failed: 0 };
+    const result = { attached: 0 };
     try {
       // A duplicate check started by leaving a field must land before the books are made.
       await Promise.all([...checking.current]);
@@ -136,7 +138,7 @@ export function useEbookImport(files: File[]) {
         const info = row.info!;
         patch(id, { status: 'saving', error: undefined });
         let bookId = row.bookId ?? (row.attach ? row.duplicate?.id : undefined);
-        const created = row.bookId !== undefined || bookId === undefined;
+        const fresh = row.bookId !== undefined || bookId === undefined;
         try {
           if (!bookId) {
             const meta = info.metadata ?? {};
@@ -147,14 +149,14 @@ export function useEbookImport(files: File[]) {
               ...optionalMetadata(meta),
             });
             bookId = book.id;
+            created.current.add(book.id);
             patch(id, { bookId });
           }
           await api.attach(bookId, info.sha256, info.name);
-          patch(id, { status: 'done', outcome: created ? 'added' : 'attached' });
-          result[created ? 'added' : 'attached'] += 1;
+          patch(id, { status: 'done', outcome: fresh ? 'added' : 'attached' });
+          if (!fresh) result.attached += 1;
         } catch (error) {
           // The row goes back to be corrected and tried again; a book already made is kept for it.
-          result.failed += 1;
           patch(id, { status: 'ready', error });
         }
       }
@@ -165,7 +167,7 @@ export function useEbookImport(files: File[]) {
     }
     // Across retries the counts add up; a failure that was retried with success no longer counts.
     setSummary((prev) => ({
-      added: (prev?.added ?? 0) + result.added,
+      added: created.current.size,
       attached: (prev?.attached ?? 0) + result.attached,
       failed: latest.current.filter((r) => r.status === 'ready' && r.error !== undefined).length,
     }));

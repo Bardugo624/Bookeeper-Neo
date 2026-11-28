@@ -24,6 +24,7 @@ const info = (name: string, title: string, authors: string[], over: Partial<Eboo
 const FILES: Record<string, EbookFileInfo> = {
   'rosa.epub': info('rosa.epub', 'Il nome della rosa', ['Umberto Eco']),
   'pendolo.epub': info('pendolo.epub', 'Il pendolo di Foucault', ['Umberto Eco']),
+  'rotto.epub': info('rotto.epub', 'Senza file', ['Anonimo']),
   'isbn.epub': info('isbn.epub', 'Altro titolo', ['Altro'], { metadata: { title: 'Altro titolo', authors: ['Altro'], isbn_13: '9788845292613' } }),
 };
 
@@ -48,6 +49,7 @@ function setup(role: Library['role'] = 'owner', books = [book(1, { title: 'Libro
         return { status: 201, body: book(100 + created.length, { ...(r.body as object), format: 'ebook' }) };
       }
       if (r.method === 'POST' && /^\/api\/v1\/books\/[^/]+\/files$/.test(r.path)) {
+        if (JSON.stringify(r.body).includes('rotto')) return { status: 500, body: { error_code: 'internal', message: 'x' } };
         attached.push({ path: r.path, body: r.body });
         return { status: 201, body: { id: 'f', book_id: 'x', format: 'epub', size_bytes: 1, name: 'n', created_at: 0, missing: false } };
       }
@@ -127,7 +129,9 @@ describe('e-book import', () => {
   it('does not take drops from someone who cannot add books', async () => {
     setup('guest');
     const target = await screen.findByText('Libro 1');
-    fireEvent.drop(target, { dataTransfer: { files: [epub('rosa.epub')], types: ['Files'] } });
+    // Still cancelled, so the window does not open the file in place of the app.
+    expect(fireEvent.dragOver(target, { dataTransfer: { files: [epub('rosa.epub')], types: ['Files'] } })).toBe(false);
+    expect(fireEvent.drop(target, { dataTransfer: { files: [epub('rosa.epub')], types: ['Files'] } })).toBe(false);
     expect(screen.queryByRole('dialog', { name: 'Aggiungi e-book' })).toBeNull();
   });
 
@@ -135,7 +139,8 @@ describe('e-book import', () => {
     setup();
     const dialog = await drop('rosa.epub');
     await waitFor(() => expect(within(dialog).getAllByLabelText('Titolo')).toHaveLength(1));
-    fireEvent.drop(within(dialog).getByLabelText('Titolo'), { dataTransfer: { files: [epub('pendolo.epub')], types: ['Files'] } });
+    const field = within(dialog).getByLabelText('Titolo');
+    expect(fireEvent.drop(field, { dataTransfer: { files: [epub('pendolo.epub')], types: ['Files'] } })).toBe(false);
     expect(within(dialog).getAllByLabelText('Titolo')).toHaveLength(1);
     expect((within(dialog).getByLabelText('Titolo') as HTMLInputElement).value).toBe('Il nome della rosa');
   });
@@ -186,5 +191,17 @@ describe('e-book import', () => {
     expect(await within(dialog).findByText('2 libri aggiunti.')).toBeInTheDocument();
     expect(created).toHaveLength(2);
     expect(attached).toHaveLength(2);
+  });
+
+  it('counts a book whose file failed to attach as added, and keeps its fields fixed', async () => {
+    const { created, attached } = setup();
+    const dialog = await drop('rotto.epub');
+    await userEvent.click(await within(dialog).findByRole('button', { name: 'Aggiungi 1 libro' }));
+    expect(await within(dialog).findByText('1 libro aggiunto.')).toBeInTheDocument();
+    expect(within(dialog).getByText('1 file non è andato a buon fine.')).toBeInTheDocument();
+    expect(created).toHaveLength(1);
+    expect(attached).toHaveLength(0);
+    expect(within(dialog).getByLabelText('Titolo')).toBeDisabled();
+    expect(within(dialog).getByLabelText('Autori')).toBeDisabled();
   });
 });

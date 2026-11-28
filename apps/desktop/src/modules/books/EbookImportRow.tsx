@@ -21,6 +21,8 @@ export function EbookImportRow({ row, locked, onChange, onBlur, onRemove }: Eboo
   const problem = row.error !== undefined && row.status === 'error' ? uploadProblemKey(row.error) : null;
   const message = row.error === undefined ? null : problem ? t(problem) : apiErrorMessage(t, row.error);
   const editable = row.status === 'ready';
+  // Once its book exists, a retry only attaches the file: the fields no longer change anything.
+  const fixed = locked || row.bookId !== undefined;
   const invalid = editable ? rowProblem(row) : null;
   const titleError =
     invalid === 'titleMissing'
@@ -58,7 +60,7 @@ export function EbookImportRow({ row, locked, onChange, onBlur, onRemove }: Eboo
             <Field label={t('ebooks.row.title')} error={titleError}>
               <Input
                 value={row.title}
-                disabled={locked}
+                disabled={fixed}
                 onChange={(e) => onChange({ title: e.target.value })}
                 onBlur={onBlur}
               />
@@ -66,7 +68,7 @@ export function EbookImportRow({ row, locked, onChange, onBlur, onRemove }: Eboo
             <Field label={t('ebooks.row.authors')} description={t('ebooks.row.authorsHint')} error={authorsError}>
               <Input
                 value={row.authors}
-                disabled={locked}
+                disabled={fixed}
                 onChange={(e) => onChange({ authors: e.target.value })}
                 onBlur={onBlur}
               />
