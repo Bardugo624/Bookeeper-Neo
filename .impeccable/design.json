@@ -1,0 +1,434 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-28T18:12:44+00:00",
+  "title": "Design System: Bookeeper Neo 2.0",
+  "extensions": {
+    "colorMeta": {
+      "--bk-primary-500": {
+        "role": "primary",
+        "displayName": "Verde salvia",
+        "canonical": "#4d8369",
+        "tonalRamp": [
+          "#10201a",
+          "#284439",
+          "#305545",
+          "#3b6953",
+          "#4d8369",
+          "#92baa6",
+          "#dcebe2",
+          "#f1f7f4"
+        ]
+      },
+      "--bk-neutral-50": {
+        "role": "neutral",
+        "displayName": "Carta calda (fondo chiaro)",
+        "canonical": "#fbfaf8",
+        "tonalRamp": [
+          "#0c0b0a",
+          "#27241f",
+          "#3f3a34",
+          "#5b554d",
+          "#7a7268",
+          "#d8d2c8",
+          "#f5f3ef",
+          "#fbfaf8"
+        ]
+      },
+      "--bk-neutral-950": {
+        "role": "neutral",
+        "displayName": "Inchiostro caldo profondo",
+        "canonical": "#0c0b0a",
+        "tonalRamp": [
+          "#0c0b0a",
+          "#27241f",
+          "#3f3a34",
+          "#5b554d",
+          "#7a7268",
+          "#d8d2c8",
+          "#f5f3ef",
+          "#fbfaf8"
+        ]
+      },
+      "--bk-warn": {
+        "role": "tertiary",
+        "displayName": "Ambra d'avviso",
+        "canonical": "#b7791f",
+        "tonalRamp": [
+          "#2a1c07",
+          "#483b27",
+          "#665946",
+          "#847866",
+          "#a19785",
+          "#bfb6a5",
+          "#ddd4c4",
+          "#fbf3e4"
+        ]
+      },
+      "--bk-danger": {
+        "role": "tertiary",
+        "displayName": "Rosso mattone (zona pericolosa)",
+        "canonical": "#b4493b",
+        "tonalRamp": [
+          "#2a100d",
+          "#482f2d",
+          "#664f4c",
+          "#846e6c",
+          "#a18e8b",
+          "#bfadab",
+          "#ddcdca",
+          "#fbecea"
+        ]
+      },
+      "reader-light-page": {
+        "role": "neutral",
+        "displayName": "Lettore · Chiaro",
+        "canonical": "#fbfaf8",
+        "tonalRamp": [
+          "#27241f",
+          "#45433e",
+          "#64615d",
+          "#82807c",
+          "#a09e9b",
+          "#bebdba",
+          "#dddbd9",
+          "#fbfaf8"
+        ]
+      },
+      "reader-sepia-page": {
+        "role": "neutral",
+        "displayName": "Lettore · Seppia",
+        "canonical": "#f2e8d9",
+        "tonalRamp": [
+          "#3a3224",
+          "#554d40",
+          "#70695b",
+          "#8b8477",
+          "#a79f93",
+          "#c2baaf",
+          "#ddd6ca",
+          "#f8f1e6"
+        ]
+      },
+      "reader-dark-page": {
+        "role": "neutral",
+        "displayName": "Lettore · Scuro",
+        "canonical": "#161512",
+        "tonalRamp": [
+          "#161512",
+          "#32312d",
+          "#4d4c49",
+          "#696864",
+          "#858380",
+          "#a19f9b",
+          "#bcbab7",
+          "#d8d6d2"
+        ]
+      },
+      "reader-black-page": {
+        "role": "neutral",
+        "displayName": "Lettore · Nero",
+        "canonical": "#000000",
+        "tonalRamp": [
+          "#000000",
+          "#1a1a19",
+          "#353331",
+          "#4f4d4a",
+          "#696762",
+          "#83817b",
+          "#9e9a93",
+          "#b8b4ac"
+        ]
+      },
+      "highlight-amber": {
+        "role": "secondary",
+        "displayName": "Evidenziazione Ambra",
+        "canonical": "#c9954a",
+        "tonalRamp": [
+          "#3a2a12",
+          "#554630",
+          "#70624d",
+          "#8b7e6b",
+          "#a79b88",
+          "#c2b7a6",
+          "#ddd3c3",
+          "#f8efe1"
+        ]
+      },
+      "highlight-sage": {
+        "role": "secondary",
+        "displayName": "Evidenziazione Salvia",
+        "canonical": "#7c8f6a",
+        "tonalRamp": [
+          "#22281d",
+          "#3f453b",
+          "#5d6258",
+          "#7a7f76",
+          "#979b93",
+          "#b4b8b1",
+          "#d2d5ce",
+          "#eff2ec"
+        ]
+      },
+      "highlight-terracotta": {
+        "role": "secondary",
+        "displayName": "Evidenziazione Terracotta",
+        "canonical": "#b8704f",
+        "tonalRamp": [
+          "#331e15",
+          "#4f3b33",
+          "#6b5951",
+          "#87766f",
+          "#a4948c",
+          "#c0b1aa",
+          "#dccfc8",
+          "#f8ece6"
+        ]
+      },
+      "highlight-night": {
+        "role": "secondary",
+        "displayName": "Evidenziazione Notte",
+        "canonical": "#3a4a6b",
+        "tonalRamp": [
+          "#141a26",
+          "#323843",
+          "#515660",
+          "#6f747d",
+          "#8e929b",
+          "#acb0b8",
+          "#cbced5",
+          "#e9ecf2"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "ui": {
+        "displayName": "Inter Variable",
+        "purpose": "Label, corpo, dati e tutti i controlli, anche nel lettore; corpo 14px, numeri tabular-nums."
+      },
+      "serif": {
+        "displayName": "Lora Variable",
+        "purpose": "Titoli e valori editoriali; testo delle note e dei risultati nel lettore; carattere di ripiego della pagina del libro."
+      },
+      "reader-page": {
+        "displayName": "Pagina del lettore",
+        "purpose": "Carattere dell'editore (Lora se manca), 12–32px (partenza 18), interlinea 1,4 / 1,6 / 1,8, giustificato e sillabato di partenza."
+      }
+    },
+    "shadows": [
+      {
+        "name": "--bk-shadow-1",
+        "value": "0 1px 2px rgb(39 36 31 / 0.05), 0 1px 3px rgb(39 36 31 / 0.05)",
+        "purpose": "Card a riposo (tema chiaro)."
+      },
+      {
+        "name": "--bk-shadow-2",
+        "value": "0 2px 4px rgb(39 36 31 / 0.04), 0 6px 16px rgb(39 36 31 / 0.07)",
+        "purpose": "Popover, barra della selezione del lettore (tema chiaro)."
+      },
+      {
+        "name": "--bk-shadow-3",
+        "value": "0 4px 8px rgb(39 36 31 / 0.05), 0 14px 36px rgb(39 36 31 / 0.12)",
+        "purpose": "Dialog (tema chiaro)."
+      },
+      {
+        "name": "--bk-shadow-book",
+        "value": "0 1px 1px rgb(24 22 19 / 0.14), 0 3px 6px rgb(24 22 19 / 0.18)",
+        "purpose": "Copertine a riposo."
+      },
+      {
+        "name": "--bk-shadow-book-lift",
+        "value": "0 2px 3px rgb(24 22 19 / 0.14), 0 8px 18px rgb(24 22 19 / 0.24)",
+        "purpose": "Copertina sollevata al passaggio."
+      }
+    ],
+    "motion": [
+      {
+        "name": "--bk-dur-fast",
+        "value": "150ms",
+        "purpose": "Feedback; uscita dei controlli del lettore."
+      },
+      {
+        "name": "--bk-dur",
+        "value": "200ms",
+        "purpose": "Stato; entrata dei controlli del lettore e della linea sottile."
+      },
+      {
+        "name": "--bk-dur-slow",
+        "value": "280ms",
+        "purpose": "Entrance e layout; foglio del lettore che sale."
+      },
+      {
+        "name": "--bk-ease",
+        "value": "cubic-bezier(0.25, 1, 0.5, 1)",
+        "purpose": "Curva di default (out-quart)."
+      },
+      {
+        "name": "--bk-ease-snappy",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Out-quint."
+      },
+      {
+        "name": "--bk-ease-spring",
+        "value": "cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "purpose": "Solo per i movimenti approvati: PillTabs, Tooltip, dorso estratto."
+      },
+      {
+        "name": "reader-page-turn",
+        "value": "300ms ease-out (foliate-js)",
+        "purpose": "La pagina scorre di lato e segue il dito; di colpo con prefers-reduced-motion."
+      },
+      {
+        "name": "reader-chrome",
+        "value": "opacity + translateY(4px)",
+        "purpose": "Controlli del lettore: entrano in --bk-dur, escono in --bk-dur-fast."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "danger-action-stack",
+        "value": "480px"
+      },
+      {
+        "name": "reader-two-pages",
+        "value": "1000px"
+      },
+      {
+        "name": "reader-panel-pushes",
+        "value": "1100px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Pulsante primario",
+      "kind": "button",
+      "refersTo": "Button primary",
+      "description": "Azione principale del kit: verde pieno, testo chiaro, press scale(0.98).",
+      "html": "<button class=\"ds-btn-primary\">Segna come letto</button>",
+      "css": ".ds-btn-primary{background:var(--bk-primary-fill,#3b6953);color:var(--bk-on-primary,#fff);border:0;border-radius:var(--bk-radius-sm,8px);min-height:36px;padding:0 16px;font:500 14px 'Inter Variable',system-ui,sans-serif;cursor:pointer;transition:transform 150ms cubic-bezier(0.25,1,0.5,1)}.ds-btn-primary:hover{background:var(--bk-primary-fill-hover,#305545)}.ds-btn-primary:active{transform:scale(0.98)}.ds-btn-primary:focus-visible{outline:2px solid var(--bk-focus,#4d8369);outline-offset:2px}"
+    },
+    {
+      "name": "Pulsante della barra del lettore",
+      "kind": "button",
+      "refersTo": "BarButton",
+      "description": "Icona di 36px (44×48 sul telefono) nei colori del tema; attivo su accento tenue.",
+      "html": "<div class=\"ds-rd-bar\"><button class=\"ds-rd-btn\" aria-label=\"Cerca\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\"><circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"m20 20-3.5-3.5\"/></svg></button><button class=\"ds-rd-btn\" data-active aria-label=\"Pannello\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M15 4v16\"/></svg></button></div>",
+      "css": ".ds-rd-bar{display:flex;gap:2px;padding:8px;background:#fbfaf8;border-bottom:1px solid #ebe7e0}.ds-rd-btn{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border:0;border-radius:8px;background:transparent;color:#5b554d;cursor:pointer}.ds-rd-btn:hover{background:#f5f3ef;color:#27241f}.ds-rd-btn[data-active]{background:#f1f7f4;color:#3b6953}.ds-rd-btn:focus-visible{outline:2px solid #3b6953;outline-offset:2px}"
+    },
+    {
+      "name": "Barra in basso con domanda",
+      "kind": "custom",
+      "refersTo": "BottomBar question",
+      "description": "«Continua da …» e «Segna come letto»: tutta la barra su accento tenue, mai sopra il testo.",
+      "html": "<div class=\"ds-rd-ask\"><p><strong>Continua da dove eri sul telefono?</strong> 45% · Capitolo VIII · ieri alle 22:40</p><button class=\"ds-rd-plain\">Resta qui</button><button class=\"ds-rd-primary\">Vai al 45%</button></div>",
+      "css": ".ds-rd-ask{display:flex;align-items:center;gap:12px;min-height:56px;padding:0 20px;background:#f1f7f4;border-top:1px solid #ebe7e0;color:#27241f;font:13px 'Inter Variable',system-ui,sans-serif}.ds-rd-ask p{flex:1;margin:0}.ds-rd-plain,.ds-rd-primary{min-height:36px;padding:0 14px;border:1px solid transparent;border-radius:8px;font:inherit;font-weight:500;cursor:pointer}.ds-rd-plain{background:transparent;color:#27241f}.ds-rd-plain:hover{background:#f5f3ef}.ds-rd-primary{background:#dcebe2;border-color:#3b6953;color:#284439}.ds-rd-plain:focus-visible,.ds-rd-primary:focus-visible{outline:2px solid #3b6953;outline-offset:2px}"
+    },
+    {
+      "name": "«Torna al …»",
+      "kind": "chip",
+      "refersTo": "BottomBar jumpBack",
+      "description": "Pillola lasciata da ogni salto; l'articolo segue il numero.",
+      "html": "<button class=\"ds-rd-jump\">Torna allo 0,4%</button>",
+      "css": ".ds-rd-jump{min-height:32px;padding:0 12px;border:1px solid #3b6953;border-radius:999px;background:transparent;color:#3b6953;font:500 13px 'Inter Variable',system-ui,sans-serif;cursor:pointer}.ds-rd-jump:hover{background:#f1f7f4}.ds-rd-jump:focus-visible{outline:2px solid #3b6953;outline-offset:2px}"
+    },
+    {
+      "name": "Barra di avanzamento",
+      "kind": "custom",
+      "refersTo": "ProgressSlider",
+      "description": "Binario di 6px con tacche dei capitoli; manopola solo al passaggio, al fuoco e trascinando.",
+      "html": "<div class=\"ds-rd-slider\" tabindex=\"0\" role=\"slider\" aria-valuenow=\"42\" aria-label=\"42%, Capitolo VIII\"><div class=\"ds-rd-rail\"><span class=\"ds-rd-fill\" style=\"width:42%\"></span><span class=\"ds-rd-tick\" style=\"left:20%\"></span><span class=\"ds-rd-tick\" style=\"left:60%\"></span><span class=\"ds-rd-thumb\" style=\"left:42%\"></span></div></div>",
+      "css": ".ds-rd-slider{display:flex;align-items:center;height:32px;padding:0 8px;background:#fbfaf8;border-radius:4px;cursor:pointer}.ds-rd-rail{position:relative;flex:1;height:6px;border-radius:3px;background:#ebe7e0}.ds-rd-fill{position:absolute;inset:0 auto 0 0;border-radius:3px;background:#3b6953}.ds-rd-tick{position:absolute;top:50%;width:1px;height:10px;background:#6f675d;opacity:.6;transform:translateY(-50%)}.ds-rd-thumb{position:absolute;top:50%;width:14px;height:14px;border:2px solid #fbfaf8;border-radius:50%;background:#3b6953;opacity:0;transform:translate(-50%,-50%);transition:opacity 150ms}.ds-rd-slider:hover .ds-rd-thumb,.ds-rd-slider:focus-visible .ds-rd-thumb{opacity:1}.ds-rd-slider:focus-visible{outline:2px solid #3b6953;outline-offset:2px}"
+    },
+    {
+      "name": "Tessere dei temi",
+      "kind": "custom",
+      "refersTo": "AppearancePanel theme tiles",
+      "description": "«Aa» in Lora nei colori di ogni tema; Auto in diagonale; scelta con anello di 2px.",
+      "html": "<div class=\"ds-rd-tiles\"><button class=\"ds-rd-tile\" aria-checked=\"false\"><span style=\"background:#fbfaf8;color:#27241f\">Aa</span>Chiaro</button><button class=\"ds-rd-tile\" aria-checked=\"true\"><span style=\"background:#f2e8d9;color:#3a3224\">Aa</span>Seppia</button><button class=\"ds-rd-tile\" aria-checked=\"false\"><span style=\"background:#161512;color:#d8d6d2\">Aa</span>Scuro</button><button class=\"ds-rd-tile\" aria-checked=\"false\"><span style=\"background:#000;color:#b8b4ac\">Aa</span>Nero</button></div>",
+      "css": ".ds-rd-tiles{display:grid;grid-template-columns:repeat(4,72px);gap:8px;font:12px 'Inter Variable',system-ui,sans-serif;color:#27241f}.ds-rd-tile{display:flex;flex-direction:column;gap:6px;padding:0;border:0;background:transparent;font:inherit;color:inherit;cursor:pointer}.ds-rd-tile span{display:flex;align-items:center;justify-content:center;height:48px;border:1px solid #ebe7e0;border-radius:12px;font:18px 'Lora Variable',Georgia,serif}.ds-rd-tile[aria-checked=true] span{border-color:#4d8369;box-shadow:0 0 0 2px #4d8369}.ds-rd-tile[aria-checked=true]{font-weight:600}.ds-rd-tile:focus-visible{outline:2px solid #4d8369;outline-offset:2px;border-radius:12px}"
+    },
+    {
+      "name": "Filtri delle note",
+      "kind": "chip",
+      "refersTo": "NotesList chip",
+      "description": "Pillole di 32px con contorno; la scelta su accento tenue senza contorno; pallino del colore del mobile.",
+      "html": "<div class=\"ds-rd-chips\"><button class=\"ds-rd-chip\" aria-pressed=\"true\">Tutte · 12</button><button class=\"ds-rd-chip\" aria-pressed=\"false\"><span class=\"ds-rd-dot\" style=\"background:#c9954a\"></span>4</button><button class=\"ds-rd-chip\" aria-pressed=\"false\"><span class=\"ds-rd-dot\" style=\"background:#3a4a6b\"></span>2</button></div>",
+      "css": ".ds-rd-chips{display:flex;gap:6px}.ds-rd-chip{display:inline-flex;align-items:center;gap:5px;min-height:32px;padding:0 9px;border:1px solid #ebe7e0;border-radius:999px;background:transparent;color:#5b554d;font:13px 'Inter Variable',system-ui,sans-serif;font-variant-numeric:tabular-nums;cursor:pointer}.ds-rd-chip[aria-pressed=true]{border-color:transparent;background:#f1f7f4;color:#3b6953}.ds-rd-chip:hover{background:#f5f3ef}.ds-rd-chip:focus-visible{outline:2px solid #3b6953;outline-offset:2px}.ds-rd-dot{width:10px;height:10px;border-radius:50%}"
+    },
+    {
+      "name": "Zona pericolosa",
+      "kind": "card",
+      "refersTo": "DangerZone",
+      "description": "Solo in fondo alle Impostazioni e all'Account del telefono; il rosso dice «attenzione».",
+      "html": "<section class=\"ds-danger\"><h3>Zona pericolosa</h3><div class=\"ds-danger-row\"><p><strong>Esci da questo dispositivo</strong><br>Serve di nuovo il codice per rientrare.</p><button>Esci</button></div></section>",
+      "css": ".ds-danger{border:1px solid var(--bk-danger,#b4493b);background:var(--bk-danger-bg,rgb(180 73 59 / 0.12));border-radius:var(--bk-radius,12px);padding:16px;font:14px 'Inter Variable',system-ui,sans-serif;color:#27241f}.ds-danger h3{margin:0 0 8px;color:var(--bk-danger-strong,#98382b);font-size:15px}.ds-danger-row{display:flex;align-items:center;justify-content:space-between;gap:16px}.ds-danger-row p{margin:0}.ds-danger-row button{min-height:36px;padding:0 16px;border:0;border-radius:8px;background:var(--bk-danger-fill,#b4493b);color:#fff;font:500 14px inherit;cursor:pointer}.ds-danger-row button:focus-visible{outline:2px solid var(--bk-focus,#4d8369);outline-offset:2px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Biblioteca moderna",
+    "overview": "Sistema visivo condiviso dall'app desktop (`apps/desktop`) e dalla PWA (`apps/mobile`), che vive in `packages/ui` (`@bookeeper/ui`). Registro: **product** — il design serve il compito, la familiarità è un pregio. Direzione: **biblioteca moderna** — editoriale, caldo, preciso; profondità e micro-interazioni contemporanee. Il libro è il protagonista.\n\nDecisione del proprietario: struttura **«Pannello compagno»**. Il lettore è la pagina: mentre leggi ci sono solo il testo e una linea di 2px; al tocco tornano la barra in alto, l'avanzamento con i capitoli e, a richiesta, il pannello compagno con Indice, Note e Cerca. Modalità Operate. Lo stesso codice sta in `packages/reader`, e le due app lo montano.",
+    "keyCharacteristics": [
+      "Registro product: il design serve il compito.",
+      "Verde salvia e neutri caldi; colori pieni solo nei legni degli scaffali e nei dorsi.",
+      "Inter per la UI, Lora per i titoli e i valori editoriali.",
+      "Il libro è il protagonista; nel lettore, la pagina è tutto.",
+      "Movimenti brevi su transform e opacity, spenti con prefers-reduced-motion."
+    ],
+    "rules": [
+      {
+        "name": "Mai gradini grezzi nei moduli",
+        "body": "--bk-primary-N e --bk-neutral-N si usano solo in tokens.css; i moduli usano i token semantici.",
+        "section": "colors"
+      },
+      {
+        "name": "Gli strati prendono il tema",
+        "body": "Finché il lettore è aperto, popover, fogli, menu e dialog usano le superfici del tema di lettura: una pagina scura non ha mai una barra bianca.",
+        "section": "colors"
+      },
+      {
+        "name": "Le domande nella barra in basso",
+        "body": "«Continua da …» e «Segna come letto» stanno nella barra in basso, mai sopra il testo, e aspettano la scelta.",
+        "section": "components"
+      },
+      {
+        "name": "Ogni salto lascia «Torna al …»",
+        "body": "Indice, nota, risultato, barra o «Vai al …»: la barra in basso offre il ritorno, con l'articolo giusto.",
+        "section": "components"
+      },
+      {
+        "name": "Il rosso nella conferma",
+        "body": "Il rosso compare nel pop-up di conferma; fissa solo la zona pericolosa delle impostazioni.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "**Palette**: verde-salvia (`--bk-primary-*`, 500 = `#4d8369`) e neutri caldi (`--bk-neutral-*`, ombre con inchiostro caldo). Nessuna deriva verso blu/viola/grigi freddi.",
+      "**Caratteri**: Inter Variable per la UI, Lora Variable per i titoli e i valori editoriali, come in `fonts.css`.",
+      "**Curve elastiche dei movimenti approvati**: `--bk-ease-spring` su `PillTabs`, `Tooltip` e dorso estratto in `ShelfUnit`; libro 3D, anello di avanzamento e sollevamento della copertina come descritti in Motion. Non vanno sostituiti con curve piatte.",
+      "**Scheda del libro**: il soprattitolo sta sotto il titolo.",
+      "**Frontespizio**: la pagina d'apertura dell'app ha a sinistra la citazione di uno scrittore. Ne esce una nuova a ogni apertura, e resta ferma mentre la pagina è aperta. Il Setup ha lo stesso frontespizio. Per chi torna, sopra «Bentornato» non c'è un titolo.",
+      "**Bersagli**: minimo 24×24px sul desktop, 44×44px sul telefono. Eccezione dichiarata: i dorsi dei mobili (`ShelfUnit`), perché la larghezza dice il numero di pagine.",
+      "**Lettore**: - struttura «Pannello compagno», scelta dal proprietario fra pannello compagno, barra del tempo e binario nel margine; - i controlli spariscono mentre leggi e tornano al tocco, col mouse ai bordi o con Esc; resta solo la linea di 2px; - la posizione non salta mai da sola: il lettore chiede nella barra in basso e aspetta, e ogni salto lascia «Torna al …»; - la pagina scorre di lato e segue il dito; - temi che vengono dalla palette dell'app, e strati che prendono il tema; - il carattere dell'editore di partenza, Lora quando manca; - la selezione del sistema, separata dalle evidenziazioni nei colori dei mobili.",
+      "Registro product, direzione \"biblioteca moderna\", il libro protagonista."
+    ],
+    "donts": [
+      "Side-stripe border-left colorati",
+      "gradient text",
+      "glassmorphism decorativo",
+      "hero-metric template",
+      "animazioni su proprietà di layout",
+      "dark mode duplicato per componente quando i token bastano",
+      "colori letterali fuori da `tokens.css`, `clothTone.ts`, `shelf/colors.ts` e, nel lettore, `themeColors.ts` e `highlightColors.ts`.",
+      "una barra o uno strato chiaro su una pagina scura",
+      "vetro e sfocature",
+      "ombre sul testo",
+      "icone senza nome accessibile",
+      "salti senza «Torna al …»",
+      "un lettore che sposta la posizione da solo",
+      "domande sopra il testo invece che nella barra in basso",
+      "una selezione colorata come un'evidenziazione",
+      "strumenti di lettura in uno stato d'errore",
+      "un cruscotto pieno di icone sempre in vista."
+    ]
+  }
+}
