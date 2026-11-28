@@ -7633,6 +7633,7 @@
           "size_bytes",
           "name",
           "created_at",
+          "sha256",
           "missing"
         ],
         "properties": {
@@ -7656,6 +7657,10 @@
           },
           "name": {
             "type": "string"
+          },
+          "sha256": {
+            "type": "string",
+            "description": "SHA-256 of the content, in lowercase hex: the same value as the content's `ETag`."
           },
           "size_bytes": {
             "type": "integer",

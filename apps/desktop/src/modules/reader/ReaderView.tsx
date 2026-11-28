@@ -6,7 +6,6 @@ import { useBook } from '../books/useBook';
 import { useBookFiles } from '../books/useBookFiles';
 import { ReaderBody } from './ReaderBody';
 import { pickFile } from './pickFile';
-import { useFileHash } from './useFileHash';
 import styles from './ReaderView.module.css';
 
 function Problem({ title, text, onBack }: { title: string; text: string; onBack: () => void }) {
@@ -31,22 +30,21 @@ export function ReaderView() {
   const book = useBook(bookId);
   const files = useBookFiles(bookId, !guest);
   const file = files.data ? pickFile(files.data, params.get('file')) : null;
-  const hash = useFileHash(bookId, file?.id ?? null);
   if (guest) return <Navigate to={`/books/${encodeURIComponent(bookId)}`} replace />;
   const back = () => navigate(`/books/${encodeURIComponent(bookId)}`, { replace: true });
 
-  if (book.isError || files.isError || hash.isError) {
+  if (book.isError || files.isError) {
     return <Problem title={t('dreader.failed.title')} text={t('dreader.failed.text')} onBack={back} />;
   }
   if (files.data && !file) {
     return <Problem title={t('dreader.noFile.title')} text={t('dreader.noFile.text')} onBack={back} />;
   }
-  if (!book.data || !file || !hash.data) {
+  if (!book.data || !file) {
     return (
       <div className={styles.state} role="status" aria-label={t('dreader.loading')}>
         <Spinner label={t('dreader.loading')} />
       </div>
     );
   }
-  return <ReaderBody book={book.data} file={file} sha256={hash.data} onClose={back} />;
+  return <ReaderBody book={book.data} file={file} sha256={file.sha256} onClose={back} />;
 }

@@ -22,7 +22,7 @@ function make(over: { token?: string | null } = {}) {
   const client = {
     listPositions: async (b: string) => (calls.push(['listPositions', b]), []),
     putPosition: async (b: string, f: string, body: PutPosition) => (calls.push(['putPosition', b, f, body]), null),
-    getReading: async (b: string) => (calls.push(['getReading', b]), { rating: 4, note: 'bello', started_at: 5 }),
+    getReading: async (b: string) => (calls.push(['getReading', b]), { rating: 4, note: 'bello', started_at: 5, current_page: 120 }),
     setReading: async (b: string, body: unknown) => (calls.push(['setReading', b, body]), {}),
     listAnnotations: async (b: string, since?: number) => (calls.push(['listAnnotations', b, since]), []),
     putAnnotation: async (b: string, id: string, body: PutAnnotation) => (calls.push(['putAnnotation', b, id, body]), { id }),
@@ -96,7 +96,7 @@ describe('the desktop backend', () => {
   it('marks the book read keeping the rating and the note', async () => {
     const { backend, calls } = make();
     await backend.markRead();
-    expect(calls).toContainEqual(['setReading', 'b1', { status: 'read', started_at: 5, rating: 4, note: 'bello' }]);
+    expect(calls).toContainEqual(['setReading', 'b1', { status: 'read', current_page: 120, started_at: 5, rating: 4, note: 'bello' }]);
   });
 
   it('saves the text as a Markdown file with the save window', async () => {

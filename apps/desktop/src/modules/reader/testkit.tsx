@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { vi } from 'vitest';
-import type { RawRequest } from '@bookeeper/api';
 import { renderApp } from '../../app/testing';
 import type { AppModule } from '../../app/types';
 import { fakeConnection, fakePlatform, type FakePlatform } from '../../platform/testing';
@@ -17,6 +16,7 @@ export const file = (id: string, format: string, created_at = 1, over: Partial<B
   size_bytes: 10,
   name: `libro.${format}`,
   created_at,
+  sha256: SHA,
   missing: false,
   ...over,
 });
@@ -50,12 +50,10 @@ export interface Setup {
   files?: BookFile[];
   role?: 'owner' | 'guest';
   route?: string;
-  etag?: string;
 }
 
 /** A desktop platform whose library holds book `b1` ("Il nome della rosa") and `files`. */
-export function setup({ files = [file('f1', 'epub')], role = 'owner', route = '/read/b1', etag = `"${SHA}"` }: Setup = {}) {
-  const raw: RawRequest[] = [];
+export function setup({ files = [file('f1', 'epub')], role = 'owner', route = '/read/b1' }: Setup = {}) {
   const platform: FakePlatform = fakePlatform({
     connections: { active: 'c1', items: [fakeConnection()] },
     handler: (r) => {
@@ -65,19 +63,11 @@ export function setup({ files = [file('f1', 'epub')], role = 'owner', route = '/
       return { status: 404, body: { error_code: 'not_found', message: 'x' } };
     },
   });
-  const base = platform.transport.bind(platform);
-  platform.transport = (id) => ({
-    ...base(id),
-    async requestRaw(req) {
-      raw.push(req);
-      return { status: 206, bytes: new Uint8Array(1), contentType: null, headers: { etag } };
-    },
-  });
   const book: AppModule = {
     id: 'books',
     nav: { labelKey: 'books.title', icon: 'book', to: '/books', group: 'main', order: 10 },
     routes: [{ path: '/books/:id', element: <h1>Scheda del libro</h1> }],
   };
   const view = renderApp({ platform, modules: [book, module], route });
-  return { ...view, platform, raw, fetchSpy: vi.fn() };
+  return { ...view, platform, fetchSpy: vi.fn() };
 }

@@ -18,15 +18,13 @@ describe('the reader route', () => {
     expect(document.querySelector('nav')).toBeNull();
   });
 
-  it('mounts the reader for the desktop with the book, the file and its hash', async () => {
-    const { raw } = setup({ files: [file('f1', 'epub'), file('f2', 'pdf')] });
+  it('mounts the reader for the desktop with the book, the file and its hash from the list', async () => {
+    setup({ files: [file('f1', 'epub'), file('f2', 'pdf')] });
     await screen.findByTestId('reader');
     const p = shown.props!;
     expect(p.platform).toBe('desktop');
     expect(p.book).toEqual({ id: 'b1', title: 'Il nome della rosa', authors: ['Umberto Eco'] });
     expect(p.file).toMatchObject({ id: 'f1', sha256: SHA, format: 'epub' });
-    // The hash is the file's ETag, asked with a one byte range.
-    expect(raw[0]).toMatchObject({ method: 'GET', path: '/api/v1/books/b1/files/f1/content', headers: { Range: 'bytes=0-0' } });
   });
 
   it('opens the file named by ?file', async () => {
@@ -36,10 +34,9 @@ describe('the reader route', () => {
   });
 
   it('guests_go_back_to_the_book', async () => {
-    const { raw } = setup({ role: 'guest' });
+    setup({ role: 'guest' });
     expect(await screen.findByRole('heading', { name: 'Scheda del libro' })).toBeInTheDocument();
     expect(shown.props).toBeNull();
-    expect(raw).toHaveLength(0);
   });
 
   it('the_window_title_is_the_book', async () => {
@@ -73,9 +70,4 @@ describe('the reader route', () => {
     expect(screen.getByRole('button', { name: 'Torna al libro' })).toBeInTheDocument();
   });
 
-  it('says so when the file cannot be identified', async () => {
-    setup({ etag: '' });
-    expect(await screen.findByText('Non riesco ad aprire il libro')).toBeInTheDocument();
-    expect(shown.props).toBeNull();
-  });
 });

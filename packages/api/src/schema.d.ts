@@ -1328,6 +1328,8 @@ export interface components {
             /** @description True when the file is not on the server's disk any more. */
             missing: boolean;
             name: string;
+            /** @description SHA-256 of the content, in lowercase hex: the same value as the content's `ETag`. */
+            sha256: string;
             /** Format: int64 */
             size_bytes: number;
             uploaded_by?: null | components["schemas"]["PersonRef"];

@@ -57,9 +57,14 @@ export function createDesktopBackend(input: DesktopBackendInput): ReaderBackend 
         format: file.format,
         ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
       });
-      const res = await fetch(url, { signal });
-      if (!res.ok) throw new ApiError(res.status, 'unknown', `The file could not be read (${res.status})`);
-      return readBody(res, onProgress);
+      try {
+        const res = await fetch(url, { signal });
+        if (!res.ok) throw new ApiError(res.status, 'unknown', `The file could not be read (${res.status})`);
+        return await readBody(res, onProgress);
+      } finally {
+        // The browser platform answers with an object URL: it would keep a copy of the book until the page reloads.
+        if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+      }
     },
     listPositions: () => client.listPositions(bookId),
     async putPosition(body: PutPosition) {
@@ -67,10 +72,11 @@ export function createDesktopBackend(input: DesktopBackendInput): ReaderBackend 
     },
     getReading: () => client.getReading(bookId),
     async markRead() {
-      // The rating and the note stay as they are: the core fills the dates and the page it owns.
+      // Everything the reading holds is sent back: a page typed by hand would be lost otherwise.
       const current = await client.getReading(bookId);
       const body: PutReading = {
         status: 'read',
+        current_page: current?.current_page ?? null,
         started_at: current?.started_at ?? null,
         rating: current?.rating ?? null,
         note: current?.note ?? null,
