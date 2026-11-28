@@ -22,3 +22,15 @@ export function formatPercent(fraction: number, locale = 'it'): string {
 export function percentOf(fraction: number): number {
   return Math.round(Math.min(1, Math.max(0, Number.isFinite(fraction) ? fraction : 0)) * 100);
 }
+
+/**
+ * «Torna al 45%», «Torna all'8%», «Torna allo 0,4%»: the Italian article follows the number as written
+ * («0», «0,x» → allo; 1, 8, 11, 80–89 → all'; else al). Keys are `<base>_al`, `<base>_all`, `<base>_allo`;
+ * English has the same three with the same text. Takes a 0..100 percent.
+ */
+export function percentPhrase(t: T, base: string, percent: number, locale = 'it'): string {
+  const text = formatPercent(percent / 100, locale).replace(/[.,]0%$/, '%');
+  const whole = Number.parseInt(text, 10);
+  const form = whole === 0 ? 'allo' : whole === 1 || whole === 8 || whole === 11 || (whole >= 80 && whole <= 89) ? 'all' : 'al';
+  return t(`${base}_${form}`, { percent: text });
+}
