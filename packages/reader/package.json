@@ -17,7 +17,8 @@
   },
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "node e2e/run.mjs"
   },
   "peerDependencies": {
     "react": "^19",

@@ -1,10 +1,10 @@
-// Writes the two books of the reader engine trial into apps/mobile/public/prova-lettore/libri:
+// Writes the two books of the reader e2e test into packages/reader/e2e/books:
 // a large EPUB to turn pages in, and a hostile one whose script and remote resources must stay blocked.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const OUT = resolve(dirname(fileURLToPath(import.meta.url)), '../../apps/mobile/public/prova-lettore/libri');
+const OUT = resolve(dirname(fileURLToPath(import.meta.url)), 'books');
 
 const CRC_TABLE = Array.from({ length: 256 }, (_, n) => {
   let c = n;
