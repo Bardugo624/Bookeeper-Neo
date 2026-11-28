@@ -13,4 +13,5 @@ Catture `desktop-01-libreria` e `mobile-01-cerca`: il collegamento dice «Tutti 
 - `the_all_link_counts_without_an_article`.
 
 ## Acceptance criteria
-- Da `apps/desktop`: `npx vitest run src/modules/reading`. Da `apps/mobile`: `npx vitest run src/modules/reading`. Passano, e passa `npm run typecheck` dei due.
+- Da `apps/desktop` e da `apps/mobile`: `npx vitest run src/modules/reading` passa.
+- `npm run typecheck -w @bookeeper/desktop` e `npm run typecheck -w @bookeeper/mobile` passano.
