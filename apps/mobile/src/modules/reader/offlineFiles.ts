@@ -1,6 +1,6 @@
 /**
  * Where the reader looks for a copy of the file kept on the phone before it asks the server.
- * The offline copy (OPFS) plugs in here; until then there is none.
+ * The offline copy (OPFS, `opfsLibrary`) plugs in here.
  */
 export interface OfflineFiles {
   /** The file kept on the phone, or `null` when there is none. */
