@@ -18,6 +18,17 @@ export interface EbookFileInfo {
   format: string;
   size_bytes: number;
   name: string;
+  has_cover?: boolean;
+  /** Read from the file itself; every field may be missing. */
+  metadata?: {
+    title?: string | null;
+    authors?: string[];
+    language?: string | null;
+    publisher?: string | null;
+    published_year?: number | null;
+    isbn_13?: string | null;
+    description?: string | null;
+  };
 }
 
 /** The six formats the core opens (design: Fase 10A). */
@@ -62,6 +73,14 @@ export function bookFilesApi(t: Transport) {
       const body = json(r.bytes);
       if (r.status < 200 || r.status >= 300) fail(r.status, body);
       return body as EbookFileInfo;
+    },
+    /** The cover taken from an uploaded file, or null when it has none. */
+    async cover(sha256: string): Promise<Uint8Array | null> {
+      if (!t.requestRaw) return null;
+      const r = await t.requestRaw({ method: 'GET', path: `${P}/ebook-files/${enc(sha256)}/cover` });
+      if (r.status === 404) return null;
+      if (r.status < 200 || r.status >= 300) fail(r.status, json(r.bytes));
+      return r.bytes;
     },
     async attach(bookId: string, sha256: string, name: string): Promise<BookFile> {
       const r = await t.request('POST', `${P}/books/${enc(bookId)}/files`, { sha256, name });

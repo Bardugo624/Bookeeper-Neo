@@ -3,10 +3,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '@bookeeper/api';
 import { usePlatform } from '../../platform';
 import { createAuthTransport, useClient, useSession } from '../../session';
-import { bookFilesApi, contentPath, type BookFile } from './bookFiles';
+import { bookFilesApi, contentPath, type BookFile } from './bookFileApi';
 import { readFileBytes } from './coverFile';
 
-function useFilesApi() {
+export function useFilesApi() {
   const platform = usePlatform();
   return useMemo(() => bookFilesApi(createAuthTransport(platform)), [platform]);
 }

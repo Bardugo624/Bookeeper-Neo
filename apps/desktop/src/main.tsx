@@ -5,9 +5,10 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createHashRouter, RouterProvider } from 'react-router';
 import { AppProviders, buildRoutes, collectModules } from './app';
-import { browserPlatform, isTauri, tauriPlatform } from './platform';
+import { browserPlatform, installFileDropGuard, isTauri, tauriPlatform } from './platform';
 
 const platform = isTauri() ? tauriPlatform() : browserPlatform(import.meta.env.VITE_API_URL ?? '');
+installFileDropGuard();
 const router = createHashRouter(buildRoutes(collectModules()));
 
 createRoot(document.getElementById('root')!).render(

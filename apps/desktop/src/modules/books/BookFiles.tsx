@@ -4,7 +4,7 @@ import { Button, Icon, Skeleton } from '@bookeeper/ui/base';
 import { useLocale, useT } from '../../app';
 import { apiErrorMessage, usePermission } from '../../kit';
 import { BookFileRow } from './BookFileRow';
-import { EBOOK_ACCEPT, uploadProblemKey } from './bookFiles';
+import { EBOOK_ACCEPT, uploadProblemKey } from './bookFileApi';
 import { useAddBookFile, useBookFiles } from './useBookFiles';
 import styles from './BookFiles.module.css';
 
