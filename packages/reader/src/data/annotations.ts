@@ -2,6 +2,9 @@ import type { AnnotationOut, PutAnnotation } from '@bookeeper/api';
 import { isNetworkError } from './queue';
 import type { Clock, ReaderBackend } from './types';
 
+/** Pull window overlap: devices' clocks differ and edits can share a second. merge ignores repeats. */
+const OVERLAP_S = 600;
+
 export interface NewAnnotation {
   kind: 'highlight' | 'bookmark';
   cfi: string;
@@ -158,7 +161,7 @@ export function createAnnotationStore(
       });
       if (!drained) return false;
       try {
-        const news = await backend.listAnnotations(since);
+        const news = await backend.listAnnotations(since === undefined ? undefined : Math.max(0, since - OVERLAP_S));
         let changed = false;
         for (const r of news) {
           since = Math.max(since ?? 0, r.updated_at);

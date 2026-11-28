@@ -108,7 +108,13 @@ function open(): Promise<IDBDatabase> {
  */
 export function idbQueue(name: string = DB): OfflineQueue {
   let db: Promise<IDBDatabase> | null = null;
-  const conn = () => (db ??= name === DB ? open() : openNamed(name));
+  const conn = () => {
+    db ??= (name === DB ? open() : openNamed(name)).catch((e) => {
+      db = null; // a failed open is tried again next time
+      throw e;
+    });
+    return db;
+  };
   const store = async (mode: IDBTransactionMode) => (await conn()).transaction('queue', mode).objectStore('queue');
   return makeQueue({
     entries: async () => {

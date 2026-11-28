@@ -39,6 +39,10 @@ export function createPositionKeeper(
 ): PositionKeeper {
   let timer: ReturnType<typeof setTimeout> | null = null;
   let dirty = false;
+  // The newest position, kept in memory in case the storage refuses it.
+  let latest: LocalPosition | null = null;
+  // Saves run one after another, so the server ends on the newest.
+  let chain: Promise<void> = Promise.resolve();
 
   const drain = () =>
     backend.queue.drain(async (op) => {
@@ -46,8 +50,14 @@ export function createPositionKeeper(
       await backend.putPosition(op.body);
     });
 
-  async function send(): Promise<void> {
-    const pos = readLocal(storage, fileId);
+  function send(): Promise<void> {
+    const run = chain.then(sendNow);
+    chain = run.catch(() => undefined);
+    return run;
+  }
+
+  async function sendNow(): Promise<void> {
+    const pos = latest ?? readLocal(storage, fileId);
     dirty = false;
     if (!pos) return;
     const body = { kind: 'cfi', value: pos.value, percent: pos.percent };
@@ -66,6 +76,7 @@ export function createPositionKeeper(
   return {
     record(r) {
       const pos: LocalPosition = { value: r.cfi, percent: r.fraction * 100, at: clock() };
+      latest = pos;
       try {
         storage.setItem(KEY(fileId), JSON.stringify(pos));
       } catch {
@@ -75,13 +86,14 @@ export function createPositionKeeper(
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => {
         timer = null;
-        void send();
+        send().catch(() => undefined);
       }, SAVE_DELAY_MS);
     },
     async flush() {
       if (timer) clearTimeout(timer);
       timer = null;
       if (dirty) await send();
+      else await chain;
     },
     local: () => readLocal(storage, fileId),
     drain,

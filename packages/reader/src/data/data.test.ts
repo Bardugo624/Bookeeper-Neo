@@ -168,8 +168,12 @@ describe('annotation store', () => {
     state.remote.set('a', row('a', 20, 20));
     state.remote.set('c', row('c', 21));
     await s.sync();
-    expect(backend.listAnnotations).toHaveBeenLastCalledWith(11);
+    // The pull overlaps the bookmark: another device's clock may be behind.
+    expect(backend.listAnnotations).toHaveBeenLastCalledWith(0);
     expect(s.list().map((a) => a.id)).toEqual(['b', 'c']);
+    state.remote.set('d', row('d', 21));
+    await s.sync();
+    expect(s.list().map((a) => a.id)).toEqual(['b', 'c', 'd']);
   });
 
   it('offline_edits_survive_a_restart_with_idb_queue', async () => {
