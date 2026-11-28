@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { render, screen } from '@testing-library/react';
 import { expect, it } from 'vitest';
 import { ProgressRing } from './ProgressRing';
@@ -33,4 +35,11 @@ it('shows 0 as a child but not false, null or undefined', () => {
     rerender(<ProgressRing value={0.5} label="L">{child}</ProgressRing>);
     expect(container.textContent).toBe('');
   }
+});
+
+it('the_track_shows_on_the_surface', () => {
+  const css = readFileSync(resolve(__dirname, 'ProgressRing.module.css'), 'utf8');
+  const rule = /\.track\s*\{([^}]*)\}/.exec(css)?.[1] ?? '';
+  expect(rule).toContain('var(--bk-border-strong)');
+  expect(rule).not.toContain('--bk-inset');
 });
