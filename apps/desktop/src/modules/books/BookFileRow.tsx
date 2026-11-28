@@ -38,7 +38,6 @@ export function BookFileRow({ bookId, file, locale }: { bookId: string; file: Bo
           <Button
             size="sm"
             variant="ghost"
-            tone="danger"
             aria-label={t('books.files.removeLabel', { name: file.name })}
             onClick={() => setConfirming(true)}
           >

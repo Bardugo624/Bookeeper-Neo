@@ -8,6 +8,19 @@
     "one": "Add {count} book",
     "other": "Add {count} books"
   },
+  "confirmAttach": {
+    "one": "Attach {count} file",
+    "other": "Attach {count} files"
+  },
+  "confirmBooks": {
+    "one": "{count} book",
+    "other": "{count} books"
+  },
+  "confirmFiles": {
+    "one": "{count} file",
+    "other": "{count} files"
+  },
+  "confirmBoth": "Add {books} and attach {files}",
   "close": "Close",
   "row": {
     "uploading": "Uploading {name}",

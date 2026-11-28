@@ -104,10 +104,19 @@ describe('e-book import', () => {
     const dialog = await drop('rosa.epub');
     const box = await within(dialog).findByRole('checkbox', { name: /Attacca a quel libro/ });
     expect(box).toBeChecked();
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Aggiungi 1 libro' }));
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Attacca 1 file' }));
     expect(await within(dialog).findByText('1 file attaccato a un libro già presente.')).toBeInTheDocument();
     expect(created).toHaveLength(0);
     expect(attached).toEqual([{ path: '/api/v1/books/b7/files', body: { sha256: 'sha-rosa.epub', name: 'rosa.epub' } }]);
+  });
+
+  it('names the button after what it will do: books, files, or both', async () => {
+    const same = book(7, { title: 'Il nome della rosa', authors: ['Umberto Eco'] });
+    setup('owner', [book(1, { title: 'Libro 1' }), same]);
+    const dialog = await drop('rosa.epub', 'pendolo.epub');
+    expect(await within(dialog).findByRole('button', { name: 'Aggiungi 1 libro e attacca 1 file' })).toBeInTheDocument();
+    await userEvent.click(within(dialog).getByRole('checkbox', { name: /Attacca a quel libro/ }));
+    expect(within(dialog).getByRole('button', { name: 'Aggiungi 2 libri' })).toBeInTheDocument();
   });
 
   it('recognises a book by its ISBN', async () => {
