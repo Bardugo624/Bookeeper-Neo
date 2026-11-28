@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createClient } from '@bookeeper/api';
 import { ReaderApp } from '@bookeeper/reader/app';
 import { memoryQueue } from '@bookeeper/reader/data';
+import { LocaleProvider } from '../../app/i18n';
+import { InstallSheet } from './InstallSheet';
 import { fakeNetwork, fakeTransport } from '../../platform/testing';
 import { createMobileBackend } from './mobileBackend';
 import { setLibraryForTest, streamOf } from './opfsLibrary';
@@ -102,5 +104,23 @@ describe('the reader without a network', () => {
     await act(async () => void window.dispatchEvent(new Event('online')));
     await waitFor(async () => expect(await queue.list()).toEqual([]));
     expect(sent.some((s) => s.startsWith('PUT') && s.includes('/files/f1/position'))).toBe(true);
+  });
+
+  it('install_steps_keep_icon_and_name_together', () => {
+    render(
+      <LocaleProvider locale="it">
+        <InstallSheet open onOpenChange={() => {}} />
+      </LocaleProvider>,
+    );
+    const items = screen.getAllByRole('listitem');
+    for (const [i, name] of [[0, 'Condividi'], [1, 'Aggiungi alla schermata Home']] as const) {
+      const strong = items[i]!.querySelector('strong')!;
+      expect(strong).toHaveTextContent(name);
+      const group = strong.parentElement!;
+      expect(group).not.toBe(items[i]);
+      expect(group.querySelector('svg')).not.toBeNull();
+      expect(group.firstElementChild).toContainElement(group.querySelector('svg') as SVGElement);
+    }
+    expect(items[0]).toHaveTextContent('Tocca Condividi, in basso.');
   });
 });
