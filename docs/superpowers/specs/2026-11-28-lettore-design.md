@@ -1,6 +1,6 @@
 # Il lettore di e-book (fase 10B) — design
 
-Data: 2026-11-28. Stato: da approvare.
+Data: 2026-11-28. Stato: approvato dal proprietario («Approvo, parti»), con il piano in `docs/forge/fase-10b/`.
 
 Questo documento disegna le schermate e fissa le scelte tecniche che la specifica degli e-book lasciava al costruttore. La parte funzionale resta quella approvata: `docs/superpowers/specs/2026-11-27-ebook-design.md`, sezione «Fase 10B — Il lettore».
 

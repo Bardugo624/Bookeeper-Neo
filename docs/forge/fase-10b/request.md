@@ -13,6 +13,8 @@ Scelte del proprietario per il lettore (2026-11-28):
 - controlli: «Sparisce, torna al tocco»;
 - pagina: «Scorre di lato»;
 - aspetto: «Come l'app e l'editore»;
-- struttura: «A · Pannello compagno».
+- struttura: «A · Pannello compagno»;
+- stati, specifica e piano: «Approvo, parti»;
+- il difetto della libreria locale: «Dentro la 10B».
 
 Il design funzionale approvato è `docs/superpowers/specs/2026-11-27-ebook-design.md`, parte «Fase 10B». Il disegno delle schermate e le scelte tecniche sono in `docs/superpowers/specs/2026-11-28-lettore-design.md`, con gli stati disegnati in `docs/superpowers/specs/2026-11-28-lettore/`. Questo run è la **fase 10B — Il lettore**.
