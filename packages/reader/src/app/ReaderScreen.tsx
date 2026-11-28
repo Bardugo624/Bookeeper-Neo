@@ -132,6 +132,7 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
     } else void close();
   };
 
+  const failed = session.status !== 'loading' && session.status !== 'ready';
   const toc = opened?.toc ?? [];
   const fraction = relocation?.fraction ?? 0;
   const afterJump = (fn: () => void) => () => {
@@ -176,6 +177,7 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
       layout={platform}
       theme={theme}
       chromeVisible={chrome.visible}
+      failed={failed}
       progress={fraction}
       onReveal={chrome.show}
       panelOpen={desktop && panelOpen}
@@ -195,6 +197,7 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
           panelOpen={panelOpen}
           moreItems={moreItems}
           topEnd={topEnd}
+          bare={failed}
         />
       }
       bottom={

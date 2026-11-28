@@ -23,10 +23,12 @@ export interface TopBarProps {
   moreItems?: MenuEntry[];
   /** After the buttons: the window's own controls (computer). */
   topEnd?: ReactNode;
+  /** An error state: only «Indietro» and the title. */
+  bare?: boolean;
 }
 
 export function TopBar(props: TopBarProps) {
-  const { layout, title, chapter, onBack, onSearch, onBookmark, bookmarked, onAppearance, anchorAppearance, onPanel, panelOpen, moreItems, topEnd } = props;
+  const { layout, title, chapter, onBack, onSearch, onBookmark, bookmarked, onAppearance, anchorAppearance, onPanel, panelOpen, moreItems, topEnd, bare = false } = props;
   const t = useReaderT();
   const desktop = layout === 'desktop';
   // `data-tauri-drag-region` counts for the element that carries it only, so the buttons stay clickable.
@@ -45,7 +47,7 @@ export function TopBar(props: TopBarProps) {
         <span className={styles.name} {...drag}>{title}</span>
         {desktop && chapter ? <span className={styles.chapter} {...drag}>{' · '}{chapter}</span> : null}
       </div>
-      <div className={styles.actions}>
+      {bare ? <div className={styles.actions} /> : <div className={styles.actions}>
         {desktop ? (
           <>
             <BarButton tip icon={<SearchIcon />} label={t('reader.top.search')} onClick={onSearch} />
@@ -69,7 +71,7 @@ export function TopBar(props: TopBarProps) {
         ) : moreItems?.length ? (
           <Menu items={moreItems} trigger={<BarButton icon={<MoreIcon />} label={t('reader.top.more')} />} />
         ) : null}
-      </div>
+      </div>}
       {desktop ? <div className={styles.end} data-slot="top-end">{topEnd}</div> : null}
     </header>
   );
