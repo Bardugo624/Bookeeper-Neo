@@ -8,8 +8,16 @@ Leggi prima `docs/forge/fase-10b/CONTRATTO.md`, che fissa valori, interfacce e r
 - `apps/desktop/src/shell/` (`TitleBar.tsx` e il nuovo `WindowControls.tsx`).
 - `apps/desktop/reader-frame.html`, `apps/desktop/src/readerFrame.ts` e `apps/desktop/vite.config.ts`.
 - `packages/i18n/src/locales/it/dreader.json` e `en/dreader.json`.
+- Per la correzione del piano: `crates/bookeeper-core/src/api/book_files.rs`, `crates/bookeeper-core/tests/ebook_api.rs`, `packages/api` e `apps/desktop/src/modules/books/`.
 
 La parte nativa (`reader_file`, opener, protocollo `asset`, metodi della piattaforma) è già unita con `desktop-native`.
+
+## Correzione del piano, dopo il primo tentativo
+- `BookFileOut` non ha lo sha256, e `reader_file` ne ha bisogno. Leggerlo dall'ETag con una richiesta `Range` non funziona: il trasporto del computer scarta `Range` e scarica tutto il libro.
+- **Aggiungi `sha256` a `BookFileOut`** in `crates/bookeeper-core/src/api/book_files.rs`: è lo stesso valore dell'ETag. Rigenera OpenAPI e `packages/api` con il comando del contratto.
+- **Test:** `files_list_the_sha256`, in `crates/bookeeper-core/tests/ebook_api.rs`.
+- **Il tipo `BookFile`** di `apps/desktop/src/modules/books/bookFileApi.ts` riceve `sha256`, e i dati di prova di `modules/books` lo seguono. Il lettore lo usa: togli `useFileHash.ts` e la richiesta `Range`.
+- **`markRead`** rimanda anche `current_page`, la nota, il voto e `started_at` della lettura salvata, come fa il telefono. Altrimenti una pagina scritta a mano si perde.
 
 ## Cosa fare
 - **`screens` in `AppModule`:** le rotte si montano come figlie di `SessionGate`, accanto a `Shell`.
