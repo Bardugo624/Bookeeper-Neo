@@ -997,10 +997,27 @@ async fn files_list_the_sha256() {
     let token = &s.session.access_token;
     let book = insert_book(&s.state, &s.library_id, "Dune").await;
     let (id, sha) = upload_and_attach(&s, &book, "dune.pdf", pdf_with(10)).await;
-    let (st, _, l) = call(&s.state, "GET", &format!("/api/v1/books/{book}/files"), Some(token), None).await;
+    let (st, _, l) = call(
+        &s.state,
+        "GET",
+        &format!("/api/v1/books/{book}/files"),
+        Some(token),
+        None,
+    )
+    .await;
     assert_eq!(st, 200);
     assert_eq!(l[0]["sha256"], sha.as_str());
     // The content's ETag carries the same value.
-    let (_, h, _) = call(&s.state, "GET", &format!("/api/v1/books/{book}/files/{id}/content"), Some(token), None).await;
-    assert_eq!(h.get("etag").unwrap().to_str().unwrap(), format!("\"{sha}\""));
+    let (_, h, _) = call(
+        &s.state,
+        "GET",
+        &format!("/api/v1/books/{book}/files/{id}/content"),
+        Some(token),
+        None,
+    )
+    .await;
+    assert_eq!(
+        h.get("etag").unwrap().to_str().unwrap(),
+        format!("\"{sha}\"")
+    );
 }

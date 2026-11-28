@@ -23,7 +23,7 @@ const ON = [
   { book_id: 'b1', title: 'Il nome della rosa', authors: ['Eco'], row_index: 0, slot_index: 0 },
   { book_id: 'b2', title: 'Dune', authors: [], row_index: 1, slot_index: 3 },
 ];
-const BOOK = { id: 'b1', title: 'Il nome della rosa', authors: ['Eco'], on_loan: false, created_at: 1, updated_at: 1 } as BookOut;
+const BOOK = { id: 'b1', title: 'Il nome della rosa', authors: ['Eco'], on_loan: false, file_formats: [], created_at: 1, updated_at: 1 } as BookOut;
 
 const handler: Handler = async (call) => {
   const path = new URL(call.path, 'http://x').pathname;
