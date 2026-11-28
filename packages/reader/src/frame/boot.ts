@@ -325,6 +325,11 @@ export function bootFrame(options: BootOptions = {}): () => void {
     s.view.clearSearch();
     s.chosen = null;
     s.hits = new Set();
+    // An empty query only takes the marks off.
+    if (!query.trim()) {
+      send({ type: 'search-done', id });
+      return;
+    }
     const drawing = { drawOptions: { color: s.layout.colors.link }, draw: s.drawHit };
     void runSearch(s.view, s.map, id, query, drawing, send, () => token.cancelled, (cfi) => s.hits.add(cfi));
   }

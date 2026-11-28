@@ -69,7 +69,7 @@ let received: FromFrame[];
 let stop: () => void;
 const onMessage = (e: MessageEvent) => {
   const data = e.data as { msg?: FromFrame };
-  if (data?.msg && ['ready', 'opened', 'relocate', 'error', 'closed'].includes(data.msg.type)) received.push(data.msg);
+  if (data?.msg && ['ready', 'opened', 'relocate', 'error', 'closed', 'search-done'].includes(data.msg.type)) received.push(data.msg);
 };
 const toFrame = (msg: ToFrame) =>
   window.dispatchEvent(new MessageEvent('message', { data: wrap(msg), origin: location.origin, source: window }));
@@ -158,5 +158,18 @@ describe('bootFrame', () => {
     view.dispatchEvent(new CustomEvent('load', { detail: { doc: view.doc, index: 1 } }));
     view.drawn!([RECT]);
     expect(calls.pop()).toBe('outline');
+  });
+
+  it('an_empty_search_takes_the_marks_off_and_is_done', async () => {
+    stop();
+    stop = bootFrame({ load: async () => ({}) as never });
+    toFrame({ type: 'open', file: new Blob(['x']), name: 'a.epub', at: null, layout });
+    await until(() => received.some((m) => m.type === 'opened'));
+    const view = document.querySelector('foliate-view') as unknown as FakeView;
+    const clear = vi.spyOn(view, 'clearSearch');
+    toFrame({ type: 'search', id: 7, query: '' });
+    await until(() => received.some((m) => m.type === 'search-done' && m.id === 7));
+    expect(clear).toHaveBeenCalled();
+    expect(view.drawn).toBeUndefined();
   });
 });

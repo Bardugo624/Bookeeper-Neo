@@ -48,14 +48,15 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
   const times = useSpeed(engine, opened, relocation, turning, setPageSpan);
   const notes = useAnnotations(backend, { bookId: book.id, sha256: file.sha256 }, engine, opened, relocation, pageSpan);
   const q = useQuestion({ backend, opened, relocation, localAtOpen: session.localAtOpen, sources: session.sources, reading: session.reading, goTo: jumps.goTo });
-  const search = useSearch(engine);
 
   const [editing, setEditing] = useState<Editing | null>(null);
   const actions = useNoteActions({ backend, book, store: notes.store, items: notes.items, goTo: jumps.goTo, setEditing });
   const sel = useSelection(engine, backend, notes.store, notes.addNow, notes.items, notes.here, editing, setEditing, actions.copyText, actions.removed);
 
-  const failed = session.status !== 'loading' && session.status !== 'ready';
+  const searchOpen = (desktop ? settings.panelOpen : sheet) && tab === 'search';
   const panelOpen = desktop ? settings.panelOpen : sheet;
+  const search = useSearch(engine, searchOpen, panelOpen);
+  const failed = session.status !== 'loading' && session.status !== 'ready';
   const openPanel = useCallback(
     (next: PanelTab) => {
       setTab(next);
@@ -75,12 +76,13 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
       clearTimeout(turnTimer.current);
       turnTimer.current = setTimeout(() => (turning.current = null), TURN_FLAG_MS);
       q.stay();
+      search.releaseMarks();
       jumps.turned(direction);
       chrome.hide();
       if (direction === 'next') engine.next();
       else engine.prev();
     },
-    [engine, q, jumps, chrome],
+    [engine, q, jumps, chrome, search.releaseMarks],
   );
   const appearanceRef = useRef(appearance);
   appearanceRef.current = appearance;
@@ -157,7 +159,12 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
         results: search.results,
         progress: search.progress,
         done: search.done,
-        onPick: (hit) => afterJump(() => jumps.goTo({ cfi: hit.cfi }))(),
+        onPick: (hit) =>
+          afterJump(() => {
+            // On the phone the sheet closes; the marks stay until the next page turn.
+            if (!desktop) search.keepMarks();
+            jumps.goTo({ cfi: hit.cfi });
+          })(),
         autoFocus: tab === 'search',
       }}
     />
