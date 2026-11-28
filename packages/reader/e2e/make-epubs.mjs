@@ -189,21 +189,25 @@ export function largeBook() {
   return epub({ id: 'urn:bookeeper:prova:grande', title: 'Il libro grande', author: 'Bookeeper', chapters, files, css: BOOK_CSS });
 }
 
+/** The parts of the hostile book; `hostileBook(without)` leaves the named ones out, to find which one an engine chokes on. */
+export const HOSTILE_PARTS = ['onclick', 'script', 'img', 'iframe', 'link', 'headScript', 'mouseover', 'background'];
+
 /** A book that tries to run script, load remote resources and frame a remote page: all must stay blocked. */
-export function hostileBook() {
+export function hostileBook(without = []) {
+  const has = (part) => !without.includes(part);
   const body = `<h2>Capitolo ostile</h2>
-<p onclick="window.top.__bkScriptRan = 'onclick'">Questo capitolo prova a eseguire codice e a caricare risorse da fuori.</p>
-<script>window.top.__bkScriptRan = 'script';</script>
-<img src="https://example.invalid/pixel.png" alt=""/>
-<iframe src="https://example.invalid/pagina"></iframe>
+<p${has('onclick') ? ` onclick="window.top.__bkScriptRan = 'onclick'"` : ''}>Questo capitolo prova a eseguire codice e a caricare risorse da fuori.</p>
+${has('script') ? "<script>window.top.__bkScriptRan = 'script';</script>" : ''}
+${has('img') ? '<img src="https://example.invalid/pixel.png" alt=""/>' : ''}
+${has('iframe') ? '<iframe src="https://example.invalid/pagina"></iframe>' : ''}
 <p>Se la prova passa, niente di tutto questo è stato eseguito o caricato.</p>`;
-  const head = '<link rel="stylesheet" href="https://example.invalid/stile.css"/><script>window.top.__bkScriptRan = \'head\';</script>';
+  const head = `${has('link') ? '<link rel="stylesheet" href="https://example.invalid/stile.css"/>' : ''}${has('headScript') ? "<script>window.top.__bkScriptRan = 'head';</script>" : ''}`;
   return epub({
     id: 'urn:bookeeper:prova:ostile',
     title: 'Il libro ostile',
     author: 'Bookeeper',
-    chapters: [{ id: 'c001', title: 'Capitolo ostile', body: `<div onmouseover="window.top.__bkScriptRan = 'mouseover'">${body}</div>`, head }],
-    css: 'body { font-family: serif; } body { background-image: url("https://example.invalid/sfondo.png"); }',
+    chapters: [{ id: 'c001', title: 'Capitolo ostile', body: has('mouseover') ? `<div onmouseover="window.top.__bkScriptRan = 'mouseover'">${body}</div>` : `<div>${body}</div>`, head }],
+    css: `body { font-family: serif; }${has('background') ? ' body { background-image: url("https://example.invalid/sfondo.png"); }' : ''}`,
   });
 }
 

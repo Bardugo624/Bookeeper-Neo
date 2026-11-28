@@ -13,6 +13,8 @@ import { fileURLToPath } from 'node:url';
 import { build } from 'vite';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
+/** The hostile book without one of its parts each, written when an engine does not open the whole book. */
+const VARIANTS = mkdtempSync(join(tmpdir(), 'reader-e2e-variants-'));
 const ALL = ['chromium', 'webkit', 'firefox'];
 const VIEWPORTS = [
   { name: 'phone', width: 390, height: 844, narrower: 320 },
@@ -49,6 +51,7 @@ const outFile = arg('--out') ?? 'reader-e2e.json';
 function serve(dist) {
   const roots = [
     ['/books/', join(HERE, 'books')],
+    ['/variants/', VARIANTS],
     ['/', dist],
   ];
   const server = createServer((req, res) => {
@@ -197,7 +200,7 @@ const scenarios = {
       const frames = [];
       for (const frame of page.frames()) {
         frames.push(
-          await frame
+          await within(frame
             .evaluate(() => {
               const v = document.querySelector('foliate-view');
               return {
@@ -209,8 +212,8 @@ const scenarios = {
                 renderer: !!v?.renderer,
                 iframes: document.querySelectorAll('iframe').length,
               };
-            })
-            .catch((e) => ({ url: frame.url().slice(0, 60), error: String(e).slice(0, 120) })),
+            }), 3000, 'the frame answering')
+            .catch((e) => ({ url: frame.url().slice(0, 60), error: String(e?.message ?? e).slice(0, 120) })),
         );
       }
       return { ok: false, error: 'the hostile book did not open within 30 s', frames, console: watch.console.slice(-30), errors: watch.errors.slice(-10) };
@@ -249,6 +252,28 @@ const scenarios = {
     return { ok: watch.errors.length === 0, errors: [...watch.errors] };
   },
 };
+
+/** Opens the hostile book without each of its parts in turn, each in a fresh browser: the parts whose absence lets it open are the cause. */
+async function bisectHostile(type, viewport) {
+  const { hostileBook, HOSTILE_PARTS } = await import('./make-epubs.mjs');
+  const out = {};
+  for (const part of ['none', ...HOSTILE_PARTS]) {
+    const name = `senza-${part}.epub`;
+    writeFileSync(join(VARIANTS, name), hostileBook(part === 'none' ? [] : [part]));
+    const browser = await type.launch();
+    try {
+      const { page } = await openPage(browser, viewport, base);
+      out[part] = await within(page.evaluate(OPEN, { book: `../variants/${name}`, fraction: null, fontSize: 18 }).then(() => 'opens'), 20_000, 'open')
+        .catch((e) => (String(e?.message ?? e).includes('did not happen') ? 'hangs' : `error: ${String(e?.message ?? e).slice(0, 80)}`));
+    } catch (e) {
+      out[part] = `error: ${String(e?.message ?? e).slice(0, 80)}`;
+    } finally {
+      await within(browser.close(), 10_000, 'close').catch(() => undefined);
+    }
+  }
+  return out;
+}
+const bisected = new Set();
 
 console.log(`building the test page…`);
 const dist = mkdtempSync(join(tmpdir(), 'reader-e2e-'));
@@ -292,6 +317,11 @@ try {
         const detail = record.p95 != null ? ` p95 ${record.p95} ms (median ${record.median}, max ${record.max})` : '';
         console.log(`${record.ok ? 'ok  ' : 'FAIL'} ${engine} ${record.viewport} ${scenario}${detail}${record.error ? `: ${record.error}` : ''}`);
         if (!record.ok && (record.frames || record.console)) console.log(JSON.stringify({ frames: record.frames, console: record.console, errors: record.errors }, null, 1));
+        if ((!record.ok || process.env.BK_E2E_BISECT) && scenario === 'hostile' && !bisected.has(engine)) {
+          bisected.add(engine);
+          record.bisect = await bisectHostile(types[engine], viewport);
+          console.log(`bisect ${engine}: ${JSON.stringify(record.bisect)}`);
+        }
       }
     }
     await browser.close();
@@ -299,6 +329,7 @@ try {
 } finally {
   server.close();
   rmSync(dist, { recursive: true, force: true });
+  rmSync(VARIANTS, { recursive: true, force: true });
 }
 
 writeFileSync(outFile, JSON.stringify(results, null, 2) + '\n');
