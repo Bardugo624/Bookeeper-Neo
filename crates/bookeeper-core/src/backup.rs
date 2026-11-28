@@ -262,7 +262,7 @@ const TABLES: [Table; 12] = [
     Table {
         name: "annotations",
         cols: &[
-            ("id", Id),
+            ("id", Text),
             ("library_id", Text),
             ("user_id", Id),
             ("book_id", Id),

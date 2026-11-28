@@ -237,7 +237,6 @@ async fn a_removed_device_has_no_kind() {
     c.s.state
         .db
         .run(|conn| {
-            conn.execute("PRAGMA foreign_keys = OFF", [])?;
             // The caller keeps its session; the position points at a device that is gone.
             conn.execute("UPDATE reading_positions SET device_id = 'gone'", [])
         })

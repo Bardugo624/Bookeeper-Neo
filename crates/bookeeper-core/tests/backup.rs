@@ -358,3 +358,23 @@ async fn restore_replaces_the_annotations() {
         .unwrap();
     assert_eq!(note.as_deref(), Some("nota"));
 }
+
+#[tokio::test]
+async fn restore_accepts_device_chosen_annotation_ids() {
+    let s = seed(Role::Owner, None, None).await;
+    let book = insert_book(&s.state, &s.library_id, "Libro").await;
+    add_annotations(&s, &book).await;
+    s.state
+        .db
+        .run(|c| c.execute("UPDATE annotations SET id = 'note_1' WHERE id = 'an-1'", []))
+        .await
+        .unwrap();
+    let bytes = archive_of(&s).await;
+    s.state
+        .db
+        .run(|c| c.execute("DELETE FROM annotations", []))
+        .await
+        .unwrap();
+    restore(&s.state, &s, bytes).await;
+    assert_eq!(count(&s.state, "annotations").await, 2);
+}
