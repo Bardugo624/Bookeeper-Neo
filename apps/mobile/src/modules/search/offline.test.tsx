@@ -12,7 +12,7 @@ const file = { id: 'f1', book_id: 'b1', format: 'epub', size_bytes: 2_500_000, n
 function open(delay?: Promise<void>) {
   return renderSearch({
     api: {
-      books: [book(1, { id: 'b1' })],
+      books: [book(1, { id: 'b1', file_formats: ['epub'] })],
       override: (call) => {
         const path = call.path.replace('/api/v1', '');
         if (path === '/me') return ok(ME);
@@ -27,7 +27,10 @@ function open(delay?: Promise<void>) {
     route: '/books/b1',
   });
 }
-const block = async () => within(await screen.findByRole('region', { name: 'File' }));
+const block = async () => {
+  await screen.findByRole('link', { name: 'Leggi' });
+  return within(document.body);
+};
 const setUa = (ua: string, extra: Partial<Navigator> = {}) => {
   vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(ua);
   for (const [k, v] of Object.entries(extra)) vi.spyOn(navigator, k as 'platform', 'get').mockReturnValue(v as never);
@@ -92,5 +95,28 @@ describe('the book page offers the book offline', () => {
     await userEvent.click(await b.findByRole('button', { name: 'Scarica per leggere offline' }));
     expect(await b.findByRole('button', { name: 'Togli dal telefono' })).toBeInTheDocument();
     Reflect.deleteProperty(navigator, 'standalone');
+  });
+
+  it('offline_control_sits_under_read', async () => {
+    open();
+    const read = await screen.findByRole('link', { name: 'Leggi' });
+    const button = await screen.findByRole('button', { name: 'Scarica per leggere offline' });
+    expect(read.nextElementSibling).toContainElement(button);
+    expect(read.nextElementSibling).toHaveTextContent('EPUB · 2,4 MB');
+    const files = screen.getByRole('region', { name: 'File' });
+    expect(within(files).queryByRole('button', { name: 'Scarica per leggere offline' })).toBeNull();
+  });
+
+  it('install_steps_show_the_icons_and_the_bold_names', async () => {
+    setUa('Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Safari/605.1.15');
+    open();
+    await userEvent.click(await screen.findByRole('button', { name: 'Scarica per leggere offline' }));
+    const items = within(await screen.findByRole('dialog')).getAllByRole('listitem');
+    expect(items[0]!.querySelector('strong')).toHaveTextContent('Condividi');
+    expect(items[0]!.querySelector('svg')).not.toBeNull();
+    expect(items[1]!.querySelector('strong')).toHaveTextContent('Aggiungi alla schermata Home');
+    expect(items[1]!.querySelector('svg')).not.toBeNull();
+    expect(items[0]).not.toHaveTextContent('**');
+    expect(items[1]).not.toHaveTextContent('{');
   });
 });
