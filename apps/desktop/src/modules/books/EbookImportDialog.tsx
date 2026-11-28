@@ -18,6 +18,14 @@ export function EbookImportDialog({ open, files, onClose }: EbookImportDialogPro
   const imp = useEbookImport(files);
   const done = imp.finished;
   const summary = imp.summary;
+  const books = imp.count - imp.attachCount;
+  const attaching = imp.attachCount;
+  const confirmLabel =
+    books > 0 && attaching > 0
+      ? t('ebooks.confirmBoth', { books: t('ebooks.confirmBooks', { count: books }), files: t('ebooks.confirmFiles', { count: attaching }) })
+      : attaching > 0
+        ? t('ebooks.confirmAttach', { count: attaching })
+        : t('ebooks.confirm', { count: books });
   return (
     <Dialog
       open={open}
@@ -45,7 +53,7 @@ export function EbookImportDialog({ open, files, onClose }: EbookImportDialogPro
               loadingLabel={t('ebooks.saving')}
               onClick={() => void imp.confirm()}
             >
-              {t('ebooks.confirm', { count: imp.count })}
+              {confirmLabel}
             </Button>
           </>
         )

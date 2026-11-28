@@ -185,6 +185,28 @@ describe('files block', () => {
     expect(await within(block).findByRole('alert')).toHaveTextContent(message);
   });
 
+  it('shows the API message for a 422 that is not DRM', async () => {
+    setup({
+      files: [],
+      rawHandler: (r) => (r.method === 'PUT' ? { status: 422, body: { error_code: 'validation', message: 'Il nome del file non è valido' } } : undefined),
+    });
+    await screen.findByText(/Nessun file attaccato/);
+    await userEvent.upload(screen.getByLabelText('Scegli un e-book'), new File(['x'], 'a.epub'));
+    const block = screen.getByRole('region', { name: 'File' });
+    const alert = await within(block).findByRole('alert');
+    expect(alert).toHaveTextContent('Il nome del file non è valido');
+    expect(alert).not.toHaveTextContent('DRM');
+  });
+
+  it('keeps red for the confirmation: the row button is neutral', async () => {
+    setup({ files: [epub] });
+    const remove = await screen.findByRole('button', { name: 'Togli rosa.epub' });
+    expect(remove.className).not.toContain('toneDanger');
+    await userEvent.click(remove);
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('button', { name: 'Togli il file' }).className).toMatch(/danger/);
+  });
+
   it('draws no block for a guest and asks for no files', async () => {
     const { platform } = setup({ files: [epub], role: 'guest' });
     await screen.findByRole('heading', { level: 1, name: 'Il nome della rosa' });

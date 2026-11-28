@@ -27,11 +27,13 @@
 .dropHint {
   position: fixed;
   inset-inline: 0;
-  bottom: 24px;
+  /* The frame is the page outline, 6px out of the page: the label sits well inside it. */
+  bottom: 40px;
   z-index: var(--bk-z-overlay);
   width: fit-content;
   margin: 0 auto;
   padding: 8px 16px;
+  border: 1px solid var(--bk-border);
   border-radius: var(--bk-radius-lg);
   background: var(--bk-surface-raised);
   box-shadow: var(--bk-shadow-3);
