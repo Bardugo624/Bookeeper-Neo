@@ -905,3 +905,5 @@
 2026-11-28T12:50:01Z	bookeeper-fase-10b	desktop-entry	dwarf	sonnet	-	-	-	-	98
 2026-11-28T12:50:48Z	bookeeper-fase-10b	mobile-offline	qa	opus	FAIL	finding	a reader opened from a stored offline copy needs the real file id positions are keyed and queued by file id and an empty id is silently	a reader opened from a stored offline copy needs the real file id: positions are keyed and queued by `file.id`, and an empty id is silently… [packages/reader/src/data/positions.ts]	111	1
 2026-11-28T12:50:54Z	bookeeper-fase-10b	desktop-entry	qa	opus	PASS	-	-	-	44
+2026-11-28T12:59:06Z	bookeeper-fase-10b	mobile-offline	dwarf	opus	-	trap	a reader opened from a stored offline copy needs the real file id positions are keyed and queued by file id and an empty id is silently	a reader opened from a stored offline copy needs the real file id: positions are keyed and queued by `file.id`, and an empty id is silently… [packages/reader/src/data/positions.ts]	143	1
+2026-11-28T13:00:33Z	bookeeper-fase-10b	mobile-offline	qa	opus	PASS	-	-	-	75
