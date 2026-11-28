@@ -1,0 +1,71 @@
+{
+  "appearance": {
+    "title": "Aspetto",
+    "theme": "Tema",
+    "font": "Carattere",
+    "size": "Dimensione",
+    "size_less": "Più piccolo",
+    "size_more": "Più grande",
+    "size_value": "{size} px",
+    "line": "Interlinea",
+    "margins": "Margini",
+    "flow": "Impaginazione",
+    "fit": "Zoom",
+    "pdf_note": "Per i PDF valgono tema e zoom",
+    "justify": "Giustifica il testo",
+    "hyphenate": "Sillabazione",
+    "publisher": "Stili dell'editore",
+    "two_pages": "Due pagine quando c'è spazio",
+    "scope_desktop": "Vale per tutti i libri su questo computer",
+    "scope_phone": "Vale per tutti i libri su questo telefono",
+    "reset": "Ripristina"
+  },
+  "theme": {
+    "auto": "Auto",
+    "light": "Chiaro",
+    "sepia": "Seppia",
+    "dark": "Scuro",
+    "black": "Nero"
+  },
+  "font": {
+    "publisher": "Editore",
+    "lora": "Lora",
+    "inter": "Inter",
+    "serif": "Serif",
+    "sans": "Sans"
+  },
+  "margins": {
+    "narrow": "Stretti",
+    "medium": "Medi",
+    "wide": "Ampi"
+  },
+  "flow": {
+    "paginated": "Pagine",
+    "scrolled": "Scorrimento"
+  },
+  "fit": {
+    "width": "Adatta alla larghezza",
+    "page": "Adatta alla pagina"
+  },
+  "selection": {
+    "label": "Evidenzia e annota",
+    "note": "Nota",
+    "copy": "Copia",
+    "search": "Cerca sul web",
+    "remove": "Togli"
+  },
+  "color": {
+    "amber": "Ambra",
+    "sage": "Salvia",
+    "terracotta": "Terracotta",
+    "night": "Notte"
+  },
+  "note": {
+    "title": "Nota",
+    "label": "La tua nota",
+    "placeholder": "Scrivi una nota…",
+    "save": "Salva",
+    "cancel": "Annulla"
+  },
+  "close": "Chiudi"
+}

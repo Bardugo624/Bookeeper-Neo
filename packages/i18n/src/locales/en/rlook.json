@@ -1,0 +1,71 @@
+{
+  "appearance": {
+    "title": "Appearance",
+    "theme": "Theme",
+    "font": "Typeface",
+    "size": "Size",
+    "size_less": "Smaller",
+    "size_more": "Larger",
+    "size_value": "{size} px",
+    "line": "Line spacing",
+    "margins": "Margins",
+    "flow": "Layout",
+    "fit": "Zoom",
+    "pdf_note": "For PDFs, only theme and zoom apply",
+    "justify": "Justify text",
+    "hyphenate": "Hyphenation",
+    "publisher": "Publisher styles",
+    "two_pages": "Two pages when there is room",
+    "scope_desktop": "Applies to all books on this computer",
+    "scope_phone": "Applies to all books on this phone",
+    "reset": "Reset"
+  },
+  "theme": {
+    "auto": "Auto",
+    "light": "Light",
+    "sepia": "Sepia",
+    "dark": "Dark",
+    "black": "Black"
+  },
+  "font": {
+    "publisher": "Publisher",
+    "lora": "Lora",
+    "inter": "Inter",
+    "serif": "Serif",
+    "sans": "Sans"
+  },
+  "margins": {
+    "narrow": "Narrow",
+    "medium": "Medium",
+    "wide": "Wide"
+  },
+  "flow": {
+    "paginated": "Pages",
+    "scrolled": "Scroll"
+  },
+  "fit": {
+    "width": "Fit to width",
+    "page": "Fit to page"
+  },
+  "selection": {
+    "label": "Highlight and annotate",
+    "note": "Note",
+    "copy": "Copy",
+    "search": "Search the web",
+    "remove": "Remove"
+  },
+  "color": {
+    "amber": "Amber",
+    "sage": "Sage",
+    "terracotta": "Terracotta",
+    "night": "Night"
+  },
+  "note": {
+    "title": "Note",
+    "label": "Your note",
+    "placeholder": "Write a note…",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "close": "Close"
+}
