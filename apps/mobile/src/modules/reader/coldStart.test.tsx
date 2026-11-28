@@ -1,4 +1,5 @@
-import { screen } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { ApiError } from '@bookeeper/api';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderMobile } from '../../app/testing';
@@ -55,5 +56,15 @@ describe('a cold start without a network', () => {
     open();
     expect(await screen.findByText('Sei offline e questo libro non è sul telefono.')).toBeInTheDocument();
     expect(screen.queryByTestId('reader')).not.toBeInTheDocument();
+  });
+
+  it('retry_reloads_the_session_when_the_network_is_back', async () => {
+    const platform = open();
+    expect(await screen.findByText('Sei offline e questo libro non è sul telefono.')).toBeInTheDocument();
+    const before = platform.fake.calls.filter((c) => c.path === '/api/v1/me').length;
+    platform.network.set(true);
+    await act(async () => {});
+    await userEvent.click(await screen.findByRole('button', { name: /riprova/i }).catch(() => document.body));
+    await waitFor(() => expect(platform.fake.calls.filter((c) => c.path === '/api/v1/me').length).toBeGreaterThan(before));
   });
 });

@@ -5,6 +5,7 @@ import { Spinner } from '@bookeeper/ui/base';
 import { useLocale, useT } from '../../app/i18n';
 import { ErrorState } from '../../kit';
 import { usePlatform } from '../../platform';
+import { useOnline } from '../../shell/hooks';
 import { createAuthTransport, useClient, useSession } from '../../session';
 import { InstallSheet } from './InstallSheet';
 import { createMobileBackend } from './mobileBackend';
@@ -111,6 +112,23 @@ export function ReaderRoute() {
   const files = useReaderFiles(bookId, allowed);
   const copy = useKeptCopy(bookId);
   const back = `/books/${encodeURIComponent(bookId)}`;
+  const client = useClient();
+  const online = useOnline();
+
+  // A cold start without network leaves `me` empty: the session is read again, on «Riprova» and when the network returns.
+  const hasMe = me !== null;
+  const reloadSession = useMemo(
+    () => () => {
+      client
+        .me()
+        .then((fresh) => useSession.setState({ me: fresh, status: 'ready' }))
+        .catch(() => undefined);
+    },
+    [client],
+  );
+  useEffect(() => {
+    if (online && !hasMe) reloadSession();
+  }, [online, hasMe, reloadSession]);
 
   // Without a session (the app opened with no network) or without the server's answer, the copy on the phone is what there is.
   // A failed background refetch keeps the cached answer: that still counts as an answer.
@@ -127,7 +145,7 @@ export function ReaderRoute() {
     return <Reading bookId={bookId} title={kept.title} authors={[]} file={kept.file} />;
   }
   if (me && !allowed) return <Navigate to={back} replace />;
-  const offline = !platform.network.online();
+  const offline = !online;
   if (!me && !offline) return <Navigate to={back} replace />;
   if (!me || serverFailed) {
     return (
@@ -135,6 +153,7 @@ export function ReaderRoute() {
         <ErrorState
           message={offline ? t('mreader.offline.missing') : t('mreader.error.text')}
           onRetry={() => {
+            if (!me) reloadSession();
             void files.refetch();
             void book.refetch();
           }}
