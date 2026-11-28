@@ -1,14 +1,15 @@
+import { useNavigate } from 'react-router';
 import type { BookOut, ReadingOut } from '@bookeeper/api';
 import { Button, Icon, Skeleton } from '@bookeeper/ui/base';
 import { useLocale, useT } from '../../app';
-import { formatDate } from '../../kit';
+import { formatDate, usePermission } from '../../kit';
 import { NoteField } from './NoteField';
 import { PageField } from './PageField';
 import { ReadingRing } from './ReadingRing';
 import { ReadingStatusMenu } from './ReadingStatusMenu';
 import { StarRating } from './StarRating';
 import { fieldError } from './fieldError';
-import { bodyFrom, isStatus } from './readingModel';
+import { bodyFrom, isStatus, ringPercent } from './readingModel';
 import { tourAnchor } from '../tour';
 import { useReading, useSetReading } from './useReading';
 import styles from './ReadingCard.module.css';
@@ -63,9 +64,22 @@ function Progress({ reading, book }: { reading: ReadingOut; book: BookOut }) {
   );
 }
 
+/** «Continua · 45%»: back to the e-book of a book that is being read. */
+function Continue({ reading, book }: { reading: ReadingOut; book: BookOut }) {
+  const t = useT();
+  const navigate = useNavigate();
+  const percent = ringPercent(reading, book.page_count);
+  return (
+    <Button size="sm" variant="primary" icon="book" onClick={() => void navigate(`/read/${encodeURIComponent(book.id)}`)}>
+      {percent ? t('reading.card.continuePercent', { percent }) : t('reading.card.continue')}
+    </Button>
+  );
+}
+
 /** "Reading" card of the book page: the caller's own state, whatever their role. */
 export function ReadingCard({ book }: { book: BookOut }) {
   const t = useT();
+  const canRead = usePermission().can('write');
   const { data: reading, isPending, isError, refetch } = useReading(book.id);
   let body;
   if (isPending) {
@@ -90,6 +104,7 @@ export function ReadingCard({ book }: { book: BookOut }) {
       <>
         <Progress reading={reading} book={book} />
         <div className={styles.actions}>
+          {reading.status === 'reading' && book.file_formats.length > 0 && canRead ? <Continue reading={reading} book={book} /> : null}
           <ReadingStatusMenu bookId={book.id} reading={reading} />
         </div>
         {reading.status === 'reading' ? <PageField reading={reading} pageCount={book.page_count} /> : null}
