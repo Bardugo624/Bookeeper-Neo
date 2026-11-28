@@ -10270,6 +10270,13 @@
               "null"
             ]
           },
+          "device_kind": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`desktop` or `mobile`; null when the device no longer exists."
+          },
           "device_name": {
             "type": [
               "string",

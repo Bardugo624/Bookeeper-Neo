@@ -203,3 +203,47 @@ async fn editing_a_note_keeps_the_progress_and_clearing_the_page_clears_it() {
     assert!(v["progress_percent"].is_null(), "{v}");
     assert!(v["progress_at"].is_null(), "{v}");
 }
+
+async fn first_position(c: &Ctx) -> Value {
+    let (st, _, v) = call(
+        &c.s.state,
+        "GET",
+        &format!("/api/v1/books/{}/positions", c.book),
+        Some(&c.s.session.access_token),
+        None,
+    )
+    .await;
+    assert_eq!(st, 200, "{v}");
+    v[0].clone()
+}
+
+#[tokio::test]
+async fn positions_name_the_device_kind() {
+    let c = setup(None).await;
+    put(&c, &c.s.session.access_token, 20.0).await;
+    assert_eq!(first_position(&c).await["device_kind"], "desktop");
+    c.s.state
+        .db
+        .run(|conn| conn.execute("UPDATE devices SET kind = 'mobile'", []))
+        .await
+        .unwrap();
+    assert_eq!(first_position(&c).await["device_kind"], "mobile");
+}
+
+#[tokio::test]
+async fn a_removed_device_has_no_kind() {
+    let c = setup(None).await;
+    put(&c, &c.s.session.access_token, 20.0).await;
+    c.s.state
+        .db
+        .run(|conn| {
+            conn.execute("PRAGMA foreign_keys = OFF", [])?;
+            // The caller keeps its session; the position points at a device that is gone.
+            conn.execute("UPDATE reading_positions SET device_id = 'gone'", [])
+        })
+        .await
+        .unwrap();
+    let p = first_position(&c).await;
+    assert!(p["device_kind"].is_null(), "{p}");
+    assert!(p.as_object().unwrap().contains_key("device_kind"));
+}

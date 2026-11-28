@@ -92,7 +92,7 @@ struct Table {
     from: &'static str,
 }
 
-const TABLES: [Table; 11] = [
+const TABLES: [Table; 12] = [
     Table {
         name: "rooms",
         cols: &[
@@ -259,6 +259,27 @@ const TABLES: [Table; 11] = [
         ],
         from: "reading_positions t WHERE t.library_id = ?1",
     },
+    Table {
+        name: "annotations",
+        cols: &[
+            ("id", Id),
+            ("library_id", Text),
+            ("user_id", Id),
+            ("book_id", Id),
+            ("file_sha256", Text),
+            ("kind", Text),
+            ("cfi", Text),
+            ("text", Text),
+            ("color", Text),
+            ("note", Text),
+            ("percent", Real),
+            ("chapter", Text),
+            ("created_at", Int),
+            ("updated_at", Int),
+            ("deleted_at", Int),
+        ],
+        from: "annotations t WHERE t.library_id = ?1",
+    },
 ];
 
 const T_ROOMS: usize = 0;
@@ -272,6 +293,7 @@ const T_READING: usize = 7;
 const T_BOOK_TAGS: usize = 8;
 const T_BOOK_FILES: usize = 9;
 const T_POSITIONS: usize = 10;
+const T_ANNOTATIONS: usize = 11;
 
 const USER_COLS: [(&str, Kind); 3] = [("id", Id), ("display_name", Text), ("role", Text)];
 
@@ -810,6 +832,7 @@ pub fn restore_archive(
     )?;
     for sql in [
         "DELETE FROM reading_positions WHERE library_id = ?1",
+        "DELETE FROM annotations WHERE library_id = ?1",
         "DELETE FROM book_files WHERE library_id = ?1",
         "DELETE FROM book_tags WHERE book_id IN (SELECT id FROM books WHERE library_id = ?1)",
         "DELETE FROM shelf_books WHERE shelf_id IN (SELECT id FROM shelves WHERE library_id = ?1)",
@@ -836,6 +859,7 @@ pub fn restore_archive(
         T_READING,
         T_BOOK_FILES,
         T_POSITIONS,
+        T_ANNOTATIONS,
     ] {
         let mut map = HashMap::new();
         for row in &tables[ti] {
@@ -933,6 +957,10 @@ pub fn restore_archive(
                 }
                 T_POSITIONS => {
                     remap(&maps[&T_BOOK_FILES], row, "file_id")?;
+                    user_ref(row, "user_id", Some(&who.user_id));
+                }
+                T_ANNOTATIONS => {
+                    remap(&maps[&T_BOOKS], row, "book_id")?;
                     user_ref(row, "user_id", Some(&who.user_id));
                 }
                 _ => {}

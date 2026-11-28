@@ -2080,6 +2080,8 @@ export interface components {
         };
         PositionOut: {
             device_id?: string | null;
+            /** @description `desktop` or `mobile`; null when the device no longer exists. */
+            device_kind?: string | null;
             device_name?: string | null;
             file_id: string;
             /** @description `cfi`, `koreader` or `kobo`. */

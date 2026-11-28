@@ -268,3 +268,93 @@ async fn position_of_a_skipped_duplicate_file_is_skipped() {
     assert_eq!(count(&s.state, "book_files").await, 1);
     assert_eq!(count(&s.state, "reading_positions").await, 1);
 }
+
+async fn add_annotations(s: &Seeded, book: &str) {
+    let (l, u, b) = (s.library_id.clone(), s.user_id.clone(), book.to_string());
+    s.state
+        .db
+        .run(move |c| {
+            for (id, kind, note, deleted) in [
+                ("an-1", "highlight", Some("nota"), None),
+                ("an-2", "bookmark", None, Some(9_i64)),
+            ] {
+                c.execute(
+                    "INSERT INTO annotations (id, library_id, user_id, book_id, file_sha256, kind, \
+                     cfi, text, color, note, percent, chapter, created_at, updated_at, deleted_at) \
+                     VALUES (?1, ?2, ?3, ?4, 'abc', ?5, 'epubcfi(/6/2)', 'testo', NULL, ?6, 12.5, \
+                     'I', 1, 2, ?7)",
+                    rusqlite::params![id, l, u, b, kind, note, deleted],
+                )?;
+            }
+            Ok(())
+        })
+        .await
+        .unwrap();
+}
+
+#[tokio::test]
+async fn backup_round_trips_annotations() {
+    let s = seed(Role::Owner, None, None).await;
+    let book = insert_book(&s.state, &s.library_id, "Libro").await;
+    add_annotations(&s, &book).await;
+    let bytes = archive_of(&s).await;
+    let data = entry(&bytes, "data.json");
+    assert_eq!(data["annotations"].as_array().unwrap().len(), 2);
+    assert_eq!(entry(&bytes, "manifest.json")["counts"]["annotations"], 2);
+
+    s.state
+        .db
+        .run(|c| c.execute("DELETE FROM annotations", []))
+        .await
+        .unwrap();
+    restore(&s.state, &s, bytes).await;
+    assert_eq!(count(&s.state, "annotations").await, 2);
+    let (note, deleted): (Option<String>, Option<i64>) = s
+        .state
+        .db
+        .run(|c| {
+            c.query_row(
+                "SELECT note, deleted_at FROM annotations WHERE id = 'an-2'",
+                [],
+                |r| Ok((r.get(0)?, r.get(1)?)),
+            )
+        })
+        .await
+        .unwrap();
+    assert_eq!((note, deleted), (None, Some(9)));
+}
+
+#[tokio::test]
+async fn restore_replaces_the_annotations() {
+    let s = seed(Role::Owner, None, None).await;
+    let book = insert_book(&s.state, &s.library_id, "Libro").await;
+    add_annotations(&s, &book).await;
+    let bytes = archive_of(&s).await;
+    s.state
+        .db
+        .run(|c| {
+            c.execute("UPDATE annotations SET note = 'cambiata'", [])?;
+            c.execute(
+                "INSERT INTO annotations (id, library_id, user_id, book_id, file_sha256, kind, cfi, \
+                 percent, created_at, updated_at) SELECT 'extra', library_id, user_id, book_id, \
+                 'abc', 'bookmark', 'x', 1, 1, 1 FROM annotations LIMIT 1",
+                [],
+            )
+        })
+        .await
+        .unwrap();
+    assert_eq!(count(&s.state, "annotations").await, 3);
+    restore(&s.state, &s, bytes).await;
+    assert_eq!(count(&s.state, "annotations").await, 2);
+    let note: Option<String> = s
+        .state
+        .db
+        .run(|c| {
+            c.query_row("SELECT note FROM annotations WHERE id = 'an-1'", [], |r| {
+                r.get(0)
+            })
+        })
+        .await
+        .unwrap();
+    assert_eq!(note.as_deref(), Some("nota"));
+}
