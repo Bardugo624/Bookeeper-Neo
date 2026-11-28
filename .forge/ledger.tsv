@@ -862,3 +862,7 @@
 2026-11-28T11:32:47Z	bookeeper-fase-10b	reader-model	dwarf	sonnet	-	-	-	-	41
 2026-11-28T11:33:40Z	bookeeper-fase-10b	reader-model	qa	opus	PASS	-	-	-	44
 2026-11-28T11:36:05Z	bookeeper-fase-10b	reader-sync	dwarf	sonnet	-	-	-	-	139
+2026-11-28T11:38:53Z	bookeeper-fase-10b	reader-sync	qa	opus	FAIL	-	-	-	159
+2026-11-28T11:38:59Z	bookeeper-fase-10b	reader-view	dwarf	sonnet	-	-	-	-	313
+2026-11-28T11:39:24Z	bookeeper-fase-10b	reader-sync	dwarf	sonnet	-	-	-	-	25
+2026-11-28T11:40:26Z	bookeeper-fase-10b	reader-sync	qa	opus	FAIL	-	-	-	55
