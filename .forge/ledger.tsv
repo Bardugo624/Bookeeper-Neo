@@ -815,3 +815,5 @@
 2026-11-28T02:43:48Z	bookeeper-fase-10a	ebook-ui-import	dwarf	opus	-	trap	packages ui src casecollisions test ts compares names without extensions per folder so foo test tsx collides with foo ts	packages/ui/src/caseCollisions.test.ts compares names without extensions per folder, so `Foo.test.tsx` collides with `foo.ts` [packages/ui/src/caseCollisions.test.ts]	383	1
 2026-11-28T02:46:11Z	bookeeper-fase-10a	ebook-ui-import	qa	opus	FAIL	trap	with dragdropenabled false in apps desktop src tauri tauri conf json an unhandled file drop makes the webview navigate to the file	with "dragDropEnabled": false in apps/desktop/src-tauri/tauri.conf.json, an unhandled file drop makes the webview navigate to the file… [apps/desktop/src-tauri/tauri.conf.json]	137	1
 2026-11-28T02:46:15Z	bookeeper-fase-10a	fix-sweep-test	qa	opus	PASS	-	-	-	160
+2026-11-28T02:59:44Z	bookeeper-fase-10a	ebook-ui-import	dwarf	opus	-	-	-	-	121
+2026-11-28T03:01:42Z	bookeeper-fase-10a	ebook-ui-import	qa	opus	PASS	-	-	-	112
