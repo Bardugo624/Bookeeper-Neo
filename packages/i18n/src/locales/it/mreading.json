@@ -44,5 +44,10 @@
   "note": {
     "label": "Nota",
     "placeholder": "Cosa ne pensi?"
+  },
+  "now": {
+    "title": "In lettura",
+    "all": "Tutti i {count}",
+    "progress": "Avanzamento di {title}"
   }
 }

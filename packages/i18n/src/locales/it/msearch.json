@@ -176,5 +176,9 @@
       "file_already_attached": "Questo file è già collegato al libro.",
       "payload_too_large": "Il file è troppo grande."
     }
+  },
+  "read": {
+    "read": "Leggi",
+    "readPercent": "Leggi · {percent}%"
   }
 }
