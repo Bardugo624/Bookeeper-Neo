@@ -5,8 +5,10 @@
 //! `$APPCACHE/reader/**`.
 
 use std::collections::BTreeMap;
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use std::time::SystemTime;
+use std::sync::{Arc, Mutex, OnceLock};
+use std::time::{Duration, SystemTime};
 
 use sha2::{Digest, Sha256};
 use tokio::io::AsyncReadExt;
@@ -16,6 +18,22 @@ use crate::download::{self, Source};
 
 /// How many files stay in the cache.
 pub const KEEP: usize = 10;
+
+/// A hidden file (`.<uuid>.part`, `.bookeeper-*.tmp`) older than this is a leftover of an
+/// interrupted copy and is deleted.
+pub const STALE_AFTER: Duration = Duration::from_secs(3600);
+
+/// One lock per destination file: a second request for the same book waits for the first.
+fn lock_for(dest: &Path) -> Arc<tokio::sync::Mutex<()>> {
+    static LOCKS: OnceLock<Mutex<HashMap<PathBuf, Arc<tokio::sync::Mutex<()>>>>> = OnceLock::new();
+    let mut map = LOCKS
+        .get_or_init(Default::default)
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    // Locks nobody holds or waits for any more (only the map owns them) are dropped.
+    map.retain(|_, l| Arc::strong_count(l) > 1);
+    Arc::clone(map.entry(dest.to_owned()).or_default())
+}
 
 /// What the webview asks for.
 pub struct ReaderFile<'a> {
@@ -66,6 +84,13 @@ pub async fn fetch(
     tokio::fs::create_dir_all(&dir)
         .await
         .map_err(|e| format!("cannot create {}: {e}", dir.display()))?;
+    let lock = lock_for(&dest);
+    let _guard = lock.lock().await;
+    // The request that held the lock may have just finished the copy.
+    if tokio::fs::metadata(&dest).await.is_ok_and(|m| m.is_file()) {
+        touch(&dest);
+        return Ok(dest);
+    }
 
     let path = format!(
         "/api/v1/books/{}/files/{}/content",
@@ -120,11 +145,31 @@ fn touch(path: &Path) {
 }
 
 /// Deletes the least recently used files of `dir` until `keep` remain. `protect` is never
-/// deleted (it is the file just served). Hidden files (copies in progress) are left alone.
+/// deleted (it is the file just served). Hidden files (copies in progress) are not counted and
+/// are left alone, unless they are older than [`STALE_AFTER`]: those are leftovers of an
+/// interrupted copy and are deleted.
 pub fn prune(dir: &Path, keep: usize, protect: &Path) {
     let Ok(entries) = std::fs::read_dir(dir) else {
         return;
     };
+    let now = SystemTime::now();
+    for e in std::fs::read_dir(dir)
+        .into_iter()
+        .flatten()
+        .filter_map(Result::ok)
+    {
+        let name = e.file_name().to_string_lossy().into_owned();
+        let leftover = name.starts_with('.') && (name.ends_with(".part") || name.ends_with(".tmp"));
+        let old = e
+            .metadata()
+            .ok()
+            .filter(|m| m.is_file())
+            .and_then(|m| m.modified().ok())
+            .is_some_and(|t| now.duration_since(t).is_ok_and(|age| age > STALE_AFTER));
+        if leftover && old {
+            let _ = std::fs::remove_file(e.path());
+        }
+    }
     let mut files: Vec<(SystemTime, PathBuf)> = entries
         .filter_map(Result::ok)
         .filter(|e| !e.file_name().to_string_lossy().starts_with('.'))
