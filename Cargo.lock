@@ -649,7 +649,7 @@ dependencies = [
 
 [[package]]
 name = "bookeeper-core"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "argon2",
  "async-trait",
@@ -685,7 +685,7 @@ dependencies = [
 
 [[package]]
 name = "bookeeper-desktop"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "axum",
  "axum-server",
@@ -723,7 +723,7 @@ dependencies = [
 
 [[package]]
 name = "bookeeper-net"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "mdns-sd",
  "rcgen",
@@ -738,7 +738,7 @@ dependencies = [
 
 [[package]]
 name = "bookeeper-server"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "axum",
  "axum-server",
@@ -764,7 +764,7 @@ dependencies = [
 
 [[package]]
 name = "bookeeper-setup"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "bookeeper-setup-core",
  "serde",
@@ -780,7 +780,7 @@ dependencies = [
 
 [[package]]
 name = "bookeeper-setup-core"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "self-replace",
  "semver",
