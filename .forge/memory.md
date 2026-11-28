@@ -5,8 +5,14 @@
 
 ## Verify
 - cargo test --offline -p bookeeper-desktop && cargo clippy --offline -p bookeeper-desktop --all-targets -- -D warnings [apps/desktop/src-tauri/Cargo.toml]
+- a throwaway mobile vitest in the scratchpad also needs a `node_modules` symlink to the repo root's node_modules next to the test file, and the config… [apps/mobile/vite.config.ts]
+- npm ci --offline at the root, then `npm test -w @bookeeper/ui` and `npm test -w @bookeeper/reader` [package.json]
 - from apps/desktop, `npx vitest run src/modules/books src/modules/reading src/kit/styles.test.ts` runs in about 50 s; `npm run typecheck` can exceed the… [apps/desktop/package.json]
 - cd apps/mobile && npx vitest run src/modules/reader src/modules/search (after `npm ci --offline` at the root) [apps/mobile/package.json]
+- from packages/reader, `npx vitest run src/app && npx tsc --noEmit` runs the reader app tests and typecheck [packages/reader/package.json]
+- from packages/reader, `npx vitest run src/model src/styleCheck.test.ts` and `npx tsc --noEmit` run the model tests and the package typecheck in… [packages/reader/package.json]
+- NODE_PATH=$(npm root -g) node packages/reader/e2e/run.mjs --browsers chromium (needs `npm ci --offline` at the root first; browsers live in… [packages/reader/e2e/run.mjs]
+- npm install at the root, then npm test -w @bookeeper/reader && npm run typecheck -w @bookeeper/reader [packages/reader/package.json]
 - from apps/desktop, `npx vitest run src/modules/welcome src/kit/styles.test.ts` runs the welcome tests and the app's CSS lint in about 10 s [apps/desktop/src/kit/styles.test.ts]
 - cargo check --offline --target x86_64-pc-windows-msvc -p bookeeper-setup works from the committed files and type-checks the Setup's Windows-only… [apps/setup/src-tauri/Cargo.toml]
 - cargo check --target x86_64-pc-windows-msvc -p bookeeper-setup --lib --bins type-checks the Windows-only code and the manifest build step from Linux [apps/setup/src-tauri/build.rs]
@@ -22,12 +28,4 @@
 - npm install && npm run typecheck -w @bookeeper/mobile && npm test -w @bookeeper/mobile && npm run build -w @bookeeper/mobile && cargo test --offline -p… [apps/mobile/package.json]
 - cargo zigbuild --release --locked -p bookeeper-server --target x86_64-unknown-linux-musl (needs `pip install ziglang`, `cargo install --locked… [.github/workflows/release.yml]
 - npm ci --offline && npm run gen -w @bookeeper/api && npm test -w @bookeeper/api [packages/api/package.json]
-- zip 2 `ZipWriter::raw_copy_file_rename` lets a test build a >1 GB-decompressed hostile archive cheaply by copying one compressed entry [crates/bookeeper-core/tests/backup_api.rs]
-- cargo test --offline -p bookeeper-core --test <name> works from committed files (cargo registry cache is present) [crates/bookeeper-core/Cargo.toml]
-- UPDATE_OPENAPI=1 cargo test -p bookeeper-core --test openapi -- --include-ignored && npm run gen -w @bookeeper/api && npm test -w @bookeeper/api [packages/api/openapi.json]
-
-## Known traps
-- a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/mobile [apps/mobile/package.json]
-- a fresh worktree needs `npm ci --offline` at the root before `npx vitest run` works in apps/desktop [apps/desktop/package.json]
-- a fresh worktree needs `npm ci --offline` at the root before `npm run gen -w @bookeeper/api` works [packages/api/package.json]
 

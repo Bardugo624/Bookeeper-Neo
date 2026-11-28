@@ -911,3 +911,28 @@
 2026-11-28T13:06:51Z	bookeeper-fase-10b	mobile-entry	qa	opus	PASS	-	-	-	108
 2026-11-28T13:18:56Z	bookeeper-fase-10b	verify-fix	dwarf	sonnet	-	-	-	-	38
 2026-11-28T13:19:42Z	bookeeper-fase-10b	verify-fix	qa	opus	PASS	-	-	-	37
+2026-11-28T13:54:03Z	bookeeper-fase-10b1	server-p3	dwarf	sonnet	-	-	-	-	69
+2026-11-28T13:54:17Z	bookeeper-fase-10b1	core-p3	dwarf	sonnet	-	trap	annotations id is the primary key across the whole server so lookups by id must not filter by library id or a cross library	`annotations.id` is the primary key across the whole server, so lookups by `id` must not filter by `library_id` or a cross-library… [crates/bookeeper-core/src/api/annotations.rs]	83	1
+2026-11-28T13:55:26Z	bookeeper-fase-10b1	server-p3	qa	opus	PASS	-	-	-	74
+2026-11-28T13:56:02Z	bookeeper-fase-10b1	core-p3	qa	opus	PASS	-	-	-	96
+2026-11-28T13:57:37Z	bookeeper-fase-10b1	desktop-ui-p3	dwarf	sonnet	-	-	-	-	89
+2026-11-28T13:58:10Z	bookeeper-fase-10b1	desktop-native-p3	dwarf	sonnet	-	trap	covers process in bookeeper core rifiuta immagini sotto 80x80 quindi una copertina di test pi piccola d 404	covers::process in bookeeper-core rifiuta immagini sotto 80x80, quindi una copertina di test più piccola dà 404 [crates/bookeeper-core/src/covers.rs]	156	1
+2026-11-28T13:58:32Z	bookeeper-fase-10b1	desktop-ui-p3	qa	opus	PASS	-	-	-	46
+2026-11-28T14:00:11Z	bookeeper-fase-10b1	desktop-native-p3	qa	opus	PASS	-	-	-	113
+2026-11-28T14:00:42Z	bookeeper-fase-10b1	reader-view-p3	dwarf	sonnet	-	-	-	-	123
+2026-11-28T14:01:24Z	bookeeper-fase-10b1	reader-misc-p3	dwarf	sonnet	-	-	-	-	64
+2026-11-28T14:02:35Z	bookeeper-fase-10b1	reader-view-p3	qa	opus	FAIL	-	-	-	104
+2026-11-28T14:03:00Z	bookeeper-fase-10b1	reader-view-p3	dwarf	sonnet	-	-	-	-	18
+2026-11-28T14:03:14Z	bookeeper-fase-10b1	reader-misc-p3	qa	opus	FAIL	finding	moving the annotation since pull marker forward from local writes skips remote edits not yet pulled it may only advance after a pull	moving the annotation `since` pull marker forward from local writes skips remote edits not yet pulled; it may only advance after a pull… [packages/reader/src/data/annotations.ts]	102	1
+2026-11-28T14:03:41Z	bookeeper-fase-10b1	reader-view-p3	qa	opus	PASS	-	-	-	32
+2026-11-28T14:04:02Z	bookeeper-fase-10b1	reader-misc-p3	dwarf	sonnet	-	trap	annotation store since may move forward from own writes only after a pull from the previous marker succeeds otherwise remote edits are	annotation store `since` may move forward from own writes only after a pull from the previous marker succeeds; otherwise remote edits are… [packages/reader/src/data/annotations.ts]	41	1
+2026-11-28T14:05:11Z	bookeeper-fase-10b1	reader-misc-p3	qa	opus	PASS	-	-	-	60
+2026-11-28T14:05:46Z	bookeeper-fase-10b1	reader-look-p3	dwarf	sonnet	-	verify	npm ci offline at the root then npm test w bookeeper ui and npm test w bookeeper reader	npm ci --offline at the root, then `npm test -w @bookeeper/ui` and `npm test -w @bookeeper/reader` [package.json]	117	1
+2026-11-28T14:06:20Z	bookeeper-fase-10b1	mobile-p3	dwarf	sonnet	-	-	-	-	60
+2026-11-28T14:08:11Z	bookeeper-fase-10b1	reader-look-p3	qa	opus	FAIL	finding	jsdom reader tests can t catch css layout bugs like an absolutely positioned child without a positioned parent check new overlay css	jsdom reader tests can't catch CSS layout bugs like an absolutely positioned child without a positioned parent; check new overlay CSS… [packages/reader/src/ui/look/Look.module.css]	135	1
+2026-11-28T14:08:11Z	bookeeper-fase-10b1	reader-look-p3	qa	opus	FAIL	trap	the reader page is an iframe so radix outside click focus dismissal never fires for clicks on the book page host overlays must close	the reader page is an iframe, so Radix outside-click/focus dismissal never fires for clicks on the book page; host overlays must close… [packages/reader/src/frame/docEvents.ts]	135	1
+2026-11-28T14:08:48Z	bookeeper-fase-10b1	reader-look-p3	dwarf	sonnet	-	trap	the reader page is an iframe so radix outside click focus dismissal never fires for clicks on the book page host overlays must close	the reader page is an iframe, so Radix outside-click/focus dismissal never fires for clicks on the book page; host overlays must close… [packages/reader/src/frame/docEvents.ts]	31	1
+2026-11-28T14:09:06Z	bookeeper-fase-10b1	mobile-p3	qa	opus	FAIL	verify	a throwaway mobile vitest in the scratchpad also needs a node modules symlink to the repo root s node modules next to the test file and the config	a throwaway mobile vitest in the scratchpad also needs a `node_modules` symlink to the repo root's node_modules next to the test file, and the config… [apps/mobile/vite.config.ts]	157	1
+2026-11-28T14:10:08Z	bookeeper-fase-10b1	reader-look-p3	qa	opus	PASS	-	-	-	73
+2026-11-28T14:10:15Z	bookeeper-fase-10b1	mobile-p3	dwarf	sonnet	-	-	-	-	63
+2026-11-28T14:11:50Z	bookeeper-fase-10b1	mobile-p3	qa	opus	FAIL	finding	in the mobile readerroute any change that makes me or the files book queries change while a kept copy is on screen goes through	in the mobile ReaderRoute, any change that makes `me` or the files/book queries change while a kept copy is on screen goes through… [apps/mobile/src/modules/reader/ReaderRoute.tsx]	87	1
