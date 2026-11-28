@@ -232,11 +232,11 @@
 .bottom[data-layout='phone'] .plain,
 .bottom[data-layout='phone'] .primary {
   min-width: 44px;
-  min-height: 44px;
+  min-height: 48px;
 }
 
 .bottom[data-layout='phone'] :global([data-track]) {
-  height: 44px;
+  height: 48px;
 }
 
 .bottom[data-layout='phone'] {

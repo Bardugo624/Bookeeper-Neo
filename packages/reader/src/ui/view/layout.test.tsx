@@ -38,3 +38,12 @@ it('animations_sit_inside_reduced_motion_no_preference', () => {
 it('the_motion_helper_cuts_nested_blocks', () => {
   expect(outsideMotion(`a{x:1} ${MEDIA} { a { transition: x } @keyframes k { from {a:b} } } b{y:2}`).replace(/\s+/g, '')).toBe('a{x:1}b{y:2}');
 });
+
+it('phone_controls_in_the_bottom_bar_are_at_least_48_px_tall', () => {
+  const bars = readFileSync(join(dir, 'Bars.module.css'), 'utf8');
+  const phone = bars.match(/\/\* Phone: touch targets[^]*?\n\}\n\n[^]*?\[data-track\]\) \{[^}]*\}/)?.[0] ?? '';
+  expect(phone).toMatch(/\.jumpBack,[^{]*\.plain,[^{]*\.primary \{[^}]*min-height: 48px/);
+  expect(phone).toMatch(/\[data-track\]\) \{\s*height: 48px/);
+  const slider = readFileSync(join(dir, 'ProgressSlider.module.css'), 'utf8');
+  expect(slider).toMatch(/@media \(pointer: coarse\) \{\s*\.track \{\s*height: 48px/);
+});

@@ -1,9 +1,14 @@
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { THEME_COLORS } from '../../model';
 import { ReaderLocale } from '../../i18n';
 import { Reader } from './Reader';
 import { Sheet } from './Sheet';
+
+/** jsdom has no PointerEvent: a MouseEvent with the pointer's type carries `clientY`. */
+function pointer(type: string, el: Element, init: { clientY?: number; pointerId?: number }) {
+  fireEvent(el, new MouseEvent(type, { bubbles: true, cancelable: true, clientY: init.clientY ?? 0 }));
+}
 
 const base = { chromeVisible: true, progress: 0.25, top: <header>top</header>, bottom: <footer>bottom</footer> };
 
@@ -55,5 +60,53 @@ describe('Sheet', () => {
     expect(document.documentElement).toHaveAttribute('data-reader-sheet');
     rerender(<ReaderLocale locale="it"><Sheet open={false} onOpenChange={() => {}} title="Note">contenuto</Sheet></ReaderLocale>);
     expect(document.documentElement).not.toHaveAttribute('data-reader-sheet');
+  });
+
+  it('marks_its_own_dialog_even_with_another_dialog_on_the_page', () => {
+    render(
+      <ReaderLocale locale="it">
+        <div role="dialog" aria-label="altro" />
+        <Sheet open onOpenChange={() => {}} title="Note">contenuto</Sheet>
+        <div role="dialog" aria-label="dopo" />
+      </ReaderLocale>,
+    );
+    expect(screen.getByRole('dialog', { name: 'Note' })).toHaveAttribute('data-reader-sheet-dialog');
+    expect(screen.getByRole('dialog', { name: 'altro', hidden: true })).not.toHaveAttribute('data-reader-sheet-dialog');
+    expect(screen.getByRole('dialog', { name: 'dopo', hidden: true })).not.toHaveAttribute('data-reader-sheet-dialog');
+  });
+
+  it('a_press_on_the_close_button_is_not_a_pull_and_closes_the_sheet', () => {
+    const onOpenChange = vi.fn();
+    render(
+      <ReaderLocale locale="it">
+        <Sheet open onOpenChange={onOpenChange} title="Note">contenuto</Sheet>
+      </ReaderLocale>,
+    );
+    const dialog = screen.getByRole('dialog', { name: 'Note' });
+    const capture = vi.fn();
+    dialog.setPointerCapture = capture;
+    const close = screen.getByRole('button', { name: 'Chiudi' });
+    pointer('pointerdown', close, { clientY: 0, pointerId: 1 });
+    expect(capture).not.toHaveBeenCalled();
+    fireEvent.click(close);
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('pulling_the_top_band_raises_the_sheet', () => {
+    render(
+      <ReaderLocale locale="it">
+        <Sheet open onOpenChange={() => {}} title="Note">contenuto</Sheet>
+      </ReaderLocale>,
+    );
+    const dialog = screen.getByRole('dialog', { name: 'Note' });
+    dialog.setPointerCapture = vi.fn();
+    dialog.getBoundingClientRect = () => ({ top: 300, height: 500, bottom: 800, left: 0, right: 390, width: 390, x: 0, y: 300, toJSON: () => ({}) });
+    pointer('pointerdown', dialog, { clientY: 310, pointerId: 1 });
+    expect(dialog.setPointerCapture).toHaveBeenCalled();
+    pointer('pointermove', dialog, { clientY: 210, pointerId: 1 });
+    expect(dialog.style.getPropertyValue('--reader-sheet-h')).toBe(`${Math.min(window.innerHeight, 600)}px`);
+    pointer('pointerup', dialog, { pointerId: 1 });
+    pointer('pointermove', dialog, { clientY: 100, pointerId: 1 });
+    expect(dialog.style.getPropertyValue('--reader-sheet-h')).toBe(`${Math.min(window.innerHeight, 600)}px`);
   });
 });

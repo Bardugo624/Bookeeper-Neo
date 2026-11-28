@@ -1,4 +1,4 @@
-/* The sheet is the only dialog open while `data-reader-sheet` is on <html>. */
+/* The sheet's own dialog, marked from an anchor inside its content. */
 :global([role='dialog'][data-reader-sheet-dialog]) {
   top: auto;
   right: 0;
@@ -11,6 +11,11 @@
   border-radius: var(--bk-radius-lg) var(--bk-radius-lg) 0 0;
   padding-bottom: env(safe-area-inset-bottom);
   touch-action: pan-y;
+}
+
+/* The header holds the grip band: a vertical drag there is a pull, never a scroll the browser takes. */
+:global([role='dialog'][data-reader-sheet-dialog] > header) {
+  touch-action: none;
 }
 
 /* The pull-up grip: the top band of the sheet. */
