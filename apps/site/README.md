@@ -10,6 +10,10 @@ node apps/site/serve.mjs 4321     # la serve in locale
 node --test apps/site/test/*.test.mjs   # test dei download
 ```
 
+## Cache
+
+Cloudflare, davanti al sito, impone 4 ore di cache del browser a CSS e JavaScript, qualunque cosa dica Caddy. Per questo la build mette nell'indirizzo di ogni stile, script e immagine un'impronta del suo contenuto (`?v=…`). Un file cambiato ha un indirizzo nuovo, quindi pagina nuova e stile vecchio non possono convivere. Le pagine HTML non vanno in cache (`no-cache`).
+
 ## Struttura
 
 - `src/strings.mjs`: tutti i testi, IT e EN. Le citazioni sono copiate da `docs/citazioni/citazioni.json`, con la loro fonte.
