@@ -117,17 +117,21 @@ export function ReaderRoute() {
 
   // A cold start without network leaves `me` empty: the session is read again, on «Riprova» and when the network returns.
   const hasMe = me !== null;
+  // `settled` says a reload made with the network up ended without a session: only then is there nothing left to wait for.
+  // A reload that failed while offline says nothing about the server.
+  const [settled, setSettled] = useState(false);
   const reloadSession = useMemo(
-    () => () => {
+    () => (withNetwork: boolean) => {
+      setSettled(false);
       client
         .me()
         .then((fresh) => useSession.setState({ me: fresh, status: 'ready' }))
-        .catch(() => undefined);
+        .catch(() => setSettled(withNetwork));
     },
     [client],
   );
   useEffect(() => {
-    if (online && !hasMe) reloadSession();
+    if (online && !hasMe) reloadSession(true);
   }, [online, hasMe, reloadSession]);
 
   // Without a session (the app opened with no network) or without the server's answer, the copy on the phone is what there is.
@@ -146,6 +150,13 @@ export function ReaderRoute() {
   }
   if (me && !allowed) return <Navigate to={back} replace />;
   const offline = !online;
+  if (!me && !offline && !settled) {
+    return (
+      <div className={styles.state}>
+        <Spinner label={t('mreader.loading')} />
+      </div>
+    );
+  }
   if (!me && !offline) return <Navigate to={back} replace />;
   if (!me || serverFailed) {
     return (
@@ -153,7 +164,7 @@ export function ReaderRoute() {
         <ErrorState
           message={offline ? t('mreader.offline.missing') : t('mreader.error.text')}
           onRetry={() => {
-            if (!me) reloadSession();
+            if (!me) reloadSession(online);
             void files.refetch();
             void book.refetch();
           }}

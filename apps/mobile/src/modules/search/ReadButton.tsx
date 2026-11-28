@@ -11,7 +11,7 @@ import styles from './ReadButton.module.css';
 export const readPath = (bookId: string) => `/read/${encodeURIComponent(bookId)}`;
 
 /**
- * «Leggi» above the files: opens the reader, with the percent once the book is started.
+ * «Leggi» right under the title: opens the reader, with the percent once the book is started.
  * Drawn only for who may read the files and when the book has one.
  */
 export function ReadButton({ book }: { book: BookOut }) {
