@@ -77,6 +77,8 @@ export type FromFrame =
   | { type: 'selection-cleared' }
   | { type: 'mark-click'; id: string; rect: Rect }
   | { type: 'tap'; zone: 'start' | 'center' | 'end' }
+  /** A page turned by a swipe: foliate-js has already moved it, so the app only does what a turn does. */
+  | { type: 'swipe'; direction: 'next' | 'prev' }
   | { type: 'key'; key: string; ctrl: boolean; meta: boolean; shift: boolean; alt: boolean }
   | {
       type: 'search-result';

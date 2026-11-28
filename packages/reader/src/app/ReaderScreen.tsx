@@ -68,9 +68,9 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
   const closePanel = useCallback(() => (desktop ? change({ ...settings, panelOpen: false }) : setSheet(false)), [desktop, change, settings]);
 
   const chrome = useChrome({ layout: platform, hold: !!q.question || appearance || !!editing || (!desktop && sheet) });
-  const turn = useCallback(
+  // What any page turn does: by a key or a tap, which then moves the page, or by a swipe, which foliate-js has moved.
+  const turned = useCallback(
     (direction: 'next' | 'prev') => {
-      if (!engine) return;
       turning.current = direction;
       // A turn that moves nothing (the last page) sends no `relocate`: the flag must not outlive it.
       clearTimeout(turnTimer.current);
@@ -79,10 +79,17 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
       search.releaseMarks();
       jumps.turned(direction);
       chrome.hide();
+    },
+    [q, jumps, chrome, search.releaseMarks],
+  );
+  const turn = useCallback(
+    (direction: 'next' | 'prev') => {
+      if (!engine) return;
+      turned(direction);
       if (direction === 'next') engine.next();
       else engine.prev();
     },
-    [engine, q, jumps, chrome, search.releaseMarks],
+    [engine, turned],
   );
   const appearanceRef = useRef(appearance);
   appearanceRef.current = appearance;
@@ -115,9 +122,10 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
         if (m.zone === 'center') chrome.onTap('center');
         else turn(m.zone === 'start' ? 'prev' : 'next');
       }),
+      engine.on('swipe', (m) => turned(m.direction)),
     ];
     return () => offs.forEach((off) => off());
-  }, [engine, onFrameKey, chrome.onTap, turn]);
+  }, [engine, onFrameKey, chrome.onTap, turn, turned]);
 
   const close = useCallback(async () => {
     await Promise.race([keeper.flush().catch(() => undefined), new Promise((r) => setTimeout(r, CLOSE_WAIT_MS))]);
