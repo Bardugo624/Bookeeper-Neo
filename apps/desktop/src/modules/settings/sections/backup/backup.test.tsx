@@ -37,6 +37,16 @@ describe('e-book note', () => {
     expect(note).toHaveTextContent('cartella «ebooks»');
     expect(note).toHaveTextContent('basta copiare quelli nuovi');
   });
+
+  it('is the block description, like the other blocks', async () => {
+    renderBackup({ role: 'admin' });
+    const note = await screen.findByRole('region', { name: 'Gli e-book' });
+    const text = within(note).getByText(/non sono nell'archivio/);
+    const other = within(await screen.findByRole('region', { name: 'Backup' })).getByText(/Salva in un file/);
+    expect(text.tagName).toBe('P');
+    expect(text.parentElement).toBe(note);
+    expect(text.className).toBe(other.className);
+  });
 });
 
 describe('backup now', () => {
