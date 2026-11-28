@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { delimiter, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gitOnlyDir, installFakeGh } from '../fake-gh.mjs';
+import { bumpVersion, readVersion } from '../version.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 export const projectRoot = join(here, '..', '..', '..');
@@ -16,6 +17,10 @@ const VERSION_FILES = [
   'Cargo.toml', 'Cargo.lock', 'package-lock.json', 'CHANGELOG.md', 'apps/desktop/src-tauri/tauri.conf.json', 'packages/api/openapi.json',
   ...['packages/ui', 'packages/api', 'packages/i18n', 'apps/desktop', 'apps/mobile', 'apps/setup'].map((p) => `${p}/package.json`),
 ];
+
+// The tests speak of 2.1.0 and its changelog: the copy is set to them, whatever version this project is at.
+const FIXTURE_VERSION = '2.1.0';
+const FIXTURE_CHANGELOG = '# Changelog\n\n## [2.1.0] - 2026-11-27\n\n### Added\n\n- Una novità.\n';
 
 export const git = (cwd, ...a) => spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { cwd, encoding: 'utf8' });
 
@@ -34,6 +39,8 @@ export function repo(branchName = 'main') {
     mkdirSync(dirname(join(dir, f)), { recursive: true });
     copyFileSync(join(projectRoot, f), join(dir, f));
   }
+  if (readVersion(dir) !== FIXTURE_VERSION) bumpVersion(dir, FIXTURE_VERSION);
+  writeFileSync(join(dir, 'CHANGELOG.md'), FIXTURE_CHANGELOG);
   git(dir, 'add', '.');
   git(dir, 'commit', '-m', 'base');
   git(dir, 'remote', 'add', 'origin', remote);
