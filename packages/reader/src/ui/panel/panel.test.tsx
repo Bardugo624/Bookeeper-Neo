@@ -319,6 +319,7 @@ describe('CompanionPanel', () => {
 
 it('small_percents_have_one_decimal', () => {
   expect(formatPercent(0.004)).toBe('0,4%');
+  expect(formatPercent(0.004, 'en')).toBe('0.4%');
   expect(formatPercent(0.0951)).toBe('9,5%');
   expect(formatPercent(0.1)).toBe('10%');
   expect(formatPercent(0.426)).toBe('43%');

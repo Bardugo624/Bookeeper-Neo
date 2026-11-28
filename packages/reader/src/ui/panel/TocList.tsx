@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { TocItem } from '../../engine/protocol';
-import { useReaderT } from '../../i18n';
+import { useReaderLocale, useReaderT } from '../../i18n';
 import { formatPercent } from '../view/format';
 import styles from './TocList.module.css';
 
@@ -12,6 +12,7 @@ export interface TocListProps {
 }
 
 function Level({ items, current, onGo, depth }: TocListProps & { depth: number }) {
+  const locale = useReaderLocale();
   return (
     <ul className={styles.list} style={{ '--depth': depth } as React.CSSProperties}>
       {items.map((item, i) => {
@@ -27,7 +28,7 @@ function Level({ items, current, onGo, depth }: TocListProps & { depth: number }
             >
               <span className={styles.label}>{item.label}</span>
               {item.fraction === null ? null : (
-                <span className={styles.percent}>{formatPercent(item.fraction)}</span>
+                <span className={styles.percent}>{formatPercent(item.fraction, locale)}</span>
               )}
             </button>
             {item.children.length > 0 ? (
