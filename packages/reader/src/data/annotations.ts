@@ -167,6 +167,9 @@ export function createAnnotationStore(
           since = Math.max(since ?? 0, r.updated_at);
           changed = merge(r) || changed;
         }
+        // After a full load, later pulls must ask with `since` so they also
+        // bring tombstones, even when this first load was empty.
+        since ??= 0;
         if (changed) notify();
         return true;
       } catch (e) {

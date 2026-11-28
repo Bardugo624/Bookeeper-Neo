@@ -95,7 +95,7 @@ export function createPositionKeeper(
       if (dirty) await send();
       else await chain;
     },
-    local: () => readLocal(storage, fileId),
+    local: () => latest ?? readLocal(storage, fileId),
     drain,
   };
 }

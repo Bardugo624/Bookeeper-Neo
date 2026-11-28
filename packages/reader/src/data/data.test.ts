@@ -88,6 +88,14 @@ describe('position keeper', () => {
     expect(storage.getItem('bookeeper.reader.position.f1')).not.toBeNull();
   });
 
+  it('local_survives_a_storage_that_refuses_writes', () => {
+    const { backend } = fakeBackend();
+    const full = { getItem: () => null, setItem: () => { throw new Error('QuotaExceeded'); } };
+    const k = createPositionKeeper(backend, 'f1', full, () => 9);
+    k.record(reloc(0.25, 'y'));
+    expect(k.local()).toEqual({ value: 'y', percent: 25, at: 9 });
+  });
+
   it('offline_saves_wait_in_the_queue_and_leave_later', async () => {
     const { backend, state } = fakeBackend();
     const k = createPositionKeeper(backend, 'f1', memStorage(), () => 100);
@@ -174,6 +182,18 @@ describe('annotation store', () => {
     state.remote.set('d', row('d', 21));
     await s.sync();
     expect(s.list().map((a) => a.id)).toEqual(['b', 'c', 'd']);
+  });
+
+  it('an_empty_first_pull_still_sees_later_tombstones', async () => {
+    const { backend, state } = fakeBackend();
+    const s = createAnnotationStore(backend, book, clock, uuid);
+    await s.sync();
+    await s.add(hl);
+    // another device deletes it before we pull again
+    state.remote.set('id-1', { ...state.remote.get('id-1')!, updated_at: 2000, deleted_at: 2000 });
+    await s.sync();
+    expect(backend.listAnnotations).toHaveBeenLastCalledWith(0);
+    expect(s.list()).toEqual([]);
   });
 
   it('offline_edits_survive_a_restart_with_idb_queue', async () => {
