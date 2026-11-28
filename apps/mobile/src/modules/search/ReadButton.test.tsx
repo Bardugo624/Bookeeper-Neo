@@ -30,6 +30,14 @@ describe('«Leggi» on the book page', () => {
     expect(screen.queryByRole('link', { name: /^Leggi/ })).toBeNull();
   });
 
+  it('read_sits_right_under_the_title', async () => {
+    open({ file_formats: ['epub'], authors: ['Frank Herbert'] });
+    const link = await screen.findByRole('link', { name: 'Leggi' });
+    const title = screen.getByRole('heading', { level: 2, name: 'Dune' });
+    const hero = title.parentElement!;
+    expect(hero.nextElementSibling).toBe(link);
+  });
+
   it('read_says_the_percent', async () => {
     open({ file_formats: ['epub'], reading: { status: 'reading', progress_percent: 4, current_page: null } });
     expect(await screen.findByRole('link', { name: 'Leggi · 4%' })).toBeTruthy();

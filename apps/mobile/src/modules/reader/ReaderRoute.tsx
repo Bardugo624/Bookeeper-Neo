@@ -5,6 +5,7 @@ import { Spinner } from '@bookeeper/ui/base';
 import { useLocale, useT } from '../../app/i18n';
 import { ErrorState } from '../../kit';
 import { usePlatform } from '../../platform';
+import { useOnline } from '../../shell/hooks';
 import { createAuthTransport, useClient, useSession } from '../../session';
 import { InstallSheet } from './InstallSheet';
 import { createMobileBackend } from './mobileBackend';
@@ -111,6 +112,33 @@ export function ReaderRoute() {
   const files = useReaderFiles(bookId, allowed);
   const copy = useKeptCopy(bookId);
   const back = `/books/${encodeURIComponent(bookId)}`;
+  const client = useClient();
+  const online = useOnline();
+
+  // A cold start without network leaves `me` empty: the session is read again, on «Riprova» and when the network returns.
+  const hasMe = me !== null;
+  // `settled` says a reload made with the network up ended without a session: only then is there nothing left to wait for.
+  // A reload that failed while offline says nothing about the server.
+  const [settled, setSettled] = useState(false);
+  // Only the latest reload speaks: an older one that fails late does not end the wait of a newer one.
+  const reloads = useRef(0);
+  const reloadSession = useMemo(
+    () => (withNetwork: boolean) => {
+      const seq = ++reloads.current;
+      setSettled(false);
+      client
+        .me()
+        .then((fresh) => useSession.setState({ me: fresh, status: 'ready' }))
+        .catch(() => seq === reloads.current && setSettled(withNetwork));
+    },
+    [client],
+  );
+  // The kept copy on screen needs no session: reading it again would only close the reader under the person.
+  useEffect(() => {
+    if (online && !hasMe && copy === null) reloadSession(true);
+  }, [online, hasMe, copy, reloadSession]);
+  // Once the kept copy is open it stays open: a session or listing arriving later does not swap the reader.
+  const copyShownFor = useRef<string | null>(null);
 
   // Without a session (the app opened with no network) or without the server's answer, the copy on the phone is what there is.
   // A failed background refetch keeps the cached answer: that still counts as an answer.
@@ -122,12 +150,20 @@ export function ReaderRoute() {
       </div>
     );
   }
-  if (copy && (!me || serverFailed)) {
+  if (copy && (copyShownFor.current === bookId || !me || serverFailed)) {
+    copyShownFor.current = bookId;
     const kept = fromCopy(copy);
     return <Reading bookId={bookId} title={kept.title} authors={[]} file={kept.file} />;
   }
   if (me && !allowed) return <Navigate to={back} replace />;
-  const offline = !platform.network.online();
+  const offline = !online;
+  if (!me && !offline && !settled) {
+    return (
+      <div className={styles.state}>
+        <Spinner label={t('mreader.loading')} />
+      </div>
+    );
+  }
   if (!me && !offline) return <Navigate to={back} replace />;
   if (!me || serverFailed) {
     return (
@@ -135,6 +171,7 @@ export function ReaderRoute() {
         <ErrorState
           message={offline ? t('mreader.offline.missing') : t('mreader.error.text')}
           onRetry={() => {
+            if (!me) reloadSession(online);
             void files.refetch();
             void book.refetch();
           }}

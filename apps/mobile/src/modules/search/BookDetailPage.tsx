@@ -51,10 +51,10 @@ function Detail({ book }: { book: BookOut }) {
         {book.authors.length > 0 ? <p className={styles.authors}>{book.authors.join(', ')}</p> : null}
         <OwnerLine book={book} />
       </div>
+      <ReadButton book={book} />
       <WhereBlock book={book} />
       <LoanBlock book={book} />
       <ReadingBlock book={book} />
-      <ReadButton book={book} />
       {canSeeFiles(role) ? <BookFiles book={book} canAdd={canEditBooks(role)} /> : null}
       <ReadersBlock bookId={book.id} />
       <TagsBlock book={book} />
