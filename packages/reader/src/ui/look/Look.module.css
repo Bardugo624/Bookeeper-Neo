@@ -1,0 +1,285 @@
+/* Appearance panel: it lives in a dialog, so it speaks the app's tokens. */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: min(100%, 360px);
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rowLabel {
+  color: var(--bk-text-muted);
+  font-size: 13px;
+}
+
+.segmented {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--bk-radius);
+  background: var(--bk-inset);
+}
+
+.wrap {
+  flex-wrap: wrap;
+}
+
+.option {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--bk-radius-sm);
+  background: transparent;
+  color: var(--bk-text);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background var(--bk-dur-fast) var(--bk-ease);
+}
+
+.option:hover:not(:disabled) {
+  background: var(--bk-surface-raised);
+}
+
+.option[aria-checked='true'] {
+  background: var(--bk-accent-surface-strong);
+  color: var(--bk-on-accent-surface);
+}
+
+.option:focus-visible,
+.step:focus-visible,
+.switch:focus-visible,
+.dot:focus-visible,
+.action:focus-visible {
+  outline: 2px solid var(--bk-focus);
+  outline-offset: 1px;
+}
+
+.option:disabled,
+.step:disabled,
+.switch:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.panel[data-layout='phone'] .option,
+.panel[data-layout='phone'] .step {
+  min-height: 44px;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--bk-border);
+  border-radius: var(--bk-radius);
+  background: var(--bk-surface);
+  color: var(--bk-text);
+  cursor: pointer;
+}
+
+.panel[data-layout='phone'] .step {
+  width: 48px;
+  height: 48px;
+}
+
+.sizeValue {
+  min-width: 56px;
+  color: var(--bk-text);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.switchRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.switchRow .rowLabel {
+  color: var(--bk-text);
+  font-size: 14px;
+}
+
+.switch {
+  position: relative;
+  flex: none;
+  width: 40px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: var(--bk-border-strong);
+  cursor: pointer;
+  transition: background var(--bk-dur-fast) var(--bk-ease);
+}
+
+.switch[aria-checked='true'] {
+  background: var(--bk-accent-control);
+}
+
+.knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--bk-surface-raised);
+  transition: translate var(--bk-dur-fast) var(--bk-ease);
+}
+
+.switch[aria-checked='true'] .knob {
+  translate: 16px 0;
+}
+
+.note {
+  margin: 0;
+  color: var(--bk-text-muted);
+  font-size: 13px;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.scope {
+  color: var(--bk-text-muted);
+  font-size: 13px;
+}
+
+/* Selection toolbar: it floats over the page, so it speaks the reading theme's variables. */
+.toolbar {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  max-width: calc(100% - 16px);
+  padding: 4px;
+  border: 1px solid var(--rd-rule);
+  border-radius: var(--bk-radius-lg);
+  background: var(--rd-raised);
+  color: var(--rd-ink);
+  box-shadow: var(--bk-shadow-2);
+  font-size: 13px;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.dots {
+  display: flex;
+}
+
+.dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--bk-radius);
+  background: transparent;
+  cursor: pointer;
+}
+
+.toolbar[data-layout='phone'] .dot {
+  width: 44px;
+  height: 48px;
+}
+
+.swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+}
+
+.dot[aria-pressed='true'] {
+  background: var(--rd-accent-strong);
+}
+
+.dot[aria-pressed='true'] .swatch {
+  box-shadow: 0 0 0 2px var(--rd-raised), 0 0 0 4px var(--rd-accent-solid);
+}
+
+.sep {
+  width: 1px;
+  height: 20px;
+  margin: 0 2px;
+  background: var(--rd-rule);
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--bk-radius);
+  background: transparent;
+  color: var(--rd-ink);
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.toolbar[data-layout='phone'] .action {
+  min-width: 44px;
+  height: 48px;
+}
+
+.dot:hover,
+.action:hover {
+  background: var(--rd-inset);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .toolbar {
+    animation: appear var(--bk-dur) var(--bk-ease) both;
+  }
+
+  @keyframes appear {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+/* Note editor */
+.noteField {
+  width: 100%;
+  min-width: min(100%, 360px);
+  resize: vertical;
+}
+
+.noteActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
