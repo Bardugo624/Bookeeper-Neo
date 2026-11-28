@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, mkdtempSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, mkdtempSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -224,4 +224,33 @@ test("smoke.ps1: a stuck --smoke-ui shows WebView2's processes and log, then tri
   assert.match(step, /SmokeUi 1/);
   assert.match(step, /SmokeUi 2/);
   assert.match(step, /Fail '--smoke-ui: exit code'/);
+});
+
+// ---- Reader e2e ----
+test("reader-e2e.yml: starts on pull requests, branch pushes and by hand, for the reader's files", () => {
+  const on = onBlock(wf("reader-e2e.yml"));
+  assert.match(on, /workflow_dispatch/);
+  assert.match(on, /pull_request:/);
+  assert.match(on, /branches-ignore: \[main\]/);
+  for (const p of ["packages/reader/**", "apps/*/reader-frame.html", ".github/workflows/reader-e2e.yml"]) {
+    assert.ok(on.includes(`"${p}"`), p);
+  }
+  assert.doesNotMatch(on, /\b(schedule|pull_request_target)\b/);
+});
+
+test("reader-e2e.yml: books checked, three engines, test, report", () => {
+  const t = wf("reader-e2e.yml");
+  assert.match(t, /make-epubs\.mjs\n\s+git diff --exit-code/);
+  assert.match(t, /playwright@1\.63\.0/);
+  assert.match(t, /\$RUNNER_TEMP\/pw/);
+  assert.match(t, /playwright install --with-deps chromium webkit firefox/);
+  assert.match(t, /npm run test:e2e -w @bookeeper\/reader/);
+  assert.match(t, /reader-e2e\.json/);
+  assert.ok(t.indexOf("upload-artifact") > t.indexOf("test:e2e"));
+});
+
+test("the reader trial is gone", () => {
+  for (const p of [".github/workflows/reader-trial.yml", "scripts/reader-trial", "apps/mobile/public/prova-lettore"]) {
+    assert.ok(!existsSync(new URL(`../${p}`, import.meta.url)), p);
+  }
 });
