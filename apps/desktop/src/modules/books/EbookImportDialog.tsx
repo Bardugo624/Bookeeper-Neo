@@ -16,7 +16,7 @@ export interface EbookImportDialogProps {
 export function EbookImportDialog({ open, files, onClose }: EbookImportDialogProps) {
   const t = useT();
   const imp = useEbookImport(files);
-  const done = imp.summary !== null;
+  const done = imp.finished;
   const summary = imp.summary;
   return (
     <Dialog
@@ -36,7 +36,7 @@ export function EbookImportDialog({ open, files, onClose }: EbookImportDialogPro
         ) : (
           <>
             <Button variant="ghost" disabled={imp.saving} onClick={onClose}>
-              {t('common.cancel')}
+              {summary ? t('ebooks.close') : t('common.cancel')}
             </Button>
             <Button
               variant="primary"
@@ -64,7 +64,7 @@ export function EbookImportDialog({ open, files, onClose }: EbookImportDialogPro
             key={row.id}
             row={row}
             locked={imp.saving || done}
-            onChange={(change) => imp.patch(row.id, change)}
+            onChange={(change) => imp.patch(row.id, { ...change, error: undefined })}
             onBlur={() => void imp.recheck(row.id)}
             onRemove={() => imp.remove(row.id)}
           />

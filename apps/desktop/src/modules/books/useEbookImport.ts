@@ -2,8 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { BookOut } from '@bookeeper/api';
 import { useClient, useSession } from '../../session';
-import { fileStem, findSameBook, joinAuthors, parseAuthors, canSave, type ImportRow } from './ebookImport';
-import type { EbookFileInfo } from './bookFiles';
+import { fileStem, findSameBook, joinAuthors, parseAuthors, canSave, type ImportRow } from './ebookImportModel';
+import type { EbookFileInfo } from './bookFileApi';
 import { useFilesApi } from './useBookFiles';
 import { useRefreshBooks } from './useBookWrites';
 import { readFileBytes } from './coverFile';
@@ -51,6 +51,8 @@ export function useEbookImport(files: File[]) {
   const cancelled = useRef(false);
   const removed = useRef(new Set<string>());
   const checking = useRef(new Set<Promise<void>>());
+  const confirming = useRef(false);
+  const [confirmBusy, setConfirmBusy] = useState(false);
 
   const commit = useCallback((update: (all: ImportRow[]) => ImportRow[]) => {
     latest.current = update(latest.current);
@@ -120,47 +122,64 @@ export function useEbookImport(files: File[]) {
   };
 
   const confirm = async () => {
+    // A second click while the duplicate checks finish must not save the same rows again.
+    if (confirming.current) return;
+    confirming.current = true;
+    setConfirmBusy(true);
     const result: ImportSummary = { added: 0, attached: 0, failed: 0 };
-    // A duplicate check started by leaving a field must land before the books are made.
-    await Promise.all([...checking.current]);
-    for (const row of latest.current.filter(canSave)) {
-      const info = row.info!;
-      patch(row.id, { status: 'saving' });
-      let created = false;
-      try {
-        let bookId = row.attach ? row.duplicate?.id : undefined;
-        if (!bookId) {
-          const meta = info.metadata ?? {};
-          const book = await client.createBook({
-            title: row.title.trim(),
-            authors: parseAuthors(row.authors),
-            format: 'ebook',
-            ...optionalMetadata(meta),
-          });
-          bookId = book.id;
-          created = true;
+    try {
+      // A duplicate check started by leaving a field must land before the books are made.
+      await Promise.all([...checking.current]);
+      for (const { id } of latest.current.filter(canSave)) {
+        const row = latest.current.find((r) => r.id === id);
+        if (!row || !canSave(row)) continue;
+        const info = row.info!;
+        patch(id, { status: 'saving', error: undefined });
+        let bookId = row.bookId ?? (row.attach ? row.duplicate?.id : undefined);
+        const created = row.bookId !== undefined || bookId === undefined;
+        try {
+          if (!bookId) {
+            const meta = info.metadata ?? {};
+            const book = await client.createBook({
+              title: row.title.trim(),
+              authors: parseAuthors(row.authors),
+              format: 'ebook',
+              ...optionalMetadata(meta),
+            });
+            bookId = book.id;
+            patch(id, { bookId });
+          }
+          await api.attach(bookId, info.sha256, info.name);
+          patch(id, { status: 'done', outcome: created ? 'added' : 'attached' });
+          result[created ? 'added' : 'attached'] += 1;
+        } catch (error) {
+          // The row goes back to be corrected and tried again; a book already made is kept for it.
+          result.failed += 1;
+          patch(id, { status: 'ready', error });
         }
-        await api.attach(bookId, info.sha256, info.name);
-        patch(row.id, { status: 'done', outcome: created ? 'added' : 'attached' });
-        result[created ? 'added' : 'attached'] += 1;
-      } catch (error) {
-        // A book created before the file failed to attach is still a book of the library.
-        if (created) result.added += 1;
-        result.failed += 1;
-        patch(row.id, { status: 'failed', error });
       }
+      await refresh();
+    } finally {
+      confirming.current = false;
+      setConfirmBusy(false);
     }
-    await refresh();
-    setSummary(result);
+    // Across retries the counts add up; a failure that was retried with success no longer counts.
+    setSummary((prev) => ({
+      added: (prev?.added ?? 0) + result.added,
+      attached: (prev?.attached ?? 0) + result.attached,
+      failed: latest.current.filter((r) => r.status === 'ready' && r.error !== undefined).length,
+    }));
   };
 
   const remove = (id: string) => {
     removed.current.add(id);
     commit((all) => all.filter((r) => r.id !== id));
   };
-  const saving = rows.some((r) => r.status === 'saving');
+  const saving = confirmBusy || rows.some((r) => r.status === 'saving');
+  // Finished once nothing is left to save: every row is added, attached, failed to upload or removed.
+  const finished = summary !== null && !rows.some((r) => r.status === 'ready');
   const uploading = rows.some((r) => r.status === 'uploading');
-  return { rows, summary, patch, remove, recheck, confirm, saving, uploading, count: rows.filter(canSave).length };
+  return { rows, summary, finished, patch, remove, recheck, confirm, saving, uploading, count: rows.filter(canSave).length };
 }
 
 /** Object URL of the cover taken from an uploaded file; undefined while loading or when there is none. */

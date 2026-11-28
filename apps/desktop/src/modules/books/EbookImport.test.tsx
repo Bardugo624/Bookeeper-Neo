@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { EbookFileInfo } from './bookFiles';
+import type { EbookFileInfo } from './bookFileApi';
 import { book, installIntersectionObserver, renderBooks, type Library } from './testkit';
 
 beforeEach(() => {
@@ -41,8 +41,8 @@ function setup(role: Library['role'] = 'owner', books = [book(1, { title: 'Libro
     },
     extra: (r) => {
       if (r.method === 'POST' && r.path === '/api/v1/books') {
-        if (((r.body as { authors?: string[] }).authors ?? []).some((a) => a.length > 200)) {
-          return { status: 422, body: { error_code: 'validation', message: 'each author must be between 1 and 200 characters' } };
+        if ((r.body as { title?: string }).title === 'Rifiutato') {
+          return { status: 422, body: { error_code: 'validation', message: 'refused by the library' } };
         }
         created.push(r.body);
         return { status: 201, body: book(100 + created.length, { ...(r.body as object), format: 'ebook' }) };
@@ -140,14 +140,51 @@ describe('e-book import', () => {
     expect((within(dialog).getByLabelText('Titolo') as HTMLInputElement).value).toBe('Il nome della rosa');
   });
 
-  it('does not blame DRM when the book itself is refused', async () => {
-    const { created } = setup();
+  it('does not blame DRM when the book itself is refused, and lets the row be corrected and retried', async () => {
+    const { created, attached } = setup();
     const dialog = await drop('rosa.epub');
-    const authors = await within(dialog).findByLabelText('Autori');
-    fireEvent.change(authors, { target: { value: 'x'.repeat(250) } });
+    const title = await within(dialog).findByLabelText('Titolo');
+    fireEvent.change(title, { target: { value: 'Rifiutato' } });
     await userEvent.click(within(dialog).getByRole('button', { name: 'Aggiungi 1 libro' }));
-    expect(await within(dialog).findByRole('alert')).toBeInTheDocument();
-    expect(created).toHaveLength(0);
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent('Alcuni dati non sono validi');
     expect(within(dialog).queryByText(/DRM|protett/i)).toBeNull();
+    expect(created).toHaveLength(0);
+    expect(await within(dialog).findByText('1 file non è andato a buon fine.')).toBeInTheDocument();
+    fireEvent.change(within(dialog).getByLabelText('Titolo'), { target: { value: 'Il nome della rosa' } });
+    expect(within(dialog).queryByRole('alert')).toBeNull();
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Aggiungi 1 libro' }));
+    expect(await within(dialog).findByText('1 libro aggiunto.')).toBeInTheDocument();
+    expect(within(dialog).queryByText(/non è andato a buon fine/)).toBeNull();
+    expect(created).toMatchObject([{ title: 'Il nome della rosa' }]);
+    expect(attached).toHaveLength(1);
+  });
+
+  it('checks the library limits on title and authors before confirming', async () => {
+    setup();
+    const dialog = await drop('rosa.epub');
+    const title = await within(dialog).findByLabelText('Titolo');
+    fireEvent.change(title, { target: { value: 'x'.repeat(301) } });
+    expect(within(dialog).getByText('Il titolo può avere al massimo 300 caratteri.')).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Aggiungi 0 libri' })).toBeDisabled();
+    fireEvent.change(title, { target: { value: 'Breve' } });
+    fireEvent.change(within(dialog).getByLabelText('Autori'), {
+      target: { value: Array.from({ length: 21 }, (_, i) => `A${i}`).join('; ') },
+    });
+    expect(within(dialog).getByText('Al massimo 20 autori.')).toBeInTheDocument();
+    fireEvent.change(within(dialog).getByLabelText('Autori'), { target: { value: 'y'.repeat(201) } });
+    expect(within(dialog).getByText('Ogni autore può avere al massimo 200 caratteri.')).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Aggiungi 0 libri' })).toBeDisabled();
+  });
+
+  it('saves each book once when the confirm button is clicked twice', async () => {
+    const { created, attached } = setup();
+    const dialog = await drop('rosa.epub', 'pendolo.epub');
+    await waitFor(() => expect(within(dialog).getAllByLabelText('Titolo')).toHaveLength(2));
+    const button = within(dialog).getByRole('button', { name: 'Aggiungi 2 libri' });
+    fireEvent.click(button);
+    fireEvent.click(button);
+    expect(await within(dialog).findByText('2 libri aggiunti.')).toBeInTheDocument();
+    expect(created).toHaveLength(2);
+    expect(attached).toHaveLength(2);
   });
 });

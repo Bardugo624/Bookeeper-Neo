@@ -1,8 +1,8 @@
 import { Field, IconButton, Input, Spinner, Tag } from '@bookeeper/ui/base';
 import { useT } from '../../app';
 import { apiErrorMessage } from '../../kit';
-import { uploadProblemKey } from './bookFiles';
-import type { ImportRow } from './ebookImport';
+import { uploadProblemKey } from './bookFileApi';
+import { MAX_AUTHOR, MAX_AUTHORS, MAX_TITLE, rowProblem, type ImportRow } from './ebookImportModel';
 import { useEbookCover } from './useEbookImport';
 import styles from './EbookImportDialog.module.css';
 
@@ -21,7 +21,19 @@ export function EbookImportRow({ row, locked, onChange, onBlur, onRemove }: Eboo
   const problem = row.error !== undefined && row.status === 'error' ? uploadProblemKey(row.error) : null;
   const message = row.error === undefined ? null : problem ? t(problem) : apiErrorMessage(t, row.error);
   const editable = row.status === 'ready';
-  const joining = row.attach && row.duplicate !== undefined;
+  const invalid = editable ? rowProblem(row) : null;
+  const titleError =
+    invalid === 'titleMissing'
+      ? t('ebooks.row.titleMissing')
+      : invalid === 'titleTooLong'
+        ? t('ebooks.row.titleTooLong', { max: MAX_TITLE })
+        : undefined;
+  const authorsError =
+    invalid === 'authorsTooMany'
+      ? t('ebooks.row.authorsTooMany', { max: MAX_AUTHORS })
+      : invalid === 'authorTooLong'
+        ? t('ebooks.row.authorTooLong', { max: MAX_AUTHOR })
+        : undefined;
   return (
     <li className={styles.row}>
       <div className={styles.cover} aria-hidden="true">
@@ -43,7 +55,7 @@ export function EbookImportRow({ row, locked, onChange, onBlur, onRemove }: Eboo
         </div>
         {editable || row.status === 'saving' ? (
           <div className={styles.fields}>
-            <Field label={t('ebooks.row.title')} error={row.title.trim() === '' && !joining ? t('ebooks.row.titleMissing') : undefined}>
+            <Field label={t('ebooks.row.title')} error={titleError}>
               <Input
                 value={row.title}
                 disabled={locked}
@@ -51,7 +63,7 @@ export function EbookImportRow({ row, locked, onChange, onBlur, onRemove }: Eboo
                 onBlur={onBlur}
               />
             </Field>
-            <Field label={t('ebooks.row.authors')} description={t('ebooks.row.authorsHint')}>
+            <Field label={t('ebooks.row.authors')} description={t('ebooks.row.authorsHint')} error={authorsError}>
               <Input
                 value={row.authors}
                 disabled={locked}
@@ -61,7 +73,7 @@ export function EbookImportRow({ row, locked, onChange, onBlur, onRemove }: Eboo
             </Field>
           </div>
         ) : null}
-        {row.duplicate && editable ? (
+        {row.duplicate && editable && row.bookId === undefined ? (
           <label className={styles.same}>
             <input
               type="checkbox"

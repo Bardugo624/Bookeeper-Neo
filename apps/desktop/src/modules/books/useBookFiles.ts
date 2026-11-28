@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '@bookeeper/api';
 import { usePlatform } from '../../platform';
 import { createAuthTransport, useClient, useSession } from '../../session';
-import { bookFilesApi, contentPath, type BookFile } from './bookFiles';
+import { bookFilesApi, contentPath, type BookFile } from './bookFileApi';
 import { readFileBytes } from './coverFile';
 
 export function useFilesApi() {

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button, Tag } from '@bookeeper/ui/base';
 import { useT } from '../../app';
 import { ConfirmDialog, apiErrorMessage, usePermission } from '../../kit';
-import { formatSize, type BookFile } from './bookFiles';
+import { formatSize, type BookFile } from './bookFileApi';
 import { useDownloadBookFile, useRemoveBookFile } from './useBookFiles';
 import styles from './BookFiles.module.css';
 
