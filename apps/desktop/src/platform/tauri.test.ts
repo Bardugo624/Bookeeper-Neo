@@ -123,6 +123,13 @@ it('downloadToFile hands the command the address, the name and the session heade
   });
 });
 
+it('downloadToFile passes a busy answer through, apart from a cancelled one', async () => {
+  invoke.mockResolvedValueOnce({ saved: false, busy: true });
+  expect(await tauriPlatform().downloadToFile({ url: '/api/v1/x', suggestedName: 'a' })).toEqual({ saved: false, busy: true });
+  invoke.mockResolvedValueOnce({ saved: false });
+  expect(await tauriPlatform().downloadToFile({ url: '/api/v1/x', suggestedName: 'a' })).toEqual({ saved: false });
+});
+
 it('downloadToFile turns a failed command into a network error', async () => {
   invoke.mockRejectedValueOnce('Cannot reach the server');
   const failure = await tauriPlatform()

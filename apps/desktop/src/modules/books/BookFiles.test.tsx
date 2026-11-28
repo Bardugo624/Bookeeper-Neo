@@ -91,6 +91,14 @@ describe('files block', () => {
     expect(await within(block).findByRole('alert')).toBeInTheDocument();
   });
 
+  it('says a download is already running when the platform is busy', async () => {
+    const { platform } = setup({ files: [epub] });
+    platform.setDownloadResult({ saved: false, busy: true });
+    await userEvent.click(await screen.findByRole('button', { name: 'Scarica rosa.epub' }));
+    const block = await screen.findByRole('region', { name: 'File' });
+    expect(await within(block).findByRole('alert')).toHaveTextContent("C'è già un download in corso: aspetta che finisca.");
+  });
+
   it('asks before taking a file off, and tells what follows', async () => {
     const { platform } = setup({ files: [epub] });
     await userEvent.click(await screen.findByRole('button', { name: 'Togli rosa.epub' }));

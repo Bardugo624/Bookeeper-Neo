@@ -3,7 +3,7 @@ import { Button, Tag } from '@bookeeper/ui/base';
 import { useT } from '../../app';
 import { ConfirmDialog, apiErrorMessage, usePermission } from '../../kit';
 import { formatSize, type BookFile } from './bookFileApi';
-import { useDownloadBookFile, useRemoveBookFile } from './useBookFiles';
+import { DownloadBusyError, useDownloadBookFile, useRemoveBookFile } from './useBookFiles';
 import styles from './BookFiles.module.css';
 
 /** One attached file: its format, size and name, and what can be done with it. */
@@ -47,7 +47,7 @@ export function BookFileRow({ bookId, file, locale }: { bookId: string; file: Bo
       </div>
       {failure ? (
         <p role="alert" className={styles.error}>
-          {apiErrorMessage(t, failure)}
+          {failure instanceof DownloadBusyError ? t('books.files.downloadBusy') : apiErrorMessage(t, failure)}
         </p>
       ) : null}
       <ConfirmDialog
