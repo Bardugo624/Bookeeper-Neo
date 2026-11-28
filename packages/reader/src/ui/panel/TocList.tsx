@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { TocItem } from '../../engine/protocol';
 import { useReaderT } from '../../i18n';
+import { formatPercent } from '../view/format';
 import styles from './TocList.module.css';
 
 export interface TocListProps {
@@ -26,7 +27,7 @@ function Level({ items, current, onGo, depth }: TocListProps & { depth: number }
             >
               <span className={styles.label}>{item.label}</span>
               {item.fraction === null ? null : (
-                <span className={styles.percent}>{Math.round(item.fraction * 100)}%</span>
+                <span className={styles.percent}>{formatPercent(item.fraction)}</span>
               )}
             </button>
             {item.children.length > 0 ? (

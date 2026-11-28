@@ -69,9 +69,9 @@
   bottom: 0;
   left: 0;
   z-index: 1;
-  width: calc(var(--rd-progress) * 100%);
+  right: 0;
   height: 2px;
-  background: var(--rd-accent-solid);
+  background: linear-gradient(to right, var(--rd-accent-solid) calc(var(--rd-progress) * 100%), var(--rd-rule) 0);
   opacity: 0;
   pointer-events: none;
 }
@@ -155,8 +155,6 @@
   right: 16px;
   bottom: calc(env(safe-area-inset-bottom) + 8px);
   left: 16px;
-  width: auto;
-  background: linear-gradient(to right, var(--rd-accent-solid) calc(var(--rd-progress) * 100%), transparent 0);
 }
 
 @media (prefers-reduced-motion: no-preference) {

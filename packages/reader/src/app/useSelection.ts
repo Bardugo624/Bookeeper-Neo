@@ -66,7 +66,7 @@ export function useSelection(
   useEffect(() => {
     if (!engine) return;
     const offs = [
-      engine.on('selection', (m) => setSelection({ id: null, cfi: m.cfi, text: m.text, rect: m.rect, color: null })),
+      engine.on('selection', (m) => setSelection({ id: null, cfi: m.cfi, text: m.text.trim(), rect: m.rect, color: null })),
       engine.on('selection-cleared', () => setSelection(null)),
       engine.on('mark-click', (m) => {
         const a = known.current.find((x) => x.id === m.id);

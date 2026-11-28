@@ -193,3 +193,11 @@
 .export:hover {
   background: var(--rd-inset);
 }
+
+/* In the sheet the content lines up with the title: no gutter of its own. */
+:global([data-variant='sheet']) .filters,
+:global([data-variant='sheet']) .list,
+:global([data-variant='sheet']) .foot {
+  padding-right: 0;
+  padding-left: 0;
+}

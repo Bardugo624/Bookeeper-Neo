@@ -2,6 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 
 import { useReaderT } from '../../i18n';
 import { SearchIcon } from '../view/icons';
 import { MIN_QUERY, type SearchHit } from './types';
+import { formatPercent } from '../view/format';
 import styles from './SearchTab.module.css';
 
 export interface SearchTabProps {
@@ -160,7 +161,7 @@ export function SearchTab({ query, onQueryChange, results, progress, done, onPic
                   onPick(hit);
                 }}
               >
-                <span className={styles.where}>{Math.round(hit.fraction * 100)}%</span>
+                <span className={styles.where}>{formatPercent(hit.fraction)}</span>
                 <span className={styles.snippet}>
                   {hit.pre}
                   <mark className={styles.match}>{hit.match}</mark>

@@ -6,6 +6,7 @@ import { ReaderLocale } from '../../i18n';
 import { CompanionPanel } from './CompanionPanel';
 import { NotesList, type NotesListProps } from './NotesList';
 import { SearchTab, type SearchTabProps } from './SearchTab';
+import { formatPercent } from '../view/format';
 import { TocList } from './TocList';
 import { NOTES, TOC, hit } from './fixtures';
 import type { SearchHit } from './types';
@@ -17,8 +18,8 @@ describe('TocList', () => {
     it_(<TocList items={TOC} current="c2.xhtml" onGo={() => {}} />);
     expect(screen.getByRole('button', { name: /Capitolo II/ })).toHaveAttribute('aria-current', 'location');
     expect(screen.getByRole('button', { name: /Capitolo I\b(?!I)/ })).not.toHaveAttribute('aria-current');
-    expect(screen.getByText('6%')).toBeInTheDocument();
-    expect(screen.getByText('1%')).toBeInTheDocument();
+    expect(screen.getByText('6,0%')).toBeInTheDocument();
+    expect(screen.getByText('1,0%')).toBeInTheDocument();
     // nested chapters live in a nested list
     const nested = screen.getByRole('button', { name: /Prima parte/ }).closest('ul')!;
     expect(nested.parentElement?.tagName).toBe('LI');
@@ -314,4 +315,12 @@ describe('CompanionPanel', () => {
     );
     expect(screen.queryByRole('complementary')).toBeNull();
   });
+});
+
+it('small_percents_have_one_decimal', () => {
+  expect(formatPercent(0.004)).toBe('0,4%');
+  expect(formatPercent(0.0951)).toBe('9,5%');
+  expect(formatPercent(0.1)).toBe('10%');
+  expect(formatPercent(0.426)).toBe('43%');
+  expect(formatPercent(0)).toBe('0,0%');
 });
