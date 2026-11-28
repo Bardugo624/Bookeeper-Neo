@@ -22,7 +22,11 @@ Leggi prima `docs/forge/fase-10b/CONTRATTO.md`, che fissa valori, interfacce e r
   - `a_local_library_answers_with_the_session`: setup, poi `GET /api/v1/books` con il token, risponde 200;
   - `a_local_library_still_refuses_without_a_session`: senza token, 401;
   - `a_local_download_answers_with_the_session`: un EPUB caricato e attaccato si scarica nel processo con il token, con i byte giusti.
+  - `a_local_raw_request_answers_with_the_session`: una richiesta binaria nel processo (`dispatch_raw`), per esempio la copertina di un e-book caricato, con il token risponde 200.
 - [ ] Verifica che falliscano, correggi, verifica che passino.
+
+## Nota sulla riprova
+- Il primo tentativo è stato fatto con il disco del container pieno. Il codice c'è, ma nessuna revisione l'ha visto girare: verificalo, aggiungi il test sulla richiesta binaria e fai girare tutto.
 
 ## Acceptance criteria
 - `cargo test -p bookeeper-desktop` e `cargo clippy -p bookeeper-desktop -- -D warnings` passano.

@@ -836,3 +836,5 @@
 2026-11-28T10:38:59Z	bookeeper-fase-10b	annotations-api	dwarf	sonnet	-	-	-	-	344
 2026-11-28T10:43:06Z	bookeeper-fase-10b	annotations-api	qa	opus	PASS	trap	a query struct deriving utoipa intoparams without into params parameter in query is emitted as a required path parameter in	a query-struct deriving utoipa::IntoParams without `#[into_params(parameter_in = Query)]` is emitted as a required path parameter in… [crates/bookeeper-core/src/api/loans.rs]	234	1
 2026-11-28T10:43:52Z	bookeeper-fase-10b	local-auth	dwarf	sonnet	-	trap	the core s ebook upload opens the zip for a drm check so a fake pk header gets 415 unsupported format a test needs a real archive with	the core's ebook upload opens the ZIP for a DRM check, so a fake `PK` header gets 415 `unsupported_format`; a test needs a real archive with… [crates/bookeeper-core/src/ebooks.rs]	637	1
+2026-11-28T10:59:41Z	bookeeper-fase-10b	local-auth	dwarf	sonnet	-	-	-	-	247
+2026-11-28T10:59:46Z	bookeeper-fase-10b	positions-backup	dwarf	sonnet	-	-	-	-	252
