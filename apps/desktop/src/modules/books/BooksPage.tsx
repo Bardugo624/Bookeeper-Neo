@@ -4,6 +4,7 @@ import { Button, EmptyState } from '@bookeeper/ui/base';
 import { useT } from '../../app';
 import { usePermission } from '../../kit';
 import { useSession } from '../../session';
+import { ReadingNow } from '../reading';
 import { ManageTagsDialog } from '../tags';
 import { FirstBookHint, useFirstBook } from '../onboarding';
 import { tourExpects, tourNote, tourSignal } from '../tour';
@@ -163,6 +164,7 @@ export function BooksPage() {
         }
       />
       <FilterBar params={params} active={active} hideActive={noResults} />
+      {!filtered && !query.isPending ? <ReadingNow onAll={() => params.setFilter('reading')} /> : null}
       {body}
       {selecting ? (
         <SelectionBar

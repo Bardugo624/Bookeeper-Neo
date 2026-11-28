@@ -1,6 +1,8 @@
 import { act } from '@testing-library/react';
 import { vi } from 'vitest';
+import { useLocation, useParams } from 'react-router';
 import type { BookFacets, BookOut, RawResponse } from '@bookeeper/api';
+import type { AppModule } from '../../app';
 import { renderApp } from '../../app/testing';
 import { fakeConnection, fakePlatform, type FakePlatform } from '../../platform/testing';
 import { ME, ok } from '../../session/fixtures';
@@ -158,6 +160,20 @@ export function booksPlatform(lib: Library, connections?: Connections): FakePlat
 export function renderBooks(lib: Library, route = '/books', connections?: Connections) {
   const platform = booksPlatform(lib, connections);
   return { ...renderApp({ platform, modules: [module], route }), platform };
+}
+
+/** Shows where `/read/:bookId` would take the person, in place of the reader. */
+function ReaderProbe() {
+  const { bookId } = useParams();
+  const { search } = useLocation();
+  return <p data-testid="reader-probe">{`reader ${bookId}${search}`}</p>;
+}
+
+/** Like `renderBooks`, with a stand-in for the reader route. */
+export function renderBooksWithReader(lib: Library, route = '/books') {
+  const platform = booksPlatform(lib);
+  const probe: AppModule = { id: 'reader-probe', routes: [], screens: [{ path: '/read/:bookId', element: <ReaderProbe /> }] };
+  return { ...renderApp({ platform, modules: [module, probe], route }), platform };
 }
 
 /** Paths of the list requests sent so far. */
