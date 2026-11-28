@@ -17,7 +17,7 @@ mod web;
 pub use announce::{announcement, instance_for, Announcer};
 pub use config::{Cli, Command, Config, Switch, TlsChoice};
 pub use tls::{load_self_identity, self_dir, TlsServer};
-pub use web::web_routes;
+pub use web::{response_for, web_routes};
 
 #[derive(Debug, thiserror::Error)]
 pub enum StartError {
@@ -82,6 +82,11 @@ pub fn build_with_state(state: AppState) -> axum::Router {
 
 fn finish(state: AppState) -> Result<axum::Router, StartError> {
     Ok(router_for(state))
+}
+
+/// Wraps `router` in the server's response layers (security headers, error logging).
+pub fn with_layers(router: axum::Router, info: &bookeeper_core::ServerInfo) -> axum::Router {
+    layers::apply(router, info)
 }
 
 fn router_for(state: AppState) -> axum::Router {

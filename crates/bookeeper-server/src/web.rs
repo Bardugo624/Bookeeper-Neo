@@ -20,7 +20,7 @@ fn file_response(path: &str) -> Option<Response> {
 }
 
 /// Builds the response of the embedded file `path` with content `data`.
-pub(crate) fn response_for(path: &str, data: Vec<u8>) -> Response {
+pub fn response_for(path: &str, data: Vec<u8>) -> Response {
     let mime = mime_guess::from_path(path).first_or_octet_stream();
     let content_type = if mime.type_() == "text" || mime.subtype() == "javascript" {
         format!("{}; charset=utf-8", mime.essence_str())

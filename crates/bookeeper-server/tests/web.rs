@@ -1,18 +1,12 @@
 //! The reader engine page may be framed by the same site; every other page may not.
-//! Exercises the response builder directly, so it does not depend on the mobile build.
-
-#![allow(dead_code)]
-
-#[path = "../src/layers.rs"]
-mod layers;
-#[path = "../src/web.rs"]
-mod web;
+//! Uses the crate's public API, so it does not depend on the mobile build.
 
 use axum::body::Body;
 use axum::http::{Request, StatusCode};
 use axum::routing::get;
 use axum::Router;
 use bookeeper_core::{ServerInfo, TlsMode};
+use bookeeper_server::{response_for, with_layers};
 use tower::ServiceExt;
 
 fn info() -> ServerInfo {
@@ -25,9 +19,9 @@ fn info() -> ServerInfo {
 async fn frame_option(name: &'static str) -> String {
     let router = Router::new().route(
         "/page",
-        get(move || async move { web::response_for(name, b"<html></html>".to_vec()) }),
+        get(move || async move { response_for(name, b"<html></html>".to_vec()) }),
     );
-    let res = layers::apply(router, &info())
+    let res = with_layers(router, &info())
         .oneshot(Request::get("/page").body(Body::empty()).unwrap())
         .await
         .unwrap();
