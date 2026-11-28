@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { ReaderLocale } from '../../i18n';
 import { DEFAULT_SETTINGS, type ReaderSettings } from '../../model';
+import { THEME_COLORS } from '../../model/themeColors';
 import { AppearancePanel, type AppearancePanelProps } from './AppearancePanel';
 
 function panel(props: Partial<AppearancePanelProps> = {}, settings: Partial<ReaderSettings> = {}) {
@@ -13,6 +14,7 @@ function panel(props: Partial<AppearancePanelProps> = {}, settings: Partial<Read
     format: 'epub',
     settings: { ...DEFAULT_SETTINGS, ...settings },
     onChange: vi.fn(),
+    trigger: <button>Aa</button>,
     ...props,
   };
   render(
@@ -94,5 +96,35 @@ describe('AppearancePanel', () => {
     panel({ layout: 'phone' });
     expect(screen.getByText('Vale per tutti i libri su questo telefono')).toBeInTheDocument();
     expect(within(screen.getByRole('dialog')).getByRole('radio', { name: 'Chiaro' })).toBeInTheDocument();
+  });
+
+  it('appearance_on_desktop_is_anchored_and_not_modal', () => {
+    const { container } = render(<div />);
+    panel();
+    expect(screen.getByRole('dialog', { name: 'Aspetto' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Aa' }).closest('[aria-hidden]')).toBeNull();
+    expect(document.body).not.toHaveAttribute('aria-hidden');
+    expect(container).not.toHaveAttribute('aria-hidden');
+  });
+
+  it('theme_tiles_show_each_theme', () => {
+    panel();
+    const group = screen.getByRole('radiogroup', { name: 'Tema' });
+    const radios = within(group).getAllByRole('radio');
+    expect(radios.map((r) => r.getAttribute('aria-checked'))).toEqual(['true', 'false', 'false', 'false', 'false']);
+    for (const [name, key] of [['Chiaro', 'light'], ['Seppia', 'sepia'], ['Scuro', 'dark'], ['Nero', 'black']] as const) {
+      const tile = screen.getByRole('radio', { name });
+      expect(tile).toHaveTextContent(name);
+      const face = within(tile).getByText('Aa');
+      expect(face.style.background).not.toBe('');
+      expect(face.style.color).not.toBe('');
+      expect(THEME_COLORS[key].page).toMatch(/^#/);
+    }
+    expect(within(screen.getByRole('radio', { name: 'Auto' })).getAllByText('Aa')).toHaveLength(2);
+  });
+
+  it('two_pages_row_is_not_on_the_phone', () => {
+    panel({ layout: 'phone' });
+    expect(screen.queryByRole('switch', { name: "Due pagine quando c'è spazio" })).not.toBeInTheDocument();
   });
 });
