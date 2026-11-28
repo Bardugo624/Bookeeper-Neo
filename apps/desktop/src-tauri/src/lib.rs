@@ -4,6 +4,7 @@ pub mod discover;
 mod dispatch;
 pub mod download;
 pub mod files;
+pub mod reader;
 pub mod remote;
 pub mod secrets;
 pub mod sharing;
@@ -236,6 +237,40 @@ async fn download_file(
     })
 }
 
+/// The book's file in the reader cache; answers its path (the webview reads it through the
+/// `asset` protocol).
+#[tauri::command(rename_all = "snake_case")]
+#[allow(clippy::too_many_arguments)]
+async fn reader_file(
+    app: tauri::AppHandle,
+    router: tauri::State<'_, CoreRouter>,
+    store: tauri::State<'_, connections::Store>,
+    connection_id: Option<String>,
+    book_id: String,
+    file_id: String,
+    sha256: String,
+    format: String,
+    headers: Option<std::collections::BTreeMap<String, String>>,
+) -> Result<String, String> {
+    let cache = app.path().app_cache_dir().map_err(|e| e.to_string())?;
+    let headers = headers.unwrap_or_default();
+    let path = reader::fetch(
+        &store,
+        router.0.clone(),
+        &cache,
+        &reader::ReaderFile {
+            connection_id: connection_id.as_deref(),
+            book_id: &book_id,
+            file_id: &file_id,
+            sha256: &sha256,
+            format: &format,
+            headers: &headers,
+        },
+    )
+    .await?;
+    Ok(path.display().to_string())
+}
+
 #[tauri::command]
 async fn sharing_status(
     sharing: tauri::State<'_, sharing::Sharing>,
@@ -316,7 +351,8 @@ pub fn run() {
             focus_main(app);
         }))
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_notification::init());
+        .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_opener::init());
     // The updater plugin reads its key from the configuration: hand it the one baked in at
     // build time, so `tauri.conf.json` needs no entry. Without a key it is not loaded at all.
     if let Some(key) = updates::pubkey() {
@@ -384,6 +420,7 @@ pub fn run() {
             discover,
             save_file,
             download_file,
+            reader_file,
             sharing_status,
             sharing_set,
             update_check,
