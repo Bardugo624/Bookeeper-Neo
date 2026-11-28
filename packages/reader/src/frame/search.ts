@@ -9,7 +9,7 @@ interface Excerpt {
 type Step = 'done' | { progress: number } | { label?: string; subitems: { cfi: string; excerpt: Excerpt }[] };
 
 export interface SearchableView {
-  search(opts: { query: string; drawOptions?: unknown }): AsyncIterable<Step>;
+  search(opts: { query: string; drawOptions?: unknown; draw?: unknown }): AsyncIterable<Step>;
   clearSearch(): void;
   resolveCFI(cfi: string): { index: number } | Promise<{ index: number }>;
 }
@@ -25,9 +25,10 @@ export async function runSearch(
   map: SectionMap,
   id: number,
   query: string,
-  draw: { drawOptions: unknown },
+  draw: { drawOptions: unknown; draw?: unknown },
   send: (msg: FromFrame) => void,
   cancelled: () => boolean,
+  onHit?: (cfi: string) => void,
 ): Promise<void> {
   try {
     for await (const step of view.search({ query, ...draw })) {
@@ -37,6 +38,7 @@ export async function runSearch(
         send({ type: 'search-progress', id, fraction: step.progress });
       } else {
         for (const item of step.subitems) {
+          onHit?.(item.cfi);
           let fraction = 0;
           try {
             fraction = map.fractionOf((await view.resolveCFI(item.cfi)).index, 0);

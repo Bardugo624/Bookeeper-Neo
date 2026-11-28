@@ -3,7 +3,8 @@ import { unwrap, wrap } from '../engine/messages';
 import type { FrameLayout, FromFrame, Mark, Target, TocItem, ToFrame } from '../engine/protocol';
 import { watchDocument, toFrameRect, type FoliateViewLike } from './docEvents';
 import { applyColumns, applyLayout, type Renderer } from './layout';
-import { drawMark, type OverlayerClass } from './marks';
+import { applyFallbackFont } from './fallbackFont';
+import { drawMark, drawSearchHit, type OverlayerClass } from './marks';
 import { runSearch, type SearchableView } from './search';
 import { SectionMap } from './sections';
 
@@ -60,6 +61,10 @@ interface Session {
   marks: Map<string, Mark>;
   off: Array<() => void>;
   searchToken: { cancelled: boolean };
+  /** The search result the reader went to, and the results of the search that is drawn. */
+  chosen: { cfi: string; range: Range } | null;
+  hits: Set<string>;
+  drawHit: (rects: Iterable<DOMRect>, options?: { color?: string }) => SVGElement;
 }
 
 async function loadFoliate(): Promise<Foliate> {
@@ -163,9 +168,37 @@ export function bootFrame(options: BootOptions = {}): () => void {
     return s.view.renderer.goTo({ index, anchor });
   }
 
-  function goTo(s: Session, target: Target) {
+  function refreshFallbackFont(s: Session) {
+    const view = s.view as unknown as { renderer: { getContents?: () => { doc?: Document }[] } };
+    for (const c of view.renderer.getContents?.() ?? []) if (c.doc) applyFallbackFont(c.doc, s.layout);
+  }
+
+  /** Draws a search result again, to outline it or to underline it. */
+  function redrawHit(s: Session, cfi: string) {
+    if (!s.hits.has(cfi)) return;
+    s.view.addAnnotation({ value: `foliate-search:${cfi}` }).catch(console.error);
+  }
+
+  /** The reader went to a search result: it is the chosen one, and the one before it goes back to an underline. */
+  function choose(s: Session, cfi: string, resolved: unknown) {
+    const r = resolved as { index?: number; anchor?: (doc: Document) => Range } | undefined;
+    if (!s.hits.has(cfi) || !r || typeof r.anchor !== 'function') return;
+    const doc = (s.view.renderer as unknown as { getContents?: () => { index: number; doc?: Document }[] })
+      .getContents?.()
+      .find((c) => c.index === r.index)?.doc;
+    if (!doc) return;
+    const before = s.chosen?.cfi;
+    s.chosen = { cfi, range: r.anchor(doc) };
+    if (before && before !== cfi) redrawHit(s, before);
+    redrawHit(s, cfi);
+  }
+
+  async function goTo(s: Session, target: Target) {
     if ('fraction' in target) return goFraction(s, target.fraction);
-    return s.view.goTo('cfi' in target ? target.cfi : target.href);
+    if ('href' in target) return s.view.goTo(target.href);
+    const resolved = await s.view.goTo(target.cfi);
+    choose(s, target.cfi, resolved);
+    return resolved;
   }
 
   async function open(msg: Extract<ToFrame, { type: 'open' }>) {
@@ -196,7 +229,15 @@ export function bootFrame(options: BootOptions = {}): () => void {
       marks: new Map(),
       off: [],
       searchToken: { cancelled: false },
+      chosen: null,
+      hits: new Set(),
+      drawHit: (rects, options) => drawHitNow(rects, options),
     };
+    const drawHitNow = drawSearchHit(foliate.Overlayer, (rects) => {
+      const first = s.chosen?.range.getClientRects()[0];
+      const mine = rects[0];
+      return !!first && !!mine && first.left === mine.left && first.top === mine.top && first.width === mine.width;
+    });
     session = s;
     const draw = drawMark(foliate.Overlayer);
 
@@ -204,7 +245,10 @@ export function bootFrame(options: BootOptions = {}): () => void {
       view.addEventListener(type, fn as EventListener);
       s.off.push(() => view.removeEventListener(type, fn as EventListener));
     };
-    listen('load', (e) => s.off.push(watchDocument(e.detail.doc, e.detail.index, view, send, () => performance.now() - markHitAt < 50)));
+    listen('load', (e) => {
+      applyFallbackFont(e.detail.doc, s.layout);
+      s.off.push(watchDocument(e.detail.doc, e.detail.index, view, send, () => performance.now() - markHitAt < 50));
+    });
     // A book never takes the page anywhere: external links stay where they are.
     listen('external-link', (e) => e.preventDefault());
     listen('create-overlay', () => paintMarks(s));
@@ -271,8 +315,10 @@ export function bootFrame(options: BootOptions = {}): () => void {
     const token = { cancelled: false };
     s.searchToken = token;
     s.view.clearSearch();
-    const drawing = { drawOptions: { color: s.layout.colors.link } };
-    void runSearch(s.view, s.map, id, query, drawing, send, () => token.cancelled);
+    s.chosen = null;
+    s.hits = new Set();
+    const drawing = { drawOptions: { color: s.layout.colors.link }, draw: s.drawHit };
+    void runSearch(s.view, s.map, id, query, drawing, send, () => token.cancelled, (cfi) => s.hits.add(cfi));
   }
 
   async function handle(msg: ToFrame) {
@@ -288,6 +334,7 @@ export function bootFrame(options: BootOptions = {}): () => void {
         const colorsChanged = JSON.stringify(msg.layout.colors) !== JSON.stringify(s.layout.colors);
         s.layout = msg.layout;
         applyLayout(s.view, s.view.renderer, msg.layout, s.format);
+        refreshFallbackFont(s);
         if (colorsChanged) paintMarks(s);
         break;
       }
