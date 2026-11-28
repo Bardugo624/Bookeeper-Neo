@@ -21,4 +21,14 @@ describe('useDocumentTheme', () => {
     expect(root.style.getPropertyValue('--rd-page')).toBe('');
     expect(root.style.getPropertyValue('color-scheme')).toBe('');
   });
+
+  it('restores_an_important_value_as_important', () => {
+    // jsdom keeps the priority only on standard properties, and `color-scheme` is one the hook sets.
+    root.style.setProperty('color-scheme', 'light', 'important');
+    const { unmount } = renderHook(() => useDocumentTheme('dark'));
+    expect(root.style.getPropertyValue('color-scheme')).toBe('dark');
+    unmount();
+    expect(root.style.getPropertyValue('color-scheme')).toBe('light');
+    expect(root.style.getPropertyPriority('color-scheme')).toBe('important');
+  });
 });

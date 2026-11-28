@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { Sheet } from '../view/Sheet';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -151,7 +152,9 @@ describe('AppearancePanel', () => {
       </ReaderLocale>,
     );
     expect(screen.getByRole('dialog', { name: 'Note' })).not.toHaveAttribute('data-reader-sheet-fit');
-    const css = readFileSync(`${process.cwd()}/src/ui/view/Sheet.css`, 'utf8');
+    // A literal `new URL('…', import.meta.url)` is rewritten by Vite into a served http URL; a variable is not.
+    const sheetCss = '../view/Sheet.css';
+    const css = readFileSync(fileURLToPath(new URL(sheetCss, import.meta.url)), 'utf8');
     expect(css).toMatch(/height:\s*var\(--reader-sheet-h,\s*70dvh\)/);
     expect(css).toMatch(/\[data-reader-sheet-fit\]\s*{[^}]*max-height:\s*var\(--reader-sheet-h,\s*92dvh\)/s);
   });
