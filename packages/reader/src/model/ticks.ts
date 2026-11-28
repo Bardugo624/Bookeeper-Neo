@@ -14,7 +14,8 @@ export function chapterTicks(toc: readonly TocItem[], sectionFractions: readonly
     set.add(f);
   }
   const sorted = [...set].sort((a, b) => a - b);
-  // At most MAX_TICKS: a tick stays only if it is at least 1/MAX_TICKS of the bar past the last kept one.
+  if (sorted.length <= MAX_TICKS) return sorted;
+  // More than MAX_TICKS: a tick stays only if it is at least 1/MAX_TICKS of the bar past the last kept one.
   const kept: number[] = [];
   for (const f of sorted) {
     if (kept.length === 0 || f - kept[kept.length - 1]! >= 1 / MAX_TICKS - 1e-9) kept.push(f);

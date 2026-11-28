@@ -55,6 +55,11 @@ describe('ticks', () => {
     expect(ticks[0]).toBe(1 / 201);
     for (let i = 1; i < ticks.length; i++) expect(ticks[i]! - ticks[i - 1]!).toBeGreaterThanOrEqual(1 / 40 - 1e-9);
   });
+
+  it('keeps_close_ticks_when_there_are_forty_or_fewer', () => {
+    const toc = [0.1, 0.11, 0.5].map((fraction, i) => ({ label: 'c', href: `h${i}`, fraction, children: [] }));
+    expect(chapterTicks(toc, [0, 1])).toEqual([0.1, 0.11, 0.5]);
+  });
 });
 
 const meta = { title: 'I promessi sposi', author: 'Alessandro Manzoni' };
