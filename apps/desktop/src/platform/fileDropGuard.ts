@@ -1,8 +1,9 @@
 /** What a drag from another app can carry that the window would navigate to or open. */
 const CARRIED = ['Files', 'text/uri-list', 'text/plain'];
+const carriesFiles = (e: DragEvent) => Array.from(e.dataTransfer?.types ?? []).includes('Files');
 const carriesSomething = (e: DragEvent) => Array.from(e.dataTransfer?.types ?? []).some((t) => CARRIED.includes(t));
 
-/** Over an editable field a dragged text still drops in as usual. */
+/** Over an editable field a dragged text still drops in as usual (files never: they would open in place of the app). */
 const overEditable = (e: DragEvent) =>
   e.target instanceof Element && e.target.closest('input, textarea, [contenteditable]:not([contenteditable="false"])') !== null;
 
@@ -14,7 +15,7 @@ const overEditable = (e: DragEvent) =>
  */
 export function installFileDropGuard(target: Window = window): () => void {
   const guard = (e: DragEvent) => {
-    if (e.defaultPrevented || !carriesSomething(e) || overEditable(e)) return;
+    if (e.defaultPrevented || !carriesSomething(e) || (!carriesFiles(e) && overEditable(e))) return;
     e.preventDefault();
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'none';
   };

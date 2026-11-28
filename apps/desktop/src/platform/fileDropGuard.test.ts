@@ -58,6 +58,18 @@ describe('installFileDropGuard', () => {
     }
   });
 
+  it('still cancels a file drag over an editable field', () => {
+    remove = installFileDropGuard();
+    const input = document.body.appendChild(document.createElement('input'));
+    const area = document.body.appendChild(document.createElement('textarea'));
+    for (const el of [input, area]) {
+      const { e, dataTransfer } = fileDrag('drop', ['Files']);
+      el.dispatchEvent(e);
+      expect(e.defaultPrevented).toBe(true);
+      expect(dataTransfer.dropEffect).toBe('none');
+    }
+  });
+
   it('ignores drags that carry neither files nor links', () => {
     remove = installFileDropGuard();
     const { e } = fileDrag('dragover', ['application/x-thing']);
