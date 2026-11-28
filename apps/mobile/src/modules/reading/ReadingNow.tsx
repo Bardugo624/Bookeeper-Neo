@@ -76,18 +76,21 @@ export function ReadingNow({ onAll }: { onAll: () => void }) {
   const canRead = canSeeFiles(useSession((s) => s.me?.user.role));
   const { data } = useReadingNow(canRead);
   if (!canRead || !data || data.items.length === 0) return null;
+  const shown = data.items.slice(0, NOW_MAX);
   return (
     <section className={styles.now} aria-labelledby={headingId}>
       <div className={styles.head}>
         <h2 id={headingId} className={styles.heading}>
           {t('mreading.now.title')}
         </h2>
-        <button type="button" className={styles.all} onClick={onAll}>
-          {t('mreading.now.all', { count: data.total })}
-        </button>
+        {data.total > shown.length ? (
+          <button type="button" className={styles.all} onClick={onAll}>
+            {t('mreading.now.all', { count: data.total })}
+          </button>
+        ) : null}
       </div>
       <ul className={styles.row}>
-        {data.items.slice(0, NOW_MAX).map((b) => (
+        {shown.map((b) => (
           <NowCard key={b.id} book={b} />
         ))}
       </ul>

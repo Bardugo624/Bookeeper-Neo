@@ -69,7 +69,7 @@ let received: FromFrame[];
 let stop: () => void;
 const onMessage = (e: MessageEvent) => {
   const data = e.data as { msg?: FromFrame };
-  if (data?.msg && ['ready', 'opened', 'relocate', 'error', 'closed'].includes(data.msg.type)) received.push(data.msg);
+  if (data?.msg && ['ready', 'opened', 'relocate', 'error', 'closed', 'search-done', 'swipe'].includes(data.msg.type)) received.push(data.msg);
 };
 const toFrame = (msg: ToFrame) =>
   window.dispatchEvent(new MessageEvent('message', { data: wrap(msg), origin: location.origin, source: window }));
@@ -158,5 +158,38 @@ describe('bootFrame', () => {
     view.dispatchEvent(new CustomEvent('load', { detail: { doc: view.doc, index: 1 } }));
     view.drawn!([RECT]);
     expect(calls.pop()).toBe('outline');
+  });
+
+  it('a_swipe_is_reported_as_a_turn_before_its_place', async () => {
+    toFrame({ type: 'open', file: new Blob(['x']), name: 'a.epub', at: null, layout });
+    await until(() => received.some((m) => m.type === 'relocate'));
+    const view = document.querySelector('foliate-view') as unknown as FakeView;
+    const move = (fraction: number, reason: string) =>
+      view.renderer.dispatchEvent(new CustomEvent('relocate', { detail: { index: 1, fraction, range: null, reason } }));
+    received.length = 0;
+    move(0.9, 'snap');
+    move(0.2, 'snap');
+    move(0.6, 'page');
+    move(0.6, 'snap');
+    move(0, 'page');
+    // Back off the chapter's first page: foliate-js's blank page before it, then the chapter before.
+    move(-0.1, 'snap');
+    await until(() => received.length === 7);
+    expect(received.map((m) => (m.type === 'swipe' ? `swipe ${m.direction}` : m.type))).toEqual([
+      'swipe next', 'relocate', 'swipe prev', 'relocate', 'relocate', 'relocate', 'swipe prev',
+    ]);
+  });
+
+  it('an_empty_search_takes_the_marks_off_and_is_done', async () => {
+    stop();
+    stop = bootFrame({ load: async () => ({}) as never });
+    toFrame({ type: 'open', file: new Blob(['x']), name: 'a.epub', at: null, layout });
+    await until(() => received.some((m) => m.type === 'opened'));
+    const view = document.querySelector('foliate-view') as unknown as FakeView;
+    const clear = vi.spyOn(view, 'clearSearch');
+    toFrame({ type: 'search', id: 7, query: '' });
+    await until(() => received.some((m) => m.type === 'search-done' && m.id === 7));
+    expect(clear).toHaveBeenCalled();
+    expect(view.drawn).toBeUndefined();
   });
 });

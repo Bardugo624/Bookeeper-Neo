@@ -23,6 +23,8 @@ export interface ReaderProps {
   overlays?: ReactNode;
   /** The mouse came to the top or bottom band while the bars are hidden. */
   onReveal?: () => void;
+  /** An error state: the bars stay shown, with no bottom bar and no thin line. */
+  failed?: boolean;
 }
 
 /**
@@ -30,20 +32,23 @@ export interface ReaderProps {
  * hidden, so the page never moves. Phone: the page fills the screen and the bars lie over it.
  */
 export function Reader(props: ReaderProps) {
-  const { layout, theme, chromeVisible, progress, top, bottom, children, panel, panelOpen = false, overlays, onReveal } = props;
+  const { layout, theme, chromeVisible, progress, top, bottom, children, panel, panelOpen = false, overlays, onReveal, failed = false } = props;
+  const shown = chromeVisible || failed;
   const style = { ...themeVars(theme), '--rd-progress': String(Math.min(1, Math.max(0, progress))) } as CSSProperties;
   return (
     <div className={styles.root} data-layout={layout} data-theme={theme} data-panel={panelOpen ? 'open' : 'closed'} style={style}>
       <div className={styles.main}>
-        <div className={cx(styles.bar, styles.topBar)} data-bar="top" data-visible={chromeVisible} inert={!chromeVisible}>
+        <div className={cx(styles.bar, styles.topBar)} data-bar="top" data-visible={shown} inert={!shown}>
           {top}
         </div>
         <div className={styles.page}>{children}</div>
-        <div className={cx(styles.bar, styles.bottomBar)} data-bar="bottom" data-visible={chromeVisible} inert={!chromeVisible}>
-          {bottom}
-        </div>
-        <div className={styles.line} data-line data-visible={!chromeVisible} aria-hidden="true" />
-        {!chromeVisible && layout === 'desktop' ? (
+        {failed ? null : (
+          <div className={cx(styles.bar, styles.bottomBar)} data-bar="bottom" data-visible={chromeVisible} inert={!chromeVisible}>
+            {bottom}
+          </div>
+        )}
+        {failed ? null : <div className={styles.line} data-line data-visible={!chromeVisible} aria-hidden="true" />}
+        {!shown && layout === 'desktop' ? (
           <>
             <div className={cx(styles.zone, styles.zoneTop)} data-zone="top" onPointerEnter={onReveal} />
             <div className={cx(styles.zone, styles.zoneBottom)} data-zone="bottom" onPointerEnter={onReveal} />

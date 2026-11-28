@@ -6,7 +6,15 @@ import styles from './InstallSheet.module.css';
 
 /** Renders `**bold**` runs and `{name}` icon slots of a step. */
 function rich(text: string, icons: Record<string, ReactNode>): ReactNode[] {
-  return text.split(/(\*\*[^*]+\*\*|\{\w+\})/).map((part, i) => {
+  return text.split(/(\{\w+\} \*\*[^*]+\*\*|\*\*[^*]+\*\*|\{\w+\})/).map((part, i) => {
+    const pair = /^\{(\w+)\} \*\*([^*]+)\*\*$/.exec(part);
+    if (pair && pair[1]! in icons) {
+      return (
+        <span key={i} className={styles.pair}>
+          <span className={styles.icon}>{icons[pair[1]!]}</span> <strong>{pair[2]}</strong>
+        </span>
+      );
+    }
     if (part.startsWith('**')) return <strong key={i}>{part.slice(2, -2)}</strong>;
     const slot = /^\{(\w+)\}$/.exec(part)?.[1];
     if (slot && slot in icons) return <span key={i} className={styles.icon}>{icons[slot]}</span>;

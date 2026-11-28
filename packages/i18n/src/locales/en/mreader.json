@@ -15,8 +15,8 @@
     "install": {
       "title": "To read offline, add Bookeeper to your Home Screen",
       "why": "On iPhone, downloaded books stay only in the app on the Home Screen. In Safari they can disappear after a few days.",
-      "one": "Tap **Share** {share}, at the bottom.",
-      "two": "Choose **Add to Home Screen** {plus}.",
+      "one": "Tap {share} **Share**, at the bottom.",
+      "two": "Choose {plus} **Add to Home Screen**.",
       "three": "Open Bookeeper from the new icon and download the book.",
       "online": "You can still read online.",
       "done": "Got it"

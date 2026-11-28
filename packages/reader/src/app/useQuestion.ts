@@ -6,6 +6,7 @@ import type { Relocation, Target } from '../engine/protocol';
 import { decideResume, type LocalPosition, type ResumeSource } from '../model';
 import { useReaderLocale, useReaderT } from '../i18n';
 import type { Question } from '../ui/view';
+import { percentPhrase } from '../ui/view/format';
 import { chapterAtFraction, sinceText } from './helpers';
 import type { Opened } from './useBookSession';
 
@@ -47,14 +48,14 @@ export function useQuestion({ backend, opened, relocation, localAtOpen, sources,
     if (offer && resumeOpen) {
       const percent = Math.round(offer.percent);
       const s = offer.source;
-      const when = sinceText(locale, offer.at);
+      const when = sinceText(t, locale, offer.at);
       const go = () => {
         setStayed(true);
         goTo(offer.target);
       };
       const actions = [
         { id: 'stay', label: t('reader.resume.stay'), onClick: stay },
-        { id: 'go', label: t('reader.resume.go', { percent }), onClick: go, primary: true },
+        { id: 'go', label: percentPhrase(t, 'reader.resume.go', offer.percent, locale), onClick: go, primary: true },
       ];
       if (s.kind === 'page') {
         return { text: t('reader.resume.page', { page: s.page, percent }), detail: when, actions };

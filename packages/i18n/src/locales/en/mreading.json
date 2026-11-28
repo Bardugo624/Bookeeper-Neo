@@ -47,7 +47,7 @@
   },
   "now": {
     "title": "Reading now",
-    "all": "All {count}",
+    "all": "See all ({count})",
     "progress": "Progress of {title}"
   }
 }

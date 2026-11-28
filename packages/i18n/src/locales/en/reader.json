@@ -13,7 +13,9 @@
     "percent": "{percent}%",
     "chapter_left": "{time} to the end of the chapter",
     "book_left": "{time} to the book",
-    "jump_back": "Back to {percent}%",
+    "jump_back_al": "Back to {percent}",
+    "jump_back_all": "Back to {percent}",
+    "jump_back_allo": "Back to {percent}",
     "toc": "Contents",
     "notes": "Notes",
     "search": "Search",
@@ -67,8 +69,15 @@
     "question_kobo": "Continue where you left off on your Kobo?",
     "question_other": "Continue where you left off on another device?",
     "page": "You marked page {page} ({percent}%)",
+    "when_now": "just now",
+    "when_today": "at {time}",
+    "when_yesterday": "yesterday at {time}",
+    "when_date": "on {date}",
+    "when_date_elided": "on {date}",
     "stay": "Stay here",
-    "go": "Go to {percent}%"
+    "go_al": "Go to {percent}",
+    "go_all": "Go to {percent}",
+    "go_allo": "Go to {percent}"
   },
   "end": {
     "question": "You finished the book. Mark it as read?",

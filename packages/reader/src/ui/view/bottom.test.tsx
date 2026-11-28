@@ -119,6 +119,11 @@ describe('BottomBar', () => {
     expect(onBack).toHaveBeenCalledTimes(1);
   });
 
+  it('jump_back_and_go_use_the_article', async () => {
+    bar({ jumpBack: { percent: 0.4, onBack: () => {} } });
+    expect(screen.getByRole('button', { name: 'Torna allo 0,4%' })).toBeInTheDocument();
+  });
+
   it('is_translated', () => {
     bar({ jumpBack: { percent: 4, onBack: () => {} } }, 'en');
     expect(screen.getByRole('button', { name: 'Back to 4%' })).toBeInTheDocument();

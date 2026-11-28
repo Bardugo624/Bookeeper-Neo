@@ -155,6 +155,18 @@ describe('ReaderApp', () => {
     expect(engine.goTo).not.toHaveBeenCalled();
   });
 
+  it('a_swipe_is_a_turn_that_does_not_move_the_page_again', async () => {
+    saveLocal(10, 100);
+    const backend = makeBackend({ listPositions: vi.fn(async () => [remote(45, 5000)]) });
+    const { engine, emit } = await mount({}, backend);
+    await screen.findByText('Continua da dove eri sul telefono?');
+    await emit('swipe', { direction: 'next' });
+    expect(screen.queryByText('Continua da dove eri sul telefono?')).toBeNull();
+    expect(engine.next).not.toHaveBeenCalled();
+    expect(engine.prev).not.toHaveBeenCalled();
+    expect(engine.goTo).not.toHaveBeenCalled();
+  });
+
   it('go_to_leaves_a_way_back', async () => {
     const { engine, emit } = await mount();
     await emit('relocate', rel(0.04));

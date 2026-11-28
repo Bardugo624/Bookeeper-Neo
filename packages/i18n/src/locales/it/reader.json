@@ -13,7 +13,9 @@
     "percent": "{percent}%",
     "chapter_left": "{time} alla fine del capitolo",
     "book_left": "{time} al libro",
-    "jump_back": "Torna al {percent}%",
+    "jump_back_al": "Torna al {percent}",
+    "jump_back_all": "Torna all'{percent}",
+    "jump_back_allo": "Torna allo {percent}",
     "toc": "Indice",
     "notes": "Note",
     "search": "Cerca",
@@ -67,8 +69,15 @@
     "question_kobo": "Continua da dove eri sul Kobo?",
     "question_other": "Continua da dove eri su un altro dispositivo?",
     "page": "Hai segnato pagina {page} ({percent}%)",
+    "when_now": "adesso",
+    "when_today": "alle {time}",
+    "when_yesterday": "ieri alle {time}",
+    "when_date": "il {date}",
+    "when_date_elided": "l'{date}",
     "stay": "Resta qui",
-    "go": "Vai al {percent}%"
+    "go_al": "Vai al {percent}",
+    "go_all": "Vai all'{percent}",
+    "go_allo": "Vai allo {percent}"
   },
   "end": {
     "question": "Hai finito il libro. Segnarlo come letto?",

@@ -2,6 +2,7 @@ import { act, fireEvent, render, renderHook, screen } from '@testing-library/rea
 import { describe, expect, it, vi } from 'vitest';
 import { ReaderLocale } from '../../i18n';
 import { Reader } from './Reader';
+import { TopBar } from './TopBar';
 import { useChrome } from './useChrome';
 import { useReaderKeys, type Layer } from './useReaderKeys';
 
@@ -178,5 +179,33 @@ describe('useReaderKeys', () => {
     expect(h.onPrev).toHaveBeenCalledTimes(1);
     expect(h.onSearch).toHaveBeenCalledTimes(1);
     expect(h.onNext).not.toHaveBeenCalled();
+  });
+
+  it('an_error_state_keeps_only_back_and_title', () => {
+    for (const layout of ['desktop', 'phone'] as const) {
+      const { unmount } = render(
+        <ReaderLocale locale="it">
+          <TopBar layout={layout} title="Il libro" onBack={() => {}} onSearch={() => {}} onBookmark={() => {}} bookmarked={false}
+            onAppearance={() => {}} onPanel={() => {}} panelOpen={false} moreItems={[{ id: 'x', label: 'x', onSelect: () => {} }]} bare />
+        </ReaderLocale>,
+      );
+      expect(screen.getAllByRole('button')).toHaveLength(1);
+      expect(screen.getByText('Il libro')).toBeInTheDocument();
+      unmount();
+    }
+  });
+
+  it('an_error_state_has_no_bottom_bar_and_no_line', () => {
+    render(
+      <ReaderLocale locale="it">
+        <Reader layout="desktop" theme="light" chromeVisible={false} failed progress={0} top={<div />} bottom={<div data-testid="b" />}>
+          <iframe title="page" />
+        </Reader>
+      </ReaderLocale>,
+    );
+    expect(screen.queryByTestId('b')).toBeNull();
+    expect(document.querySelector('[data-bar="bottom"]')).toBeNull();
+    expect(document.querySelector('[data-line]')).toBeNull();
+    expect(document.querySelector('[data-bar="top"]')).toHaveAttribute('data-visible', 'true');
   });
 });

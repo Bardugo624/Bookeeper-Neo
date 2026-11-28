@@ -72,11 +72,17 @@ describe('NotesList', () => {
     expect(screen.getByText('Niente con questo filtro.')).toBeInTheDocument();
   });
 
+  it('note_percents_have_one_decimal_under_ten', () => {
+    notes({ items: [{ ...NOTES[0], chapter: 'Capitolo 1', percent: 0.4 }, { ...NOTES[1], chapter: 'Capitolo 2', percent: 42.4 }] });
+    expect(screen.getByText('Capitolo 1 · 0,4%')).toBeInTheDocument();
+    expect(screen.getByText('Capitolo 2 · 42%')).toBeInTheDocument();
+  });
+
   it('shows_chapter_percent_text_and_note_and_goes_to_the_entry', async () => {
     const p = notes();
-    expect(screen.getByText('Capitolo II · 6%')).toBeInTheDocument();
+    expect(screen.getByText('Capitolo II · 6,0%')).toBeInTheDocument();
     expect(screen.getByText('Da rileggere.')).toBeInTheDocument();
-    expect(screen.getByText('Segnalibro · Capitolo I · 3%')).toBeInTheDocument();
+    expect(screen.getByText('Segnalibro · Capitolo I · 3,0%')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: /il Resegone/ }));
     expect(p.onGo).toHaveBeenCalledWith(NOTES[1]);
   });
