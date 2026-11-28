@@ -906,10 +906,27 @@ async fn unattached_files_go_after_a_day_and_attached_ones_stay() {
 #[tokio::test]
 async fn the_router_sweeps_at_startup_but_only_once_an_hour() {
     let s = member().await;
+    // A stale probe, there before the first router is built: the startup
+    // sweep removes it, so its absence says that sweep has finished.
+    let probe = s
+        .state
+        .files
+        .ebooks_dir
+        .join(format!("{}.pdf", "b".repeat(64)));
+    std::fs::write(&probe, pdf_with(5)).unwrap();
+    age(&probe, 30);
     let (_, old) = upload(&s, "o.pdf", pdf_with(9)).await;
     let old = old["sha256"].as_str().unwrap().to_string();
-    // The upload above already built the router, which did the startup sweep
-    // of this folder; a file that becomes stale later is not swept at once.
+    // The upload above built the router, which starts the startup sweep of
+    // this folder in the background; wait (bounded) until it has run.
+    for _ in 0..200 {
+        if !probe.exists() {
+            break;
+        }
+        tokio::time::sleep(Duration::from_millis(50)).await;
+    }
+    assert!(!probe.exists(), "startup sweep did not finish");
+    // A file that becomes stale later is not swept at once.
     age(&disk(&s, &old, "pdf"), 30);
     let _ = router(s.state.clone());
     tokio::time::sleep(Duration::from_millis(300)).await;
