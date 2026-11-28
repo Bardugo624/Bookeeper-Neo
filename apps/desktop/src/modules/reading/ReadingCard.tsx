@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router';
 import type { BookOut, ReadingOut } from '@bookeeper/api';
 import { Button, Icon, Skeleton } from '@bookeeper/ui/base';
 import { useLocale, useT } from '../../app';
-import { formatDate } from '../../kit';
+import { formatDate, usePermission } from '../../kit';
 import { NoteField } from './NoteField';
 import { PageField } from './PageField';
 import { ReadingRing } from './ReadingRing';
@@ -79,6 +79,7 @@ function Continue({ reading, book }: { reading: ReadingOut; book: BookOut }) {
 /** "Reading" card of the book page: the caller's own state, whatever their role. */
 export function ReadingCard({ book }: { book: BookOut }) {
   const t = useT();
+  const canRead = usePermission().can('write');
   const { data: reading, isPending, isError, refetch } = useReading(book.id);
   let body;
   if (isPending) {
@@ -103,7 +104,7 @@ export function ReadingCard({ book }: { book: BookOut }) {
       <>
         <Progress reading={reading} book={book} />
         <div className={styles.actions}>
-          {reading.status === 'reading' && book.file_formats.length > 0 ? <Continue reading={reading} book={book} /> : null}
+          {reading.status === 'reading' && book.file_formats.length > 0 && canRead ? <Continue reading={reading} book={book} /> : null}
           <ReadingStatusMenu bookId={book.id} reading={reading} />
         </div>
         {reading.status === 'reading' ? <PageField reading={reading} pageCount={book.page_count} /> : null}
