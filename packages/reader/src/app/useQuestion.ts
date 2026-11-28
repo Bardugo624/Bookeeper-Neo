@@ -29,6 +29,7 @@ export function useQuestion({ backend, opened, relocation, localAtOpen, sources,
   const toast = useToast();
   const [stayed, setStayed] = useState(false);
   const [endDone, setEndDone] = useState(false);
+  const [marked, setMarked] = useState(false);
 
   const offer = useMemo(
     () => (sources && opened ? decideResume(localAtOpen, sources, backend.deviceId) : null),
@@ -72,12 +73,15 @@ export function useQuestion({ backend, opened, relocation, localAtOpen, sources,
         actions,
       };
     }
-    if (atEnd && !endDone && reading?.status !== 'read') {
+    if (atEnd && !endDone && reading?.status !== 'read' && !marked) {
       const mark = () => {
         setEndDone(true);
         backend
           .markRead()
-          .then(() => toast.show({ title: t('reader.end.marked'), tone: 'ok' }))
+          .then(() => {
+            setMarked(true);
+            toast.show({ title: t('reader.end.marked'), tone: 'ok' });
+          })
           .catch(() => toast.show({ title: t('reader.end.failed'), tone: 'danger' }));
       };
       return {
@@ -89,7 +93,7 @@ export function useQuestion({ backend, opened, relocation, localAtOpen, sources,
       };
     }
     return null;
-  }, [offer, resumeOpen, atEnd, endDone, reading, opened, locale, t, stay, goTo, backend, toast]);
+  }, [offer, resumeOpen, atEnd, endDone, marked, reading, opened, locale, t, stay, goTo, backend, toast]);
 
   return { question, resumeOpen, stay };
 }

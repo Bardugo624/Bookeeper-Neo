@@ -29,12 +29,21 @@ function Providers({ children }: { children: ReactNode }) {
   );
 }
 
+const backendIds = new WeakMap<object, number>();
+let backendCount = 0;
+function backendKey(backend: object): number {
+  let k = backendIds.get(backend);
+  if (k === undefined) backendIds.set(backend, (k = ++backendCount));
+  return k;
+}
+
 /** The reader: the engine, the model, the interface and the data of one book, put together. */
 export function ReaderApp(props: ReaderAppProps) {
   return (
     <ReaderLocale locale={props.locale}>
       <Providers>
-        <ReaderScreen {...props} />
+        {/* The frame says `ready` once: a new file or backend needs a new frame with its engine. */}
+        <ReaderScreen key={`${props.file.id}:${backendKey(props.backend)}`} {...props} />
       </Providers>
     </ReaderLocale>
   );

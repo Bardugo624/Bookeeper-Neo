@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AnnotationOut } from '@bookeeper/api';
-import type { AnnotationStore, ReaderBackend } from '../data';
+import type { AnnotationStore, NewAnnotation, ReaderBackend } from '../data';
 import type { Engine } from '../engine';
 import type { HighlightColor, Rect } from '../engine/protocol';
 import { webSearchUrl } from './helpers';
@@ -50,6 +50,7 @@ export function useSelection(
   engine: Engine | null,
   backend: ReaderBackend,
   store: AnnotationStore,
+  addNow: (input: NewAnnotation) => string,
   items: readonly AnnotationOut[],
   here: () => Here,
   editing: Editing | null,
@@ -109,12 +110,11 @@ export function useSelection(
       setEditing({ id: s.id, value: a?.note ?? '' });
     } else {
       // The note goes on a highlight in the color used last.
-      void store
-        .add({ kind: 'highlight', cfi: s.cfi, text: s.text, color: lastColor.current, ...here() })
-        .then((a) => setEditing({ id: a.id, value: '' }));
+      const id = addNow({ kind: 'highlight', cfi: s.cfi, text: s.text, color: lastColor.current, ...here() });
+      setEditing({ id, value: '' });
     }
     dismiss();
-  }, [selection, store, here, dismiss, setEditing]);
+  }, [selection, addNow, here, dismiss, setEditing]);
 
   const copy = useCallback(() => {
     if (!selection) return;

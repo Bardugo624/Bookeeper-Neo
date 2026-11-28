@@ -22,6 +22,8 @@ import { useSpeed } from './useSpeed';
 /** Flushing must not hold the screen back when the network stalls. */
 const CLOSE_WAIT_MS = 1500;
 
+const TURN_FLAG_MS = 1500;
+
 export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, menuItems, onClose }: ReaderAppProps) {
   const t = useReaderT();
   const desktop = platform === 'desktop';
@@ -37,6 +39,8 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
   const [pageSpan, setPageSpan] = useState(0);
   const stage = useRef<HTMLDivElement>(null);
   const turning = useRef<'next' | 'prev' | null>(null);
+  const turnTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(turnTimer.current), []);
 
   const jumps = useJumps(engine, relocation);
   const times = useSpeed(engine, opened, relocation, turning, setPageSpan);
@@ -46,7 +50,7 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
 
   const [editing, setEditing] = useState<Editing | null>(null);
   const actions = useNoteActions({ backend, book, store: notes.store, items: notes.items, goTo: jumps.goTo, setEditing });
-  const sel = useSelection(engine, backend, notes.store, notes.items, notes.here, editing, setEditing, actions.copyText, actions.removed);
+  const sel = useSelection(engine, backend, notes.store, notes.addNow, notes.items, notes.here, editing, setEditing, actions.copyText, actions.removed);
 
   const panelOpen = desktop ? settings.panelOpen : sheet;
   const openPanel = useCallback(
@@ -64,6 +68,9 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
     (direction: 'next' | 'prev') => {
       if (!engine) return;
       turning.current = direction;
+      // A turn that moves nothing (the last page) sends no `relocate`: the flag must not outlive it.
+      clearTimeout(turnTimer.current);
+      turnTimer.current = setTimeout(() => (turning.current = null), TURN_FLAG_MS);
       q.stay();
       jumps.turned(direction);
       chrome.hide();
@@ -104,9 +111,11 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
   const onError = (error: ReaderError) => {
     if (error === 'open_failed' && session.file && typeof URL.createObjectURL === 'function') {
       const a = document.createElement('a');
-      a.href = URL.createObjectURL(session.file);
+      const url = URL.createObjectURL(session.file);
+      a.href = url;
       a.download = file.name;
       a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
     } else void close();
   };
 

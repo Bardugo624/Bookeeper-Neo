@@ -313,6 +313,27 @@ describe('ReaderApp', () => {
     await waitFor(() => expect(engine.setLayout).toHaveBeenCalled());
     expect(engine.setLayout.mock.calls.at(-1)![0].colors.page).toBe(THEME_COLORS.light.page);
   });
+
+  it('the_note_editor_opens_before_the_server_answers', async () => {
+    const backend = makeBackend({ putAnnotation: vi.fn(() => new Promise(() => {})) });
+    const { emit } = await mount({}, backend);
+    await emit('relocate', rel(0.2));
+    await emit('selection', select());
+    await userEvent.click(screen.getByRole('button', { name: 'Nota' }));
+    expect(await screen.findByRole('textbox', { name: 'La tua nota' })).toBeInTheDocument();
+  });
+
+  it('other_files_of_the_book_are_not_drawn', async () => {
+    const other: AnnotationOut = {
+      id: 'o1', file_sha256: 'other', kind: 'highlight', cfi: 'c-other', text: 'x', color: 'amber', note: null,
+      percent: 10, chapter: null, created_at: 1, updated_at: 1, deleted_at: null,
+    };
+    const backend = makeBackend({ listAnnotations: vi.fn(async () => [other]) });
+    const { engine } = await mount({}, backend);
+    await waitFor(() => expect(backend.listAnnotations).toHaveBeenCalled());
+    await act(async () => {});
+    expect(engine.setMarks.mock.calls.every(([m]) => m.length === 0)).toBe(true);
+  });
 });
 
 function within_toolbar(name: string): HTMLElement {

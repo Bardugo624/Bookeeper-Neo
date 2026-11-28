@@ -18,8 +18,10 @@ export function useAnnotations(
   relocation: Relocation | null,
   pageSpan: number,
 ) {
+  // The id of the next `add`, when the caller needs it before the server answers.
+  const reserved = useRef<string | null>(null);
   const store = useMemo(
-    () => createAnnotationStore(backend, ids, nowSeconds, newId),
+    () => createAnnotationStore(backend, ids, nowSeconds, () => reserved.current ?? newId()),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [backend, ids.bookId, ids.sha256],
   );
@@ -33,7 +35,21 @@ export function useAnnotations(
     return () => window.removeEventListener('online', sync);
   }, [store]);
 
-  const items = useMemo(() => store.list(), [store, rev]);
+  // The book's other files (an EPUB and a PDF, two editions) have their own places: only this file's show.
+  const items = useMemo(() => store.list().filter((a) => a.file_sha256 === ids.sha256), [store, rev, ids.sha256]);
+
+  /** Adds at once and gives the new id now: the screen does not wait for the server. */
+  const addNow = useCallback(
+    (input: Parameters<typeof store.add>[0]): string => {
+      const id = newId();
+      reserved.current = id;
+      // `add` takes its id and puts the annotation in the store before its first wait.
+      store.add(input).catch(() => undefined);
+      reserved.current = null;
+      return id;
+    },
+    [store],
+  );
 
   // The highlights are drawn in the frame; a bookmark is not.
   useEffect(() => {
@@ -77,7 +93,7 @@ export function useAnnotations(
   }, [relocation, pageBookmarks, store, here]);
 
   const entries: NoteEntry[] = useMemo(() => items.map(toEntry), [items]);
-  return { store, items, entries, here, bookmarked: pageBookmarks.length > 0, toggleBookmark };
+  return { store, addNow, items, entries, here, bookmarked: pageBookmarks.length > 0, toggleBookmark };
 }
 
 function toEntry(a: AnnotationOut): NoteEntry {
