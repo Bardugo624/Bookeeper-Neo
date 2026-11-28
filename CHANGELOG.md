@@ -14,6 +14,40 @@ pubblicata e la mostra nella dialog "Vedi novità". Sono supportati:
 - link `[text](https://...)`
 
 
+## [2.3.0] - 2026-11-28
+
+### Added
+
+- **Il lettore di e-book**: un EPUB della libreria si legge dentro l'app, sul
+  computer e sul telefono. Si apre da «Leggi» nella scheda del libro e dalla
+  fila «In lettura». Mentre leggi restano solo la pagina e una linea sottile;
+  un tocco riporta le barre. Pagine o scorrimento, due pagine affiancate
+  quando c'è spazio.
+- **Aspetto della pagina**: temi chiaro, seppia, scuro e nero, oppure «Auto»
+  come l'app; il carattere dell'editore o Lora, Inter, serif e sans;
+  dimensione, interlinea, margini, giustificazione, sillabazione e stili
+  dell'editore. Le regolazioni valgono per tutti i libri su quel dispositivo.
+- **Orientarsi nel libro**: indice, barra di avanzamento con le tacche dei
+  capitoli, percentuale e tempo che manca alla fine del capitolo e del libro,
+  ricerca nel libro. Dopo ogni salto, «Torna al …» riporta dov'eri.
+- **Note**: segnalibri ed evidenziazioni in quattro colori, con una nota se
+  vuoi. Si ritrovano nel pannello del libro e si esportano in Markdown.
+- **Su tutti i dispositivi**: posizione, segnalibri e note passano da un
+  dispositivo all'altro. Se un altro dispositivo è più avanti, il lettore
+  chiede «Continua da dove eri sul telefono?» e non salta mai da solo.
+- **Leggere senza rete sul telefono**: «Scarica per leggere offline» tiene il
+  libro sul telefono. Su iPhone l'app spiega come aggiungerla alla schermata
+  Home, dove i libri scaricati restano.
+
+### Changed
+
+- **Libri letti**: all'ultima pagina il lettore chiede se segnare il libro
+  come letto.
+- **Backup**: l'archivio contiene anche le note e le posizioni di lettura.
+- **«In lettura»**: l'anello sulle copertine si vede anche allo 0%, e
+  «Vedi tutti» compare solo quando la fila non mostra già tutti i libri.
+
+
 ## [2.2.0] - 2026-11-28
 
 ### Added
