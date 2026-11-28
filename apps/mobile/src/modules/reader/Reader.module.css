@@ -1,0 +1,17 @@
+/* The reader fills what the app frame leaves; it draws its own bars and clears the notch itself. */
+.host {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: var(--bk-bg);
+}
+
+.state {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  background: var(--bk-bg);
+}
