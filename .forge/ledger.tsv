@@ -961,3 +961,25 @@
 2026-11-28T15:34:28Z	bookeeper-fase-10b3	mobile-p3	qa	opus	PASS	-	-	-	44
 2026-11-28T15:34:54Z	bookeeper-fase-10b3	ring-track-p3	dwarf	sonnet	-	-	-	-	86
 2026-11-28T15:35:21Z	bookeeper-fase-10b3	ring-track-p3	qa	opus	PASS	-	-	-	19
+2026-11-28T16:01:20Z	bookeeper-fase-10b4	reader-error-chrome	dwarf	sonnet	-	-	-	-	50
+2026-11-28T16:01:32Z	bookeeper-fase-10b4	install-sheet	dwarf	sonnet	-	-	-	-	62
+2026-11-28T16:02:23Z	bookeeper-fase-10b4	reader-error-chrome	qa	opus	FAIL	-	-	-	55
+2026-11-28T16:02:49Z	bookeeper-fase-10b4	reader-error-chrome	dwarf	sonnet	-	-	-	-	21
+2026-11-28T16:03:03Z	bookeeper-fase-10b4	install-sheet	qa	opus	PASS	-	-	-	82
+2026-11-28T16:03:45Z	bookeeper-fase-10b4	reader-error-chrome	qa	opus	PASS	-	-	-	49
+2026-11-28T16:05:00Z	bookeeper-fase-10b4	rail-all	dwarf	sonnet	-	-	-	-	110
+2026-11-28T16:06:09Z	bookeeper-fase-10b4	search-marks	dwarf	sonnet	-	-	-	-	137
+2026-11-28T16:06:24Z	bookeeper-fase-10b4	rail-all	qa	opus	PASS	-	-	-	77
+2026-11-28T16:07:22Z	bookeeper-fase-10b4	search-marks	qa	opus	FAIL	trap	engine stopsearch is a no op after the frame sends search done so it cannot be used to clear search marks left from a finished search	Engine.stopSearch() is a no-op after the frame sends search-done, so it cannot be used to clear search marks left from a finished search [packages/reader/src/engine/Engine.ts]	65	1
+2026-11-28T16:08:27Z	bookeeper-fase-10b4	card-ring	dwarf	sonnet	-	-	-	-	116
+2026-11-28T16:09:52Z	bookeeper-fase-10b4	card-ring	qa	opus	PASS	-	-	-	78
+2026-11-28T16:09:56Z	bookeeper-fase-10b4	search-marks	dwarf	sonnet	-	-	-	-	148
+2026-11-28T16:11:13Z	bookeeper-fase-10b4	reader-articles	dwarf	sonnet	-	-	-	-	74
+2026-11-28T16:11:20Z	bookeeper-fase-10b4	search-marks	qa	opus	FAIL	-	-	-	77
+2026-11-28T16:11:57Z	bookeeper-fase-10b4	notes-percent	dwarf	sonnet	-	-	-	-	31
+2026-11-28T16:12:21Z	bookeeper-fase-10b4	reader-articles	qa	opus	PASS	-	-	-	60
+2026-11-28T16:12:38Z	bookeeper-fase-10b4	notes-percent	qa	opus	PASS	-	-	-	33
+2026-11-28T16:13:11Z	bookeeper-fase-10b4	reader-when	dwarf	sonnet	-	trap	npx vitest run and tsc in packages reader fail with module not found or missing node vite client types until npm ci offline has run at	`npx vitest run` and `tsc` in packages/reader fail with module-not-found or missing `node`/`vite/client` types until `npm ci --offline` has run at… [packages/reader/package.json]	44	1
+2026-11-28T16:14:08Z	bookeeper-fase-10b4	reader-when	qa	opus	FAIL	finding	italian strings that put an article before a number il date al percent need elision for numbers that start with a vowel	Italian strings that put an article before a number («il {date}», «al {percent}») need elision for numbers that start with a vowel… [packages/i18n/src/locales/it/reader.json]	49	1
+2026-11-28T16:14:37Z	bookeeper-fase-10b4	reader-when	dwarf	sonnet	-	-	-	-	24
+2026-11-28T16:15:14Z	bookeeper-fase-10b4	reader-when	qa	opus	PASS	-	-	-	30
