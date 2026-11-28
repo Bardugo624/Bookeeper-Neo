@@ -29,6 +29,9 @@ function open(delay?: Promise<void>) {
 }
 const block = async () => {
   await screen.findByRole('link', { name: 'Leggi' });
+  // The control lives under «Leggi», never in the «File» block.
+  const files = screen.queryByRole('region', { name: 'File' });
+  if (files) expect(within(files).queryByRole('button', { name: /offline|Togli dal telefono/ })).toBeNull();
   return within(document.body);
 };
 const setUa = (ua: string, extra: Partial<Navigator> = {}) => {
@@ -105,6 +108,25 @@ describe('the book page offers the book offline', () => {
     expect(read.nextElementSibling).toHaveTextContent('EPUB · 2,4 MB');
     const files = screen.getByRole('region', { name: 'File' });
     expect(within(files).queryByRole('button', { name: 'Scarica per leggere offline' })).toBeNull();
+  });
+
+  it('offline_control_follows_the_file_read_opens', async () => {
+    const pdf = { ...file, id: 'f0', format: 'pdf', created_at: 1 };
+    renderSearch({
+      api: {
+        books: [book(1, { id: 'b1', file_formats: ['pdf', 'epub'] })],
+        override: (call) => {
+          const path = call.path.replace('/api/v1', '');
+          if (path === '/me') return ok(ME);
+          if (path === '/books/b1/files' && call.method === 'GET') return ok([pdf, file]);
+          return undefined;
+        },
+      },
+      route: '/books/b1',
+    });
+    const read = await screen.findByRole('link', { name: 'Leggi' });
+    await screen.findByRole('button', { name: 'Scarica per leggere offline' });
+    expect(read.nextElementSibling).toHaveTextContent('EPUB ·');
   });
 
   it('install_steps_show_the_icons_and_the_bold_names', async () => {

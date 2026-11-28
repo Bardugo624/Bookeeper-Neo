@@ -3,6 +3,7 @@ import type { BookOut } from '@bookeeper/api';
 import { Icon } from '@bookeeper/ui/base';
 import { useLocale, useT } from '../../app/i18n';
 import { OfflineControl } from '../reader/OfflineControl';
+import { pickFile } from '../reader/pickFile';
 import { ringPercent } from '../reading';
 import { useSession } from '../../session';
 import { canSeeFiles, formatSize } from './filesModel';
@@ -22,7 +23,9 @@ export function ReadButton({ book }: { book: BookOut }) {
   const allowed = canSeeFiles(useSession((s) => s.me?.user.role)) && book.file_formats.length > 0;
   const files = useBookFiles(book.id, allowed);
   if (!allowed) return null;
-  const file = files.data?.find((f) => !f.missing);
+  // The same file «Leggi» opens (the API lists them in upload order, not in reading order).
+  const picked = files.data ? pickFile(files.data, null) : null;
+  const file = picked && !picked.missing ? picked : null;
   const percent = book.reading?.status === 'reading' ? ringPercent(book.reading, book.page_count) : null;
   return (
     <>
