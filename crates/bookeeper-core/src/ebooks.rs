@@ -657,8 +657,10 @@ fn pdf_string(dict: &[u8], key: &[u8]) -> Option<String> {
     }
     if raw.starts_with(&[0xFE, 0xFF]) {
         let units: Vec<u16> = raw[2..]
-            .chunks_exact(2)
-            .map(|c| u16::from_be_bytes([c[0], c[1]]))
+            .as_chunks::<2>()
+            .0
+            .iter()
+            .map(|c| u16::from_be_bytes(*c))
             .collect();
         Some(String::from_utf16_lossy(&units))
     } else if let Some(utf8) = raw.strip_prefix(&[0xEF, 0xBB, 0xBF]) {
@@ -777,4 +779,22 @@ pub fn sweep_staged(
         }
     }
     Ok(removed)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::pdf_string;
+
+    #[test]
+    fn pdf_string_reads_utf16_with_a_byte_order_mark() {
+        let dict = b"<< /Title <FEFF00430061006600E9> /Author (\xFE\xFF\x00E\x00c\x00o) >>";
+        assert_eq!(pdf_string(dict, b"/Title").as_deref(), Some("Café"));
+        assert_eq!(pdf_string(dict, b"/Author").as_deref(), Some("Eco"));
+    }
+
+    #[test]
+    fn pdf_string_drops_an_odd_last_byte_of_utf16() {
+        let dict = b"<< /Title <FEFF004100> >>";
+        assert_eq!(pdf_string(dict, b"/Title").as_deref(), Some("A"));
+    }
 }
