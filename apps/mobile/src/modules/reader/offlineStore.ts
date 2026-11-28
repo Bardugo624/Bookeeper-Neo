@@ -58,7 +58,8 @@ function rangedStream(transport: Transport, path: string, total: number, signal:
 }
 
 /** Fetches the file with the session's token and keeps it on the phone. */
-export async function downloadOffline(meta: OfflineMeta, fileId: string, transport: Transport): Promise<void> {
+export async function downloadOffline(meta: OfflineMeta, transport: Transport): Promise<void> {
+  const { fileId } = meta;
   const sha = meta.sha256;
   if (jobs.has(sha)) return;
   const ctl = new AbortController();

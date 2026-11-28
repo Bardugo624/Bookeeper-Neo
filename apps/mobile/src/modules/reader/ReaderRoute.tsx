@@ -82,7 +82,8 @@ function useKeptCopy(bookId: string): OfflineBook | null | undefined {
     void opfsLibrary()
       .list()
       .catch(() => [] as OfflineBook[])
-      .then((all) => live && setKept(all.find((b) => b.bookId === bookId) ?? null));
+      // A row without the file id could not resume or sync its position: it does not open the reader.
+      .then((all) => live && setKept(all.find((b) => b.bookId === bookId && !!b.fileId) ?? null));
     return () => {
       live = false;
     };
@@ -94,7 +95,7 @@ function useKeptCopy(bookId: string): OfflineBook | null | undefined {
 function fromCopy(copy: OfflineBook): { title: string; file: BookFile } {
   return {
     title: copy.name.replace(/\.[^./]+$/, ''),
-    file: { id: '', format: copy.format, name: copy.name, sha256: copy.sha256, size_bytes: copy.sizeBytes, created_at: copy.savedAt, missing: false },
+    file: { id: copy.fileId, format: copy.format, name: copy.name, sha256: copy.sha256, size_bytes: copy.sizeBytes, created_at: copy.savedAt, missing: false },
   };
 }
 
@@ -112,7 +113,8 @@ export function ReaderRoute() {
   const back = `/books/${encodeURIComponent(bookId)}`;
 
   // Without a session (the app opened with no network) or without the server's answer, the copy on the phone is what there is.
-  const serverFailed = files.isError || book.isError;
+  // A failed background refetch keeps the cached answer: that still counts as an answer.
+  const serverFailed = (files.isError && !files.data) || (book.isError && !book.data);
   if (copy === undefined && (!me || serverFailed)) {
     return (
       <div className={styles.state}>
@@ -125,9 +127,9 @@ export function ReaderRoute() {
     return <Reading bookId={bookId} title={kept.title} authors={[]} file={kept.file} />;
   }
   if (me && !allowed) return <Navigate to={back} replace />;
-  if (!me) return <Navigate to={back} replace />;
-  if (serverFailed) {
-    const offline = !platform.network.online();
+  const offline = !platform.network.online();
+  if (!me && !offline) return <Navigate to={back} replace />;
+  if (!me || serverFailed) {
     return (
       <div className={styles.state}>
         <ErrorState

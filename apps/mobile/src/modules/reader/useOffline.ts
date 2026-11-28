@@ -27,8 +27,7 @@ export function useOfflineFile(target: OfflineTarget): OfflineFile {
   const start = useCallback((): 'explain' | 'started' => {
     if (needsHomeScreen()) return 'explain';
     void downloadOffline(
-      { sha256: file.sha256, format: file.format, name: file.name, bookId, sizeBytes: file.size_bytes },
-      file.id,
+      { sha256: file.sha256, format: file.format, name: file.name, bookId, fileId: file.id, sizeBytes: file.size_bytes },
       createAuthTransport(platform),
     );
     return 'started';

@@ -68,7 +68,7 @@ afterEach(() => setLibraryForTest(null));
 
 describe('the reader without a network', () => {
   it('the_offline_copy_opens_first', async () => {
-    await library.library.save({ sha256: 'sha1', format: 'epub', name: 'dune.epub', bookId: 'b1', sizeBytes: 3 }, streamOf(bytes), () => {}, new AbortController().signal);
+    await library.library.save({ sha256: 'sha1', format: 'epub', name: 'dune.epub', bookId: 'b1', fileId: 'f1', sizeBytes: 3 }, streamOf(bytes), () => {}, new AbortController().signal);
     const { transport } = mount({ net: fakeNetwork(false) });
     await waitFor(() => expect(h.engines[0]?.open).toHaveBeenCalled());
     const blob = (h.engines[0]!.open.mock.calls[0] as unknown as [Blob])[0];
@@ -85,7 +85,7 @@ describe('the reader without a network', () => {
 
   it('the_queue_drains_when_the_network_comes_back', async () => {
     const net = fakeNetwork(false);
-    await library.library.save({ sha256: 'sha1', format: 'epub', name: 'dune.epub', bookId: 'b1', sizeBytes: 3 }, streamOf(bytes), () => {}, new AbortController().signal);
+    await library.library.save({ sha256: 'sha1', format: 'epub', name: 'dune.epub', bookId: 'b1', fileId: 'f1', sizeBytes: 3 }, streamOf(bytes), () => {}, new AbortController().signal);
     const { transport, queue } = mount({ net });
     await queue.push({ type: 'position', fileId: 'f1', body: { kind: 'cfi', value: 'epubcfi(/6/2)', percent: 12 }, at: 5 });
     // Still no network: the write fails and stays in the queue.

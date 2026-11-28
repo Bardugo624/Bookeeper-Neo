@@ -5,7 +5,7 @@ import { setLibraryForTest } from './opfsLibrary';
 import { fakeLibrary } from './opfsTestkit';
 
 const MB = 1024 * 1024;
-const meta = { sha256: 'big', format: 'pdf', name: 'big.pdf', bookId: 'b1', sizeBytes: 2.5 * MB };
+const meta = { sha256: 'big', format: 'pdf', name: 'big.pdf', bookId: 'b1', fileId: 'f1', sizeBytes: 2.5 * MB };
 
 /** A server that honours `Range`. */
 function server(): { transport: Transport; ranges: string[] } {
@@ -38,7 +38,7 @@ afterEach(() => {
 describe('the download', () => {
   it('arrives_piece_by_piece_and_is_kept', async () => {
     const { transport, ranges } = server();
-    await downloadOffline(meta, 'f1', transport);
+    await downloadOffline(meta, transport);
     expect(ranges).toEqual([`bytes=0-${MB - 1}`, `bytes=${MB}-${2 * MB - 1}`, `bytes=${2 * MB}-${3 * MB - 1}`]);
     expect(offlineState('big')).toMatchObject({ status: 'saved', sizeBytes: 2.5 * MB });
   });
@@ -51,7 +51,7 @@ describe('the download', () => {
       cancelOffline('big');
       return res;
     };
-    await downloadOffline(meta, 'f1', transport);
+    await downloadOffline(meta, transport);
     expect(ranges).toHaveLength(1);
     expect(offlineState('big')).toMatchObject({ status: 'none', failed: false });
     expect(lib.files.size).toBe(0);

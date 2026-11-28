@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { streamOf } from './opfsLibrary';
 import { fakeLibrary } from './opfsTestkit';
 
-const meta = { sha256: 'abc', format: 'epub', name: 'dune.epub', bookId: 'b1', sizeBytes: 10 };
+const meta = { sha256: 'abc', format: 'epub', name: 'dune.epub', bookId: 'b1', fileId: 'f1', sizeBytes: 10 };
 const bytes = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 const text = (blob: Blob) =>
   new Promise<number[]>((ok) => {

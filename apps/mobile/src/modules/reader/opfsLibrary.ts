@@ -8,6 +8,8 @@ export interface OfflineBook {
   format: string;
   name: string;
   bookId: string;
+  /** The server's file id: positions are kept and sent by it, so a copy opened with no network still resumes and syncs. */
+  fileId: string;
   sizeBytes: number;
   savedAt: number;
 }
