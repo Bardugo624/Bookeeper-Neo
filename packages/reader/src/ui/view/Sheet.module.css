@@ -1,0 +1,31 @@
+/* The sheet is the only dialog open while `data-reader-sheet` is on <html>. */
+:global(html[data-reader-sheet]) :global([role='dialog']) {
+  top: auto;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 70dvh;
+  max-height: 100dvh;
+  translate: none;
+  border-radius: var(--bk-radius-lg) var(--bk-radius-lg) 0 0;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :global(html[data-reader-sheet]) :global([role='dialog']) {
+    animation: rise var(--bk-dur-slow) var(--bk-ease) both;
+  }
+
+  @keyframes rise {
+    from {
+      transform: translateY(24px);
+      opacity: 0;
+    }
+
+    to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+}

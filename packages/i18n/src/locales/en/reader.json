@@ -1,0 +1,60 @@
+{
+  "top": {
+    "back": "Back",
+    "search": "Search",
+    "bookmark": "Add bookmark",
+    "bookmark_remove": "Remove bookmark",
+    "appearance": "Appearance",
+    "panel": "Panel",
+    "more": "More"
+  },
+  "bottom": {
+    "label": "Progress and times",
+    "percent": "{percent}%",
+    "chapter_left": "{time} to the end of the chapter",
+    "book_left": "{time} to the book",
+    "jump_back": "Back to {percent}%",
+    "toc": "Contents",
+    "notes": "Notes",
+    "search": "Search",
+    "bookmark": "Mark",
+    "bookmark_remove": "Unmark"
+  },
+  "slider": {
+    "label": "Progress in the book",
+    "value": "{percent}%, {chapter}",
+    "value_plain": "{percent}%",
+    "hint": "{chapter} · {percent}%",
+    "hint_plain": "{percent}%"
+  },
+  "time": {
+    "min": "{minutes} min",
+    "hours": "{hours} h",
+    "hours_min": "{hours} h {minutes} min",
+    "under_a_minute": "under 1 min"
+  },
+  "status": {
+    "opening": "Opening the book…",
+    "cover": "Cover of {title}"
+  },
+  "error": {
+    "open_failed": {
+      "title": "This file won't open",
+      "body": "The file may be damaged or in a format the reader doesn't know.",
+      "action": "Download the file"
+    },
+    "missing": {
+      "title": "The file is missing on the server",
+      "body": "The book is in the library but its file can no longer be found.",
+      "action": "Back to the book"
+    },
+    "offline": {
+      "title": "You're offline and this book isn't on the phone",
+      "body": "Connect to the internet to read it, or download it when you have a connection.",
+      "action": "Back to the book"
+    }
+  },
+  "sheet": {
+    "close": "Close"
+  }
+}
