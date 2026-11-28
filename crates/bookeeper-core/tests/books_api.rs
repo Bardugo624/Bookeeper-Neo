@@ -638,8 +638,10 @@ async fn reading_is_per_caller_in_list_search_and_detail() {
         .await;
         assert_eq!(st, 200, "{v}");
     }
-    let expect_a_owner = json!({"status": "reading", "current_page": 30, "rating": 4});
-    let expect_a_bob = json!({"status": "read", "current_page": null, "rating": 2});
+    let expect_a_owner =
+        json!({"status": "reading", "current_page": 30, "progress_percent": null, "rating": 4});
+    let expect_a_bob =
+        json!({"status": "read", "current_page": null, "progress_percent": null, "rating": 2});
 
     let (_, list) = get(&s.state, owner, "/api/v1/books").await;
     let by_id = |v: &Value, id: &str| {

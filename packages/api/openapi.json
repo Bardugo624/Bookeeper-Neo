@@ -10431,6 +10431,14 @@
             ],
             "format": "int64"
           },
+          "progress_percent": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double",
+            "description": "Same value as `ReadingOut.progress_percent`."
+          },
           "rating": {
             "type": [
               "integer",

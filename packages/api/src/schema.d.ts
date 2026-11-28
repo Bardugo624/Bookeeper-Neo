@@ -2180,6 +2180,11 @@ export interface components {
         ReadingSummary: {
             /** Format: int64 */
             current_page?: number | null;
+            /**
+             * Format: double
+             * @description Same value as `ReadingOut.progress_percent`.
+             */
+            progress_percent?: number | null;
             /** Format: int64 */
             rating?: number | null;
             status: string;
