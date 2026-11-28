@@ -67,4 +67,12 @@ describe('bookCss', () => {
   it('never touches ::selection', () => {
     expect(css({ publisherStyles: false })).not.toContain('::selection');
   });
+
+  it('theme_link_color_beats_a_specific_book_rule', () => {
+    const out = css({ publisherStyles: true });
+    const rule = out.split('\n').find((l) => l.includes('html body a:any-link') && l.includes('!important'));
+    expect(rule).toContain('#a1b2c3');
+    // More specific than a book rule such as `body #toc a:link`.
+    expect(rule!.match(/:any-link/g)!.length).toBeGreaterThanOrEqual(3);
+  });
 });

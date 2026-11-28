@@ -32,6 +32,34 @@ function group(results: readonly SearchHit[]): Group[] {
   return groups;
 }
 
+export const ANNOUNCE_EVERY_MS = 2000;
+
+/**
+ * The text for the live region: it follows `text` at once when `immediate`
+ * (the search is over), and while searching changes at most every 2 seconds.
+ */
+function useThrottledAnnouncement(text: string, immediate: boolean): string {
+  const [shown, setShown] = useState(text);
+  const last = useRef(Date.now());
+  const latest = useRef(text);
+  latest.current = text;
+  useEffect(() => {
+    if (text === shown) return;
+    const wait = immediate ? 0 : last.current + ANNOUNCE_EVERY_MS - Date.now();
+    const apply = () => {
+      last.current = Date.now();
+      setShown(latest.current);
+    };
+    if (wait <= 0) {
+      apply();
+      return;
+    }
+    const id = setTimeout(apply, wait);
+    return () => clearTimeout(id);
+  }, [text, shown, immediate]);
+  return shown;
+}
+
 /** The search field and its results by chapter; arrows move, Enter chooses. */
 export function SearchTab({ query, onQueryChange, results, progress, done, onPick, autoFocus = false }: SearchTabProps) {
   const t = useReaderT();
@@ -66,7 +94,9 @@ export function SearchTab({ query, onQueryChange, results, progress, done, onPic
     ? t(n === 1 ? 'rpanel.search.count_one' : 'rpanel.search.count_other', { count: n })
     : t(n === 1 ? 'rpanel.search.so_far_one' : 'rpanel.search.so_far_other', { count: n });
   const none = ready && done && n === 0;
-  const announce = ready ? (none ? t('rpanel.search.none') : n > 0 || !done ? count : '') : '';
+  const target = ready ? (none ? t('rpanel.search.none') : n > 0 || !done ? count : '') : '';
+
+  const announce = useThrottledAnnouncement(target, done || !ready);
 
   return (
     <div className={styles.search}>

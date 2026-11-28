@@ -184,6 +184,17 @@ describe('annotation store', () => {
     expect(s.list().map((a) => a.id)).toEqual(['b', 'c', 'd']);
   });
 
+  it('own_writes_move_since_forward', async () => {
+    const { backend } = fakeBackend();
+    const s = createAnnotationStore(backend, book, clock, uuid);
+    await s.sync();
+    await s.add(hl);
+    await s.sync();
+    const at = (backend.putAnnotation as unknown as { mock: { results: Array<{ value: Promise<AnnotationOut> }> } }).mock.results[0]!.value;
+    const written = (await at).updated_at;
+    expect(backend.listAnnotations).toHaveBeenLastCalledWith(Math.max(0, written - 600));
+  });
+
   it('an_empty_first_pull_still_sees_later_tombstones', async () => {
     const { backend, state } = fakeBackend();
     const s = createAnnotationStore(backend, book, clock, uuid);
@@ -192,7 +203,7 @@ describe('annotation store', () => {
     // another device deletes it before we pull again
     state.remote.set('id-1', { ...state.remote.get('id-1')!, updated_at: 2000, deleted_at: 2000 });
     await s.sync();
-    expect(backend.listAnnotations).toHaveBeenLastCalledWith(0);
+    expect(backend.listAnnotations).toHaveBeenLastCalledWith(400);
     expect(s.list()).toEqual([]);
   });
 

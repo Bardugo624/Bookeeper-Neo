@@ -53,7 +53,9 @@ export function bookCss(layout: FrameLayout): string {
     rules.push(`body *:not(a:any-link):not(img):not(svg):not(video) {
   color: inherit !important;
   background-color: transparent !important;
-}`);
+}
+/* A specific book rule with !important must not win over the theme's link color. */
+html body a:any-link:any-link:any-link { color: ${colors.link} !important; }`);
   } else {
     rules.push(`body *:not(a:any-link) {
   color: inherit !important;
