@@ -39,12 +39,12 @@ describe('the reader route', () => {
     expect(shown.props).toBeNull();
   });
 
-  it('the_window_title_is_the_book', async () => {
-    const { unmount } = setup();
+  it('the_reader_sets_the_native_window_title_and_restores_it', async () => {
+    const { unmount, platform } = setup();
     await screen.findByTestId('reader');
-    expect(document.title).toBe('Il nome della rosa');
+    expect(platform.titles).toEqual(['Il nome della rosa']);
     unmount();
-    expect(document.title).toBe('Bookeeper');
+    expect(platform.titles).toEqual(['Il nome della rosa', 'Bookeeper']);
   });
 
   it('the_top_bar_has_the_window_controls', async () => {

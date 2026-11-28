@@ -155,6 +155,8 @@ export interface Platform {
   discover(): Promise<Found[]>;
   /** `null` where the platform has no window chrome of its own (browser). */
   window: WindowControls | null;
+  /** Sets the native window title (in a browser, the tab's `document.title`). */
+  setWindowTitle(title: string): Promise<void>;
   deviceName(): Promise<string>;
   /** Saves a file the app produced; `saved: false` when the user cancels. */
   saveFile(req: SaveFileRequest): Promise<SaveFileResult>;

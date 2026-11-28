@@ -1,5 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { book, installIntersectionObserver, renderBooksWithReader } from '../books/testkit';
 
@@ -76,5 +78,16 @@ describe('«In lettura»', () => {
     renderBooksWithReader({ books: [reading(1)], role: 'guest' }, '/books');
     await screen.findAllByText('Libro 1');
     expect(screen.queryByRole('region', { name: 'In lettura' })).toBeNull();
+  });
+
+  it('reading_now_keeps_four_columns_with_one_book', async () => {
+    renderBooksWithReader({ books: [reading(1), book(2)] }, '/books');
+    const region = await screen.findByRole('region', { name: 'In lettura' });
+    expect(within(region).getAllByRole('link')).toHaveLength(1);
+    // jsdom has no layout: the row's rule is what gives each card a quarter of its width.
+    const css = readFileSync(join(process.cwd(), 'src/modules/reading/ReadingNow.module.css'), 'utf8');
+    const row = /\.row\s*{([^}]*)}/.exec(css)?.[1] ?? '';
+    expect(row).toMatch(/grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)/);
+    expect(row).not.toMatch(/auto-fit|auto-fill/);
   });
 });
