@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Menu, type MenuEntry } from '@bookeeper/ui/overlays';
-import { useReaderT } from '../../i18n';
+import { useReaderLocale, useReaderT } from '../../i18n';
 import { HIGHLIGHT_COLORS, type HighlightColor } from '../../model/highlightColors';
 import type { Theme } from '../../model/highlightColors';
 import { swatch } from '../../model/highlights';
+import { formatPercent } from '../view/format';
 import { BookmarkIcon, MoreIcon } from '../view/icons';
 import type { NoteEntry } from './types';
 import styles from './NotesList.module.css';
@@ -21,9 +22,10 @@ export interface NoteItemProps {
 /** One highlight or bookmark: the dot or bookmark, chapter and percent, the text in Lora and the note. */
 export function NoteItem({ entry, theme, onGo, onEditNote, onRecolor, onCopy, onRemove }: NoteItemProps) {
   const t = useReaderT();
+  const locale = useReaderLocale();
   const [recoloring, setRecoloring] = useState(false);
   const bookmark = entry.kind === 'bookmark';
-  const where = [bookmark ? t('rpanel.notes.bookmark') : null, entry.chapter, `${Math.round(entry.percent)}%`]
+  const where = [bookmark ? t('rpanel.notes.bookmark') : null, entry.chapter, formatPercent(entry.percent / 100, locale)]
     .filter(Boolean)
     .join(' · ');
 
