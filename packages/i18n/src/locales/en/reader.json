@@ -56,5 +56,36 @@
   },
   "sheet": {
     "close": "Close"
+  },
+  "frame": {
+    "title": "Book page"
+  },
+  "resume": {
+    "question_mobile": "Continue where you left off on your phone?",
+    "question_desktop": "Continue where you left off on your computer?",
+    "question_koreader": "Continue where you left off on KOReader?",
+    "question_kobo": "Continue where you left off on your Kobo?",
+    "question_other": "Continue where you left off on another device?",
+    "page": "You marked page {page} ({percent}%)",
+    "stay": "Stay here",
+    "go": "Go to {percent}%"
+  },
+  "end": {
+    "question": "You finished the book. Mark it as read?",
+    "not_yet": "Not yet",
+    "mark_read": "Mark as read",
+    "marked": "Marked as read",
+    "failed": "Couldn't mark it as read"
+  },
+  "more": {
+    "open_book": "Open the book page"
+  },
+  "notes": {
+    "copied": "Copied",
+    "copy_failed": "Couldn't copy",
+    "removed": "Removed",
+    "undo": "Undo",
+    "exported": "Notes exported",
+    "export_failed": "Couldn't export the notes"
   }
 }
