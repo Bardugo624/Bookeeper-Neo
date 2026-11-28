@@ -76,4 +76,23 @@ describe('bookCss', () => {
     // Beats a plain book rule such as `a:link { color: #000 }`; an ID selector with !important in the book still wins.
     expect(rule!.match(/:any-link/g)!.length).toBeGreaterThanOrEqual(3);
   });
+
+  it('a_chosen_font_reaches_a_book_that_names_its_own', () => {
+    for (const publisherStyles of [true, false]) {
+      const out = css({ font: 'lora', publisherStyles });
+      expect(out).toMatch(/body \{[^}]*font-family: 'Lora Variable', Georgia, serif !important/);
+      expect(out).toMatch(/body \*:not\(img\)[^{]*\{\s*font-family: inherit !important/);
+    }
+  });
+
+  it('monospace_and_images_keep_their_own', () => {
+    const out = css({ font: 'sans' });
+    const rule = out.match(/(body \*[^{]*:not\(tt\)) \{\s*font-family: inherit !important/)![1];
+    for (const t of ['img', 'svg', 'video', 'code', 'pre', 'kbd', 'samp', 'tt']) expect(rule).toContain(`:not(${t})`);
+  });
+
+  it('the_publisher_font_is_left_alone', () => {
+    const out = css({ font: 'publisher', publisherStyles: true });
+    expect(out).not.toMatch(/font-family: [^;]*!important/);
+  });
 });
