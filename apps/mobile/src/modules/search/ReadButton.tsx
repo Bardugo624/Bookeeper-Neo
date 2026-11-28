@@ -3,6 +3,7 @@ import type { BookOut } from '@bookeeper/api';
 import { Icon } from '@bookeeper/ui/base';
 import { useLocale, useT } from '../../app/i18n';
 import { OfflineControl } from '../reader/OfflineControl';
+import { useOfflineFile, type OfflineTarget } from '../reader/useOffline';
 import { pickFile } from '../reader/pickFile';
 import { ringPercent } from '../reading';
 import { useSession } from '../../session';
@@ -19,7 +20,6 @@ export const readPath = (bookId: string) => `/read/${encodeURIComponent(bookId)}
  */
 export function ReadButton({ book }: { book: BookOut }) {
   const t = useT();
-  const locale = useLocale();
   const allowed = canSeeFiles(useSession((s) => s.me?.user.role)) && book.file_formats.length > 0;
   const files = useBookFiles(book.id, allowed);
   if (!allowed) return null;
@@ -36,9 +36,17 @@ export function ReadButton({ book }: { book: BookOut }) {
       {file ? (
         <div className={styles.offline}>
           <OfflineControl target={{ bookId: book.id, file }} />
-          <p className={styles.fileInfo}>{`${file.format.toUpperCase()} · ${formatSize(locale, file.size_bytes)}`}</p>
+          <FileInfo bookId={book.id} file={file} />
         </div>
       ) : null}
     </>
   );
+}
+
+/** Format under the offline control; the size only until the book is on the phone, where the control already says it. */
+function FileInfo({ bookId, file }: OfflineTarget & { bookId: string }) {
+  const locale = useLocale();
+  const saved = useOfflineFile({ bookId, file }).status === 'saved';
+  const format = file.format.toUpperCase();
+  return <p className={styles.fileInfo}>{saved ? format : `${format} · ${formatSize(locale, file.size_bytes)}`}</p>;
 }
