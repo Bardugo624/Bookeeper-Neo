@@ -49,6 +49,8 @@ export function renderPage(t, { downloadsOrder = 'index,github,manifest' } = {})
       return `<tr><th scope="row">${esc(what)}</th><td>${esc(does)}</td><td class="where" data-where="${where}">${esc(w)}</td></tr>`;
     })
     .join('');
+
+  const facts = t.readerFacts.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('');
   const strings = {
     lang: t.lang, locale: t.locale, labels: t.labels, short: t.short, planShelf: t.planShelf, planDoor: t.planDoor, planExample: t.planExample, dlYours: t.dlYours, dlNotesH: t.dlNotesH,
     dlFor: t.dlFor, dlGeneric: t.dlGeneric, dlVersion: t.dlVersion, dlPublished: t.dlPublished,
@@ -162,6 +164,19 @@ export function renderPage(t, { downloadsOrder = 'index,github,manifest' } = {})
     </table>
     ${quote(t.quoteCatalog, 'q-catalog')}
   </div>
+</section>
+
+<section class="reader" id="lettore" aria-labelledby="reader-h">
+  <div class="sec-head">
+    <h2 id="reader-h">${esc(t.readerH2)}</h2>
+    <p>${esc(t.readerLede)}</p>
+  </div>
+  <div class="reader-shots">
+    <figure>${shot('desktop-reader-notes', t.readerShotAlt, '', '(min-width: 1100px) 820px, 100vw')}<figcaption>${esc(t.readerFig)}</figcaption></figure>
+    <figure class="phone">${shot('phone-reader', t.readerPhoneAlt, 'is-phone', '(min-width: 1100px) 260px, 60vw')}<figcaption>${esc(t.readerPhoneFig)}</figcaption></figure>
+  </div>
+  <dl class="facts">${facts}</dl>
+  <p class="demo-note">${esc(t.readerNote)}</p>
 </section>
 
 <section class="net" id="rete" aria-labelledby="net-h">

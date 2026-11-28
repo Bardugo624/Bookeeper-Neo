@@ -57,6 +57,22 @@ export const strings = {
     figPhoneAlt: 'L’app sul telefono mostra dove si trova un libro',
     demoNote: 'Schermate dell’app vera, su una libreria d’esempio con dati inventati.',
 
+    readerH2: 'E quando trovi il libro, lo leggi.',
+    readerLede:
+      'Gli e-book dei tuoi libri si aprono nell’app, sul computer e sul telefono. Le note sono tue e restano tue. Passi dal computer al telefono e ti chiede se riprendere da dove eri.',
+    readerShotAlt: 'Il lettore di Bookeeper sul computer: due pagine dei Promessi sposi con due evidenziazioni, e accanto il pannello delle note',
+    readerPhoneAlt: 'Il lettore di Bookeeper sul telefono, con l’indice, le note, la ricerca e il segnalibro in basso',
+    readerFig: 'Le note accanto al testo, sul computer',
+    readerPhoneFig: 'Sul telefono, i comandi sotto il pollice',
+    readerFacts: [
+      ['Pagine o scorrimento', 'Due pagine affiancate sugli schermi larghi.'],
+      ['Come piace a te', 'Temi chiaro, seppia, scuro e nero; carattere, dimensione, interlinea e margini.'],
+      ['Sai sempre dove sei', 'Indice, ricerca nel libro, le tacche dei capitoli e il tempo che manca.'],
+      ['Segni e note', 'Segnalibri ed evidenziazioni in quattro colori, con le note. Si esportano in Markdown.'],
+      ['Anche senza rete', 'Sul telefono scarichi il libro e lo leggi offline.'],
+    ],
+    readerNote: 'Il libro è I promessi sposi (1840), di pubblico dominio, con le incisioni di Gonin. La libreria è d’esempio.',
+
     tableH2: 'Tutto quello che serve a una casa piena di libri.',
     tableCaption: 'Che cosa fa Bookeeper, e dove',
     colWhat: 'Voce',
@@ -75,6 +91,7 @@ export const strings = {
       ['Famiglia', 'Ruoli per tutti: proprietario, admin, membro, ospite.', 'desktop'],
       ['Statistiche', 'I libri per genere e per decennio, le letture mese per mese.', 'desktop'],
       ['Importa', 'Porti la libreria da Goodreads, Calibre o LibraryThing.', 'desktop'],
+      ['E-book', 'A ogni libro attacchi i suoi file EPUB, PDF, MOBI, AZW3, FB2 o CBZ, e li apri da tutti i dispositivi.', 'both'],
       ['Codice a barre', 'In libreria o in negozio, inquadri il codice e il libro è dentro.', 'phone'],
     ],
     quoteCatalog: {
@@ -219,6 +236,22 @@ export const strings = {
     figPhoneAlt: 'The phone app shows where a book is',
     demoNote: 'Screenshots of the real app, on an example library with made-up data. The app is in Italian.',
 
+    readerH2: 'And once you find the book, you read it.',
+    readerLede:
+      'Your books’ e-books open in the app, on the computer and on the phone. Your notes are yours and stay yours. Move from the computer to the phone and it asks whether to pick up where you were.',
+    readerShotAlt: 'The Bookeeper reader on a computer: two pages of The Betrothed with two highlights, and the notes panel beside them',
+    readerPhoneAlt: 'The Bookeeper reader on a phone, with contents, notes, search and bookmark at the bottom',
+    readerFig: 'Notes beside the text, on the computer',
+    readerPhoneFig: 'On the phone, the controls under your thumb',
+    readerFacts: [
+      ['Pages or scrolling', 'Two pages side by side on wide screens.'],
+      ['The way you like it', 'Light, sepia, dark and black themes; typeface, size, line spacing and margins.'],
+      ['Always know where you are', 'Contents, search in the book, chapter marks and the time left.'],
+      ['Marks and notes', 'Bookmarks and highlights in four colours, with notes. Export them to Markdown.'],
+      ['Offline too', 'On the phone, download the book and read it without a connection.'],
+    ],
+    readerNote: 'The book is I promessi sposi (1840), in the public domain, with Gonin’s engravings. The library is an example. The app is in Italian.',
+
     tableH2: 'Everything a house full of books needs.',
     tableCaption: 'What Bookeeper does, and where',
     colWhat: 'Item',
@@ -237,6 +270,7 @@ export const strings = {
       ['Family', 'Roles for everyone: owner, admin, member, guest.', 'desktop'],
       ['Statistics', 'Your books by genre and decade, your reading month by month.', 'desktop'],
       ['Import', 'Bring your library over from Goodreads, Calibre or LibraryThing.', 'desktop'],
+      ['E-books', 'Attach a book’s EPUB, PDF, MOBI, AZW3, FB2 or CBZ files and open them on every device.', 'both'],
       ['Barcode', 'In a bookshop or at home, point at the barcode and the book is in.', 'phone'],
     ],
     quoteCatalog: {
