@@ -13,6 +13,12 @@
   touch-action: pan-y;
 }
 
+/* A sheet that fits its content: as tall as the rows, never past 92% of the screen. */
+[role='dialog'][data-reader-sheet-dialog][data-reader-sheet-fit] {
+  height: var(--reader-sheet-h, auto);
+  max-height: var(--reader-sheet-h, 92dvh);
+}
+
 /* The header holds the grip band: a vertical drag there is a pull, never a scroll the browser takes. */
 [role='dialog'][data-reader-sheet-dialog] > header {
   touch-action: none;
