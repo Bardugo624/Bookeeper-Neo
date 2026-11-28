@@ -4,6 +4,7 @@
      overwritten. Facts only, one per line. -->
 
 ## Verify
+- NODE_PATH=$(npm root -g) node packages/reader/e2e/run.mjs --browsers chromium (needs `npm ci --offline` at the root first; browsers live in… [packages/reader/e2e/run.mjs]
 - cargo test --offline -p bookeeper-desktop && cargo clippy --offline -p bookeeper-desktop --all-targets -- -D warnings [apps/desktop/src-tauri/Cargo.toml]
 - from packages/reader, `npx vitest run src/ui src/app && npx tsc --noEmit` (needs `npm ci --offline` at the root first) [packages/reader/package.json]
 - a throwaway mobile vitest in the scratchpad also needs a `node_modules` symlink to the repo root's node_modules next to the test file, and the config… [apps/mobile/vite.config.ts]
@@ -12,7 +13,6 @@
 - cd apps/mobile && npx vitest run src/modules/reader src/modules/search (after `npm ci --offline` at the root) [apps/mobile/package.json]
 - from packages/reader, `npx vitest run src/app && npx tsc --noEmit` runs the reader app tests and typecheck [packages/reader/package.json]
 - from packages/reader, `npx vitest run src/model src/styleCheck.test.ts` and `npx tsc --noEmit` run the model tests and the package typecheck in… [packages/reader/package.json]
-- NODE_PATH=$(npm root -g) node packages/reader/e2e/run.mjs --browsers chromium (needs `npm ci --offline` at the root first; browsers live in… [packages/reader/e2e/run.mjs]
 - npm install at the root, then npm test -w @bookeeper/reader && npm run typecheck -w @bookeeper/reader [packages/reader/package.json]
 - from apps/desktop, `npx vitest run src/modules/welcome src/kit/styles.test.ts` runs the welcome tests and the app's CSS lint in about 10 s [apps/desktop/src/kit/styles.test.ts]
 - cargo check --offline --target x86_64-pc-windows-msvc -p bookeeper-setup works from the committed files and type-checks the Setup's Windows-only… [apps/setup/src-tauri/Cargo.toml]

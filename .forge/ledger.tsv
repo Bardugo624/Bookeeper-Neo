@@ -952,3 +952,12 @@
 2026-11-28T15:15:19Z	bookeeper-fase-10b2	reader-line-panel	qa	opus	FAIL	-	-	-	64
 2026-11-28T15:15:52Z	bookeeper-fase-10b2	reader-line-panel	dwarf	sonnet	-	-	-	-	28
 2026-11-28T15:16:31Z	bookeeper-fase-10b2	reader-line-panel	qa	opus	PASS	-	-	-	31
+2026-11-28T15:31:55Z	bookeeper-fase-10b3	reader-p3	dwarf	sonnet	-	trap	vite rewrites a literal new url rel import meta url in vitest into an http url so readfilesync fails with must be of	Vite rewrites a literal `new URL('rel', import.meta.url)` in vitest into an http URL, so `readFileSync` fails with "must be of… [packages/reader/src/ui/look/appearance.test.tsx]	140	1
+2026-11-28T15:31:55Z	bookeeper-fase-10b3	reader-p3	dwarf	sonnet	-	trap	jsdom keeps important priority only on standard properties not on custom ones so test priority with color scheme	jsdom keeps `!important` priority only on standard properties, not on `--custom` ones, so test priority with `color-scheme` [packages/reader/src/app/useDocumentTheme.test.tsx]	140	1
+2026-11-28T15:32:23Z	bookeeper-fase-10b3	frame-p3	dwarf	sonnet	-	verify	node path npm root g node packages reader e2e run mjs browsers chromium needs npm ci offline at the root first browsers live in	NODE_PATH=$(npm root -g) node packages/reader/e2e/run.mjs --browsers chromium (needs `npm ci --offline` at the root first; browsers live in… [packages/reader/e2e/run.mjs]	167	1
+2026-11-28T15:32:38Z	bookeeper-fase-10b3	reader-p3	qa	opus	PASS	-	-	-	35
+2026-11-28T15:33:21Z	bookeeper-fase-10b3	frame-p3	qa	opus	PASS	-	-	-	50
+2026-11-28T15:33:35Z	bookeeper-fase-10b3	mobile-p3	dwarf	sonnet	-	trap	a fresh worktree has no node modules so vitest and tsc in apps mobile fail until npm ci offline runs at the root	a fresh worktree has no node_modules, so vitest and tsc in apps/mobile fail until `npm ci --offline` runs at the root [package.json]	51	1
+2026-11-28T15:34:28Z	bookeeper-fase-10b3	mobile-p3	qa	opus	PASS	-	-	-	44
+2026-11-28T15:34:54Z	bookeeper-fase-10b3	ring-track-p3	dwarf	sonnet	-	-	-	-	86
+2026-11-28T15:35:21Z	bookeeper-fase-10b3	ring-track-p3	qa	opus	PASS	-	-	-	19
