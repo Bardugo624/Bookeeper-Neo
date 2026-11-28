@@ -378,5 +378,11 @@
       "format": "This format is not supported. Bookeeper opens EPUB, PDF, MOBI, AZW3, FB2 and CBZ.",
       "drm": "The file is protected by DRM. Bookeeper only opens files without protection."
     }
+  },
+  "read": {
+    "read": "Read",
+    "readPercent": "Read · {percent}%",
+    "more": "Other files to read",
+    "open": "Open the {format}"
   }
 }

@@ -17,6 +17,7 @@ const epub: BookFile = {
   size_bytes: 3_355_443,
   name: 'rosa.epub',
   created_at: 0,
+  sha256: 'ab'.repeat(32),
   missing: false,
   uploaded_by: { id: 'u1', display_name: 'Anna' },
 };

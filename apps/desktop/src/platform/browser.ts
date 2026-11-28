@@ -1,6 +1,6 @@
 import { ApiError, createFetchTransport, type ServerInfo, type SetupStatus } from '@bookeeper/api';
 import { dispositionName } from './dispositionName';
-import { NETWORK_PROBE, type Connection, type Connections, type NotificationControls, type Platform, type ProbeOut } from './types';
+import { NETWORK_PROBE, type Connection, type Connections, type NotificationControls, type Platform, type ProbeOut, type ReaderFileArgs } from './types';
 
 const KEY = 'bookeeper.connections';
 const EMPTY: Connections = { active: null, items: [] };
@@ -122,6 +122,19 @@ export function browserPlatform(baseUrl: string): Platform {
         URL.revokeObjectURL(url);
       }
       return { saved: true };
+    },
+    async readerFile(args: ReaderFileArgs) {
+      let res: Response;
+      try {
+        res = await fetch(`${base}/api/v1/books/${args.bookId}/files/${args.fileId}/content`, { headers: args.headers ?? {} });
+      } catch (e) {
+        throw new ApiError(0, 'network', e instanceof Error ? e.message : String(e));
+      }
+      if (!res.ok) throw new ApiError(res.status, 'internal', `The library answered ${res.status}`);
+      return URL.createObjectURL(await res.blob());
+    },
+    async openUrl(url) {
+      window.open(url, '_blank', 'noopener,noreferrer');
     },
     async saveFile(req) {
       const url = URL.createObjectURL(new Blob([req.bytes as BlobPart], { type: req.mime }));

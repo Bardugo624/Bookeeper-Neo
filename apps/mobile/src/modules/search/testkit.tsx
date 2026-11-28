@@ -1,3 +1,5 @@
+import { useParams } from 'react-router';
+import type { MobileModule } from '../../app/types';
 import { act } from '@testing-library/react';
 import { vi } from 'vitest';
 import type { TransportResponse } from '@bookeeper/api';
@@ -8,12 +10,25 @@ import { ME, ok, pair } from '../../session/fixtures';
 import { forgetScrollPositions } from './ResultList';
 import { module } from './routes';
 
+/** Stands in for the reader's route: says which book it was opened on. */
+const readerProbe: MobileModule = {
+  id: 'reader-probe',
+  routes: [],
+  screens: [{ path: '/read/:bookId', Component: ReaderProbe }],
+};
+
+function ReaderProbe() {
+  const { bookId } = useParams();
+  return <p data-testid="reader-probe">{`reader ${bookId}`}</p>;
+}
+
 export const book = (n: number, over: Partial<BookOut> = {}): BookOut =>
   ({
     id: `b${n}`,
     title: `Libro ${n}`,
     authors: [`Autore ${n}`],
     on_loan: false,
+    file_formats: [],
     created_at: n,
     updated_at: n,
     ...over,
@@ -29,6 +44,8 @@ export interface Api {
   facets?: { tags?: { id: string; name: string; color: string; count: number }[]; reading?: Partial<Record<string, number>> };
   /** Reading state of each book, by id, for the `reading` filter. */
   reading?: Record<string, string>;
+  /** Book ids in the order of the caller's reading states (most recently read first); default: newest metadata. */
+  readOrder?: string[];
   /** Replaces the answer of the list or detail endpoints. */
   override?: (call: RecordedCall) => TransportResponse | undefined | Promise<TransportResponse | undefined>;
 }
@@ -62,6 +79,16 @@ export function apiHandler(api: Api): Handler {
       const count = (api.shelfBooks?.[found.id] ?? []).length;
       return ok({ ...found, color: 'sage', rows: 3, slots_per_row: 16, capacity: 48, book_count: count, label_code: 1, created_at: 1, updated_at: 1 });
     }
+    if (url.pathname === '/api/v1/reading') {
+      const rows = api.books
+        .filter((b) => b.reading && (!url.searchParams.get('status') || b.reading.status === url.searchParams.get('status')))
+        .sort((a, b) => (api.readOrder ? api.readOrder.indexOf(a.id) - api.readOrder.indexOf(b.id) : b.updated_at - a.updated_at));
+      const items = rows.map((b) => ({
+        book: { id: b.id, title: b.title, authors: [], cover_color: null, page_count: null },
+        reading: { book_id: b.id, status: b.reading!.status },
+      }));
+      return ok({ items, total: items.length });
+    }
     const one = /^\/api\/v1\/books\/([^/]+)$/.exec(url.pathname);
     if (one) {
       const found = api.books.find((b) => b.id === decodeURIComponent(one[1]!));
@@ -76,7 +103,7 @@ export function apiHandler(api: Api): Handler {
       if (url.searchParams.get('on_loan') === 'true') list = list.filter((b) => b.on_loan);
       if (url.searchParams.get('unshelved') === 'true') list = list.filter((b) => !b.placement);
       const reading = url.searchParams.get('reading');
-      if (reading) list = list.filter((b) => (api.reading?.[b.id] ?? 'none') === reading);
+      if (reading) list = list.filter((b) => (api.reading?.[b.id] ?? b.reading?.status ?? 'none') === reading);
       const tagIds = url.searchParams.getAll('tag_id');
       if (tagIds.length) list = list.filter((b) => tagIds.every((id) => (b.tags ?? []).some((x) => x.id === id)));
       const offset = Number(url.searchParams.get('offset') ?? 0);
@@ -100,12 +127,12 @@ export function renderSearch({ api = { books: [] }, handler, rawHandler, route =
   const platform: FakePlatform = fakePlatform({ handler: handler ?? apiHandler(api), rawHandler, online });
   pair(platform.storage);
   forgetScrollPositions();
-  return renderMobile({ platform, modules: [module], route });
+  return renderMobile({ platform, modules: [module, readerProbe], route });
 }
 
 /** Paths of the book-list requests made so far, with their query strings. */
 export const listCalls = (platform: FakePlatform) =>
-  platform.fake.calls.filter((c) => c.path.startsWith('/api/v1/books?')).map((c) => c.path);
+  platform.fake.calls.filter((c) => c.path.startsWith('/api/v1/books?') && !c.path.includes('limit=200')).map((c) => c.path);
 
 /** Replaces `IntersectionObserver`; `reach()` tells every observer that its element is in view. */
 export function stubObserver({ reportOnObserve = false } = {}) {

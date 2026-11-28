@@ -6,6 +6,7 @@ import { Menu, useToast } from '@bookeeper/ui/overlays';
 import { useT } from '../../app';
 import { ConfirmDialog, apiErrorMessage } from '../../kit';
 import { LabelsDialog } from '../labels';
+import { ReadButton } from './ReadButton';
 import { BookDialog } from './BookDialog';
 import { useBookWrites } from './useBookWrites';
 import styles from './DetailToolbar.module.css';
@@ -38,6 +39,7 @@ export function DetailToolbar({ book, listPath }: { book: BookOut; listPath: To 
 
   return (
     <div className={styles.toolbar}>
+      <ReadButton book={book} />
       <Button variant="secondary" icon="pencil" onClick={(e) => {
           setOrigin(e.currentTarget);
           setEditing(true);

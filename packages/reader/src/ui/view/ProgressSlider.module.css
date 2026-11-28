@@ -1,0 +1,104 @@
+.slider {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  border-radius: 4px;
+  outline-offset: 2px;
+}
+
+.slider:focus-visible {
+  outline: 2px solid var(--rd-accent-text);
+}
+
+.track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 32px;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.rail {
+  position: relative;
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--rd-rule);
+}
+
+.fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 3px;
+  background: var(--rd-accent-solid);
+}
+
+.tick {
+  position: absolute;
+  top: 50%;
+  width: 1px;
+  height: 10px;
+  background: var(--rd-faint);
+  opacity: 0.6;
+  transform: translateY(-50%);
+}
+
+.tick[data-passed] {
+  background: var(--rd-on-accent);
+  opacity: 0.8;
+}
+
+.thumb {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--rd-page);
+  border-radius: 50%;
+  background: var(--rd-accent-solid);
+  opacity: 0;
+  transform: translate(-50%, -50%);
+}
+
+.slider:focus-visible .thumb,
+.slider[data-scrubbing] .thumb,
+.track:hover .thumb {
+  opacity: 1;
+}
+
+.hint {
+  position: absolute;
+  bottom: calc(100% + 2px);
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--rd-ink);
+  color: var(--rd-page);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .fill {
+    transition: width var(--bk-dur) var(--bk-ease);
+  }
+
+  .slider[data-scrubbing] .fill {
+    transition: none;
+  }
+
+  .thumb {
+    transition: opacity var(--bk-dur-fast) var(--bk-ease);
+  }
+}
+
+@media (pointer: coarse) {
+  .track {
+    height: 48px;
+  }
+}

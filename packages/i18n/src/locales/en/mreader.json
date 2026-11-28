@@ -1,0 +1,25 @@
+{
+  "loading": "Opening the reader",
+  "error": {
+    "text": "I can't open the book. Check the connection and try again."
+  },
+  "offline": {
+    "missing": "You're offline and this book isn't on the phone.",
+    "download": "Download to read offline",
+    "saving": "Downloading… {percent}%",
+    "menuCancel": "Downloading… {percent}% · Cancel",
+    "cancel": "Cancel",
+    "kept": "On this phone · {size}",
+    "remove": "Remove from phone",
+    "failed": "Couldn't download the book. Try again.",
+    "install": {
+      "title": "To read offline, add Bookeeper to your Home Screen",
+      "why": "On iPhone, downloaded books stay only in the app on the Home Screen. In Safari they can disappear after a few days.",
+      "one": "Tap Share, at the bottom.",
+      "two": "Choose Add to Home Screen.",
+      "three": "Open Bookeeper from the new icon and download the book.",
+      "online": "You can still read online.",
+      "done": "Got it"
+    }
+  }
+}

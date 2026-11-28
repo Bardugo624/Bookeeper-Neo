@@ -15,7 +15,9 @@
     "start": "Inizia a leggere",
     "startedOn": "Iniziato il {date}",
     "pageOf": "Pagina {page} di {total}",
-    "page": "Pagina {page}"
+    "page": "Pagina {page}",
+    "continue": "Continua",
+    "continuePercent": "Continua · {percent}%"
   },
   "ring": {
     "label": "{status}, {percent}%",
@@ -50,5 +52,10 @@
   "list": {
     "none": "–",
     "pageShort": "p. {page}"
+  },
+  "now": {
+    "title": "In lettura",
+    "all": "Tutti i {count}",
+    "progress": "Avanzamento di {title}"
   }
 }

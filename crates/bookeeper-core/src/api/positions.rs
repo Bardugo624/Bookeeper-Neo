@@ -59,6 +59,8 @@ pub struct PositionOut {
     pub percent: Option<f64>,
     pub device_id: Option<String>,
     pub device_name: Option<String>,
+    /// `desktop` or `mobile`; null when the device no longer exists.
+    pub device_kind: Option<String>,
     pub updated_at: i64,
 }
 
@@ -201,7 +203,7 @@ pub async fn list_positions(
                 return Ok(Err(ApiError::not_found()));
             }
             let mut stmt = conn.prepare(
-                "SELECT p.file_id, p.kind, p.value, p.percent, p.device_id, d.name, p.updated_at \
+                "SELECT p.file_id, p.kind, p.value, p.percent, p.device_id, d.name, d.kind, p.updated_at \
                  FROM reading_positions p \
                  JOIN book_files f ON f.id = p.file_id \
                  LEFT JOIN devices d ON d.id = p.device_id \
@@ -217,7 +219,8 @@ pub async fn list_positions(
                         percent: r.get(3)?,
                         device_id: r.get(4)?,
                         device_name: r.get(5)?,
-                        updated_at: r.get(6)?,
+                        device_kind: r.get(6)?,
+                        updated_at: r.get(7)?,
                     })
                 })?
                 .collect::<rusqlite::Result<Vec<_>>>()?;

@@ -47,6 +47,8 @@ export function buildRoutes(modules: MobileModule[]): RouteObject[] {
           children: [
             ...publics,
             ...(hasPair ? [] : [{ path: PAIR_PATH, element: <Unpaired /> }]),
+            // Full screens: the session and the app frame, but not the tab bar.
+            ...modules.flatMap((m) => (m.screens ?? []).map((r) => ({ ...r, errorElement: r.errorElement ?? <RouteError /> }))),
             {
               element: <Shell modules={modules} />,
               // Errors stay inside the content area: the tab bar remains usable.

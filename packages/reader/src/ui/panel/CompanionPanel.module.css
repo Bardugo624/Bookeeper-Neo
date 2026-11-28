@@ -1,0 +1,49 @@
+/* The kit's tabs take their colors from the reading theme, not from the app's. */
+.body {
+  --bk-text-muted: var(--rd-muted);
+  --bk-text-strong: var(--rd-ink);
+  --bk-inset: var(--rd-inset);
+  --bk-surface: var(--rd-raised);
+  --bk-focus: var(--rd-accent-text);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  color: var(--rd-ink);
+  font-family: var(--bk-font-ui);
+}
+
+.aside {
+  display: flex;
+  flex-direction: column;
+  width: var(--rd-panel, 360px);
+  max-width: 100%;
+  height: 100%;
+  min-height: 0;
+  background: var(--rd-page);
+  color: var(--rd-ink);
+}
+
+.tabs {
+  flex: none;
+  padding: 16px 16px 12px;
+}
+
+.tabs > div {
+  display: flex;
+}
+
+.tabs [role='tab'] {
+  flex: 1;
+}
+
+.pane {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.body[data-variant='sheet'] .tabs {
+  padding-top: 4px;
+}

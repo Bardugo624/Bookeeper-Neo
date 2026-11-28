@@ -39,3 +39,5 @@ export type { RoomOut, RoomList, RoomSummary, CreateRoom, PatchRoom } from './re
 export type { AuditOut, AuditList, AuditActions, ListAuditParams } from './resources/audit';
 export type { PersonOut, PeopleList, PatchPerson } from './resources/users';
 export type { NewInvite, InviteCreated, InviteOut, InviteList, InviteRole } from './resources/invites';
+export type { PositionOut, PutPosition } from './resources/positions';
+export type { AnnotationOut, PutAnnotation } from './resources/annotations';

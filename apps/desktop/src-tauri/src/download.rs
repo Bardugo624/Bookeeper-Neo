@@ -133,7 +133,7 @@ pub async fn open_core(
 ) -> Result<Opened, String> {
     let method = check_request("GET", path).map_err(str::to_owned)?;
     let mut builder = Request::builder().method(method).uri(path);
-    for (name, value) in filter_request_headers(headers, false) {
+    for (name, value) in filter_request_headers(headers, true) {
         builder = builder.header(name, value);
     }
     let request = builder

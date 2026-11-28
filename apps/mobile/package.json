@@ -12,6 +12,7 @@
   "dependencies": {
     "@bookeeper/api": "*",
     "@bookeeper/i18n": "*",
+    "@bookeeper/reader": "*",
     "@bookeeper/ui": "*",
     "@tanstack/react-query": "^5.108.4",
     "@zxing/browser": "^0.1.5",

@@ -9,25 +9,40 @@ use rust_embed::RustEmbed;
 #[folder = "../../apps/mobile/dist"]
 struct Assets;
 
+/// The one page that may be framed, and only by the same site: the reader engine
+/// page, which the app embeds in an `<iframe>`. Every other file keeps `DENY`
+/// (set by `layers::apply` where missing).
+const FRAMEABLE: &str = "reader-frame.html";
+
 fn file_response(path: &str) -> Option<Response> {
     let file = Assets::get(path)?;
+    Some(response_for(path, file.data.into_owned()))
+}
+
+/// Builds the response of the embedded file `path` with content `data`.
+pub(crate) fn response_for(path: &str, data: Vec<u8>) -> Response {
     let mime = mime_guess::from_path(path).first_or_octet_stream();
     let content_type = if mime.type_() == "text" || mime.subtype() == "javascript" {
         format!("{}; charset=utf-8", mime.essence_str())
     } else {
         mime.essence_str().to_string()
     };
-    Some(
-        (
-            StatusCode::OK,
-            [
-                (header::CONTENT_TYPE, content_type),
-                (header::X_CONTENT_TYPE_OPTIONS, "nosniff".to_string()),
-            ],
-            file.data.into_owned(),
-        )
-            .into_response(),
+    let mut res = (
+        StatusCode::OK,
+        [
+            (header::CONTENT_TYPE, content_type),
+            (header::X_CONTENT_TYPE_OPTIONS, "nosniff".to_string()),
+        ],
+        data,
     )
+        .into_response();
+    if path == FRAMEABLE {
+        res.headers_mut().insert(
+            header::X_FRAME_OPTIONS,
+            header::HeaderValue::from_static("SAMEORIGIN"),
+        );
+    }
+    res
 }
 
 /// The only fallback of the server router: JSON 404 under `/api/`, otherwise the

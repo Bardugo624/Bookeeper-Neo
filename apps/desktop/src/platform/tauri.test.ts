@@ -9,7 +9,12 @@ vi.mock('@tauri-apps/plugin-notification', () => ({
   requestPermission: (...a: unknown[]) => requestPermission(...a),
   sendNotification: (...a: unknown[]) => sendNotification(...a),
 }));
-vi.mock('@tauri-apps/api/core', () => ({ invoke: (...a: unknown[]) => invoke(...a) }));
+const openUrl = vi.fn();
+vi.mock('@tauri-apps/plugin-opener', () => ({ openUrl: (...a: unknown[]) => openUrl(...a) }));
+vi.mock('@tauri-apps/api/core', () => ({
+  invoke: (...a: unknown[]) => invoke(...a),
+  convertFileSrc: (p: string) => `asset://localhost/${encodeURIComponent(p)}`,
+}));
 vi.mock('@tauri-apps/api/window', () => ({ getCurrentWindow: () => ({}) }));
 
 const { tauriPlatform } = await import('./tauri');
@@ -137,4 +142,39 @@ it('downloadToFile turns a failed command into a network error', async () => {
     .then(() => null, (e: unknown) => e);
   expect((failure as { code?: string }).code).toBe('network');
   expect((failure as { status?: number }).status).toBe(0);
+});
+
+it('reader_file_invokes_the_command_and_returns_an_asset_url', async () => {
+  invoke.mockResolvedValueOnce('/cache/reader/abc.epub');
+  const url = await tauriPlatform().readerFile({
+    connectionId: 'c1',
+    bookId: 'b1',
+    fileId: 'f1',
+    sha256: 'abc',
+    format: 'epub',
+    headers: { Authorization: 'Bearer t' },
+  });
+  expect(invoke).toHaveBeenCalledWith('reader_file', {
+    book_id: 'b1',
+    file_id: 'f1',
+    sha256: 'abc',
+    format: 'epub',
+    headers: { Authorization: 'Bearer t' },
+    connection_id: 'c1',
+  });
+  expect(url).toBe('asset://localhost/%2Fcache%2Freader%2Fabc.epub');
+});
+
+it('reader_file turns a failed command into a network error', async () => {
+  invoke.mockRejectedValueOnce('The file does not match its checksum');
+  const failure = await tauriPlatform()
+    .readerFile({ bookId: 'b', fileId: 'f', sha256: 'x', format: 'epub' })
+    .then(() => null, (e: unknown) => e);
+  expect((failure as { code?: string }).code).toBe('network');
+});
+
+it('open_url_uses_the_opener', async () => {
+  openUrl.mockResolvedValueOnce(undefined);
+  await tauriPlatform().openUrl('https://duckduckgo.com/?q=x');
+  expect(openUrl).toHaveBeenCalledWith('https://duckduckgo.com/?q=x');
 });

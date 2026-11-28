@@ -1,0 +1,54 @@
+{
+  "title": "Pannello del libro",
+  "tabs": {
+    "label": "Indice, note e ricerca",
+    "toc": "Indice",
+    "notes": "Note",
+    "search": "Cerca"
+  },
+  "toc": {
+    "label": "Indice del libro",
+    "empty": "Questo libro non ha un indice."
+  },
+  "notes": {
+    "filters": "Filtra le note",
+    "all": "Tutte",
+    "bookmarks": "Segnalibri",
+    "bookmark": "Segnalibro",
+    "bookmark_filter": "Segnalibri: {count}",
+    "all_filter": "Tutte: {count}",
+    "color_filter": "{color}: {count}",
+    "list": "Note e segnalibri",
+    "empty": "Ancora niente qui. Seleziona del testo per evidenziarlo.",
+    "empty_filter": "Niente con questo filtro.",
+    "note": "Nota",
+    "menu": "Azioni per questa voce",
+    "edit": "Modifica la nota",
+    "recolor": "Cambia colore",
+    "copy": "Copia",
+    "remove": "Togli",
+    "private": "Visibili solo a te",
+    "export": "Esporta in Markdown",
+    "colors": {
+      "amber": "Ambra",
+      "sage": "Salvia",
+      "terracotta": "Terracotta",
+      "night": "Notte"
+    }
+  },
+  "search": {
+    "label": "Cerca nel libro",
+    "placeholder": "Cerca nel libro",
+    "clear": "Cancella",
+    "hint": "Scrivi almeno 2 caratteri.",
+    "results": "Risultati della ricerca",
+    "none": "Nessun risultato.",
+    "progress": "Cerco nel resto del libro…",
+    "progress_value": "{percent}%",
+    "no_chapter": "Senza capitolo",
+    "count_one": "{count} risultato",
+    "count_other": "{count} risultati",
+    "so_far_one": "{count} risultato finora",
+    "so_far_other": "{count} risultati finora"
+  }
+}

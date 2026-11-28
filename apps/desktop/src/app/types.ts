@@ -20,6 +20,8 @@ export interface AppModule {
   /** Mounted inside the shell. */
   routes: RouteObject[];
   nav?: NavItem;
+  /** Mounted next to the shell, inside the session but with no sidebar or title bar (the reader). */
+  screens?: RouteObject[];
   /** Mounted outside the shell (first launch). */
   public?: RouteObject[];
   /** Drawn once inside the shell, next to the routes (e.g. the command palette). */

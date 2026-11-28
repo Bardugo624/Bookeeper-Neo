@@ -9,6 +9,7 @@ import { ErrorState, Screen, apiErrorMessage } from '../../kit';
 import { ReadingBlock } from '../reading';
 import { TagsBlock } from '../tags';
 import { useSession } from '../../session';
+import { ReadButton } from './ReadButton';
 import { Description } from './Description';
 import { BookFiles } from './BookFiles';
 import { canEditBooks } from './editModel';
@@ -53,6 +54,7 @@ function Detail({ book }: { book: BookOut }) {
       <WhereBlock book={book} />
       <LoanBlock book={book} />
       <ReadingBlock book={book} />
+      <ReadButton book={book} />
       {canSeeFiles(role) ? <BookFiles book={book} canAdd={canEditBooks(role)} /> : null}
       <ReadersBlock bookId={book.id} />
       <TagsBlock book={book} />
