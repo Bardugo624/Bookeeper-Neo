@@ -1,0 +1,9 @@
+# id	deps	difficulty	files	dwarf	qa	title
+core-p3	-	low	crates/bookeeper-core/src/api/annotations.rs,crates/bookeeper-core/tests/annotations.rs,packages/api	sonnet	opus	Core: «since» facoltativo e id di un'altra libreria
+server-p3	-	low	crates/bookeeper-server/tests/web.rs,crates/bookeeper-server/src/web.rs,crates/bookeeper-server/src/lib.rs,crates/bookeeper-server/src/layers.rs	sonnet	opus	Server: il test della cornice senza i test doppi
+desktop-native-p3	-	medium	apps/desktop/src-tauri/src/reader.rs,apps/desktop/src-tauri/tests/reader.rs,apps/desktop/src-tauri/tests/local_session.rs	sonnet	opus	Computer: la cache del lettore e il test della copertina
+desktop-ui-p3	-	medium	apps/desktop/src/platform,apps/desktop/src/modules/reader,apps/desktop/src/modules/reading,apps/desktop/src-tauri/capabilities/default.json	sonnet	opus	Computer: titolo della finestra e card «In lettura»
+reader-view-p3	-	medium	packages/reader/src/ui/view,packages/reader/src/model/ticks.ts,packages/reader/src/model/tools.test.ts,apps/mobile/src/kit/BottomSheet.tsx,apps/mobile/src/kit/BottomSheet.module.css,apps/mobile/src/kit/BottomSheet.css,packages/ui/src/cssModuleImports.test.ts	sonnet	opus	Lettore e telefono: fogli, misure, tacche e domanda
+reader-look-p3	reader-view-p3	medium	packages/ui/src/overlays,packages/reader/src/ui/look,packages/reader/src/ui/view/TopBar.tsx,packages/reader/src/app,packages/i18n/src/locales/it/rlook.json,packages/i18n/src/locales/en/rlook.json	sonnet	opus	Lettore: Aspetto ancorato al pulsante Aa
+reader-misc-p3	-	low	packages/reader/src/frame/bookCss.ts,packages/reader/src/frame/bookCss.test.ts,packages/reader/src/ui/panel,packages/reader/src/data	sonnet	opus	Lettore: link nel tema scuro, annunci della ricerca e note senza attese
+mobile-p3	-	medium	apps/mobile/src/modules/search,apps/mobile/src/modules/reader	sonnet	opus	Telefono: «Leggi» in alto e «Riprova» offline
