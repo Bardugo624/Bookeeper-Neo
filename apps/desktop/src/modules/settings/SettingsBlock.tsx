@@ -6,7 +6,7 @@ export interface SettingsBlockProps {
   description?: string;
   /** `full` takes the whole row when cards sit side by side: data, lists, danger zones. */
   span?: 'full';
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 /** Makes any element of a section (a danger zone, a note) take the whole row. */
@@ -23,7 +23,7 @@ export function SettingsBlock({ title, description, span, children }: SettingsBl
         {title}
       </h2>
       {description ? <p className={styles.description}>{description}</p> : null}
-      <div className={styles.body}>{children}</div>
+      {children ? <div className={styles.body}>{children}</div> : null}
     </section>
   );
 }

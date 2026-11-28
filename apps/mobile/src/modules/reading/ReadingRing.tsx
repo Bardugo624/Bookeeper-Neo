@@ -1,18 +1,18 @@
 import { Icon } from '@bookeeper/ui/base';
 import { ProgressRing } from '@bookeeper/ui/book';
 import { useT } from '../../app/i18n';
-import { isStatus, percentOf } from './readingModel';
+import { isStatus, ringPercent } from './readingModel';
 
 export interface ReadingRingProps {
-  reading: { status: string; current_page?: number | null };
+  reading: { status: string; current_page?: number | null; progress_percent?: number | null };
   pageCount: number | null | undefined;
   size: number;
 }
 
-/** Progress of the book: the page over the total; full when read; no number without the total. */
+/** Progress of the book: the file's percent when there is one, else the page over the total; full when read. */
 export function ReadingRing({ reading, pageCount, size }: ReadingRingProps) {
   const t = useT();
-  const percent = percentOf(reading.status, reading.current_page, pageCount);
+  const percent = ringPercent(reading, pageCount);
   const status = isStatus(reading.status) ? t(`mreading.status.${reading.status}`) : reading.status;
   const label = percent === null ? status : t('mreading.ring.label', { status, percent });
   let center = null;

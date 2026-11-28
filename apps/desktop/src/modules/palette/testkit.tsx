@@ -29,7 +29,7 @@ export const PAGES: AppModule[] = [
 ];
 
 export function book(i: number, over: Partial<BookOut> = {}): BookOut {
-  return { id: `b${i}`, title: `Libro ${i}`, authors: [`Autore ${i}`], on_loan: false, tags: [], reading: null, created_at: 0, updated_at: 0, ...over };
+  return { id: `b${i}`, title: `Libro ${i}`, authors: [`Autore ${i}`], on_loan: false, tags: [], reading: null, file_formats: [], created_at: 0, updated_at: 0, ...over };
 }
 
 export interface World {

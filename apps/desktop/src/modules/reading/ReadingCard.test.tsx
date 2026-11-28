@@ -43,6 +43,29 @@ describe('ring', () => {
     expect(ring.getAttribute('aria-label')).toBe('In lettura');
   });
 
+  it('shows the position in the e-book when the core has one, even without a total', async () => {
+    renderReading(reading({ progress_percent: 41.4, progress_at: 1_700_000_100 }), { books: [{ ...(await import('./testkit')).rosa(), page_count: null }] });
+    const ring = await screen.findByRole('progressbar');
+    expect(ring.getAttribute('aria-valuenow')).toBe('41');
+    expect(within(ring).getByText('41%')).toBeTruthy();
+  });
+
+  it('prefers the position over the page count', async () => {
+    renderReading(reading({ progress_percent: 80 }));
+    expect((await screen.findByRole('progressbar')).getAttribute('aria-valuenow')).toBe('80');
+  });
+
+  it('does not drop to zero while a change of page is being saved', async () => {
+    let release: () => void = () => {};
+    const gate = new Promise<void>((r) => (release = r));
+    renderReading(reading({ progress_percent: 41, progress_at: 1_700_000_100 }), { gate: () => gate });
+    const c = await card();
+    await userEvent.click(await c.findByRole('button', { name: 'Una pagina in più' }));
+    expect(await screen.findByText('Pagina 313 di 503')).toBeTruthy();
+    expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe('41');
+    release();
+  });
+
   it('is full when the book is read', async () => {
     renderReading(reading({ status: 'read', finished_at: 1_700_100_000 }));
     expect((await screen.findByRole('progressbar')).getAttribute('aria-valuenow')).toBe('100');

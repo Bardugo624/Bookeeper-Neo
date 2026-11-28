@@ -14,6 +14,34 @@ pubblicata e la mostra nella dialog "Vedi novità". Sono supportati:
 - link `[text](https://...)`
 
 
+## [2.2.0] - 2026-11-28
+
+### Added
+
+- **E-book nella libreria**: a ogni libro puoi attaccare i suoi file EPUB,
+  PDF, MOBI, AZW3, FB2 o CBZ, e scaricarli da tutti i dispositivi collegati.
+  Trascina degli e-book sulla pagina dei libri e diventano libri, con titolo,
+  autori e copertina letti dal file; se il libro c'è già, il file gli si
+  attacca. Sulle copertine un'etichetta dice il formato.
+- **Il Setup di Bookeeper per Windows**: un'installazione nello stile
+  dell'app, con le scelte a portata di mano (cartella, icona sul desktop, avvio
+  con Windows). Aggiorna una versione già installata e
+  disinstalla chiedendo se tenere i dati, già scelto «tenere».
+- **La pagina d'apertura**: a ogni apertura una citazione di uno scrittore
+  sulla lettura, in italiano o in inglese come l'app. «Come vuoi iniziare?»
+  compare solo la prima volta; chi torna trova subito «Bentornato».
+
+### Changed
+
+- **Backup**: l'archivio elenca gli e-book ma non li contiene. Per
+  conservarli copia la cartella «ebooks» dei dati.
+- **Registro attività**: registra anche i file aggiunti e tolti.
+
+### Fixed
+
+- Nelle finestre strette la scheda del libro mette la colonna di destra sotto
+  e non schiaccia più il titolo.
+
 ## [2.1.0] - 2026-11-27
 
 ### Added

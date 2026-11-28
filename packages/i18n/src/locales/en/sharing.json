@@ -47,5 +47,12 @@
     "step1": "On the other computer open Bookeeper and choose to connect to a library.",
     "step2": "On this computer go to Devices and press “{add}” to get a code.",
     "step3": "On the other computer pick this library, check the verification phrase and enter the code."
+  },
+  "autostart": {
+    "title": "At sign-in",
+    "toggle": "Open Bookeeper when I sign in to the computer",
+    "note": "It opens minimised. If you share the library, phones can find it while the computer is on.",
+    "failed": "I couldn't change opening at sign-in.",
+    "readFailed": "I can't tell whether Bookeeper opens at sign-in."
   }
 }

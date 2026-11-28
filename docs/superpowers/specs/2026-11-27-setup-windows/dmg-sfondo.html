@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>DMG — sfondo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Lora:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fbfaf8;--surface:#fff;--chrome:#f2efe9;--inset:#f5f3ef;--border:#ebe7e0;--border-strong:#d8d2c8;--text:#27241f;--strong:#181613;--muted:#5b554d;--faint:#6f675d;--acc-s:#f1f7f4;--acc-ss:#dcebe2;--on-acc:#284439;--acc-t:#3b6953;--acc-c:#4d8369;--fill:#3b6953;--sh1:0 1px 2px rgb(39 36 31/.05),0 1px 3px rgb(39 36 31/.05);--sh2:0 2px 4px rgb(39 36 31/.04),0 6px 16px rgb(39 36 31/.07);--sh3:0 4px 8px rgb(39 36 31/.05),0 14px 36px rgb(39 36 31/.12);--shb:0 1px 1px rgb(24 22 19/.14),0 3px 6px rgb(24 22 19/.18);--shbl:0 2px 3px rgb(24 22 19/.14),0 8px 18px rgb(24 22 19/.24);--ui:'Inter',system-ui,sans-serif;--serif:'Lora',Georgia,serif}
+*{box-sizing:border-box}
+html,body{margin:0;width:800px;height:520px;overflow:hidden}
+body{position:relative;font:400 14px/1.45 var(--ui);color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+p,h1,ul,figure,blockquote{margin:0;padding:0}
+ul{list-style:none}
+.tb{height:36px;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 16px}
+.ctl{display:flex;gap:2px;color:var(--faint)}
+.ctl span{width:28px;height:28px;display:grid;place-items:center;border-radius:6px}
+.brand{display:flex;align-items:center;gap:8px}
+.mark{width:18px;height:18px;border-radius:5px}
+.word{font:600 15px/1 var(--serif);color:var(--strong)}
+svg.i{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;padding:0 16px;border:1px solid transparent;border-radius:8px;font:500 13px/1 var(--ui);white-space:nowrap}
+.primary{background:var(--fill);color:#fff}
+.secondary{background:var(--surface);border-color:var(--border-strong);color:var(--strong)}
+.ghost{background:transparent;color:var(--muted);padding:0 10px}
+.meta{font-size:13px;color:var(--muted)}
+.field label{display:block;margin-bottom:6px;font-size:13px;font-weight:500;color:var(--strong)}
+.row{display:flex;gap:8px}
+.input{flex:1;min-width:0;height:38px;display:flex;align-items:center;gap:8px;padding:0 12px;border:1px solid var(--border-strong);border-radius:8px;background:var(--surface);font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden}
+.input span{overflow:hidden;text-overflow:ellipsis}
+.input svg{color:var(--faint)}
+.help{margin-top:6px;font-size:12px;color:var(--muted)}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--strong)}
+.opt small{display:block;margin-top:2px;font-size:12px;color:var(--muted)}
+.cb{flex:none;width:16px;height:16px;margin-top:2px;border:1.5px solid var(--border-strong);border-radius:4px;background:var(--surface);display:grid;place-items:center}
+.cb.on{border-color:var(--acc-c);background:var(--acc-c)}
+.cb.on svg{width:12px;height:12px;stroke:#fff;stroke-width:3}
+.track{height:8px;border-radius:4px;background:var(--inset);overflow:hidden}
+.fillbar{height:100%;border-radius:4px;background:var(--acc-c);transform-origin:left}
+
+html,body{width:660px;height:400px}
+body{background:var(--chrome)}
+.word{position:absolute;left:32px;top:28px;font:600 17px/1 var(--serif);color:var(--strong)}
+.arrow{position:absolute;left:262px;top:166px;width:136px;color:var(--acc-t)}
+.arrow svg{width:136px;height:28px;stroke-width:1.5}
+.shelf{position:absolute;left:72px;right:72px;top:296px;height:8px;border-radius:2px;background:#d8d2c8;box-shadow:0 1px 0 rgb(255 255 255/.6) inset,0 6px 10px rgb(39 36 31/.10)}
+.hint{position:absolute;left:0;right:0;top:328px;text-align:center;font-size:13px;color:var(--muted)}
+.hint span{color:var(--faint)}
+.ic{position:absolute;top:116px;width:128px;height:128px;border-radius:28px;box-shadow:0 4px 10px rgb(0 0 0/.18)}
+.fold{position:absolute;top:124px;width:128px;height:104px;border-radius:12px;background:linear-gradient(#7cc3f5,#3b98e6)}
+.lb{position:absolute;top:252px;width:128px;text-align:center;font:500 12px/1 -apple-system,system-ui,sans-serif;color:#222}
+</style>
+</head>
+<body>
+<p class="word">Bookeeper</p>
+
+<span class="arrow"><svg class="i" viewBox="0 0 136 28" aria-hidden="true"><path d="M4 14h124"/><path d="m118 5 10 9-10 9"/></svg></span>
+<div class="shelf"></div>
+<p class="hint">Trascina Bookeeper in Applicazioni <span>· Drag Bookeeper to Applications</span></p>
+</body>
+</html>

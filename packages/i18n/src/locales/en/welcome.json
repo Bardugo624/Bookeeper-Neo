@@ -1,12 +1,7 @@
 {
   "brand": { "label": "Bookeeper" },
   "hero": {
-    "title": "Your books,\nin order.",
-    "text": "A library that stays yours: on your computer, or on a server you choose.",
-    "cover1": "The Name of the Rose",
-    "cover2": "One Hundred Years of Solitude",
-    "cover3": "Invisible Cities",
-    "cover4": "If on a Winter's Night"
+    "text": "A library that stays yours: on your computer, or on a server you choose."
   },
   "heading": "How do you want to start?",
   "subheading": "You can change your mind later in the settings.",

@@ -6,7 +6,7 @@
   text-align: center;
 }
 .rise {
-  animation: bk-rise 600ms var(--bk-ease, ease-out) both;
+  animation: global(bk-rise) 600ms var(--bk-ease, ease-out) both;
 }
 .line {
   margin: 0;

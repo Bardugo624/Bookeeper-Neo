@@ -1,5 +1,7 @@
+use bookeeper_desktop_lib::startup::UPDATE_MARKER;
 use bookeeper_desktop_lib::updates::{
-    error_code, is_update, manifest_url, plan, Channel, Plan, Stage, UpdateState, DEFAULT_BASE,
+    error_code, is_update, manifest_url, plan, with_update_marker, Channel, Plan, Stage,
+    UpdateState, DEFAULT_BASE,
 };
 use semver::Version;
 use tauri_plugin_updater::Error;
@@ -120,6 +122,33 @@ fn errors_map_to_codes() {
     for (err, stage, want) in cases {
         assert_eq!(error_code(&err, stage), want, "{err}");
     }
+}
+
+#[tokio::test]
+async fn a_failed_install_takes_the_update_marker_back() {
+    let tmp = tempfile::tempdir().unwrap();
+    let marker = tmp.path().join(UPDATE_MARKER);
+    let seen = marker.clone();
+    let r: Result<(), &str> = with_update_marker(Some(tmp.path()), async move {
+        // Written before the install starts.
+        assert!(seen.exists());
+        Err("network")
+    })
+    .await;
+    assert_eq!(r, Err("network"));
+    assert!(!marker.exists());
+}
+
+#[tokio::test]
+async fn an_installed_update_leaves_the_marker_for_the_restart() {
+    let tmp = tempfile::tempdir().unwrap();
+    let r: Result<(), &str> = with_update_marker(Some(tmp.path()), async { Ok(()) }).await;
+    assert_eq!(r, Ok(()));
+    assert!(tmp.path().join(UPDATE_MARKER).exists());
+
+    // Without a data folder the install still runs, with no marker.
+    let r: Result<u8, &str> = with_update_marker(None, async { Ok(7) }).await;
+    assert_eq!(r, Ok(7));
 }
 
 #[test]

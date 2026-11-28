@@ -5,6 +5,10 @@ Leggi prima `docs/forge/fase-10a/CONTRATTO.md`, che fissa valori, interfacce e r
 ## File
 - `apps/desktop/src/modules/books/`: `BooksPage` e un dialogo nuovo di importazione.
 - `packages/i18n/src/locales/{it,en}/ebooks.json`: un file nuovo.
+- `apps/desktop/src-tauri/tauri.conf.json`: la finestra ha `"dragDropEnabled": false`. Altrimenti su Windows Tauri intercetta i file trascinati e la pagina non riceve gli eventi HTML5; vale anche per la zona di rilascio di `BookFiles`.
+- Rinomina `apps/desktop/src/modules/books/bookFiles.ts` in `bookFileApi.ts` e aggiorna gli import: il nome collide con `BookFiles.tsx` sui file system che non distinguono maiuscole e minuscole (`packages/ui/src/caseCollisions.test.ts`).
+- `apps/desktop/src/platform/` e `apps/desktop/src/main.tsx`: una protezione per tutta la finestra. Con `"dragDropEnabled": false` un file lasciato cadere dove nessuno lo gestisce fa aprire il file alla finestra, al posto dell'app. La protezione annulla `dragover` e `drop` dei file che nessuna pagina ha gestito, con `dropEffect = 'none'`; la installa `main.tsx`. Con un test in `src/platform/`.
+- Nella pagina dei libri, `useEbookDrop` annulla sempre i trascinamenti di file, anche quando li ignora: dialogo aperto, ospiti.
 
 ## Cosa fare
 1. **Trascinamento:** sulla pagina dei libri si possono trascinare uno o più e-book, se chi trascina può aggiungere libri. Si apre un dialogo con una riga per file.
@@ -24,5 +28,6 @@ Leggi prima `docs/forge/fase-10a/CONTRATTO.md`, che fissa valori, interfacce e r
 
 ## Acceptance criteria
 - `npm run typecheck -w @bookeeper/desktop` passa.
-- `npx vitest run src/modules/books src/kit/styles.test.ts src/kit/translationKeys.test.ts` (da `apps/desktop`) passa.
+- `npx vitest run src/modules/books src/platform src/kit/styles.test.ts src/kit/translationKeys.test.ts` (da `apps/desktop`) passa.
 - `impeccable detect --json` pulito sui file cambiati.
+- `npx vitest run src/caseCollisions.test.ts` (da `packages/ui`) passa.

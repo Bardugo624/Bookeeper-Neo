@@ -29,6 +29,26 @@ describe('visibility', () => {
   });
 });
 
+describe('e-book note', () => {
+  it('says the e-books are not in the archive and how to keep them', async () => {
+    renderBackup({ role: 'admin' });
+    const note = await screen.findByRole('region', { name: 'Gli e-book' });
+    expect(note).toHaveTextContent('non sono nell\'archivio');
+    expect(note).toHaveTextContent('cartella «ebooks»');
+    expect(note).toHaveTextContent('basta copiare quelli nuovi');
+  });
+
+  it('is the block description, like the other blocks', async () => {
+    renderBackup({ role: 'admin' });
+    const note = await screen.findByRole('region', { name: 'Gli e-book' });
+    const text = within(note).getByText(/non sono nell'archivio/);
+    const other = within(await screen.findByRole('region', { name: 'Backup' })).getByText(/Salva in un file/);
+    expect(text.tagName).toBe('P');
+    expect(text.parentElement).toBe(note);
+    expect(text.className).toBe(other.className);
+  });
+});
+
 describe('backup now', () => {
   it('saves the archive with the name from the core', async () => {
     const { platform } = renderBackup({

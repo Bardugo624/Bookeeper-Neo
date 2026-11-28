@@ -95,3 +95,133 @@ for (const n of ["bookeeper.caddy", "bookeeper-r2.caddy"]) {
     assert.equal(r.status, 0, r.stderr);
   });
 }
+
+// ---- Setup: build, assemble, smoke test ----
+const desktopJob = () => {
+  const t = wf("release.yml");
+  const i = t.indexOf("\n  desktop:");
+  return t.slice(i, t.indexOf("\n  release:"));
+};
+const stepAt = (job, name) => {
+  const i = job.indexOf(`- name: ${name}`);
+  assert.ok(i >= 0, `no step ${name}`);
+  return i;
+};
+
+test("release.yml: the light Setup is built and copied before Build, on Windows only", () => {
+  const job = desktopJob();
+  const i = stepAt(job, "Build the light Setup (windows)");
+  assert.ok(i < stepAt(job, "Build\n"));
+  const step = job.slice(i, stepAt(job, "DLL dependencies of the light Setup (windows)"));
+  assert.match(step, /if: runner\.os == 'Windows'/);
+  assert.match(step, /npm run tauri -w @bookeeper\/setup -- build --no-bundle --target "\$TARGET"/);
+  assert.match(step, /apps\/desktop\/src-tauri\/windows\/bookeeper-setup\.exe/);
+  assert.match(step, /::error::/);
+  assert.match(job, /dumpbin/);
+  assert.match(job, /vswhere/);
+});
+
+test("release.yml: assembly after Collect, then the smoke test with elevation allowed", () => {
+  const job = desktopJob();
+  const collect = stepAt(job, "Collect");
+  const asm = stepAt(job, "Assemble the Setup (windows)");
+  const smoke = stepAt(job, "Smoke test the Setup (windows)");
+  assert.ok(collect < asm && asm < smoke);
+  const a = job.slice(asm, smoke);
+  assert.match(a, /runner\.os == 'Windows'/);
+  assert.match(a, /scripts\/setup\/assemble\.mjs/);
+  assert.match(a, /Bookeeper-Setup-\$\{VERSION\}\.exe/);
+  assert.match(a, /nsis/);
+  // The bundler puts the unpatched binary back in target/ after packaging: only the installer has the one it installs.
+  assert.match(a, /7z e -y -o(\S+) "\$nsis" bookeeper-desktop\.exe/);
+  assert.doesNotMatch(a, /release\/bookeeper-desktop\.exe/);
+  assert.match(a, /--main "\$main"/);
+  assert.match(a, /MAIN_EXE=\$\(pwd -W\)\/\$main/);
+  const s = job.slice(smoke, job.indexOf("- uses: actions/upload-artifact@v4", smoke));
+  assert.match(s, /BOOKEEPER_SETUP_ALLOW_ELEVATED: "1"/);
+  assert.match(s, /scripts\/setup\/smoke\.ps1 -Setup .* -Classic .* -Main /);
+});
+
+test("release.yml: macOS DMG background", () => {
+  const job = desktopJob();
+  assert.match(job, /TAURI_BUNDLER_DMG_IGNORE_CI/);
+  const tiff = stepAt(job, "Merge the DMG background");
+  assert.ok(tiff < stepAt(job, "Build\n"));
+  assert.match(job.slice(tiff), /tiffutil -cathidpicheck/);
+  const build = job.slice(stepAt(job, "Build\n"), stepAt(job, "Collect"));
+  const hits = build.match(/dmg\/background\.tiff/g) ?? [];
+  assert.ok(hits.length >= 2, "TIFF must be in both branches");
+  assert.match(build, /retrying once/);
+  assert.match(build, /createUpdaterArtifacts/);
+});
+
+test("release.yml: the release carries Bookeeper-Setup-*", () => {
+  const t = wf("release.yml");
+  assert.match(t, /sha256sum [^\n]*Bookeeper-Setup-\*/);
+  assert.match(t, /dist\/Bookeeper-Setup-\*/);
+});
+
+test("release.yml: check reads apps/setup/package.json", () => {
+  const t = wf("release.yml");
+  const check = t.slice(t.indexOf("  check:"), t.indexOf("  web:"));
+  assert.match(check, /apps\/setup\/package\.json/);
+});
+
+test("ci.yml: the Windows job lints and tests the Setup crates", () => {
+  const t = wf("ci.yml");
+  const job = t.slice(t.indexOf("  desktop-build:"), t.indexOf("  docker:"));
+  assert.match(job, /cargo clippy -p bookeeper-setup-core -p bookeeper-setup --all-targets -- -D warnings/);
+  assert.match(job, /cargo test -p bookeeper-setup-core -p bookeeper-setup/);
+});
+
+test("smoke.ps1: six steps, odd folder, awaited processes", () => {
+  const t = read("scripts/setup/smoke.ps1");
+  assert.ok(t.includes("C:\\Prova Bookeeper\\Libreria è"));
+  assert.match(t, /-Wait -PassThru/);
+  for (let n = 1; n <= 6; n++) assert.match(t, new RegExp(`== ${n}\\. `));
+  for (const s of ["--smoke-ui", "--quiet", "/P /UPDATE", "_?=", "--delete-data", "cmdkey", "UninstallString"]) {
+    assert.ok(t.includes(s), s);
+  }
+  assert.match(t, /-ArgumentList \$arguments/);
+});
+
+test("smoke.ps1: a failure shows the end of the Setup log", () => {
+  const t = read("scripts/setup/smoke.ps1");
+  const name = /FILE_NAME: &str = "([^"]+)"/.exec(read("crates/bookeeper-setup-core/src/log.rs"))?.[1];
+  assert.ok(name);
+  assert.ok(t.includes(`Join-Path ([IO.Path]::GetTempPath()) '${name}'`));
+  const fail = t.slice(t.indexOf("function Fail"), t.indexOf("function Expect"));
+  assert.match(fail, /Get-Content -LiteralPath \$SetupLog -Tail \d+/);
+});
+
+test("smoke.ps1: a failure shows what WebView2 left in the Setup's data folders", () => {
+  const t = read("scripts/setup/smoke.ps1");
+  const prefix = /WEBVIEW_PREFIX: &str = "([^"]+)"/.exec(read("apps/setup/src-tauri/src/window.rs"))?.[1];
+  assert.ok(prefix);
+  const fail = t.slice(t.indexOf("function Fail"), t.indexOf("function Expect"));
+  assert.ok(fail.includes(`'${prefix}*'`));
+});
+
+test("release.yml: the smoke test leaves WebView2's arguments to the Setup", () => {
+  const job = desktopJob();
+  const smoke = stepAt(job, "Smoke test the Setup (windows)");
+  const s = job.slice(smoke, job.indexOf("- uses: actions/upload-artifact@v4", smoke));
+  assert.doesNotMatch(s, /WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS/);
+});
+
+test("smoke.ps1: a stuck --smoke-ui shows WebView2's processes and log, then tries once more", () => {
+  const t = read("scripts/setup/smoke.ps1");
+  const name = /WEBVIEW_LOG: &str = "([^"]+)"/.exec(read("apps/setup/src-tauri/src/window.rs"))?.[1];
+  assert.ok(name);
+  assert.ok(t.includes(`Join-Path ([IO.Path]::GetTempPath()) '${name}'`));
+  const fail = t.slice(t.indexOf("function Fail"), t.indexOf("function Expect"));
+  assert.match(fail, /Get-Content -LiteralPath \$WebviewLog -Tail \d+/);
+  const ui = t.slice(t.indexOf("function SmokeUi"), t.indexOf("function ExpectPath"));
+  assert.match(ui, /WaitForExit\(\d+\)/);
+  assert.match(ui, /msedgewebview2\.exe/);
+  assert.match(ui, /--type=/);
+  const step = t.slice(t.indexOf("== 1. --smoke-ui"), t.indexOf("== 2. quiet install"));
+  assert.match(step, /SmokeUi 1/);
+  assert.match(step, /SmokeUi 2/);
+  assert.match(step, /Fail '--smoke-ui: exit code'/);
+});

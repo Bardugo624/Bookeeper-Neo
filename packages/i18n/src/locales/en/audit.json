@@ -70,7 +70,11 @@
       "delete": "Book deleted",
       "cover": "Cover changed",
       "cover_delete": "Cover removed",
-      "tags": "Book tags changed"
+      "tags": "Book tags changed",
+      "file": {
+        "add": "E-book file added",
+        "remove": "E-book file removed"
+      }
     },
     "library": {
       "backup": "Backup",
@@ -132,7 +136,11 @@
       "delete": "Deleted a book",
       "cover": "Changed the cover of “{title}”",
       "cover_delete": "Removed the cover of “{title}”",
-      "tags": "Changed the tags of “{title}”"
+      "tags": "Changed the tags of “{title}”",
+      "file": {
+        "add": "Added the {format} file to “{title}”",
+        "remove": "Removed the {format} file from “{title}”"
+      }
     },
     "library": {
       "backup": "Downloaded a backup",
@@ -199,7 +207,11 @@
       "update": "Edited a book",
       "cover": "Changed the cover of a book",
       "cover_delete": "Removed the cover of a book",
-      "tags": "Changed the tags of a book"
+      "tags": "Changed the tags of a book",
+      "file": {
+        "add": "Added a {format} file to a book",
+        "remove": "Removed a {format} file from a book"
+      }
     },
     "reading": {
       "set": "Set the reading status of a book: {status}",
@@ -220,7 +232,11 @@
       "update": "Edited a book that no longer exists",
       "cover": "Changed the cover of a book that no longer exists",
       "cover_delete": "Removed the cover of a book that no longer exists",
-      "tags": "Changed the tags of a book that no longer exists"
+      "tags": "Changed the tags of a book that no longer exists",
+      "file": {
+        "add": "Added a {format} file to a book that no longer exists",
+        "remove": "Removed a {format} file from a book that no longer exists"
+      }
     },
     "reading": {
       "set": "Set the reading status of a book that no longer exists: {status}",

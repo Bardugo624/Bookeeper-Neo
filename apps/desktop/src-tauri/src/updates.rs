@@ -5,7 +5,9 @@
 //! network. Everything that does not need the plugin is a plain function so it can be tested.
 
 use serde::Serialize;
-use tauri::{AppHandle, Emitter};
+use std::future::Future;
+use std::path::Path;
+use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_updater::UpdaterExt;
 
 /// Where manifests live unless `BOOKEEPER_UPDATE_BASE` says otherwise.
@@ -206,17 +208,36 @@ pub async fn install(app: &AppHandle, channel: &str) -> Result<(), String> {
         .await
         .map_err(fail)?
         .ok_or_else(|| "manifest".to_string())?;
+    let data_dir = app.path().app_data_dir().ok();
     let mut downloaded: u64 = 0;
     let handle = app.clone();
-    update
-        .download_and_install(
-            move |chunk, total| {
-                downloaded += chunk as u64;
-                let _ = handle.emit(PROGRESS_EVENT, Progress { downloaded, total });
-            },
-            || {},
-        )
+    let download = update.download_and_install(
+        move |chunk, total| {
+            downloaded += chunk as u64;
+            let _ = handle.emit(PROGRESS_EVENT, Progress { downloaded, total });
+        },
+        || {},
+    );
+    with_update_marker(data_dir.as_deref(), download)
         .await
         .map_err(fail)?;
     app.restart()
+}
+
+/// Runs an update install with the update marker in `dir`: the restart after the install is
+/// not a login, so the next start shows the window. An install that fails restarts nothing,
+/// so the marker goes again: the next start, maybe a login, keeps `--autostart`.
+pub async fn with_update_marker<T, E>(
+    dir: Option<&Path>,
+    install: impl Future<Output = Result<T, E>>,
+) -> Result<T, E> {
+    let marker = dir.map(|d| d.join(crate::startup::UPDATE_MARKER));
+    if let Some(m) = &marker {
+        let _ = std::fs::write(m, b"");
+    }
+    let result = install.await;
+    if let (Err(_), Some(m)) = (&result, &marker) {
+        let _ = std::fs::remove_file(m);
+    }
+    result
 }

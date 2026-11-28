@@ -22,3 +22,10 @@ it('honours an explicit tone and exposes ARIA values', () => {
   expect(bar).toHaveAttribute('data-tone', 'danger');
   expect(bar).toHaveAttribute('aria-valuenow', '50');
 });
+
+it('exposes aria-valuetext only when given', () => {
+  const { rerender } = render(<FillBar value={0.5} label="L" valueText="Copio i file, 50%" />);
+  expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuetext', 'Copio i file, 50%');
+  rerender(<FillBar value={0.5} label="L" />);
+  expect(screen.getByRole('progressbar')).not.toHaveAttribute('aria-valuetext');
+});

@@ -4,7 +4,7 @@ import { useT } from '../../../../app/i18n';
 import { phraseOf } from './auditModel';
 
 const TITLED = new Set([
-  'book.create', 'book.update', 'book.cover', 'book.cover_delete', 'book.tags',
+  'book.create', 'book.update', 'book.cover', 'book.cover_delete', 'book.tags', 'book.file.add', 'book.file.remove',
   'reading.set', 'reading.delete', 'shelf.place', 'shelf.unplace', 'wishlist.create', 'wishlist.convert',
 ]);
 

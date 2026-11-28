@@ -1,4 +1,5 @@
-import { createFetchTransport, type ServerInfo, type SetupStatus } from '@bookeeper/api';
+import { ApiError, createFetchTransport, type ServerInfo, type SetupStatus } from '@bookeeper/api';
+import { dispositionName } from './dispositionName';
 import { NETWORK_PROBE, type Connection, type Connections, type NotificationControls, type Platform, type ProbeOut } from './types';
 
 const KEY = 'bookeeper.connections';
@@ -98,6 +99,29 @@ export function browserPlatform(baseUrl: string): Platform {
     window: null,
     async deviceName() {
       return 'Browser';
+    },
+    async downloadToFile(req) {
+      let res: Response;
+      try {
+        res = await fetch(`${base}${req.url}`, { headers: req.headers ?? {} });
+      } catch (e) {
+        throw new ApiError(0, 'network', e instanceof Error ? e.message : String(e));
+      }
+      if (!res.ok) return { saved: false, status: res.status };
+      // The browser keeps the body as a blob while it arrives; the desktop app streams to disk.
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      try {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = dispositionName(res.headers.get('content-disposition')) ?? req.suggestedName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+      return { saved: true };
     },
     async saveFile(req) {
       const url = URL.createObjectURL(new Blob([req.bytes as BlobPart], { type: req.mime }));

@@ -123,6 +123,8 @@ jobs:
       - run: npm ci
       - run: npm run build -w @bookeeper/desktop
       - run: cargo build -p bookeeper-desktop
+      - run: cargo clippy -p bookeeper-setup-core -p bookeeper-setup --all-targets -- -D warnings
+      - run: cargo test -p bookeeper-setup-core -p bookeeper-setup
 
   docker:
     runs-on: ubuntu-latest

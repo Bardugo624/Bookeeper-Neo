@@ -9,6 +9,7 @@ export const CSV_PAGE = 200;
 /** Every `action` the core writes, each with a sentence under `audit.what.<action>`. */
 export const KNOWN_ACTIONS = [
   'book.create', 'book.update', 'book.delete', 'book.cover', 'book.cover_delete', 'book.tags',
+  'book.file.add', 'book.file.remove',
   'library.backup', 'library.import', 'library.restore',
   'loan.create', 'loan.update', 'loan.delete', 'loan.return', 'loan.reopen',
   'reading.set', 'reading.delete',
@@ -96,6 +97,7 @@ export function phraseOf(e: AuditOut): Phrase {
     vars.new = Number(d.new ?? 0);
     vars.duplicates = Number(d.duplicates ?? 0);
   }
+  if (e.action === 'book.file.add' || e.action === 'book.file.remove') vars.format = (text(d.format) ?? '').toUpperCase();
   if (e.action === 'reading.set') vars.status = text(d.status) ?? '';
   if (e.action === 'invite.create') vars.role = text(d.role) ?? '';
   if (e.action === 'user.join') {

@@ -61,6 +61,25 @@ export interface SaveFileResult {
   path?: string;
 }
 
+export interface DownloadRequest {
+  /** Address of the file in the API (`/api/v1/...`). */
+  url: string;
+  /** Used when the answer proposes no name of its own (`Content-Disposition`). */
+  suggestedName: string;
+  /** Request headers, normally the session's `Authorization`. */
+  headers?: Record<string, string>;
+  connectionId?: string;
+}
+
+/** `status` is set (and `saved` false) when the server did not answer 2xx. */
+export interface DownloadResult {
+  saved: boolean;
+  path?: string;
+  status?: number;
+  /** Another download is in progress: nothing was started (not the same as a cancelled window). */
+  busy?: boolean;
+}
+
 /** Mirrors `SharingStatus` in `sharing.rs`. */
 export interface SharingStatus {
   enabled: boolean;
@@ -128,12 +147,24 @@ export interface Platform {
   deviceName(): Promise<string>;
   /** Saves a file the app produced; `saved: false` when the user cancels. */
   saveFile(req: SaveFileRequest): Promise<SaveFileResult>;
+  /**
+   * Saves a file of the library to disk as it arrives, never holding it whole in memory.
+   * The name proposed is the one in the answer's `Content-Disposition`. Rejects on a network failure.
+   */
+  downloadToFile(req: DownloadRequest): Promise<DownloadResult>;
   /** `null` where the app cannot serve the library on the network (browser). */
   sharing: SharingControls | null;
   /** `null` where the app cannot update itself (browser). */
   updates: UpdateControls | null;
   /** `null` where the app cannot show system notifications. */
   notifications: NotificationControls | null;
+  /** Opening the app at login. Only the desktop app has it. */
+  autostart?: AutostartControls;
+}
+
+export interface AutostartControls {
+  get(): Promise<boolean>;
+  set(on: boolean): Promise<void>;
 }
 
 export const NETWORK_PROBE: ProbeOut = {

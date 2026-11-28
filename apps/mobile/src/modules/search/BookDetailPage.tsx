@@ -10,7 +10,9 @@ import { ReadingBlock } from '../reading';
 import { TagsBlock } from '../tags';
 import { useSession } from '../../session';
 import { Description } from './Description';
+import { BookFiles } from './BookFiles';
 import { canEditBooks } from './editModel';
+import { canSeeFiles } from './filesModel';
 import { OwnerLine, ReadersBlock } from './People';
 import { LoanBlock, WhereBlock } from './Placement';
 import type { FromList } from './searchState';
@@ -35,6 +37,7 @@ function metaRows(t: Translate, book: BookOut): [string, string][] {
 
 function Detail({ book }: { book: BookOut }) {
   const t = useT();
+  const role = useSession((s) => s.me?.user.role);
   const src = useCover(book.id, mayHaveCover(book.cover_color));
   const rows = metaRows(t, book);
   const description = book.description?.trim();
@@ -50,6 +53,7 @@ function Detail({ book }: { book: BookOut }) {
       <WhereBlock book={book} />
       <LoanBlock book={book} />
       <ReadingBlock book={book} />
+      {canSeeFiles(role) ? <BookFiles book={book} canAdd={canEditBooks(role)} /> : null}
       <ReadersBlock bookId={book.id} />
       <TagsBlock book={book} />
       {description ? (

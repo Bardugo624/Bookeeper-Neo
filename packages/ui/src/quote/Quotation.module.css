@@ -1,0 +1,44 @@
+.quote {
+    margin: 0;
+}
+
+.text {
+    margin: 0;
+    font-family: var(--bk-font-serif);
+    font-weight: 500;
+    line-height: 1.24;
+    color: var(--bk-text-strong);
+    text-wrap: balance;
+}
+
+.line {
+    display: block;
+}
+
+/* A verse that outgrows the column carries its last words on, one em in. */
+.verse {
+    padding-left: 1em;
+    text-indent: -1em;
+    text-wrap: wrap;
+}
+
+.mark {
+    color: var(--bk-accent-text);
+}
+
+/* The opening guillemet hangs in the margin. */
+.open {
+    margin-left: -0.5em;
+}
+
+.caption {
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--bk-text-muted);
+}
+
+.work {
+    font-family: var(--bk-font-serif);
+    font-style: italic;
+    font-size: 14px;
+}

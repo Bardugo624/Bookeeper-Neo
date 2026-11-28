@@ -39,6 +39,27 @@ export function findLiteralColor(css: string): string | null {
   return null;
 }
 
+const ANIMATION_WORDS = new Set(
+  `none infinite normal reverse alternate alternate-reverse forwards backwards both running paused ease ease-in ease-out
+ease-in-out linear step-start step-end initial inherit unset revert`.split(/\s+/),
+);
+
+/**
+ * The keyframes a module plays that it neither defines nor marks `global(…)`. CSS Modules rename those to a local
+ * name that no keyframes carry, so the animation never runs.
+ */
+export function unreachableKeyframes(css: string): string[] {
+  const local = new Set([...css.matchAll(/@keyframes\s+([\w-]+)/g)].map((m) => m[1]!));
+  const out: string[] = [];
+  for (const m of css.matchAll(/(?<![\w-])animation(?:-name)?\s*:\s*([^;}]+)/g)) {
+    const words = m[1]!.replace(/global\([^)]*\)/g, ' ').replace(/[\w-]*\((?:[^()]|\([^()]*\))*\)/g, ' ');
+    for (const word of words.split(/[\s,]+/)) {
+      if (word && !ANIMATION_WORDS.has(word) && !/^[\d.]/.test(word) && !local.has(word)) out.push(word);
+    }
+  }
+  return out;
+}
+
 const srcDir = fileURLToPath(new URL('..', import.meta.url));
 const uiDir = fileURLToPath(new URL('../../../../packages/ui/src/', import.meta.url));
 
@@ -80,6 +101,15 @@ describe('app stylesheets', () => {
     // A token with a fallback (`var(--x, fallback)`) may be missing; one without may not.
     const used = [...read(file).matchAll(/var\(\s*(--[\w-]+)\s*\)/g)].map((m) => m[1]!);
     expect(used.filter((v) => !defined.has(v))).toEqual([]);
+  });
+
+  it('detects keyframes a module cannot reach', () => {
+    expect(unreachableKeyframes('.a { animation: bk-rise 600ms var(--bk-ease, ease-out) both; }')).toEqual(['bk-rise']);
+    expect(unreachableKeyframes('.a { animation: global(bk-rise) 600ms var(--bk-ease, ease-out) both; }')).toEqual([]);
+  });
+
+  it.each(modules.map((f) => [f.slice(srcDir.length), f] as const))('%s plays only keyframes it can reach', (_n, file) => {
+    expect(unreachableKeyframes(read(file))).toEqual([]);
   });
 });
 

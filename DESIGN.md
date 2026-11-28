@@ -122,6 +122,14 @@ approvati qui sotto). Regole:
   (`role="progressbar"`), `FillBar` (track su `--bk-inset`, soglie
   ok/warn/danger), `StatCard` (KPI editoriale: label piccola, valore grande
   in Lora, count-up; niente icon-pill hero-metric).
+- **Citazione** (`quote`): `Quotation` è la composizione del frontespizio:
+  - Lora 500, interlinea 1,24, `text-wrap: balance`;
+  - caporali in `--bk-accent-text`, il primo appeso nel margine;
+  - versi a capo; di quello troppo lungo per la colonna continuano solo le ultime parole, rientrate di 1 em (`text-wrap: wrap`);
+  - didascalia «autore · opera» in Inter 13, l'opera in Lora corsivo.
+
+  La misura la dà `quoteSize`: 33, 26, 22 o 20 px secondo lunghezza e colonna. I versi si misurano con gli avanzamenti di Lora 500 in `advances.json`, scritti da `scripts/quote-advances.mjs`. I dati sono `QUOTES`, le citazioni verificate per lingua, generate da `scripts/quotes.mjs`. `nextQuote` e `useOpeningQuote` le distribuiscono come un mazzo, senza ripetizioni. La usano la pagina d'apertura dell'app e il Setup.
+- **Marchio**: `mark.png`, nella pagina d'apertura e nel Setup, è l'icona dell'app (`apps/desktop/src-tauri/icons/128x128.png`) copiata uguale.
 - **Scaffale** (`shelf`): `ShelfUnit` — mobile con cornice nel colore
   scaffale, fondale scurito, mensole con ombra portata, dorsi
   bottom-aligned di larghezza e altezza deterministiche (`spineWidth`,
@@ -182,6 +190,10 @@ cambiare:
   avanzamento e sollevamento della copertina come descritti in Motion. Non
   vanno sostituiti con curve piatte.
 - **Scheda del libro**: il soprattitolo sta sotto il titolo.
+- **Frontespizio**: la pagina d'apertura dell'app ha a sinistra la citazione
+  di uno scrittore. Ne esce una nuova a ogni apertura, e resta ferma mentre
+  la pagina è aperta. Il Setup ha lo stesso frontespizio. Per chi torna,
+  sopra «Bentornato» non c'è un titolo.
 - **Bersagli**: minimo 24×24px sul desktop, 44×44px sul telefono. Eccezione
   dichiarata: i dorsi dei mobili (`ShelfUnit`), perché la larghezza dice il
   numero di pagine.

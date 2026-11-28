@@ -1,0 +1,54 @@
+.stage {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background: var(--bk-chrome);
+}
+
+.top {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 340px;
+    display: flex;
+    flex-direction: column;
+    /* Room for the title bar. */
+    padding-top: 36px;
+}
+
+.stage[data-compact] .top {
+    height: 150px;
+}
+
+.stage[data-compact][data-panel='medium'] .top {
+    height: 226px;
+}
+
+/* Over the medium panel there is room to centre the compact quote, as in the drafts. */
+.stage[data-compact][data-panel='medium'] .top > * {
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.panel {
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 370px;
+    background: var(--bk-surface);
+    border-top: 1px solid var(--bk-border);
+    /* Soft shadow over the frontispiece; invisible on the dark chrome, so it needs no dark rule. */
+    box-shadow: 0 -8px 24px color-mix(in srgb, var(--bk-scrim) 4%, transparent);
+}
+
+.panel[data-height='short'] {
+    transform: translateY(190px);
+}
+
+.panel[data-height='medium'] {
+    transform: translateY(76px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .panel {
+        transition: transform var(--bk-dur-slow) var(--bk-ease);
+    }
+}

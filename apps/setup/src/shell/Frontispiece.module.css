@@ -1,0 +1,20 @@
+.frame {
+    margin: auto 72px;
+    max-width: 600px;
+    transform-origin: top left;
+}
+
+.frame[data-compact] {
+    margin: 14px 72px auto;
+}
+
+.frame[data-compact] figcaption {
+    margin-top: 8px;
+    font-size: 12px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .quote {
+        animation: global(bk-rise) var(--bk-dur-slow) var(--bk-ease);
+    }
+}

@@ -1,10 +1,13 @@
+pub mod autostart;
 pub mod connections;
 pub mod discover;
 mod dispatch;
+pub mod download;
 pub mod files;
 pub mod remote;
 pub mod secrets;
 pub mod sharing;
+pub mod startup;
 pub mod updates;
 
 use bookeeper_core::{AppState, Db, SetupPolicy};
@@ -173,6 +176,66 @@ async fn save_file(
     .map_err(|e| e.to_string())?
 }
 
+/// Saves a library file to disk as it arrives. The answer is opened first (so a refusal never
+/// opens the "Save as" window), then the user picks the place, then the bytes are streamed.
+#[tauri::command(rename_all = "snake_case")]
+async fn download_file(
+    app: tauri::AppHandle,
+    router: tauri::State<'_, CoreRouter>,
+    store: tauri::State<'_, connections::Store>,
+    url: String,
+    suggested_name: String,
+    headers: Option<std::collections::BTreeMap<String, String>>,
+    connection_id: Option<String>,
+) -> Result<download::DownloadOutcome, String> {
+    use tauri_plugin_dialog::DialogExt;
+    static DOWNLOAD_LOCK: files::SaveLock = files::SaveLock::new();
+    let Some(_permit) = DOWNLOAD_LOCK.try_acquire() else {
+        return Ok(download::DownloadOutcome::busy());
+    };
+    let mut opened = download::open(
+        &store,
+        router.0.clone(),
+        connection_id.as_deref(),
+        &url,
+        &headers.unwrap_or_default(),
+    )
+    .await?;
+    if !(200..300).contains(&opened.status) {
+        return Ok(download::DownloadOutcome::refused(opened.status));
+    }
+    let proposed = opened
+        .disposition
+        .as_deref()
+        .and_then(download::disposition_name)
+        .unwrap_or(suggested_name);
+    let mut dialog = app
+        .dialog()
+        .file()
+        .set_file_name(files::sanitize_name(&proposed));
+    if let Some(main) = app.get_webview_window("main") {
+        dialog = dialog.set_parent(&main);
+    }
+    let (tx, rx) = tokio::sync::oneshot::channel();
+    dialog.save_file(move |p| {
+        let _ = tx.send(p);
+    });
+    let Some(path) = rx
+        .await
+        .map_err(|e| e.to_string())?
+        .and_then(files::path_of)
+    else {
+        return Ok(download::DownloadOutcome::cancelled());
+    };
+    download::write_stream(&mut opened.source, &path).await?;
+    Ok(download::DownloadOutcome {
+        saved: true,
+        path: Some(path.display().to_string()),
+        status: None,
+        busy: false,
+    })
+}
+
 #[tauri::command]
 async fn sharing_status(
     sharing: tauri::State<'_, sharing::Sharing>,
@@ -202,9 +265,56 @@ async fn update_install(app: tauri::AppHandle, channel: String) -> Result<(), St
     updates::install(&app, &channel).await
 }
 
+#[tauri::command]
+fn autostart_get(app: tauri::AppHandle) -> Result<bool, String> {
+    autostart::get(&app)
+}
+
+#[tauri::command]
+fn autostart_set(app: tauri::AppHandle, on: bool) -> Result<(), String> {
+    autostart::set(&app, on)
+}
+
+/// Brings the main window back: a second launch lands here.
+fn focus_main(app: &tauri::AppHandle) {
+    let outcome = app.try_state::<startup::Outcome>().map(|s| *s);
+    if !startup::second_launch_shows_main(outcome) {
+        return;
+    }
+    if let Some(w) = app.get_webview_window("main") {
+        let _ = w.unminimize();
+        let _ = w.show();
+        let _ = w.set_focus();
+    }
+}
+
+/// Shows the window, minimized first when the start came from the login entry.
+fn show_main(app: &tauri::AppHandle, mode: startup::LaunchMode) {
+    if let Some(w) = app.get_webview_window("main") {
+        if mode == startup::LaunchMode::Minimized {
+            let _ = w.minimize();
+        }
+        let _ = w.show();
+    }
+}
+
+/// The library is from a newer version: say so in a system message and exit with 1.
+fn report_newer_library(app: &tauri::AppHandle) {
+    use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
+    let handle = app.clone();
+    app.dialog()
+        .message(startup::newer_library_message())
+        .title("Bookeeper")
+        .kind(MessageDialogKind::Error)
+        .show(move |_| handle.exit(1));
+}
+
 pub fn run() {
     let mut context = tauri::generate_context!();
     let mut builder = tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            focus_main(app);
+        }))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init());
     // The updater plugin reads its key from the configuration: hand it the one baked in at
@@ -219,11 +329,26 @@ pub fn run() {
             .plugin(tauri_plugin_updater::Builder::new().build())
             .plugin(tauri_plugin_process::init());
     }
+    #[cfg(not(windows))]
+    {
+        builder = builder.plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            Some(vec![startup::AUTOSTART_ARG]),
+        ));
+    }
     builder
         .setup(|app| {
             let dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&dir)?;
-            let db = Db::open(&dir.join("bookeeper.sqlite"))?;
+            let db = match Db::open(&dir.join("bookeeper.sqlite")) {
+                Ok(db) => db,
+                Err(bookeeper_core::DbError::NewerSchema { .. }) => {
+                    app.manage(startup::Outcome::NewerLibrary);
+                    report_newer_library(app.handle());
+                    return Ok(());
+                }
+                Err(e) => return Err(e.into()),
+            };
             let state = AppState::open_with_data(db, SetupPolicy::Open, &dir)?;
             {
                 // `setup` runs outside the runtime: enter Tauri's before spawning.
@@ -240,6 +365,12 @@ pub fn run() {
                 sharing.restore().await;
             });
             app.manage(CoreRouter(bookeeper_core::router(state)));
+            let marker = dir.join(startup::UPDATE_MARKER);
+            let updated = marker.exists();
+            let _ = std::fs::remove_file(&marker);
+            let args: Vec<String> = std::env::args().collect();
+            app.manage(startup::Outcome::Ready);
+            show_main(app.handle(), startup::launch_mode(&args, updated));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -252,10 +383,13 @@ pub fn run() {
             server_probe,
             discover,
             save_file,
+            download_file,
             sharing_status,
             sharing_set,
             update_check,
-            update_install
+            update_install,
+            autostart_get,
+            autostart_set
         ])
         .build(context)
         .expect("error while building Bookeeper")

@@ -1,6 +1,6 @@
 {
   "name": "@bookeeper/ui",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "private": true,
   "type": "module",
   "main": "src/index.ts",
@@ -13,7 +13,8 @@
     "./base": "./src/base/index.ts",
     "./overlays": "./src/overlays/index.ts",
     "./book": "./src/book/index.ts",
-    "./shelf": "./src/shelf/index.ts"
+    "./shelf": "./src/shelf/index.ts",
+    "./quote": "./src/quote/index.ts"
   },
   "scripts": {
     "test": "vitest run",

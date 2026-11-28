@@ -25,8 +25,12 @@ export function WelcomeView() {
       <BrandPanel />
       <div className={styles.column}>
         <div className={styles.inner}>
-          <h1 className={styles.heading}>{t('welcome.heading')}</h1>
-          <p className={styles.sub}>{t('welcome.subheading')}</p>
+          {saved ? null : (
+            <>
+              <h1 className={styles.heading}>{t('welcome.heading')}</h1>
+              <p className={styles.sub}>{t('welcome.subheading')}</p>
+            </>
+          )}
           {saved ? <ReturningCard key={saved.id} connection={saved} onOther={showPaths ? undefined : () => setOthers(true)} /> : null}
           {showPaths ? (
             <div className={styles.cards} role="group" aria-label={t('welcome.paths.label')} onKeyDown={onPathKeyDown}>

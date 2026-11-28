@@ -6,7 +6,7 @@
     "license": {
       "name": ""
     },
-    "version": "2.1.0"
+    "version": "2.2.0"
   },
   "paths": {
     "/api/v1/audit": {
@@ -1973,6 +1973,500 @@
         ]
       }
     },
+    "/api/v1/books/{id}/files": {
+      "get": {
+        "tags": [
+          "ebooks"
+        ],
+        "summary": "The files attached to a book, oldest first.",
+        "operationId": "list_files",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Files of the book",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BookFileOut"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: guests cannot use files",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: unknown book",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "ebooks"
+        ],
+        "summary": "Attach a file already uploaded with `PUT /ebook-files` to a book. If the\nbook has no cover and the file has one, the cover goes to the book.",
+        "operationId": "attach_file",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttachFile"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Attached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookFileOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad_request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: guests cannot use files",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: unknown book or file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "file_already_attached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/books/{id}/files/{file_id}": {
+      "delete": {
+        "tags": [
+          "ebooks"
+        ],
+        "summary": "Takes the file off the book. The file on disk goes too, unless another book uses it.",
+        "operationId": "detach_file",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "file_id",
+            "in": "path",
+            "description": "File id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Removed"
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: guests cannot use files",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: unknown book or file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/books/{id}/files/{file_id}/content": {
+      "get": {
+        "tags": [
+          "ebooks"
+        ],
+        "summary": "The file, streamed. It answers `Range` requests: 206 with `Content-Range`, or 416.",
+        "operationId": "download_file",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "file_id",
+            "in": "path",
+            "description": "File id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Range",
+            "in": "header",
+            "description": "A single byte range, for example `bytes=0-99`",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The whole file",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          },
+          "206": {
+            "description": "Part of the file",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: guests cannot use files",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: unknown book or file; file_missing: not on disk",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "416": {
+            "description": "range_not_satisfiable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/books/{id}/files/{file_id}/position": {
+      "put": {
+        "tags": [
+          "reading"
+        ],
+        "operationId": "put_position",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "file_id",
+            "in": "path",
+            "description": "File id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PutPosition"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "The caller's reading state with the new progress; null when there is no reading yet and percent is 0",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "null"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ReadingOut"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad_request: malformed JSON or wrong content type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: guests cannot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: unknown book or file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation: invalid body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/books/{id}/placement": {
       "put": {
         "tags": [
@@ -2120,6 +2614,75 @@
           },
           "403": {
             "description": "forbidden: role too low",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: unknown book",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/books/{id}/positions": {
+      "get": {
+        "tags": [
+          "reading"
+        ],
+        "operationId": "list_positions",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The caller's positions in the book's files",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PositionOut"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: guests cannot",
             "content": {
               "application/json": {
                 "schema": {
@@ -2696,6 +3259,180 @@
           },
           "404": {
             "description": "not_found: unknown device",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/ebook-files": {
+      "put": {
+        "tags": [
+          "ebooks"
+        ],
+        "summary": "Upload an e-book as the raw request body. The body is streamed to disk,\nnever held in memory. A file nobody attaches to a book is deleted after 24 hours.",
+        "operationId": "put_ebook_file",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "description": "Original file name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int32",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Stored (or already stored)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EbookFileInfo"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: guests cannot use files",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "unsupported_format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation or drm_protected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/ebook-files/{sha256}/cover": {
+      "get": {
+        "tags": [
+          "ebooks"
+        ],
+        "summary": "The cover taken from a stored file, as `image/jpeg`.",
+        "operationId": "get_ebook_cover",
+        "parameters": [
+          {
+            "name": "sha256",
+            "in": "path",
+            "description": "SHA-256 of the file",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JPEG image",
+            "content": {
+              "image/jpeg": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: guests cannot use files",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: unknown file, or cover_not_found",
             "content": {
               "application/json": {
                 "schema": {
@@ -6279,6 +7016,24 @@
         "format": "binary",
         "description": "Documentation-only schema of the restore request body."
       },
+      "AttachFile": {
+        "type": "object",
+        "description": "Body of `POST /books/{id}/files`.",
+        "required": [
+          "sha256",
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Original file name, for display."
+          },
+          "sha256": {
+            "type": "string",
+            "description": "SHA-256 of a file uploaded with `PUT /ebook-files`."
+          }
+        }
+      },
       "AuditActions": {
         "type": "object",
         "required": [
@@ -6605,6 +7360,55 @@
           }
         }
       },
+      "BookFileOut": {
+        "type": "object",
+        "required": [
+          "id",
+          "book_id",
+          "format",
+          "size_bytes",
+          "name",
+          "created_at",
+          "missing"
+        ],
+        "properties": {
+          "book_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "format": {
+            "type": "string",
+            "description": "`epub`, `pdf`, `mobi`, `azw3`, `fb2` or `cbz`."
+          },
+          "id": {
+            "type": "string"
+          },
+          "missing": {
+            "type": "boolean",
+            "description": "True when the file is not on the server's disk any more."
+          },
+          "name": {
+            "type": "string"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "uploaded_by": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PersonRef"
+              }
+            ]
+          }
+        }
+      },
       "BookList": {
         "type": "object",
         "required": [
@@ -6633,6 +7437,7 @@
           "authors",
           "on_loan",
           "tags",
+          "file_formats",
           "created_at",
           "updated_at"
         ],
@@ -6671,6 +7476,13 @@
               "string",
               "null"
             ]
+          },
+          "file_formats": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Formats of the attached e-book files, without repeats, in alphabetical order."
           },
           "format": {
             "type": [
@@ -7296,6 +8108,95 @@
           },
           "user_name": {
             "type": "string"
+          }
+        }
+      },
+      "EbookFileInfo": {
+        "type": "object",
+        "description": "A stored file with what was read from it.",
+        "required": [
+          "sha256",
+          "format",
+          "size_bytes",
+          "name",
+          "metadata",
+          "has_cover"
+        ],
+        "properties": {
+          "format": {
+            "type": "string",
+            "description": "`epub`, `pdf`, `mobi`, `azw3`, `fb2` or `cbz`."
+          },
+          "has_cover": {
+            "type": "boolean",
+            "description": "True when a cover can be taken from the file."
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/EbookMetadata"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name the file had when uploaded."
+          },
+          "sha256": {
+            "type": "string",
+            "description": "Lowercase hexadecimal SHA-256 of the content."
+          },
+          "size_bytes": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "EbookMetadata": {
+        "type": "object",
+        "description": "Metadata read from the file itself; every field may be missing.",
+        "required": [
+          "authors"
+        ],
+        "properties": {
+          "authors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isbn_13": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "language": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "published_year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "publisher": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       },
@@ -9090,6 +9991,50 @@
           }
         }
       },
+      "PositionOut": {
+        "type": "object",
+        "required": [
+          "file_id",
+          "kind",
+          "value",
+          "updated_at"
+        ],
+        "properties": {
+          "device_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "device_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "file_id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "description": "`cfi`, `koreader` or `kobo`."
+          },
+          "percent": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "updated_at": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "value": {
+            "type": "string"
+          }
+        }
+      },
       "PutBookTags": {
         "type": "object",
         "description": "Body of `PUT /books/{id}/tags`.",
@@ -9103,6 +10048,30 @@
               "type": "string"
             },
             "description": "The full set of tags of the book; at most 20 distinct ids."
+          }
+        }
+      },
+      "PutPosition": {
+        "type": "object",
+        "description": "Body of `PUT /books/{id}/files/{file_id}/position`.",
+        "required": [
+          "kind",
+          "value",
+          "percent"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "Only `cfi` (the Bookeeper reader) can be written here."
+          },
+          "percent": {
+            "type": "number",
+            "format": "double",
+            "description": "0 to 100."
+          },
+          "value": {
+            "type": "string",
+            "description": "The position in the format of the writer, at most 4000 characters."
           }
         }
       },
@@ -9363,6 +10332,22 @@
               "null"
             ]
           },
+          "progress_at": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "When `progress_percent` was last written."
+          },
+          "progress_percent": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double",
+            "description": "0 to 100: the one progress of this person on this book."
+          },
           "rating": {
             "type": [
               "integer",
@@ -9445,6 +10430,14 @@
               "null"
             ],
             "format": "int64"
+          },
+          "progress_percent": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double",
+            "description": "Same value as `ReadingOut.progress_percent`."
           },
           "rating": {
             "type": [

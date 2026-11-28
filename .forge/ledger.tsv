@@ -714,3 +714,122 @@
 2026-11-27T09:05:47Z	bookeeper-fase-9a	bk-publish	qa	opus	FAIL	trap	scripts bk mjs loadcommands imports every non test mjs in scripts bk commands so helper modules placed there are loaded on every bk run	scripts/bk.mjs loadCommands imports every non-.test .mjs in scripts/bk/commands, so helper modules placed there are loaded on every bk run [scripts/bk.mjs]	108	1
 2026-11-27T09:06:40Z	bookeeper-fase-9a	bk-publish	dwarf	sonnet	-	trap	scripts bk mjs loadcommands imports every non test mjs in scripts bk commands so helper modules placed there are loaded on every bk run	scripts/bk.mjs loadCommands imports every non-.test .mjs in scripts/bk/commands, so helper modules placed there are loaded on every bk run [scripts/bk.mjs]	47	1
 2026-11-27T09:07:29Z	bookeeper-fase-9a	bk-publish	qa	opus	PASS	-	-	-	41
+2026-11-27T11:22:40Z	bookeeper-fase-9b	setup-ui-base	dwarf	sonnet	-	trap	a fresh worktree needs npm ci offline at the root before npm test w bookeeper ui or w bookeeper i18n works	a fresh worktree needs `npm ci --offline` at the root before `npm test -w @bookeeper/ui` or `-w @bookeeper/i18n` works [package-lock.json]	90	1
+2026-11-27T11:25:35Z	bookeeper-fase-9b	setup-core-logic	dwarf	sonnet	-	trap	cargo generate lockfile rewrites the whole cargo lock and bumps unrelated crates restore it from head and let a plain cargo test add only the new entries	`cargo generate-lockfile` rewrites the whole Cargo.lock and bumps unrelated crates; restore it from HEAD and let a plain `cargo test` add only the new entries [Cargo.lock]	264	1
+2026-11-27T11:25:35Z	bookeeper-fase-9b	setup-core-logic	dwarf	sonnet	-	verify	cargo test p bookeeper setup core cargo check target x86 64 pc windows msvc p bookeeper setup core	cargo test -p bookeeper-setup-core && cargo check --target x86_64-pc-windows-msvc -p bookeeper-setup-core [crates/bookeeper-setup-core/Cargo.toml]	264	1
+2026-11-27T11:26:03Z	bookeeper-fase-9b	setup-ui-base	qa	opus	PASS	-	-	-	194
+2026-11-27T11:27:16Z	bookeeper-fase-9b	setup-dmg	dwarf	sonnet	-	-	-	-	64
+2026-11-27T11:28:17Z	bookeeper-fase-9b	setup-dmg	qa	opus	PASS	-	-	-	54
+2026-11-27T11:31:38Z	bookeeper-fase-9b	setup-core-logic	qa	opus	FAIL	-	-	-	355
+2026-11-27T11:32:32Z	bookeeper-fase-9b	setup-core-logic	dwarf	sonnet	-	-	-	-	48
+2026-11-27T11:34:40Z	bookeeper-fase-9b	setup-core-logic	qa	opus	FAIL	-	-	-	119
+2026-11-27T11:35:28Z	bookeeper-fase-9b	setup-ui-shell	dwarf	sonnet	-	-	-	-	423
+2026-11-27T11:40:39Z	bookeeper-fase-9b	setup-ui-shell	qa	opus	PASS	trap	npx vitest run root packages ui from the repo root fails dangerzone test tsx and dialog test tsx enoent on their module css read	`npx vitest run --root packages/ui` from the repo root fails DangerZone.test.tsx and Dialog.test.tsx (ENOENT on their .module.css, read… [packages/ui/src/overlays/Dialog.test.tsx]	304	1
+2026-11-27T11:43:02Z	bookeeper-fase-9b	setup-ui-uninstall	dwarf	sonnet	-	-	-	-	135
+2026-11-27T11:45:24Z	bookeeper-fase-9b	setup-ui-uninstall	qa	opus	FAIL	finding	a kit dialog unmounted together with its opener the state change both closes it and swaps the panel sends focus to a surviving earlier	a kit `Dialog` unmounted together with its opener (the state change both closes it and swaps the panel) sends focus to a surviving earlier… [packages/ui/src/overlays/Dialog.tsx]	134	1
+2026-11-27T11:45:24Z	bookeeper-fase-9b	setup-ui-uninstall	qa	opus	FAIL	trap	a throwaway vitest config outside the repo needs resolve alias for react testing library and vitest pointing at the root node modules or imports	a throwaway vitest config outside the repo needs `resolve.alias` for react, @testing-library/* and vitest pointing at the root node_modules, or imports… [apps/setup/vite.config.ts]	134	1
+2026-11-27T11:45:29Z	bookeeper-fase-9b	setup-ui-install	dwarf	sonnet	-	verify	npm test w bookeeper setup needs npm ci offline at the root first	npm test -w @bookeeper/setup (needs `npm ci --offline` at the root first) [apps/setup/package.json]	283	1
+2026-11-27T11:45:29Z	bookeeper-fase-9b	setup-ui-install	dwarf	sonnet	-	trap	the it en setup json texts use a straight apostrophe where the contract table shows a curly one so test strings must match the json	the it/en setup.json texts use a straight apostrophe (') where the contract table shows a curly one, so test strings must match the JSON [packages/i18n/src/locales/it/setup.json]	283	1
+2026-11-27T11:46:07Z	bookeeper-fase-9b	setup-ui-uninstall	dwarf	sonnet	-	finding	a kit dialog unmounted together with its opener the state change both closes it and swaps the panel sends focus to a surviving earlier	a kit `Dialog` unmounted together with its opener (the state change both closes it and swaps the panel) sends focus to a surviving earlier… [packages/ui/src/overlays/Dialog.tsx]	36	1
+2026-11-27T11:46:47Z	bookeeper-fase-9b	setup-ui-uninstall	qa	opus	PASS	-	-	-	33
+2026-11-27T11:47:23Z	bookeeper-fase-9b	setup-downloads	dwarf	sonnet	-	-	-	-	29
+2026-11-27T11:48:16Z	bookeeper-fase-9b	setup-ui-install	qa	opus	FAIL	-	-	-	159
+2026-11-27T11:48:22Z	bookeeper-fase-9b	setup-downloads	qa	opus	PASS	-	-	-	50
+2026-11-27T11:48:54Z	bookeeper-fase-9b	setup-ui-install	dwarf	sonnet	-	-	-	-	32
+2026-11-27T11:49:45Z	bookeeper-fase-9b	setup-ui-install	qa	opus	PASS	-	-	-	44
+2026-11-27T12:02:38Z	bookeeper-fase-9b	setup-core-logic	dwarf	opus	-	-	-	-	205
+2026-11-27T12:04:40Z	bookeeper-fase-9b	setup-core-logic	qa	opus	PASS	-	-	-	115
+2026-11-27T12:07:28Z	bookeeper-fase-9b	setup-core-win	dwarf	sonnet	-	-	-	-	158
+2026-11-27T12:09:34Z	bookeeper-fase-9b	setup-core-ops	dwarf	sonnet	-	verify	cargo test offline p bookeeper setup core cargo clippy offline p bookeeper setup core all targets d warnings cargo check	cargo test --offline -p bookeeper-setup-core && cargo clippy --offline -p bookeeper-setup-core --all-targets -- -D warnings && cargo check… [crates/bookeeper-setup-core/Cargo.toml]	285	1
+2026-11-27T12:09:34Z	bookeeper-fase-9b	setup-core-ops	dwarf	sonnet	-	trap	bookeeper setup core install uninstall tests take about 3 s each because progressmodel enforces min total on real clocks	bookeeper-setup-core install/uninstall tests take about 3 s each because ProgressModel enforces MIN_TOTAL on real clocks [crates/bookeeper-setup-core/src/progress.rs]	285	1
+2026-11-27T12:09:40Z	bookeeper-fase-9b	setup-core-win	qa	opus	FAIL	-	-	-	124
+2026-11-27T12:09:59Z	bookeeper-fase-9b	setup-core-win	dwarf	sonnet	-	-	-	-	12
+2026-11-27T12:10:56Z	bookeeper-fase-9b	setup-core-win	qa	opus	PASS	-	-	-	47
+2026-11-27T12:11:42Z	bookeeper-fase-9b	setup-assemble	dwarf	sonnet	-	-	-	-	40
+2026-11-27T12:12:38Z	bookeeper-fase-9b	setup-core-ops	qa	opus	PASS	-	-	-	176
+2026-11-27T12:12:58Z	bookeeper-fase-9b	setup-assemble	qa	opus	PASS	-	-	-	67
+2026-11-27T12:19:19Z	bookeeper-fase-9b	setup-app	dwarf	sonnet	-	trap	tauri plugin single instance was not in the offline cargo cache a plain cargo test without offline fetches it and adds only the new	`tauri-plugin-single-instance` was not in the offline cargo cache; a plain `cargo test` (without `--offline`) fetches it and adds only the new… [apps/setup/src-tauri/Cargo.toml]	394	1
+2026-11-27T12:19:19Z	bookeeper-fase-9b	setup-app	dwarf	sonnet	-	verify	cargo check target x86 64 pc windows msvc p bookeeper setup lib bins type checks the windows only code and the manifest build step from linux	cargo check --target x86_64-pc-windows-msvc -p bookeeper-setup --lib --bins type-checks the Windows-only code and the manifest build step from Linux [apps/setup/src-tauri/build.rs]	394	1
+2026-11-27T12:23:47Z	bookeeper-fase-9b	setup-app	qa	opus	FAIL	finding	setup ui sends already corrected folders check dir result installed dir to install so re applying target for choice on the	Setup UI sends already-corrected folders (`check_dir` result, `installed.dir`) to `install`, so re-applying `target_for_choice` on the… [apps/setup/src/install/useInstallFlow.ts]	259	1
+2026-11-27T12:23:47Z	bookeeper-fase-9b	setup-app	qa	opus	FAIL	verify	cargo check offline target x86 64 pc windows msvc p bookeeper setup works from the committed files and type checks the setup s windows only	cargo check --offline --target x86_64-pc-windows-msvc -p bookeeper-setup works from the committed files and type-checks the Setup's Windows-only… [apps/setup/src-tauri/Cargo.toml]	259	1
+2026-11-27T12:24:20Z	bookeeper-fase-9b	setup-app	dwarf	sonnet	-	-	-	-	25
+2026-11-27T12:27:19Z	bookeeper-fase-9b	setup-app	qa	opus	PASS	-	-	-	171
+2026-11-27T12:28:35Z	bookeeper-fase-9b	setup-workflows	dwarf	sonnet	-	-	-	-	67
+2026-11-27T12:30:27Z	bookeeper-fase-9b	setup-workflows	qa	opus	FAIL	trap	in windows shell bash steps pwd is an msys path d a values written to github env for a later pwsh step need pwd w or cygpath w	in Windows `shell: bash` steps `$PWD` is an MSYS path (`/d/a/...`); values written to GITHUB_ENV for a later pwsh step need `pwd -W` or `cygpath -w` [.github/workflows/release.yml]	101	1
+2026-11-27T12:30:52Z	bookeeper-fase-9b	setup-workflows	dwarf	sonnet	-	trap	in windows shell bash steps pwd is an msys path d a values written to github env for a later pwsh step need pwd w or cygpath w	in Windows `shell: bash` steps `$PWD` is an MSYS path (`/d/a/...`); values written to GITHUB_ENV for a later pwsh step need `pwd -W` or `cygpath -w` [.github/workflows/release.yml]	10	1
+2026-11-27T12:31:35Z	bookeeper-fase-9b	app-autostart	dwarf	sonnet	-	-	-	-	248
+2026-11-27T12:32:20Z	bookeeper-fase-9b	setup-workflows	qa	opus	FAIL	trap	github shell bash steps run with eo pipefail so x ls a b 2 dev null head 1 aborts the step when any listed path is missing	GitHub `shell: bash` steps run with `-eo pipefail`, so `x=$(ls a b 2>/dev/null | head -1)` aborts the step when any listed path is missing [.github/workflows/release.yml]	77	1
+2026-11-27T12:36:46Z	bookeeper-fase-9b	app-autostart	qa	opus	PASS	-	-	-	282
+2026-11-27T12:39:00Z	bookeeper-fase-9b	app-autostart-ui	dwarf	sonnet	-	-	-	-	122
+2026-11-27T12:40:08Z	bookeeper-fase-9b	app-autostart-ui	qa	opus	PASS	-	-	-	59
+2026-11-27T12:42:49Z	bookeeper-fase-9b	setup-workflows	dwarf	opus	-	-	-	-	64
+2026-11-27T12:43:57Z	bookeeper-fase-9b	setup-workflows	qa	opus	PASS	-	-	-	61
+2026-11-27T12:59:34Z	bookeeper-fase-9b	fmt-fix	dwarf	sonnet	-	-	-	-	119
+2026-11-27T13:01:53Z	bookeeper-fase-9b	fmt-fix	qa	opus	PASS	-	-	-	132
+2026-11-27T18:33:15Z	bookeeper-fase-9c	quote-data	dwarf	sonnet	-	-	-	-	108
+2026-11-27T18:34:41Z	bookeeper-fase-9c	quote-data	qa	opus	PASS	-	-	-	70
+2026-11-27T18:36:46Z	bookeeper-fase-9c	quote-ui	dwarf	sonnet	-	-	-	-	119
+2026-11-27T18:38:00Z	bookeeper-fase-9c	quote-ui	qa	opus	PASS	-	-	-	66
+2026-11-27T18:39:24Z	bookeeper-fase-9c	quote-setup	dwarf	sonnet	-	-	-	-	77
+2026-11-27T18:39:34Z	bookeeper-fase-9c	welcome-panel	dwarf	sonnet	-	trap	the welcome i18n keys live in packages i18n src locales it en welcome json not shell json	the `welcome.*` i18n keys live in packages/i18n/src/locales/{it,en}/welcome.json, not shell.json [packages/i18n/src/locales/it/welcome.json]	88	1
+2026-11-27T18:40:37Z	bookeeper-fase-9c	quote-setup	qa	opus	PASS	-	-	-	66
+2026-11-27T18:40:43Z	bookeeper-fase-9c	welcome-panel	qa	opus	PASS	verify	from apps desktop npx vitest run src modules welcome src kit styles test ts runs the welcome tests and the app s css lint in about 10 s	from apps/desktop, `npx vitest run src/modules/welcome src/kit/styles.test.ts` runs the welcome tests and the app's CSS lint in about 10 s [apps/desktop/src/kit/styles.test.ts]	61	1
+2026-11-27T19:44:21Z	bookeeper-fase-10a	ebook-core	dwarf	sonnet	-	trap	cargo needs network for new crates offline fails on a crate not yet in the registry cache e g after cargo add	cargo needs network for new crates (`--offline` fails on a crate not yet in the registry cache, e.g. after `cargo add`) [crates/bookeeper-core/Cargo.toml]	397	1
+2026-11-27T19:47:59Z	bookeeper-fase-10a	ebook-core	qa	opus	FAIL	-	-	-	209
+2026-11-27T19:49:22Z	bookeeper-fase-10a	ebook-core	dwarf	sonnet	-	-	-	-	77
+2026-11-27T19:51:47Z	bookeeper-fase-10a	ebook-core	qa	opus	FAIL	finding	rbook s epub open reads container xml and the whole opf with an unbounded copy into a vec so any size cap on epub entries has to run	rbook's `Epub::open` reads container.xml and the whole OPF with an unbounded copy into a Vec, so any size cap on EPUB entries has to run… [crates/bookeeper-core/src/ebooks.rs]	137	1
+2026-11-27T20:06:13Z	bookeeper-fase-10a	ebook-core	dwarf	opus	-	trap	rbook s epub open reads container xml and the whole opf with an unbounded copy into a vec so any size cap on epub entries has to run	rbook's `Epub::open` reads container.xml and the whole OPF with an unbounded copy into a Vec, so any size cap on EPUB entries has to run… [crates/bookeeper-core/src/ebooks.rs]	242	1
+2026-11-27T20:08:38Z	bookeeper-fase-10a	ebook-core	qa	opus	PASS	-	-	-	137
+2026-11-27T20:10:54Z	bookeeper-fase-10a	ebook-core	dwarf	opus	-	-	-	-	126
+2026-11-27T20:13:11Z	bookeeper-fase-10a	ebook-core	qa	opus	PASS	-	-	-	128
+2026-11-27T20:15:51Z	bookeeper-fase-10a	ebook-backup	dwarf	sonnet	-	-	-	-	151
+2026-11-27T20:19:54Z	bookeeper-fase-10a	ebook-backup	qa	opus	FAIL	finding	a migration that adds columns to a table already listed in backup rs tables also needs those columns added there or backup restore	a migration that adds columns to a table already listed in backup.rs `TABLES` also needs those columns added there, or backup/restore… [crates/bookeeper-core/src/backup.rs]	235	1
+2026-11-27T20:21:19Z	bookeeper-fase-10a	ebook-backup	dwarf	sonnet	-	finding	a migration that adds columns to a table already listed in backup rs tables also needs those columns added there or backup restore	a migration that adds columns to a table already listed in backup.rs `TABLES` also needs those columns added there, or backup/restore… [crates/bookeeper-core/src/backup.rs]	77	1
+2026-11-27T20:24:51Z	bookeeper-fase-10a	ebook-backup	qa	opus	PASS	-	-	-	202
+2026-11-27T20:24:57Z	bookeeper-fase-10a	ebook-api	dwarf	sonnet	-	trap	adding a field to bookout makes it required in the generated ts type and breaks the typed book fixtures in	adding a field to `BookOut` makes it required in the generated TS type and breaks the typed `Book` fixtures in… [apps/desktop/src/modules/books/testkit.tsx]	697	1
+2026-11-27T20:28:14Z	bookeeper-fase-10a	ebook-api	qa	opus	FAIL	trap	apps desktop builds bookeeper core router inside tauri setup outside the tokio runtime so handle try current fails there and	apps/desktop builds `bookeeper_core::router` inside Tauri `setup`, outside the Tokio runtime, so `Handle::try_current()` fails there and… [apps/desktop/src-tauri/src/lib.rs]	187	1
+2026-11-27T20:29:11Z	bookeeper-fase-10a	ebook-api	dwarf	sonnet	-	trap	apps desktop builds bookeeper core router inside tauri setup outside the tokio runtime so handle try current fails there and	apps/desktop builds `bookeeper_core::router` inside Tauri `setup`, outside the Tokio runtime, so `Handle::try_current()` fails there and… [apps/desktop/src-tauri/src/lib.rs]	49	1
+2026-11-27T20:31:19Z	bookeeper-fase-10a	ebook-api	qa	opus	FAIL	-	-	-	119
+2026-11-27T20:39:11Z	bookeeper-fase-10a	fmt-fix	dwarf	sonnet	-	-	-	-	63
+2026-11-27T20:40:31Z	bookeeper-fase-10a	fmt-fix	qa	opus	PASS	-	-	-	74
+2026-11-27T20:40:55Z	bookeeper-fase-10a	ebook-api	dwarf	sonnet	-	-	-	-	17
+2026-11-27T20:42:56Z	bookeeper-fase-10a	ebook-api	qa	opus	PASS	-	-	-	113
+2026-11-27T20:44:16Z	bookeeper-fase-10a	ebook-ui-extras	dwarf	sonnet	-	-	-	-	74
+2026-11-27T20:45:17Z	bookeeper-fase-10a	ebook-ui-extras	qa	opus	PASS	-	-	-	50
+2026-11-27T20:47:24Z	bookeeper-fase-10a	ebook-progress	dwarf	sonnet	-	trap	tests reading rs doesn t exist upstream the old reading tests live in crates bookeeper core tests reading api rs	`tests/reading.rs` doesn't exist upstream; the old reading tests live in `crates/bookeeper-core/tests/reading_api.rs` [crates/bookeeper-core/tests/reading_api.rs]	262	1
+2026-11-27T20:50:04Z	bookeeper-fase-10a	ebook-progress	qa	opus	FAIL	-	-	-	152
+2026-11-27T20:51:04Z	bookeeper-fase-10a	ebook-progress	dwarf	sonnet	-	-	-	-	53
+2026-11-27T20:53:16Z	bookeeper-fase-10a	ebook-progress	qa	opus	PASS	-	-	-	125
+2026-11-27T20:56:43Z	bookeeper-fase-10a	ebook-ui-mobile	dwarf	sonnet	-	-	-	-	200
+2026-11-27T20:59:06Z	bookeeper-fase-10a	ebook-ui-mobile	qa	opus	FAIL	-	-	-	133
+2026-11-27T21:01:12Z	bookeeper-fase-10a	ebook-ui-mobile	dwarf	sonnet	-	-	-	-	120
+2026-11-27T21:02:05Z	bookeeper-fase-10a	ebook-ui-mobile	qa	opus	PASS	-	-	-	45
+2026-11-27T21:06:07Z	bookeeper-fase-10a	ebook-ui-files	dwarf	sonnet	-	trap	expect error tomatchobject code on an error instance compares only the message in vitest so check code explicitly	`expect(error).toMatchObject({code})` on an Error instance compares only the message in vitest, so check `.code` explicitly [apps/desktop/src/platform/tauri.test.ts]	764	1
+2026-11-27T21:06:07Z	bookeeper-fase-10a	ebook-ui-files	dwarf	sonnet	-	verify	cargo test offline p bookeeper desktop cargo clippy offline p bookeeper desktop all targets d warnings	cargo test --offline -p bookeeper-desktop && cargo clippy --offline -p bookeeper-desktop --all-targets -- -D warnings [apps/desktop/src-tauri/Cargo.toml]	764	1
+2026-11-27T21:11:21Z	bookeeper-fase-10a	ebook-ui-files	qa	opus	PASS	-	-	-	303
+2026-11-27T21:14:56Z	bookeeper-fase-10a	ebook-ui-import	dwarf	sonnet	-	trap	impeccable is not on path run it as npx no install impeccable detect json files	`impeccable` is not on PATH; run it as `npx --no-install impeccable detect --json <files>` [.claude/skills/impeccable/scripts/impeccable]	206	1
+2026-11-27T21:17:49Z	bookeeper-fase-10a	ebook-ui-import	qa	opus	FAIL	finding	react synthetic drag drop events bubble through radix dialog portals so a drop target on a page also catches drops on the dialogs	React synthetic drag/drop events bubble through Radix Dialog portals, so a drop target on a page also catches drops on the dialogs… [apps/desktop/src/modules/books/BooksPage.tsx]	165	1
+2026-11-27T21:19:52Z	bookeeper-fase-10a	ebook-ui-import	dwarf	sonnet	-	trap	react synthetic drag drop events bubble through radix dialog portals so a drop target on a page also catches drops on the dialogs	React synthetic drag/drop events bubble through Radix Dialog portals, so a drop target on a page also catches drops on the dialogs… [apps/desktop/src/modules/books/useEbookDrop.ts]	118	1
+2026-11-27T21:21:52Z	bookeeper-fase-10a	ebook-ui-import	qa	opus	FAIL	trap	tauri 2 windows in apps desktop src tauri tauri conf json keep the default dragdropenabled so html5 file drop events in the page do not	Tauri 2 windows in apps/desktop/src-tauri/tauri.conf.json keep the default dragDropEnabled, so HTML5 file drop events in the page do not… [apps/desktop/src-tauri/tauri.conf.json]	112	1
+2026-11-28T02:43:26Z	bookeeper-fase-10a	fix-sweep-test	dwarf	sonnet	-	-	-	-	326
+2026-11-28T02:43:48Z	bookeeper-fase-10a	ebook-ui-import	dwarf	opus	-	trap	packages ui src casecollisions test ts compares names without extensions per folder so foo test tsx collides with foo ts	packages/ui/src/caseCollisions.test.ts compares names without extensions per folder, so `Foo.test.tsx` collides with `foo.ts` [packages/ui/src/caseCollisions.test.ts]	383	1
+2026-11-28T02:46:11Z	bookeeper-fase-10a	ebook-ui-import	qa	opus	FAIL	trap	with dragdropenabled false in apps desktop src tauri tauri conf json an unhandled file drop makes the webview navigate to the file	with "dragDropEnabled": false in apps/desktop/src-tauri/tauri.conf.json, an unhandled file drop makes the webview navigate to the file… [apps/desktop/src-tauri/tauri.conf.json]	137	1
+2026-11-28T02:46:15Z	bookeeper-fase-10a	fix-sweep-test	qa	opus	PASS	-	-	-	160
+2026-11-28T02:59:44Z	bookeeper-fase-10a	ebook-ui-import	dwarf	opus	-	-	-	-	121
+2026-11-28T03:01:42Z	bookeeper-fase-10a	ebook-ui-import	qa	opus	PASS	-	-	-	112
+2026-11-28T03:39:04Z	bookeeper-fase-10a1	backup-note	dwarf	sonnet	-	-	-	-	37
+2026-11-28T03:39:53Z	bookeeper-fase-10a1	backup-note	qa	opus	PASS	-	-	-	42
+2026-11-28T03:43:43Z	bookeeper-fase-10a1	core-fixes	dwarf	sonnet	-	trap	adding a field to readingsummary breaks crates bookeeper core tests books api rs exact json match of reading and the desktop mobile	adding a field to ReadingSummary breaks crates/bookeeper-core/tests/books_api.rs (exact JSON match of `reading`) and the desktop/mobile… [crates/bookeeper-core/tests/books_api.rs]	317	1
+2026-11-28T03:47:39Z	bookeeper-fase-10a1	core-fixes	qa	opus	FAIL	-	-	-	229
+2026-11-28T03:56:31Z	bookeeper-fase-10a1	core-fixes	dwarf	sonnet	-	-	-	-	11
+2026-11-28T03:58:17Z	bookeeper-fase-10a1	core-fixes	qa	opus	PASS	-	-	-	99
+2026-11-28T03:58:57Z	bookeeper-fase-10a1	mobile-fixes	dwarf	sonnet	-	-	-	-	31
+2026-11-28T03:59:46Z	bookeeper-fase-10a1	mobile-fixes	qa	opus	PASS	-	-	-	43
+2026-11-28T04:01:28Z	bookeeper-fase-10a1	books-fixes	dwarf	sonnet	-	-	-	-	182
+2026-11-28T04:03:30Z	bookeeper-fase-10a1	books-fixes	qa	opus	FAIL	-	-	-	115
+2026-11-28T04:04:30Z	bookeeper-fase-10a1	books-fixes	dwarf	sonnet	-	-	-	-	55
+2026-11-28T04:05:29Z	bookeeper-fase-10a1	books-fixes	qa	opus	PASS	-	-	-	52
+2026-11-28T04:10:22Z	bookeeper-fase-10a1	platform-fixes	dwarf	sonnet	-	-	-	-	288
+2026-11-28T04:13:19Z	bookeeper-fase-10a1	platform-fixes	qa	opus	FAIL	-	-	-	170
+2026-11-28T04:13:49Z	bookeeper-fase-10a1	platform-fixes	dwarf	sonnet	-	-	-	-	23
+2026-11-28T04:16:51Z	bookeeper-fase-10a1	platform-fixes	qa	opus	PASS	-	-	-	176

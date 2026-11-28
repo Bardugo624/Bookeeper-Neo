@@ -27,16 +27,21 @@ interface World {
   kind?: 'local' | 'remote';
   sharing?: boolean;
   status?: Parameters<typeof fakePlatform>[0] extends infer O ? (O extends { sharingStatus?: infer S } ? S : never) : never;
+  /** Gives the platform the login-opening choice. */
+  autostart?: boolean;
 }
 
-function renderSharing(world: World = {}) {
+/** `prepare` runs on the platform before the first render, so it can replace the first `sharing.status`. */
+function renderSharing(world: World = {}, prepare?: (platform: FakePlatform) => void) {
   const me = { ...ME, user: { ...ME.user, role: world.role ?? 'owner', email: world.email === undefined ? 'anna@example.org' : world.email } };
   const platform: FakePlatform = fakePlatform({
     connections: { active: 'c1', items: [fakeConnection({ kind: world.kind ?? 'local' })] },
     sharing: world.sharing,
     sharingStatus: world.status,
+    ...(world.autostart ? { autostart: { on: true } } : {}),
     handler: (r) => (r.path.split('?')[0] === '/api/v1/me' ? ok(me) : { status: 404, body: { error_code: 'not_found', message: 'x' } }),
   });
+  prepare?.(platform);
   setSystemLanguage('it-IT');
   useSession.setState({ status: 'loading', connection: null, me: null, platform: null });
   const router = createMemoryRouter(buildRoutes([module]), { initialEntries: ['/settings/sharing'] });
@@ -183,6 +188,47 @@ describe('port', () => {
 
   it('parses the range', () => {
     expect([parsePort('1023'), parsePort('1024'), parsePort('65535'), parsePort('65536'), parsePort('x')]).toEqual([null, 1024, 65535, null, null]);
+  });
+});
+
+describe('opening at sign-in', () => {
+  const AUTOSTART = 'Apri Bookeeper all\'accesso al computer';
+  const sharingSwitch = () => screen.queryByRole('switch', { name: 'Condividi questa libreria in rete' });
+
+  it('is there while the sharing status is still loading', async () => {
+    renderSharing({ autostart: true }, (p) => {
+      p.sharing!.status = () => new Promise(() => {});
+    });
+    const sw = (await screen.findByRole('switch', { name: AUTOSTART })) as HTMLInputElement;
+    await waitFor(() => expect(sw.checked).toBe(true));
+    expect(sharingSwitch()).toBeNull();
+  });
+
+  it('is there when the sharing status cannot be read', async () => {
+    renderSharing({ autostart: true }, (p) => {
+      p.sharing!.status = () => Promise.reject(new Error('shell'));
+    });
+    expect(await screen.findByText('Non riesco a leggere lo stato della condivisione.')).toBeTruthy();
+    expect(await screen.findByRole('switch', { name: AUTOSTART })).toBeTruthy();
+    expect(sharingSwitch()).toBeNull();
+  });
+
+  it('keeps what it read when the sharing status arrives', async () => {
+    let arrive: () => void = () => undefined;
+    let reads = 0;
+    renderSharing({ autostart: true }, (p) => {
+      const status = p.sharing!.status;
+      p.sharing!.status = () => new Promise((resolve) => (arrive = () => resolve(status())));
+      const get = p.autostart!.get;
+      p.autostart!.get = () => ((reads += 1), get());
+    });
+    const sw = (await screen.findByRole('switch', { name: AUTOSTART })) as HTMLInputElement;
+    await waitFor(() => expect(sw.checked).toBe(true));
+    expect(reads).toBe(1);
+    arrive();
+    await toggle();
+    expect(screen.getByRole('switch', { name: AUTOSTART })).toBe(sw);
+    expect(reads).toBe(1);
   });
 });
 

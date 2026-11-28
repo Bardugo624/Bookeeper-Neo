@@ -4,7 +4,7 @@ import { Icon, Tag } from '@bookeeper/ui/base';
 import { BookCover } from '@bookeeper/ui/book';
 import { useT } from '../../app';
 import { ReadingRing } from '../reading';
-import { authorsOf, detailPath, type FromList } from './format';
+import { authorsOf, detailPath, formatsOf, type FromList } from './format';
 import { WhereLink } from './WhereLink';
 import { SelectionCheckbox } from './SelectionCheckbox';
 import { mayHaveCover, useCover } from './useCover';
@@ -47,6 +47,11 @@ export function BookCard({ book, from, selection, index, cell }: BookCardProps) 
           {book.on_loan ? (
             <Tag tone="warn" className={styles.loan}>
               {t('books.list.onLoan')}
+            </Tag>
+          ) : null}
+          {book.file_formats.length > 0 ? (
+            <Tag className={styles.formats}>
+              {formatsOf(book)}
             </Tag>
           ) : null}
           {book.reading?.status === 'reading' ? (

@@ -4,6 +4,7 @@ pub mod auth;
 pub mod backup;
 pub mod covers;
 pub mod db;
+pub mod ebooks;
 pub mod error;
 pub mod extract;
 pub mod import;
