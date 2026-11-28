@@ -790,3 +790,24 @@
 2026-11-27T20:28:14Z	bookeeper-fase-10a	ebook-api	qa	opus	FAIL	trap	apps desktop builds bookeeper core router inside tauri setup outside the tokio runtime so handle try current fails there and	apps/desktop builds `bookeeper_core::router` inside Tauri `setup`, outside the Tokio runtime, so `Handle::try_current()` fails there and… [apps/desktop/src-tauri/src/lib.rs]	187	1
 2026-11-27T20:29:11Z	bookeeper-fase-10a	ebook-api	dwarf	sonnet	-	trap	apps desktop builds bookeeper core router inside tauri setup outside the tokio runtime so handle try current fails there and	apps/desktop builds `bookeeper_core::router` inside Tauri `setup`, outside the Tokio runtime, so `Handle::try_current()` fails there and… [apps/desktop/src-tauri/src/lib.rs]	49	1
 2026-11-27T20:31:19Z	bookeeper-fase-10a	ebook-api	qa	opus	FAIL	-	-	-	119
+2026-11-27T20:39:11Z	bookeeper-fase-10a	fmt-fix	dwarf	sonnet	-	-	-	-	63
+2026-11-27T20:40:31Z	bookeeper-fase-10a	fmt-fix	qa	opus	PASS	-	-	-	74
+2026-11-27T20:40:55Z	bookeeper-fase-10a	ebook-api	dwarf	sonnet	-	-	-	-	17
+2026-11-27T20:42:56Z	bookeeper-fase-10a	ebook-api	qa	opus	PASS	-	-	-	113
+2026-11-27T20:44:16Z	bookeeper-fase-10a	ebook-ui-extras	dwarf	sonnet	-	-	-	-	74
+2026-11-27T20:45:17Z	bookeeper-fase-10a	ebook-ui-extras	qa	opus	PASS	-	-	-	50
+2026-11-27T20:47:24Z	bookeeper-fase-10a	ebook-progress	dwarf	sonnet	-	trap	tests reading rs doesn t exist upstream the old reading tests live in crates bookeeper core tests reading api rs	`tests/reading.rs` doesn't exist upstream; the old reading tests live in `crates/bookeeper-core/tests/reading_api.rs` [crates/bookeeper-core/tests/reading_api.rs]	262	1
+2026-11-27T20:50:04Z	bookeeper-fase-10a	ebook-progress	qa	opus	FAIL	-	-	-	152
+2026-11-27T20:51:04Z	bookeeper-fase-10a	ebook-progress	dwarf	sonnet	-	-	-	-	53
+2026-11-27T20:53:16Z	bookeeper-fase-10a	ebook-progress	qa	opus	PASS	-	-	-	125
+2026-11-27T20:56:43Z	bookeeper-fase-10a	ebook-ui-mobile	dwarf	sonnet	-	-	-	-	200
+2026-11-27T20:59:06Z	bookeeper-fase-10a	ebook-ui-mobile	qa	opus	FAIL	-	-	-	133
+2026-11-27T21:01:12Z	bookeeper-fase-10a	ebook-ui-mobile	dwarf	sonnet	-	-	-	-	120
+2026-11-27T21:02:05Z	bookeeper-fase-10a	ebook-ui-mobile	qa	opus	PASS	-	-	-	45
+2026-11-27T21:06:07Z	bookeeper-fase-10a	ebook-ui-files	dwarf	sonnet	-	trap	expect error tomatchobject code on an error instance compares only the message in vitest so check code explicitly	`expect(error).toMatchObject({code})` on an Error instance compares only the message in vitest, so check `.code` explicitly [apps/desktop/src/platform/tauri.test.ts]	764	1
+2026-11-27T21:06:07Z	bookeeper-fase-10a	ebook-ui-files	dwarf	sonnet	-	verify	cargo test offline p bookeeper desktop cargo clippy offline p bookeeper desktop all targets d warnings	cargo test --offline -p bookeeper-desktop && cargo clippy --offline -p bookeeper-desktop --all-targets -- -D warnings [apps/desktop/src-tauri/Cargo.toml]	764	1
+2026-11-27T21:11:21Z	bookeeper-fase-10a	ebook-ui-files	qa	opus	PASS	-	-	-	303
+2026-11-27T21:14:56Z	bookeeper-fase-10a	ebook-ui-import	dwarf	sonnet	-	trap	impeccable is not on path run it as npx no install impeccable detect json files	`impeccable` is not on PATH; run it as `npx --no-install impeccable detect --json <files>` [.claude/skills/impeccable/scripts/impeccable]	206	1
+2026-11-27T21:17:49Z	bookeeper-fase-10a	ebook-ui-import	qa	opus	FAIL	finding	react synthetic drag drop events bubble through radix dialog portals so a drop target on a page also catches drops on the dialogs	React synthetic drag/drop events bubble through Radix Dialog portals, so a drop target on a page also catches drops on the dialogs… [apps/desktop/src/modules/books/BooksPage.tsx]	165	1
+2026-11-27T21:19:52Z	bookeeper-fase-10a	ebook-ui-import	dwarf	sonnet	-	trap	react synthetic drag drop events bubble through radix dialog portals so a drop target on a page also catches drops on the dialogs	React synthetic drag/drop events bubble through Radix Dialog portals, so a drop target on a page also catches drops on the dialogs… [apps/desktop/src/modules/books/useEbookDrop.ts]	118	1
+2026-11-27T21:21:52Z	bookeeper-fase-10a	ebook-ui-import	qa	opus	FAIL	trap	tauri 2 windows in apps desktop src tauri tauri conf json keep the default dragdropenabled so html5 file drop events in the page do not	Tauri 2 windows in apps/desktop/src-tauri/tauri.conf.json keep the default dragDropEnabled, so HTML5 file drop events in the page do not… [apps/desktop/src-tauri/tauri.conf.json]	112	1

@@ -4,6 +4,7 @@
      overwritten. Facts only, one per line. -->
 
 ## Verify
+- cargo test --offline -p bookeeper-desktop && cargo clippy --offline -p bookeeper-desktop --all-targets -- -D warnings [apps/desktop/src-tauri/Cargo.toml]
 - from apps/desktop, `npx vitest run src/modules/welcome src/kit/styles.test.ts` runs the welcome tests and the app's CSS lint in about 10 s [apps/desktop/src/kit/styles.test.ts]
 - cargo check --offline --target x86_64-pc-windows-msvc -p bookeeper-setup works from the committed files and type-checks the Setup's Windows-only… [apps/setup/src-tauri/Cargo.toml]
 - cargo check --target x86_64-pc-windows-msvc -p bookeeper-setup --lib --bins type-checks the Windows-only code and the manifest build step from Linux [apps/setup/src-tauri/build.rs]
@@ -17,7 +18,6 @@
 - copy package.json, package-lock.json and the apps/*/package.json and packages/*/package.json files to a scratch dir and run `npm install --package-lock-only… [package-lock.json]
 - cargo test --offline -p bookeeper-core --test reading_api --test books_api --test db --test backup_api --test openapi_errors [crates/bookeeper-core/Cargo.toml]
 - npm install && npm run typecheck -w @bookeeper/mobile && npm test -w @bookeeper/mobile && npm run build -w @bookeeper/mobile && cargo test --offline -p… [apps/mobile/package.json]
-- cargo test --offline -p bookeeper-desktop && cargo clippy --offline -p bookeeper-desktop --all-targets -- -D warnings [apps/desktop/src-tauri/Cargo.toml]
 - cargo zigbuild --release --locked -p bookeeper-server --target x86_64-unknown-linux-musl (needs `pip install ziglang`, `cargo install --locked… [.github/workflows/release.yml]
 - npm ci --offline && npm run gen -w @bookeeper/api && npm test -w @bookeeper/api [packages/api/package.json]
 - zip 2 `ZipWriter::raw_copy_file_rename` lets a test build a >1 GB-decompressed hostile archive cheaply by copying one compressed entry [crates/bookeeper-core/tests/backup_api.rs]
