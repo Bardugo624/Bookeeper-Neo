@@ -62,7 +62,7 @@ interface Session {
   off: Array<() => void>;
   searchToken: { cancelled: boolean };
   /** The search result the reader went to, and the results of the search that is drawn. */
-  chosen: { cfi: string; range: Range } | null;
+  chosen: { cfi: string; index: number; anchor: (doc: Document) => Range; range: Range } | null;
   hits: Set<string>;
   drawHit: (rects: Iterable<DOMRect>, options?: { color?: string }) => SVGElement;
 }
@@ -188,7 +188,7 @@ export function bootFrame(options: BootOptions = {}): () => void {
       .find((c) => c.index === r.index)?.doc;
     if (!doc) return;
     const before = s.chosen?.cfi;
-    s.chosen = { cfi, range: r.anchor(doc) };
+    s.chosen = { cfi, index: r.index!, anchor: r.anchor, range: r.anchor(doc) };
     if (before && before !== cfi) redrawHit(s, before);
     redrawHit(s, cfi);
   }
@@ -247,6 +247,14 @@ export function bootFrame(options: BootOptions = {}): () => void {
     };
     listen('load', (e) => {
       applyFallbackFont(e.detail.doc, s.layout);
+      // A chapter that is drawn again is a new document: the chosen result is found in it again.
+      if (s.chosen && s.chosen.index === e.detail.index) {
+        try {
+          s.chosen.range = s.chosen.anchor(e.detail.doc);
+        } catch (err) {
+          console.error(err);
+        }
+      }
       s.off.push(watchDocument(e.detail.doc, e.detail.index, view, send, () => performance.now() - markHitAt < 50));
     });
     // A book never takes the page anywhere: external links stay where they are.
