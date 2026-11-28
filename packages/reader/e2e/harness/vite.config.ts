@@ -9,7 +9,7 @@ export default defineConfig({
   root: here('.'),
   plugins: [foliateAssets()],
   build: {
-    outDir: here('../dist'),
+    outDir: '../dist',
     emptyOutDir: true,
     rollupOptions: { input: { index: here('index.html'), 'reader-frame': here('reader-frame.html') } },
   },

@@ -74,6 +74,11 @@ function stats(times) {
 /** A fresh page with the engine ready, watching page errors and the requests that leave the test server. */
 async function openPage(browser, viewport, base) {
   const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height } });
+  // Every frame counts the policy violations it sees, so the hostile book can be shown to have loaded and been fenced.
+  await context.addInitScript(() => {
+    window.__bkViolations = 0;
+    document.addEventListener('securitypolicyviolation', () => window.__bkViolations++, true);
+  });
   const page = await context.newPage();
   const watch = { errors: [], outside: new Map() };
   const outside = (url) => !(url.startsWith(`${base}/`) || /^(blob:|data:|about:)/.test(url));
@@ -202,9 +207,11 @@ const scenarios = {
       if (flag) ran.push(`${frame.url().slice(0, 40)}: ${flag}`);
     }
     // A request the policy blocked is told apart by the text of its failure, as in the trial this test replaced.
+    let violations = 0;
+    for (const frame of page.frames()) violations += (await frame.evaluate(() => window.__bkViolations ?? 0).catch(() => 0));
     const requests = [...watch.outside].map(([url, outcome]) => ({ url, outcome, blocked: /csp|content security|blocked/i.test(outcome) }));
     const gone = requests.filter((r) => !r.blocked);
-    return { ok: ran.length === 0 && gone.length === 0, scriptsRan: ran, frames: page.frames().length, outsideRequests: requests, outsideNotBlocked: gone.length };
+    return { ok: ran.length === 0 && gone.length === 0 && violations > 0, violations, scriptsRan: ran, frames: page.frames().length, outsideRequests: requests, outsideNotBlocked: gone.length };
   },
 
   async close({ page, watch }) {
