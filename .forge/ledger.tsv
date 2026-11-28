@@ -983,3 +983,5 @@
 2026-11-28T16:14:08Z	bookeeper-fase-10b4	reader-when	qa	opus	FAIL	finding	italian strings that put an article before a number il date al percent need elision for numbers that start with a vowel	Italian strings that put an article before a number («il {date}», «al {percent}») need elision for numbers that start with a vowel… [packages/i18n/src/locales/it/reader.json]	49	1
 2026-11-28T16:14:37Z	bookeeper-fase-10b4	reader-when	dwarf	sonnet	-	-	-	-	24
 2026-11-28T16:15:14Z	bookeeper-fase-10b4	reader-when	qa	opus	PASS	-	-	-	30
+2026-11-28T16:28:12Z	bookeeper-fase-10b4	search-marks	dwarf	opus	-	-	-	-	136
+2026-11-28T16:29:28Z	bookeeper-fase-10b4	search-marks	qa	opus	FAIL	trap	foliate js paginator turns pages on touch swipe by itself paginator js ontouchend snap the app sees only relocate never	foliate-js paginator turns pages on touch swipe by itself (paginator.js #onTouchEnd → snap); the app sees only `relocate`, never… [packages/reader/vendor/foliate-js/paginator.js]	68	1
