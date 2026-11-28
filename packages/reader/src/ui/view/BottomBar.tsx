@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import { Button } from '@bookeeper/ui/base';
-import { useReaderT } from '../../i18n';
+import { useReaderLocale, useReaderT } from '../../i18n';
 import { BarButton } from './BarButton';
-import { formatMinutes, percentOf } from './format';
+import { formatMinutes, percentOf, percentPhrase } from './format';
 import { BookmarkIcon, ComputerIcon, NoteIcon, PhoneIcon, SearchIcon, TocIcon } from './icons';
 import { ProgressSlider } from './ProgressSlider';
 import type { ReaderLayout } from './useChrome';
@@ -46,6 +46,7 @@ const QUESTION_ICONS: Record<NonNullable<Question['icon']>, ReactNode> = { phone
 export function BottomBar(props: BottomBarProps) {
   const { layout, fraction, ticks, chapterAt, onSeek, times, question, jumpBack, phone } = props;
   const t = useReaderT();
+  const locale = useReaderLocale();
   const phoneLayout = layout === 'phone';
 
   const progress = (
@@ -60,7 +61,7 @@ export function BottomBar(props: BottomBarProps) {
       </p>
       {jumpBack ? (
         <button type="button" className={styles.jumpBack} onClick={jumpBack.onBack}>
-          {t('reader.bottom.jump_back', { percent: jumpBack.percent })}
+          {percentPhrase(t, 'reader.bottom.jump_back', jumpBack.percent, locale)}
         </button>
       ) : null}
     </>
