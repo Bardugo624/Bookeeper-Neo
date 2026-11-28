@@ -34,6 +34,14 @@ function pointer(el: Element, type: string, clientX: number) {
 }
 
 describe('BottomBar', () => {
+  it('the_times_read_with_a_space_on_each_side_of_the_dot', () => {
+    const { container } = bar();
+    const times = container.querySelector('p') as HTMLElement;
+    expect(times.textContent).toMatch(/^4% · .+ · .+$/);
+    expect(getComputedStyle(times).display).not.toBe('flex');
+    for (const span of times.querySelectorAll('span')) expect(span.textContent?.startsWith(' · ')).toBe(true);
+  });
+
   it('scrubbing_shows_the_chapter_and_jumps_on_release', () => {
     const { props } = bar();
     const track = mockTrack();
