@@ -938,3 +938,7 @@
 2026-11-28T14:11:50Z	bookeeper-fase-10b1	mobile-p3	qa	opus	FAIL	finding	in the mobile readerroute any change that makes me or the files book queries change while a kept copy is on screen goes through	in the mobile ReaderRoute, any change that makes `me` or the files/book queries change while a kept copy is on screen goes through… [apps/mobile/src/modules/reader/ReaderRoute.tsx]	87	1
 2026-11-28T14:19:29Z	bookeeper-fase-10b1	mobile-p3	dwarf	opus	-	-	-	-	80
 2026-11-28T14:20:46Z	bookeeper-fase-10b1	mobile-p3	qa	opus	PASS	-	-	-	69
+2026-11-28T15:05:46Z	bookeeper-fase-10b2	theme-overlays	dwarf	sonnet	-	-	-	-	57
+2026-11-28T15:07:20Z	bookeeper-fase-10b2	theme-overlays	qa	opus	PASS	-	-	-	85
+2026-11-28T15:08:14Z	bookeeper-fase-10b2	frame-font-search	dwarf	sonnet	-	trap	jsdom has no cssfontfacerule so detect font face rules by csstext startswith font face instead of instanceof	jsdom has no `CSSFontFaceRule`, so detect `@font-face` rules by `cssText.startsWith('@font-face')` instead of `instanceof` [packages/reader/src/frame/fallbackFont.ts]	204	1
+2026-11-28T15:08:56Z	bookeeper-fase-10b2	mobile-fixes	dwarf	sonnet	-	-	-	-	88
