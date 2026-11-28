@@ -73,6 +73,7 @@
     "when_today": "alle {time}",
     "when_yesterday": "ieri alle {time}",
     "when_date": "il {date}",
+    "when_date_elided": "l'{date}",
     "stay": "Resta qui",
     "go_al": "Vai al {percent}",
     "go_all": "Vai all'{percent}",

@@ -68,5 +68,11 @@ export function sinceText(t: T, locale: string, atSeconds: number, nowMs: number
     at.getFullYear() === now.getFullYear()
       ? new Intl.DateTimeFormat(loc, { day: 'numeric', month: 'long' }).format(at)
       : new Intl.DateTimeFormat(loc, { day: 'numeric', month: 'long', year: 'numeric' }).format(at);
+  if (loc.startsWith('it')) {
+    // «il 1° novembre», «l'8 novembre», «l'11 novembre»
+    const dom = at.getDate();
+    if (dom === 1) return t('reader.resume.when_date', { date: date.replace(/^1 /, '1° ') });
+    if (dom === 8 || dom === 11) return t('reader.resume.when_date_elided', { date });
+  }
   return t('reader.resume.when_date', { date });
 }

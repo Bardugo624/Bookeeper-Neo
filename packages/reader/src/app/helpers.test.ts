@@ -17,6 +17,9 @@ describe('sinceText', () => {
       [local(2026, 11, 28, 15, 49), 'alle 15:49', 'at 15:49'],
       [local(2026, 11, 27, 22, 40), 'ieri alle 22:40', 'yesterday at 22:40'],
       [local(2026, 11, 26, 9, 0), 'il 26 novembre', 'on 26 November'],
+      [local(2026, 11, 8, 9, 0), "l'8 novembre", 'on 8 November'],
+      [local(2026, 11, 11, 9, 0), "l'11 novembre", 'on 11 November'],
+      [local(2026, 11, 1, 9, 0), 'il 1° novembre', 'on 1 November'],
       [local(2025, 11, 26, 9, 0), 'il 26 novembre 2025', 'on 26 November 2025'],
     ];
     for (const [at, it, e] of cases) {
