@@ -24,6 +24,7 @@ export function bookCss(layout: FrameLayout): string {
   // The book's own font stays only when asked for and allowed; when it has none, Lora.
   const family = font === 'publisher' ? FONT_STACKS.lora : FONT_STACKS[font];
   const keepBookFont = font === 'publisher' && publisherStyles;
+  const chosen = font !== 'publisher';
   const hyphens = hyphenate ? 'auto' : 'manual';
   const align = justify ? 'justify' : 'start';
 
@@ -42,7 +43,7 @@ export function bookCss(layout: FrameLayout): string {
   color: ${colors.ink} !important;
   background: transparent !important;
   line-height: ${lineHeight};
-  ${keepBookFont ? '' : `font-family: ${family};`}
+  ${keepBookFont ? '' : `font-family: ${family}${chosen ? ' !important' : ''};`}
   ${justify || own ? `text-align: ${align};` : ''}
 }`,
     `a:any-link { color: ${colors.link}; }`,
@@ -63,12 +64,18 @@ html body a:any-link:any-link:any-link { color: ${colors.link} !important; }`);
   background: transparent !important;
 }
 body *:not(img):not(svg):not(video) {
-  ${keepBookFont ? '' : `font-family: inherit !important;`}
+  ${keepBookFont || chosen ? '' : `font-family: inherit !important;`}
   line-height: inherit !important;
   text-align: ${align} !important;
   hyphens: ${hyphens} !important;
 }
 a:any-link { color: ${colors.link} !important; }`);
+  }
+  if (chosen) {
+    // The chosen family reaches every element but images and fixed-width text, whatever the book names.
+    rules.push(`body *:not(img):not(svg):not(video):not(code):not(pre):not(kbd):not(samp):not(tt) {
+  font-family: inherit !important;
+}`);
   }
   return rules.join('\n');
 }
