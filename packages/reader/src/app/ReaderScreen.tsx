@@ -9,6 +9,7 @@ import type { ReaderAppProps } from './ReaderApp';
 import { PagePane } from './PagePane';
 import { chapterAtFraction, labelOfHref } from './helpers';
 import { useAnnotations } from './useAnnotations';
+import { useDocumentTheme } from './useDocumentTheme';
 import { useBookSession } from './useBookSession';
 import { useJumps } from './useJumps';
 import { useNoteActions } from './useNoteActions';
@@ -28,6 +29,7 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
   const t = useReaderT();
   const desktop = platform === 'desktop';
   const { settings, change, theme, layout } = useReaderSettings(appDark);
+  useDocumentTheme(theme);
   const keeper = usePositionKeeper(backend, file.id);
   const session = useBookSession({ backend, file, keeper, layout });
   const { engine, opened, relocation } = session;
