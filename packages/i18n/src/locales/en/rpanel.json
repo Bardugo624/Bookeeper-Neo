@@ -1,0 +1,54 @@
+{
+  "title": "Book panel",
+  "tabs": {
+    "label": "Contents, notes and search",
+    "toc": "Contents",
+    "notes": "Notes",
+    "search": "Search"
+  },
+  "toc": {
+    "label": "Table of contents",
+    "empty": "This book has no table of contents."
+  },
+  "notes": {
+    "filters": "Filter the notes",
+    "all": "All",
+    "bookmarks": "Bookmarks",
+    "bookmark": "Bookmark",
+    "bookmark_filter": "Bookmarks: {count}",
+    "all_filter": "All: {count}",
+    "color_filter": "{color}: {count}",
+    "list": "Notes and bookmarks",
+    "empty": "Nothing here yet. Select some text to highlight it.",
+    "empty_filter": "Nothing with this filter.",
+    "note": "Note",
+    "menu": "Actions for this item",
+    "edit": "Edit the note",
+    "recolor": "Change color",
+    "copy": "Copy",
+    "remove": "Remove",
+    "private": "Only visible to you",
+    "export": "Export to Markdown",
+    "colors": {
+      "amber": "Amber",
+      "sage": "Sage",
+      "terracotta": "Terracotta",
+      "night": "Night"
+    }
+  },
+  "search": {
+    "label": "Search the book",
+    "placeholder": "Search the book",
+    "clear": "Clear",
+    "hint": "Type at least 2 characters.",
+    "results": "Search results",
+    "none": "No results.",
+    "progress": "Searching the rest of the book…",
+    "progress_value": "{percent}%",
+    "no_chapter": "No chapter",
+    "count_one": "{count} result",
+    "count_other": "{count} results",
+    "so_far_one": "{count} result so far",
+    "so_far_other": "{count} results so far"
+  }
+}
