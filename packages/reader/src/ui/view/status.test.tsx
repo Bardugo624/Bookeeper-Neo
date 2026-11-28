@@ -1,5 +1,6 @@
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ReaderLocale } from '../../i18n';
 import { ReaderStatus, type ReaderStatusProps } from './ReaderStatus';
@@ -48,5 +49,14 @@ describe('ReaderStatus', () => {
     vi.useRealTimers();
     show({ kind: 'error', error: 'open_failed', onAction: () => {} }, 'en');
     expect(screen.getByRole('button', { name: 'Download the file' })).toBeInTheDocument();
+  });
+
+  it('phone_targets_are_at_least_44_by_48', () => {
+    const read = (name: string) => readFileSync(`${process.cwd()}/src/ui/view/${name}`, 'utf8');
+    const status = read('ReaderStatus.module.css');
+    const coarse = status.slice(status.indexOf('@media (pointer: coarse)'));
+    expect(coarse).toMatch(/\.action\s*{[^}]*min-width:\s*44px[^}]*min-height:\s*48px/s);
+    const sheet = read('Sheet.css');
+    expect(sheet).toMatch(/> header > button\s*{[^}]*width:\s*44px[^}]*height:\s*48px/s);
   });
 });
