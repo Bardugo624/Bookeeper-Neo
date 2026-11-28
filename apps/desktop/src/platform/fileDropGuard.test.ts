@@ -34,9 +34,45 @@ describe('installFileDropGuard', () => {
     expect(dataTransfer.dropEffect).toBe('copy');
   });
 
-  it('ignores drags that carry no files', () => {
+  it('cancels a dragged link nobody handled', () => {
     remove = installFileDropGuard();
-    const { e } = fileDrag('dragover', ['text/plain']);
+    for (const types of [['text/uri-list'], ['text/plain', 'text/uri-list']]) {
+      const { e, dataTransfer } = fileDrag('drop', types);
+      document.body.dispatchEvent(e);
+      expect(e.defaultPrevented).toBe(true);
+      expect(dataTransfer.dropEffect).toBe('none');
+    }
+  });
+
+  it('lets text be dropped on an editable field', () => {
+    remove = installFileDropGuard();
+    const input = document.body.appendChild(document.createElement('input'));
+    const area = document.body.appendChild(document.createElement('textarea'));
+    const rich = document.body.appendChild(document.createElement('div'));
+    rich.setAttribute('contenteditable', 'true');
+    const inner = rich.appendChild(document.createElement('span'));
+    for (const el of [input, area, inner]) {
+      const { e } = fileDrag('drop', ['text/plain']);
+      el.dispatchEvent(e);
+      expect(e.defaultPrevented).toBe(false);
+    }
+  });
+
+  it('still cancels a file drag over an editable field', () => {
+    remove = installFileDropGuard();
+    const input = document.body.appendChild(document.createElement('input'));
+    const area = document.body.appendChild(document.createElement('textarea'));
+    for (const el of [input, area]) {
+      const { e, dataTransfer } = fileDrag('drop', ['Files']);
+      el.dispatchEvent(e);
+      expect(e.defaultPrevented).toBe(true);
+      expect(dataTransfer.dropEffect).toBe('none');
+    }
+  });
+
+  it('ignores drags that carry neither files nor links', () => {
+    remove = installFileDropGuard();
+    const { e } = fileDrag('dragover', ['application/x-thing']);
     document.body.dispatchEvent(e);
     expect(e.defaultPrevented).toBe(false);
   });

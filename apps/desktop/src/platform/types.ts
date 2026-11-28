@@ -76,6 +76,8 @@ export interface DownloadResult {
   saved: boolean;
   path?: string;
   status?: number;
+  /** Another download is in progress: nothing was started (not the same as a cancelled window). */
+  busy?: boolean;
 }
 
 /** Mirrors `SharingStatus` in `sharing.rs`. */

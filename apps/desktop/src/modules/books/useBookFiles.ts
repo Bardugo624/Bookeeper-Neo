@@ -56,6 +56,14 @@ export function useRemoveBookFile(bookId: string) {
   });
 }
 
+/** Another download holds the platform's lock; the row says so. */
+export class DownloadBusyError extends Error {
+  constructor() {
+    super('Another download is in progress');
+    this.name = 'DownloadBusyError';
+  }
+}
+
 const BY_STATUS: Record<number, string> = { 401: 'unauthorized', 403: 'forbidden', 404: 'not_found' };
 
 /**
@@ -78,9 +86,11 @@ export function useDownloadBookFile(bookId: string) {
         });
       };
       let result = await attempt();
+      if (result.busy) throw new DownloadBusyError();
       if (result.status === 401) {
         await client.me();
         result = await attempt();
+        if (result.busy) throw new DownloadBusyError();
       }
       if (result.status !== undefined && result.status >= 400) {
         throw new ApiError(result.status, BY_STATUS[result.status] ?? 'unknown', `Download failed (${result.status})`);

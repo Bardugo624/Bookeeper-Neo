@@ -359,6 +359,7 @@
     "download": "Scarica",
     "downloadLabel": "Scarica {name}",
     "downloading": "Scarico",
+    "downloadBusy": "C'è già un download in corso: aspetta che finisca.",
     "remove": "Togli il file",
     "removeLabel": "Togli {name}",
     "missing": "File mancante",
