@@ -942,3 +942,13 @@
 2026-11-28T15:07:20Z	bookeeper-fase-10b2	theme-overlays	qa	opus	PASS	-	-	-	85
 2026-11-28T15:08:14Z	bookeeper-fase-10b2	frame-font-search	dwarf	sonnet	-	trap	jsdom has no cssfontfacerule so detect font face rules by csstext startswith font face instead of instanceof	jsdom has no `CSSFontFaceRule`, so detect `@font-face` rules by `cssText.startsWith('@font-face')` instead of `instanceof` [packages/reader/src/frame/fallbackFont.ts]	204	1
 2026-11-28T15:08:56Z	bookeeper-fase-10b2	mobile-fixes	dwarf	sonnet	-	-	-	-	88
+2026-11-28T15:10:41Z	bookeeper-fase-10b2	frame-font-search	qa	opus	PASS	trap	running node e2e run mjs from packages reader writes reader e2e json into the working directory default out it is untracked output and	running `node e2e/run.mjs` from packages/reader writes `reader-e2e.json` into the working directory (default `--out`); it is untracked output and… [packages/reader/e2e/run.mjs]	138	1
+2026-11-28T15:10:45Z	bookeeper-fase-10b2	mobile-fixes	qa	opus	FAIL	finding	mobile code that picks the file of a book must use pickfile from apps mobile src modules reader pickfile ts since the files api	mobile code that picks "the" file of a book must use `pickFile` from apps/mobile/src/modules/reader/pickFile.ts, since the files API… [apps/mobile/src/modules/reader/pickFile.ts]	101	1
+2026-11-28T15:11:29Z	bookeeper-fase-10b2	mobile-fixes	dwarf	sonnet	-	-	-	-	37
+2026-11-28T15:11:42Z	bookeeper-fase-10b2	reader-sheet-look	dwarf	sonnet	-	-	-	-	52
+2026-11-28T15:12:29Z	bookeeper-fase-10b2	mobile-fixes	qa	opus	PASS	-	-	-	52
+2026-11-28T15:13:03Z	bookeeper-fase-10b2	reader-sheet-look	qa	opus	PASS	-	-	-	73
+2026-11-28T15:14:06Z	bookeeper-fase-10b2	reader-line-panel	dwarf	sonnet	-	verify	from packages reader npx vitest run src ui src app npx tsc noemit needs npm ci offline at the root first	from packages/reader, `npx vitest run src/ui src/app && npx tsc --noEmit` (needs `npm ci --offline` at the root first) [packages/reader/package.json]	91	1
+2026-11-28T15:15:19Z	bookeeper-fase-10b2	reader-line-panel	qa	opus	FAIL	-	-	-	64
+2026-11-28T15:15:52Z	bookeeper-fase-10b2	reader-line-panel	dwarf	sonnet	-	-	-	-	28
+2026-11-28T15:16:31Z	bookeeper-fase-10b2	reader-line-panel	qa	opus	PASS	-	-	-	31

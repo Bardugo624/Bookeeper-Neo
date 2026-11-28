@@ -5,6 +5,7 @@
 
 ## Verify
 - cargo test --offline -p bookeeper-desktop && cargo clippy --offline -p bookeeper-desktop --all-targets -- -D warnings [apps/desktop/src-tauri/Cargo.toml]
+- from packages/reader, `npx vitest run src/ui src/app && npx tsc --noEmit` (needs `npm ci --offline` at the root first) [packages/reader/package.json]
 - a throwaway mobile vitest in the scratchpad also needs a `node_modules` symlink to the repo root's node_modules next to the test file, and the config… [apps/mobile/vite.config.ts]
 - npm ci --offline at the root, then `npm test -w @bookeeper/ui` and `npm test -w @bookeeper/reader` [package.json]
 - from apps/desktop, `npx vitest run src/modules/books src/modules/reading src/kit/styles.test.ts` runs in about 50 s; `npm run typecheck` can exceed the… [apps/desktop/package.json]
@@ -26,6 +27,4 @@
 - copy package.json, package-lock.json and the apps/*/package.json and packages/*/package.json files to a scratch dir and run `npm install --package-lock-only… [package-lock.json]
 - cargo test --offline -p bookeeper-core --test reading_api --test books_api --test db --test backup_api --test openapi_errors [crates/bookeeper-core/Cargo.toml]
 - npm install && npm run typecheck -w @bookeeper/mobile && npm test -w @bookeeper/mobile && npm run build -w @bookeeper/mobile && cargo test --offline -p… [apps/mobile/package.json]
-- cargo zigbuild --release --locked -p bookeeper-server --target x86_64-unknown-linux-musl (needs `pip install ziglang`, `cargo install --locked… [.github/workflows/release.yml]
-- npm ci --offline && npm run gen -w @bookeeper/api && npm test -w @bookeeper/api [packages/api/package.json]
 
