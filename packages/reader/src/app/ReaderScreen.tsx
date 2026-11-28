@@ -54,6 +54,7 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
   const actions = useNoteActions({ backend, book, store: notes.store, items: notes.items, goTo: jumps.goTo, setEditing });
   const sel = useSelection(engine, backend, notes.store, notes.addNow, notes.items, notes.here, editing, setEditing, actions.copyText, actions.removed);
 
+  const failed = session.status !== 'loading' && session.status !== 'ready';
   const panelOpen = desktop ? settings.panelOpen : sheet;
   const openPanel = useCallback(
     (next: PanelTab) => {
@@ -93,7 +94,7 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
       { open: q.resumeOpen, close: q.stay },
       { open: desktop && panelOpen, close: closePanel },
     ],
-    enabled: !appearance && !editing && !(!desktop && sheet),
+    enabled: !failed && !appearance && !editing && !(!desktop && sheet),
   });
   useEffect(() => {
     if (!engine) return;
@@ -176,9 +177,10 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
       layout={platform}
       theme={theme}
       chromeVisible={chrome.visible}
+      failed={failed}
       progress={fraction}
       onReveal={chrome.show}
-      panelOpen={desktop && panelOpen}
+      panelOpen={desktop && panelOpen && !failed}
       panel={desktop ? panel : undefined}
       top={
         <TopBar
@@ -195,6 +197,7 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
           panelOpen={panelOpen}
           moreItems={moreItems}
           topEnd={topEnd}
+          bare={failed}
         />
       }
       bottom={
