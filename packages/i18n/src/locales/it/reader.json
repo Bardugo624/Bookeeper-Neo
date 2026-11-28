@@ -56,5 +56,36 @@
   },
   "sheet": {
     "close": "Chiudi"
+  },
+  "frame": {
+    "title": "Pagina del libro"
+  },
+  "resume": {
+    "question_mobile": "Continua da dove eri sul telefono?",
+    "question_desktop": "Continua da dove eri sul computer?",
+    "question_koreader": "Continua da dove eri su KOReader?",
+    "question_kobo": "Continua da dove eri sul Kobo?",
+    "question_other": "Continua da dove eri su un altro dispositivo?",
+    "page": "Hai segnato pagina {page} ({percent}%)",
+    "stay": "Resta qui",
+    "go": "Vai al {percent}%"
+  },
+  "end": {
+    "question": "Hai finito il libro. Segnarlo come letto?",
+    "not_yet": "Non ancora",
+    "mark_read": "Segna come letto",
+    "marked": "Segnato come letto",
+    "failed": "Non sono riuscito a segnarlo come letto"
+  },
+  "more": {
+    "open_book": "Apri la scheda del libro"
+  },
+  "notes": {
+    "copied": "Copiato",
+    "copy_failed": "Non sono riuscito a copiare",
+    "removed": "Tolto",
+    "undo": "Annulla",
+    "exported": "Note esportate",
+    "export_failed": "Non sono riuscito a esportare le note"
   }
 }
