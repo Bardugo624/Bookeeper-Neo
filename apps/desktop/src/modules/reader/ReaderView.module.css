@@ -1,0 +1,18 @@
+.root {
+  position: fixed;
+  inset: 0;
+  background: var(--bk-bg);
+  color: var(--bk-text);
+}
+
+.state {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 16px;
+  padding: 32px;
+  background: var(--bk-bg);
+  color: var(--bk-text);
+}
