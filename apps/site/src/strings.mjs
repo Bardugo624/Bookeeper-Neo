@@ -60,7 +60,7 @@ export const strings = {
     readerH2: 'E quando trovi il libro, lo leggi.',
     readerLede:
       'Gli e-book dei tuoi libri si aprono direttamente nell’app, sul computer come sul telefono. Le note restano tue, e quando passi da un dispositivo all’altro l’app ti chiede se vuoi riprendere da dove eri rimasto.',
-    readerShotAlt: 'Il lettore di Bookeeper sul computer: due pagine dei Promessi sposi con due evidenziazioni, e accanto il pannello delle note',
+    readerShotAlt: 'Il lettore di Bookeeper sul computer: due pagine dei Promessi sposi con tre evidenziazioni, e accanto il pannello delle note',
     readerPhoneAlt: 'Il lettore di Bookeeper sul telefono, con l’indice, le note, la ricerca e il segnalibro in basso',
     readerFig: 'Le note accanto al testo, sul computer',
     readerPhoneFig: 'Sul telefono, i comandi a portata di pollice',
@@ -239,7 +239,7 @@ export const strings = {
     readerH2: 'And once you find the book, you read it.',
     readerLede:
       'Your books’ e-books open in the app, on the computer and on the phone. Your notes are yours and stay yours. Move from the computer to the phone and it asks whether to pick up where you were.',
-    readerShotAlt: 'The Bookeeper reader on a computer: two pages of The Betrothed with two highlights, and the notes panel beside them',
+    readerShotAlt: 'The Bookeeper reader on a computer: two pages of The Betrothed with three highlights, and the notes panel beside them',
     readerPhoneAlt: 'The Bookeeper reader on a phone, with contents, notes, search and bookmark at the bottom',
     readerFig: 'Notes beside the text, on the computer',
     readerPhoneFig: 'On the phone, the controls under your thumb',
