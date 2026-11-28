@@ -92,7 +92,11 @@ async function hints() {
 function link(file, text, cls = '') {
   const a = document.createElement('a');
   a.href = file.url;
-  a.textContent = text;
+  // A line may break only between the parts of a file name, never inside one.
+  for (const part of text.split(/(?<=[_-])/)) {
+    if (a.firstChild) a.append(document.createElement('wbr'));
+    a.append(part);
+  }
   if (cls) a.className = cls;
   return a;
 }
