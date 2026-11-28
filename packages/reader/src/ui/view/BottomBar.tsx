@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Button } from '@bookeeper/ui/base';
 import { useReaderT } from '../../i18n';
 import { BarButton } from './BarButton';
 import { formatMinutes, percentOf } from './format';
@@ -77,9 +78,15 @@ export function BottomBar(props: BottomBarProps) {
             </p>
             <div className={styles.questionActions}>
               {question.actions.map((a) => (
-                <button key={a.id} type="button" className={a.primary ? styles.primary : styles.plain} onClick={a.onClick}>
-                  {a.label}
-                </button>
+                a.primary ? (
+                  <Button key={a.id} variant="primary" className={styles.primary} onClick={a.onClick}>
+                    {a.label}
+                  </Button>
+                ) : (
+                  <button key={a.id} type="button" className={styles.plain} onClick={a.onClick}>
+                    {a.label}
+                  </button>
+                )
               ))}
             </div>
           </div>

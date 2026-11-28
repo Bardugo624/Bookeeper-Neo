@@ -135,4 +135,18 @@ describe('BottomBar', () => {
     expect(actions.onBookmark).toHaveBeenCalled();
     expect(screen.getByText(/9 min/)).toBeInTheDocument();
   });
+
+  it('the_question_primary_action_is_filled', () => {
+    bar({
+      question: {
+        text: 'Continua?',
+        actions: [
+          { id: 'stay', label: 'Resta qui', onClick: vi.fn() },
+          { id: 'go', label: 'Vai al 45%', onClick: vi.fn(), primary: true },
+        ],
+      },
+    });
+    expect(screen.getByRole('button', { name: 'Vai al 45%' }).className).toMatch(/primary/i);
+    expect(screen.getByRole('button', { name: 'Resta qui' }).className).not.toMatch(/(^|\s|_)primary/i);
+  });
 });

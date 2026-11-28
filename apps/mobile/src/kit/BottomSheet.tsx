@@ -1,7 +1,7 @@
 import { useEffect, type ReactNode } from 'react';
 import { Dialog } from '@bookeeper/ui/overlays';
 import { useT } from '../app/i18n';
-import './BottomSheet.module.css';
+import './BottomSheet.css';
 
 export interface BottomSheetProps {
   open: boolean;
@@ -16,7 +16,7 @@ const FLAG = 'bottomSheet';
 
 /**
  * A `Dialog` anchored to the bottom edge. `Dialog` takes no class name, so the open sheet marks
- * `<html>` and `BottomSheet.module.css` restyles the dialog panel while the mark is there.
+ * `<html>` and `BottomSheet.css` restyles the dialog panel while the mark is there.
  */
 export function BottomSheet({ open, onOpenChange, title, description, children, footer }: BottomSheetProps) {
   const t = useT();
