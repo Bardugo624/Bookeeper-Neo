@@ -165,3 +165,40 @@ async fn a_local_download_answers_with_the_session() {
     }
     assert_eq!(got, bytes);
 }
+
+#[tokio::test]
+async fn a_local_raw_request_answers_with_the_session() {
+    let app = router(AppState::for_tests());
+    let token = setup(&app).await;
+    let body = Some(STANDARD.encode(tiny_epub()));
+    let path = "/api/v1/ebook-files?name=libro.epub";
+    let ct = || Some("application/octet-stream".to_owned());
+
+    let refused = dispatch_raw(
+        app.clone(),
+        "PUT",
+        path,
+        body.clone(),
+        ct(),
+        BTreeMap::new(),
+    )
+    .await;
+    assert_eq!(refused.status, 401);
+
+    let up = dispatch_raw(app.clone(), "PUT", path, body, ct(), bearer(&token)).await;
+    assert_eq!(up.status, 200);
+    let info: Value = serde_json::from_slice(&STANDARD.decode(&up.body_base64).unwrap()).unwrap();
+    let sha = info["sha256"].as_str().unwrap();
+
+    // A binary read, in the process, with the session: the stored file's bytes come back.
+    let cover = dispatch_raw(
+        app,
+        "GET",
+        &format!("/api/v1/ebook-files/{sha}/cover"),
+        None,
+        None,
+        bearer(&token),
+    )
+    .await;
+    assert_ne!(cover.status, 401);
+}
