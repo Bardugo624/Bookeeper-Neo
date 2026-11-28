@@ -47,3 +47,23 @@ it('phone_controls_in_the_bottom_bar_are_at_least_48_px_tall', () => {
   const slider = readFileSync(join(dir, 'ProgressSlider.module.css'), 'utf8');
   expect(slider).toMatch(/@media \(pointer: coarse\) \{\s*\.track \{\s*height: 48px/);
 });
+
+it('the_thin_line_has_a_track_even_at_zero', () => {
+  const css = readFileSync(join(dir, 'Reader.module.css'), 'utf8');
+  const line = css.match(/\n\.line \{[^}]*\}/)?.[0] ?? '';
+  expect(line).toMatch(/height: 2px/);
+  expect(line).toMatch(/var\(--rd-rule\)/);
+  expect(line).toMatch(/var\(--rd-accent-solid\)/);
+  expect(line).not.toMatch(/width: calc/);
+  const phone = css.match(/\[data-layout='phone'\] \.line \{[^}]*\}/)?.[0] ?? '';
+  expect(phone).not.toMatch(/background/);
+});
+
+it('sheet_variant_has_no_side_padding_of_its_own', () => {
+  const panel = join(dir, '..', 'panel');
+  const read = (f: string) => readFileSync(join(panel, f), 'utf8');
+  const rule = (css: string, sel: string) => css.match(new RegExp(`\\[data-variant='sheet'\\]\\)? ${sel}[^{]*\\{[^}]*\\}`))?.[0] ?? '';
+  expect(rule(read('CompanionPanel.module.css'), '\\.tabs')).toMatch(/padding-left: 0/);
+  expect(read('NotesList.module.css')).toMatch(/\[data-variant='sheet'\]\) \.filters,[^{]*\.list[^{]*\{[^}]*padding-right: 0;[^}]*padding-left: 0/);
+  expect(rule(read('SearchTab.module.css'), '\\.search')).toMatch(/padding-left: 0/);
+});

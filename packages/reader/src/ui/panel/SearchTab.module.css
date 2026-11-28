@@ -155,3 +155,8 @@
 .percent {
   font-variant-numeric: tabular-nums;
 }
+
+:global([data-variant='sheet']) .search {
+  padding-right: 0;
+  padding-left: 0;
+}

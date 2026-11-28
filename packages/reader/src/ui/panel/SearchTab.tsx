@@ -1,7 +1,8 @@
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
-import { useReaderT } from '../../i18n';
+import { useReaderLocale, useReaderT } from '../../i18n';
 import { SearchIcon } from '../view/icons';
 import { MIN_QUERY, type SearchHit } from './types';
+import { formatPercent } from '../view/format';
 import styles from './SearchTab.module.css';
 
 export interface SearchTabProps {
@@ -63,6 +64,7 @@ function useThrottledAnnouncement(text: string, immediate: boolean): string {
 /** The search field and its results by chapter; arrows move, Enter chooses. */
 export function SearchTab({ query, onQueryChange, results, progress, done, onPick, autoFocus = false }: SearchTabProps) {
   const t = useReaderT();
+  const locale = useReaderLocale();
   const base = useId();
   const input = useRef<HTMLInputElement>(null);
   const [active, setActive] = useState(0);
@@ -160,7 +162,7 @@ export function SearchTab({ query, onQueryChange, results, progress, done, onPic
                   onPick(hit);
                 }}
               >
-                <span className={styles.where}>{Math.round(hit.fraction * 100)}%</span>
+                <span className={styles.where}>{formatPercent(hit.fraction, locale)}</span>
                 <span className={styles.snippet}>
                   {hit.pre}
                   <mark className={styles.match}>{hit.match}</mark>

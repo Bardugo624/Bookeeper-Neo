@@ -10,6 +10,15 @@ export function formatMinutes(t: T, minutes: number): string {
   return rest === 0 ? t('reader.time.hours', { hours }) : t('reader.time.hours_min', { hours, minutes: rest });
 }
 
+/** «42%», and «0,4%» below 10% so the first chapters do not all read «0%». Takes a 0..1 fraction. */
+export function formatPercent(fraction: number, locale = 'it'): string {
+  const p = Math.min(1, Math.max(0, Number.isFinite(fraction) ? fraction : 0)) * 100;
+  const tenth = Math.round(p * 10) / 10;
+  if (tenth >= 10) return `${Math.round(p)}%`;
+  const digits = tenth.toFixed(1);
+  return `${locale === 'it' ? digits.replace('.', ',') : digits}%`;
+}
+
 export function percentOf(fraction: number): number {
   return Math.round(Math.min(1, Math.max(0, Number.isFinite(fraction) ? fraction : 0)) * 100);
 }
