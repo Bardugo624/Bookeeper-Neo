@@ -111,6 +111,7 @@ export function tauriPlatform(): Platform {
       isMaximized: () => win.isMaximized(),
       onResized: (cb) => win.onResized(() => cb()),
     },
+    setWindowTitle: (title) => win.setTitle(title),
     async deviceName() {
       return navigator.platform || 'Bookeeper';
     },
