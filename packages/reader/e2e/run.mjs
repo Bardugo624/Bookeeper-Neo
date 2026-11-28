@@ -13,8 +13,6 @@ import { fileURLToPath } from 'node:url';
 import { build } from 'vite';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-/** The hostile book without one of its parts each, written when an engine does not open the whole book. */
-const VARIANTS = mkdtempSync(join(tmpdir(), 'reader-e2e-variants-'));
 const ALL = ['chromium', 'webkit', 'firefox'];
 const VIEWPORTS = [
   { name: 'phone', width: 390, height: 844, narrower: 320 },
@@ -51,7 +49,6 @@ const outFile = arg('--out') ?? 'reader-e2e.json';
 function serve(dist) {
   const roots = [
     ['/books/', join(HERE, 'books')],
-    ['/variants/', VARIANTS],
     ['/', dist],
   ];
   const server = createServer((req, res) => {
@@ -98,6 +95,17 @@ async function openPage(browser, viewport, base) {
 
 const within = (promise, ms, what) =>
   Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error(`${what} did not happen within ${ms} ms`)), ms))]);
+
+/** Runs fn in every frame, 3 s each: WebKit never gives a frame whose page the policy blocked a document to run it in. */
+async function inEveryFrame(page, fn) {
+  const answers = [];
+  const silent = [];
+  for (const frame of page.frames()) {
+    const url = frame.url().slice(0, 60);
+    await within(frame.evaluate(fn), 3000, 'the frame answering').then((value) => answers.push({ url, value }), () => silent.push(url));
+  }
+  return { answers, silent };
+}
 
 /** In the page: opens a book (at a fraction of it, if given) and resolves once the first place is shown and quiet. */
 const OPEN = async ({ book, fraction, fontSize }) => {
@@ -197,50 +205,46 @@ const scenarios = {
     const opening = page.evaluate(OPEN, { book: 'ostile.epub', fraction: null, fontSize: 18 });
     const stalled = await Promise.race([opening.then(() => false), new Promise((r) => setTimeout(() => r(true), 30_000))]);
     if (stalled) {
-      const frames = [];
-      for (const frame of page.frames()) {
-        frames.push(
-          await within(frame
-            .evaluate(() => {
-              const v = document.querySelector('foliate-view');
-              return {
-                url: location.href.slice(0, 60),
-                ready: document.readyState,
-                view: !!v,
-                book: !!v?.book,
-                sections: v?.book?.sections?.length ?? null,
-                renderer: !!v?.renderer,
-                iframes: document.querySelectorAll('iframe').length,
-              };
-            }), 3000, 'the frame answering')
-            .catch((e) => ({ url: frame.url().slice(0, 60), error: String(e?.message ?? e).slice(0, 120) })),
-        );
-      }
-      return { ok: false, error: 'the hostile book did not open within 30 s', frames, console: watch.console.slice(-30), errors: watch.errors.slice(-10) };
+      const probed = await inEveryFrame(page, () => {
+        const v = document.querySelector('foliate-view');
+        return {
+          url: location.href.slice(0, 60),
+          ready: document.readyState,
+          view: !!v,
+          book: !!v?.book,
+          sections: v?.book?.sections?.length ?? null,
+          renderer: !!v?.renderer,
+          iframes: document.querySelectorAll('iframe').length,
+        };
+      });
+      const frames = probed.answers.map((a) => a.value);
+      return { ok: false, error: 'the hostile book did not open within 30 s', frames, silentFrames: probed.silent, console: watch.console.slice(-30), errors: watch.errors.slice(-10) };
     }
     await opening;
     await page.waitForTimeout(1000);
     // The chapter's inline handlers would run on these events if the policy did not reach its frame.
-    for (const frame of page.frames()) {
-      await frame
-        .evaluate(() => {
-          document.querySelector('p')?.click();
-          document.querySelector('div')?.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
-        })
-        .catch(() => undefined);
-    }
+    const clicked = await inEveryFrame(page, () => {
+      document.querySelector('p')?.click();
+      document.querySelector('div')?.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+      return document.body?.innerText.includes('Questo capitolo prova') ?? false;
+    });
+    const chapter = clicked.answers.some((a) => a.value);
     await page.waitForTimeout(500);
-    const ran = [];
-    for (const frame of page.frames()) {
-      const flag = await frame.evaluate(() => window.__bkScriptRan ?? null).catch(() => null);
-      if (flag) ran.push(`${frame.url().slice(0, 40)}: ${flag}`);
-    }
+    const ran = (await inEveryFrame(page, () => window.__bkScriptRan ?? null)).answers.filter((a) => a.value).map((a) => `${a.url}: ${a.value}`);
+    const violations = (await inEveryFrame(page, () => window.__bkViolations ?? 0)).answers.reduce((sum, a) => sum + a.value, 0);
     // A request the policy blocked is told apart by the text of its failure, as in the trial this test replaced.
-    let violations = 0;
-    for (const frame of page.frames()) violations += (await frame.evaluate(() => window.__bkViolations ?? 0).catch(() => 0));
     const requests = [...watch.outside].map(([url, outcome]) => ({ url, outcome, blocked: /csp|content security|blocked/i.test(outcome) }));
     const gone = requests.filter((r) => !r.blocked);
-    return { ok: ran.length === 0 && gone.length === 0 && violations > 0, violations, scriptsRan: ran, frames: page.frames().length, outsideRequests: requests, outsideNotBlocked: gone.length };
+    return {
+      ok: chapter && ran.length === 0 && gone.length === 0 && violations > 0,
+      ...(chapter ? {} : { error: 'the chapter frame did not answer' }),
+      violations,
+      scriptsRan: ran,
+      frames: page.frames().length,
+      silentFrames: clicked.silent,
+      outsideRequests: requests,
+      outsideNotBlocked: gone.length,
+    };
   },
 
   async close({ page, watch }) {
@@ -252,28 +256,6 @@ const scenarios = {
     return { ok: watch.errors.length === 0, errors: [...watch.errors] };
   },
 };
-
-/** Opens the hostile book without each of its parts in turn, each in a fresh browser: the parts whose absence lets it open are the cause. */
-async function bisectHostile(type, viewport) {
-  const { hostileBook, HOSTILE_PARTS } = await import('./make-epubs.mjs');
-  const out = {};
-  for (const part of ['none', ...HOSTILE_PARTS]) {
-    const name = `senza-${part}.epub`;
-    writeFileSync(join(VARIANTS, name), hostileBook(part === 'none' ? [] : [part]));
-    const browser = await type.launch();
-    try {
-      const { page } = await openPage(browser, viewport, base);
-      out[part] = await within(page.evaluate(OPEN, { book: `../variants/${name}`, fraction: null, fontSize: 18 }).then(() => 'opens'), 20_000, 'open')
-        .catch((e) => (String(e?.message ?? e).includes('did not happen') ? 'hangs' : `error: ${String(e?.message ?? e).slice(0, 80)}`));
-    } catch (e) {
-      out[part] = `error: ${String(e?.message ?? e).slice(0, 80)}`;
-    } finally {
-      await within(browser.close(), 10_000, 'close').catch(() => undefined);
-    }
-  }
-  return out;
-}
-const bisected = new Set();
 
 console.log(`building the test page…`);
 const dist = mkdtempSync(join(tmpdir(), 'reader-e2e-'));
@@ -316,12 +298,7 @@ try {
         results.push(record);
         const detail = record.p95 != null ? ` p95 ${record.p95} ms (median ${record.median}, max ${record.max})` : '';
         console.log(`${record.ok ? 'ok  ' : 'FAIL'} ${engine} ${record.viewport} ${scenario}${detail}${record.error ? `: ${record.error}` : ''}`);
-        if (!record.ok && (record.frames || record.console)) console.log(JSON.stringify({ frames: record.frames, console: record.console, errors: record.errors }, null, 1));
-        if ((!record.ok || process.env.BK_E2E_BISECT) && scenario === 'hostile' && !bisected.has(engine)) {
-          bisected.add(engine);
-          record.bisect = await bisectHostile(types[engine], viewport);
-          console.log(`bisect ${engine}: ${JSON.stringify(record.bisect)}`);
-        }
+        if (!record.ok) console.log(JSON.stringify(record, null, 1));
       }
     }
     await browser.close();
@@ -329,7 +306,6 @@ try {
 } finally {
   server.close();
   rmSync(dist, { recursive: true, force: true });
-  rmSync(VARIANTS, { recursive: true, force: true });
 }
 
 writeFileSync(outFile, JSON.stringify(results, null, 2) + '\n');
