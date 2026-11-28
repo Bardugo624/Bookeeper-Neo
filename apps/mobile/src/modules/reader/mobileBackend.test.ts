@@ -32,6 +32,24 @@ function backend(raw: (path: string) => RawResponse = () => ({ status: 200, byte
 }
 
 describe('the phone backend', () => {
+  it('mark_read_keeps_the_note_and_rating', async () => {
+    const calls: { method: string; body?: unknown }[] = [];
+    const transport = fakeTransport(
+      (req) => {
+        calls.push({ method: req.method, body: req.body });
+        return req.method === 'GET'
+          ? { status: 200, body: { status: 'reading', note: 'bello', rating: 4, started_at: 10, current_page: 7 } }
+          : { status: 200, body: {} };
+      },
+      () => ({ status: 200, bytes: new Uint8Array(), contentType: null, headers: {} }),
+    );
+    const b = createMobileBackend({ client: createClient(transport), transport, bookId: 'b1', fileId: 'f1', deviceId: 'd1', queue: memoryQueue() });
+    await b.markRead();
+    const put = calls.find((c) => c.method === 'PUT')!.body as Record<string, unknown>;
+    expect(put).toMatchObject({ status: 'read', note: 'bello', rating: 4, started_at: 10, current_page: 7 });
+    expect(typeof put.finished_at).toBe('number');
+  });
+
   it('export_shares_or_downloads', async () => {
     const { backend: b } = backend();
     const share = vi.fn(async () => undefined);

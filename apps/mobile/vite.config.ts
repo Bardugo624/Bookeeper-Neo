@@ -40,11 +40,12 @@ export const workbox = {
   cleanupOutdatedCaches: true,
 };
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [
     react(),
     themeColor(),
-    foliateAssets() as unknown as Plugin,
+    // Only a real build copies the vendor tree: a test run must not write into its dummy outDir.
+    ...(command === 'build' && !process.env.VITEST ? [foliateAssets() as unknown as Plugin] : []),
     // The workspace hoists Vite 5 for the 0.3 client; the app and the plugin run on Vite 7.
     VitePWA({
       // "Prompt": a new version waits until the user taps "Aggiorna".
@@ -77,4 +78,4 @@ export default defineConfig({
     setupFiles: ['./src/test-setup.ts'],
     css: { modules: { classNameStrategy: 'non-scoped' } },
   },
-});
+}));

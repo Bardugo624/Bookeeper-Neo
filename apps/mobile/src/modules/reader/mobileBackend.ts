@@ -73,7 +73,16 @@ export function createMobileBackend(input: MobileBackendInput): ReaderBackend {
     },
     getReading: () => client.getReading(bookId),
     async markRead() {
-      await client.setReading(bookId, { status: 'read', finished_at: Math.floor(Date.now() / 1000) });
+      // The server replaces the whole record: keep what the person already saved.
+      const now = await client.getReading(bookId);
+      await client.setReading(bookId, {
+        current_page: now?.current_page ?? null,
+        note: now?.note ?? null,
+        rating: now?.rating ?? null,
+        started_at: now?.started_at ?? null,
+        status: 'read',
+        finished_at: Math.floor(Date.now() / 1000),
+      });
     },
     listAnnotations: (since) => client.listAnnotations(bookId, since),
     putAnnotation: (id, body) => client.putAnnotation(bookId, id, body),
