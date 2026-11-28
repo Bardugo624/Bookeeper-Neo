@@ -909,3 +909,5 @@
 2026-11-28T13:00:33Z	bookeeper-fase-10b	mobile-offline	qa	opus	PASS	-	-	-	75
 2026-11-28T13:04:54Z	bookeeper-fase-10b	mobile-entry	dwarf	sonnet	-	trap	in apps mobile search testkit book fixtures have no file formats so code reading book file formats length crashes unless the	in apps/mobile search testkit, `book()` fixtures have no `file_formats`, so code reading `book.file_formats.length` crashes unless the… [apps/mobile/src/modules/search/testkit.tsx]	204	1
 2026-11-28T13:06:51Z	bookeeper-fase-10b	mobile-entry	qa	opus	PASS	-	-	-	108
+2026-11-28T13:18:56Z	bookeeper-fase-10b	verify-fix	dwarf	sonnet	-	-	-	-	38
+2026-11-28T13:19:42Z	bookeeper-fase-10b	verify-fix	qa	opus	PASS	-	-	-	37
