@@ -55,6 +55,20 @@ describe('«In lettura» in Cerca', () => {
     expect(within(region).getByText('20%')).toBeTruthy();
   });
 
+  it('the_all_link_hides_when_every_book_is_shown', async () => {
+    renderSearch({ api: { books: [reading(1), reading(2), book(3)] } });
+    const region = await screen.findByRole('region', { name: 'In lettura' });
+    expect(within(region).getAllByRole('link')).toHaveLength(2);
+    expect(within(region).queryByRole('button')).toBeNull();
+  });
+
+  it('the_all_link_counts_without_an_article', async () => {
+    const books = Array.from({ length: 13 }, (_, i) => reading(i + 1));
+    renderSearch({ api: { books } });
+    const region = await screen.findByRole('region', { name: 'In lettura' });
+    expect(within(region).getByRole('button', { name: 'Vedi tutti (13)' })).toBeTruthy();
+  });
+
   it('a_cover_opens_the_reader', async () => {
     renderSearch({ api: { books: [reading(1)] } });
     const region = await screen.findByRole('region', { name: 'In lettura' });
