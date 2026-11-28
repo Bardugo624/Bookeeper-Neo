@@ -28,7 +28,7 @@ use crate::{
 /// Default limit per file, in MB; `BOOKEEPER_EBOOK_MAX_MB` changes it.
 const DEFAULT_MAX_MB: u64 = 200;
 /// Uploaded files that nobody attached are deleted after this long.
-const STAGED_TTL: Duration = Duration::from_secs(24 * 3600);
+pub(crate) const STAGED_TTL: Duration = Duration::from_secs(24 * 3600);
 /// The sweep of unattached files runs at most this often.
 const SWEEP_EVERY: Duration = Duration::from_secs(3600);
 
@@ -187,7 +187,7 @@ pub async fn put_ebook_file(
     })
     .await
     .map_err(|_| ApiError::internal())?;
-    maybe_sweep(&state);
+    let _ = maybe_sweep(&state);
     Ok(Json(EbookFileInfo {
         sha256: stored.sha256,
         format: format.as_str().to_string(),
@@ -297,16 +297,20 @@ pub async fn sweep_unattached(state: &AppState, older_than: Duration) -> ApiResu
 }
 
 /// Sweeps in the background, unless it already ran during the last hour.
-/// Called at startup (by the router) and after every upload.
-pub fn maybe_sweep(state: &AppState) {
+/// Called at startup (by the router) and after every upload. Returns a signal
+/// that fires when the sweep it started has finished, or `None` when it was
+/// not due; callers may ignore it.
+pub fn maybe_sweep(state: &AppState) -> Option<tokio::sync::oneshot::Receiver<()>> {
     if !sweep_due(&state.files.ebooks_dir) {
-        return;
+        return None;
     }
     let state = state.clone();
+    let (done, signal) = tokio::sync::oneshot::channel();
     let job = async move {
         if let Err(e) = sweep_unattached(&state, STAGED_TTL).await {
             tracing::warn!(status = %e.status, "e-book sweep failed");
         }
+        let _ = done.send(());
     };
     match tokio::runtime::Handle::try_current() {
         Ok(handle) => {
@@ -327,4 +331,5 @@ pub fn maybe_sweep(state: &AppState) {
                 });
         }
     }
+    Some(signal)
 }

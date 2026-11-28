@@ -733,7 +733,49 @@ async fn a_file_on_two_books_stays_until_the_last_one_lets_go() {
     )
     .await;
     assert_eq!(st, 204);
+    assert!(path.is_file(), "just uploaded: the grace period keeps it");
+    // Past the grace period nobody uses it: the hourly sweep collects it.
+    age(&path, 30);
+    let removed = ebook_files::sweep_unattached(&s.state, Duration::from_secs(24 * 3600))
+        .await
+        .unwrap();
+    assert_eq!(removed, 1);
     assert!(!path.exists(), "nobody uses it any more");
+}
+
+#[tokio::test]
+async fn removing_an_old_unused_file_deletes_it_but_a_fresh_one_stays() {
+    let s = member().await;
+    let token = &s.session.access_token;
+    let book = insert_book(&s.state, &s.library_id, "A").await;
+    let (id, sha) = upload_and_attach(&s, &book, "x.epub", epub("Vecchio", &[], false)).await;
+    let path = disk(&s, &sha, "epub");
+    age(&path, 30);
+    let (st, _, _) = call(
+        &s.state,
+        "DELETE",
+        &format!("/api/v1/books/{book}/files/{id}"),
+        Some(token),
+        None,
+    )
+    .await;
+    assert_eq!(st, 204);
+    assert!(!path.exists(), "older than the grace period and unused");
+
+    // Re-uploaded just before the last book lets go: still there to attach.
+    let bytes = epub("Vecchio", &[], false);
+    let (id, sha) = upload_and_attach(&s, &book, "x.epub", bytes).await;
+    let (st, _, _) = call(
+        &s.state,
+        "DELETE",
+        &format!("/api/v1/books/{book}/files/{id}"),
+        Some(token),
+        None,
+    )
+    .await;
+    assert_eq!(st, 204);
+    let (st, _) = attach(&s, &book, &sha, "x.epub").await;
+    assert_eq!(st, 201, "the freshly uploaded file survived the removal");
 }
 
 #[tokio::test]
@@ -906,47 +948,45 @@ async fn unattached_files_go_after_a_day_and_attached_ones_stay() {
 #[tokio::test]
 async fn the_router_sweeps_at_startup_but_only_once_an_hour() {
     let s = member().await;
-    // A stale probe, there before the first router is built: the startup
-    // sweep removes it, so its absence says that sweep has finished.
-    let probe = s
-        .state
-        .files
-        .ebooks_dir
-        .join(format!("{}.pdf", "b".repeat(64)));
-    std::fs::write(&probe, pdf_with(5)).unwrap();
-    age(&probe, 30);
-    let (_, old) = upload(&s, "o.pdf", pdf_with(9)).await;
-    let old = old["sha256"].as_str().unwrap().to_string();
-    // The upload above built the router, which starts the startup sweep of
-    // this folder in the background; wait (bounded) until it has run.
-    for _ in 0..200 {
+    let stale_file = |s: &Seeded, c: &str, n: usize| {
+        let p = s
+            .state
+            .files
+            .ebooks_dir
+            .join(format!("{}.pdf", c.repeat(64)));
+        std::fs::write(&p, pdf_with(n)).unwrap();
+        age(&p, 30);
+        p
+    };
+    // The router starts the sweep and marks the folder as swept: asking again
+    // right away finds nothing due.
+    let probe = stale_file(&s, "b", 5);
+    let _ = router(s.state.clone());
+    assert!(
+        bookeeper_core::api::ebook_files::maybe_sweep(&s.state).is_none(),
+        "the router's startup sweep was the one of this hour"
+    );
+    // Its result is observable once the probe is gone (bounded wait on the
+    // condition, not on a duration).
+    for _ in 0..600 {
         if !probe.exists() {
             break;
         }
         tokio::time::sleep(Duration::from_millis(50)).await;
     }
     assert!(!probe.exists(), "startup sweep did not finish");
-    // A file that becomes stale later is not swept at once.
-    age(&disk(&s, &old, "pdf"), 30);
+    // A file that becomes stale later is not swept: nothing is due.
+    let late = stale_file(&s, "c", 6);
     let _ = router(s.state.clone());
-    tokio::time::sleep(Duration::from_millis(300)).await;
-    assert!(disk(&s, &old, "pdf").is_file(), "throttled to once an hour");
+    assert!(bookeeper_core::api::ebook_files::maybe_sweep(&s.state).is_none());
+    assert!(late.is_file(), "throttled to once an hour");
 
-    // A new data folder, as at the next start: swept in the background.
+    // A new data folder, as at the next start: swept in the background, and
+    // the signal says when.
     let s2 = member().await;
-    let stale = s2
-        .state
-        .files
-        .ebooks_dir
-        .join(format!("{}.pdf", "a".repeat(64)));
-    std::fs::write(&stale, pdf_with(3)).unwrap();
-    age(&stale, 30);
-    let _ = router(s2.state.clone());
-    for _ in 0..40 {
-        if !stale.exists() {
-            break;
-        }
-        tokio::time::sleep(Duration::from_millis(50)).await;
-    }
+    let stale = stale_file(&s2, "a", 3);
+    let done =
+        bookeeper_core::api::ebook_files::maybe_sweep(&s2.state).expect("a new folder is due");
+    done.await.unwrap();
     assert!(!stale.exists(), "startup sweep");
 }

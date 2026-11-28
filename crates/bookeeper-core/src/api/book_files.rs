@@ -1,6 +1,7 @@
 //! The e-book files attached to a book: attach, list, download, detach.
 use std::io::SeekFrom;
 use std::path::Path as FsPath;
+use std::time::Duration;
 
 use axum::{
     body::{Body, Bytes},
@@ -120,6 +121,17 @@ fn book_exists(conn: &rusqlite::Connection, library_id: &str, id: &str) -> rusql
 /// Deletes from disk the stored files in `files` (sha256, format) that no row
 /// of `book_files` uses any more. Call after the rows are gone; failures are logged.
 pub fn remove_unused(conn: &rusqlite::Connection, dir: &FsPath, files: &[(String, String)]) {
+    remove_unused_older_than(conn, dir, files, Duration::ZERO);
+}
+
+/// Like [`remove_unused`], but a file younger than `grace` stays: someone may
+/// have just re-uploaded it to attach it; the hourly sweep collects it later.
+pub fn remove_unused_older_than(
+    conn: &rusqlite::Connection,
+    dir: &FsPath,
+    files: &[(String, String)],
+    grace: Duration,
+) {
     for (sha256, format) in files {
         let used: rusqlite::Result<bool> = conn.query_row(
             "SELECT EXISTS(SELECT 1 FROM book_files WHERE sha256 = ?1)",
@@ -134,6 +146,14 @@ pub fn remove_unused(conn: &rusqlite::Connection, dir: &FsPath, files: &[(String
         else {
             continue;
         };
+        let age = std::fs::metadata(&path)
+            .and_then(|m| m.modified())
+            .ok()
+            .and_then(|m| m.elapsed().ok())
+            .unwrap_or_default();
+        if age < grace {
+            continue;
+        }
         if let Err(e) = std::fs::remove_file(&path) {
             if e.kind() != std::io::ErrorKind::NotFound {
                 tracing::warn!(error = %e, "cannot delete e-book file");
@@ -416,7 +436,12 @@ pub async fn detach_file(
                 now,
             )?;
             tx.commit()?;
-            remove_unused(conn, &dir, &[(row.sha256, row.out.format)]);
+            remove_unused_older_than(
+                conn,
+                &dir,
+                &[(row.sha256, row.out.format)],
+                crate::api::ebook_files::STAGED_TTL,
+            );
             Ok(true)
         })
         .await?;
