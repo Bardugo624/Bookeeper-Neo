@@ -72,7 +72,7 @@ describe('bookCss', () => {
     const out = css({ publisherStyles: true });
     const rule = out.split('\n').find((l) => l.includes('html body a:any-link') && l.includes('!important'));
     expect(rule).toContain('#a1b2c3');
-    // More specific than a book rule such as `body #toc a:link`.
+    // Beats a plain book rule such as `a:link { color: #000 }`; an ID selector with !important in the book still wins.
     expect(rule!.match(/:any-link/g)!.length).toBeGreaterThanOrEqual(3);
   });
 });

@@ -55,9 +55,11 @@ export function createAnnotationStore(
   let since: number | undefined;
   const notify = () => listeners.forEach((fn) => fn());
 
-  /** A write the server accepted moves `since` too, once a first pull has set it. */
+  /** Latest `updated_at` of our own writes; folded into `since` only after a pull. */
+  let ownMax = 0;
+
   function written(r: AnnotationOut): void {
-    if (since !== undefined) since = Math.max(since, r.updated_at);
+    ownMax = Math.max(ownMax, r.updated_at);
     merge(r);
   }
 
@@ -176,6 +178,8 @@ export function createAnnotationStore(
         // After a full load, later pulls must ask with `since` so they also
         // bring tombstones, even when this first load was empty.
         since ??= 0;
+        // The pull from the old `since` succeeded, so own writes may move it.
+        since = Math.max(since, ownMax);
         if (changed) notify();
         return true;
       } catch (e) {
