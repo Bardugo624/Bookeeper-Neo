@@ -63,11 +63,13 @@ pub struct ReadingOut {
 }
 
 /// The caller's reading state as shown inside a book.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
 pub struct ReadingSummary {
     pub status: String,
     pub current_page: Option<i64>,
     pub rating: Option<i64>,
+    /// Same value as `ReadingOut.progress_percent`.
+    pub progress_percent: Option<f64>,
 }
 
 /// Body of `PUT /books/{id}/reading`.
@@ -321,7 +323,7 @@ pub async fn put_reading(
                 .optional()?
                 .flatten();
             let page_changed = r.current_page != old_page;
-            let clear_progress = page_changed && r.current_page.is_none();
+            let clear_progress = r.status == "to_read" || (page_changed && r.current_page.is_none());
             let (percent, percent_at, percent_device) = match page_percent(r.current_page, page_count)
             {
                 Some(p) if page_changed => (Some(p), Some(now), Some(who.device_id.clone())),
@@ -505,7 +507,7 @@ pub fn attach_reading(
     }
     let marks = vec!["?"; books.len()].join(",");
     let mut stmt = conn.prepare(&format!(
-        "SELECT book_id, status, current_page, rating FROM reading \
+        "SELECT book_id, status, current_page, rating, progress_percent FROM reading \
          WHERE user_id = ?1 AND book_id IN ({marks})"
     ))?;
     let args = std::iter::once(user_id).chain(books.iter().map(|b| b.id.as_str()));
@@ -517,6 +519,7 @@ pub fn attach_reading(
                     status: r.get(1)?,
                     current_page: r.get(2)?,
                     rating: r.get(3)?,
+                    progress_percent: r.get(4)?,
                 },
             ))
         })?

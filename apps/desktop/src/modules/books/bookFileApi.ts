@@ -120,6 +120,12 @@ export function uploadProblemKey(error: unknown): string | null {
   if (!(error instanceof ApiError)) return null;
   if (error.status === 413) return 'books.files.errors.tooBig';
   if (error.status === 415) return 'books.files.errors.format';
-  if (error.status === 422) return 'books.files.errors.drm';
+  if (error.status === 422 && error.code === 'drm_protected') return 'books.files.errors.drm';
   return null;
+}
+
+/** The API's own message for a refusal that has no text of ours (a 422 that is not DRM); null otherwise. */
+export function uploadProblemMessage(error: unknown): string | null {
+  if (!(error instanceof ApiError) || error.status !== 422 || error.code === 'drm_protected') return null;
+  return error.message.trim() === '' ? null : error.message;
 }

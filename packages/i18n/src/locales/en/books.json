@@ -359,6 +359,7 @@
     "download": "Download",
     "downloadLabel": "Download {name}",
     "downloading": "Downloading",
+    "downloadBusy": "Another download is in progress: wait for it to finish.",
     "remove": "Remove the file",
     "removeLabel": "Remove {name}",
     "missing": "File missing",

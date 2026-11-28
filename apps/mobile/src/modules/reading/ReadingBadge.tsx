@@ -5,7 +5,7 @@ import { ReadingRing } from './ReadingRing';
 import styles from './Reading.module.css';
 
 export interface ReadingBadgeProps {
-  reading: Pick<ReadingSummary, 'status' | 'current_page'> | null | undefined;
+  reading: Pick<ReadingSummary, 'status' | 'current_page' | 'progress_percent'> | null | undefined;
   pageCount: number | null | undefined;
   id?: string;
 }

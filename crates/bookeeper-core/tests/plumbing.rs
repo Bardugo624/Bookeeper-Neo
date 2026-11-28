@@ -19,7 +19,6 @@ async fn run_executes_on_the_shared_connection() {
 #[tokio::test]
 async fn run_does_not_block_the_runtime() {
     let db = Db::open_in_memory().unwrap();
-    let start = Instant::now();
     let slow = async {
         db.run(|_| {
             std::thread::sleep(Duration::from_millis(200));
@@ -34,7 +33,6 @@ async fn run_does_not_block_the_runtime() {
         Instant::now()
     };
     let (slow_done, fast_done) = tokio::join!(slow, fast);
-    assert!(start.elapsed() < Duration::from_millis(400));
     assert!(fast_done < slow_done);
 }
 

@@ -26,6 +26,9 @@ pub struct DownloadOutcome {
     pub path: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub status: Option<u16>,
+    /// Another download holds the lock: nothing was started. Distinct from a cancelled window.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub busy: bool,
 }
 
 impl DownloadOutcome {
@@ -34,6 +37,13 @@ impl DownloadOutcome {
             saved: false,
             path: None,
             status: None,
+            busy: false,
+        }
+    }
+    pub fn busy() -> Self {
+        Self {
+            busy: true,
+            ..Self::cancelled()
         }
     }
     pub fn refused(status: u16) -> Self {
@@ -41,6 +51,7 @@ impl DownloadOutcome {
             saved: false,
             path: None,
             status: Some(status),
+            busy: false,
         }
     }
 }

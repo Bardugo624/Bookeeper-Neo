@@ -27,6 +27,11 @@ describe('optimistic write', () => {
     const next = optimisticReading('b1', { status: 'reading', current_page: 10 } as never, 503, previous);
     expect(next).toMatchObject({ progress_percent: 55, progress_at: 1_700_000_050 });
   });
+  it('keeps the cached percent when a page is typed and the total is unknown', () => {
+    const previous = reading({ current_page: null, progress_percent: 55, progress_at: 1_700_000_050 });
+    const next = optimisticReading('b1', { status: 'reading', current_page: 10 } as never, null, previous);
+    expect(next).toMatchObject({ progress_percent: 55, progress_at: 1_700_000_050 });
+  });
   it('drops the cached percent when a new page is typed', () => {
     const previous = reading({ current_page: 300, progress_percent: 55, progress_at: 1_700_000_050 });
     const next = optimisticReading('b1', { status: 'reading', current_page: 10 } as never, 503, previous);

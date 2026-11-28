@@ -4,7 +4,7 @@ import { Button, Icon, Skeleton } from '@bookeeper/ui/base';
 import { useLocale, useT } from '../../app';
 import { apiErrorMessage, usePermission } from '../../kit';
 import { BookFileRow } from './BookFileRow';
-import { EBOOK_ACCEPT, uploadProblemKey } from './bookFileApi';
+import { EBOOK_ACCEPT, uploadProblemKey, uploadProblemMessage } from './bookFileApi';
 import { useAddBookFile, useBookFiles } from './useBookFiles';
 import styles from './BookFiles.module.css';
 
@@ -42,7 +42,7 @@ export function BookFiles({ book }: { book: BookOut }) {
   };
 
   const problem = uploadProblemKey(add.error);
-  const addError = add.isError ? (problem ? t(problem) : apiErrorMessage(t, add.error)) : null;
+  const addError = add.isError ? (problem ? t(problem) : (uploadProblemMessage(add.error) ?? apiErrorMessage(t, add.error))) : null;
   let body;
   if (files.isPending) {
     body = (

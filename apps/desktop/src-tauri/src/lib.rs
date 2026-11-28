@@ -191,7 +191,7 @@ async fn download_file(
     use tauri_plugin_dialog::DialogExt;
     static DOWNLOAD_LOCK: files::SaveLock = files::SaveLock::new();
     let Some(_permit) = DOWNLOAD_LOCK.try_acquire() else {
-        return Ok(download::DownloadOutcome::cancelled());
+        return Ok(download::DownloadOutcome::busy());
     };
     let mut opened = download::open(
         &store,
@@ -232,6 +232,7 @@ async fn download_file(
         saved: true,
         path: Some(path.display().to_string()),
         status: None,
+        busy: false,
     })
 }
 

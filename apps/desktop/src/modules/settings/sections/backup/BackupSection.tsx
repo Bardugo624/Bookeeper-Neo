@@ -16,9 +16,7 @@ export function BackupSection() {
       <BackupNowBlock ops={ops} />
       <ScheduleBlock locked={ops.busy} />
       <AutoBackupList />
-      <SettingsBlock title={t('backup.ebooks.title')}>
-        <p>{t('backup.ebooks.text')}</p>
-      </SettingsBlock>
+      <SettingsBlock title={t('backup.ebooks.title')} description={t('backup.ebooks.text')} />
       {can('owner') ? (
         <SettingsFull>
           <RestoreBlock ops={ops} />

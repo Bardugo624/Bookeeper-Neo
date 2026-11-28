@@ -1,7 +1,7 @@
 import { Field, IconButton, Input, Spinner, Tag } from '@bookeeper/ui/base';
 import { useT } from '../../app';
 import { apiErrorMessage } from '../../kit';
-import { uploadProblemKey } from './bookFileApi';
+import { uploadProblemKey, uploadProblemMessage } from './bookFileApi';
 import { MAX_AUTHOR, MAX_AUTHORS, MAX_TITLE, rowProblem, type ImportRow } from './ebookImportModel';
 import { useEbookCover } from './useEbookImport';
 import styles from './EbookImportDialog.module.css';
@@ -19,7 +19,8 @@ export function EbookImportRow({ row, locked, onChange, onBlur, onRemove }: Eboo
   const t = useT();
   const cover = useEbookCover(row.info?.sha256, row.info?.has_cover === true);
   const problem = row.error !== undefined && row.status === 'error' ? uploadProblemKey(row.error) : null;
-  const message = row.error === undefined ? null : problem ? t(problem) : apiErrorMessage(t, row.error);
+  const message =
+    row.error === undefined ? null : problem ? t(problem) : ((row.status === 'error' ? uploadProblemMessage(row.error) : null) ?? apiErrorMessage(t, row.error));
   const editable = row.status === 'ready';
   // Once its book exists, a retry only attaches the file: the fields no longer change anything.
   const fixed = locked || row.bookId !== undefined;

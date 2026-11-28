@@ -46,6 +46,20 @@
   align-items: start;
 }
 
+/* Below 240 + 360 + 232 and two gaps the middle column would be narrower than 360px: the right column
+   goes under it and the cover stays on the left. */
+.layout[data-stacked='true'] {
+  grid-template-columns: 240px minmax(0, 1fr);
+}
+
+.layout[data-stacked='true'] > .cover {
+  grid-row: 1 / span 2;
+}
+
+.layout[data-stacked='true'] > :last-child {
+  grid-column: 2;
+}
+
 .bar {
   display: flex;
   align-items: center;
@@ -119,7 +133,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 16px 32px;
-  margin: 24px 0 0;
+  margin: 24px 0 24px;
 }
 
 .metaItem dt {

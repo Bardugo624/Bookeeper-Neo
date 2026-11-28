@@ -9,7 +9,7 @@ use axum::response::{IntoResponse, Response};
 use axum::routing::get;
 use axum::Router;
 use bookeeper_desktop_lib::download::{
-    disposition_name, open_core, open_remote, write_stream, Source,
+    disposition_name, open_core, open_remote, write_stream, DownloadOutcome, Source,
 };
 
 const SIZE: usize = 6 * 1024 * 1024;
@@ -161,4 +161,13 @@ fn disposition_names() {
         Some("è.pdf")
     );
     assert_eq!(disposition_name("attachment"), None);
+}
+
+#[test]
+fn busy_is_told_apart_from_cancelled() {
+    let busy = serde_json::to_value(DownloadOutcome::busy()).unwrap();
+    assert_eq!(busy, serde_json::json!({ "saved": false, "busy": true }));
+    let cancelled = serde_json::to_value(DownloadOutcome::cancelled()).unwrap();
+    assert_eq!(cancelled, serde_json::json!({ "saved": false }));
+    assert_ne!(DownloadOutcome::busy(), DownloadOutcome::cancelled());
 }

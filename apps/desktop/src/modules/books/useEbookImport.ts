@@ -181,7 +181,7 @@ export function useEbookImport(files: File[]) {
   // Finished once nothing is left to save: every row is added, attached, failed to upload or removed.
   const finished = summary !== null && !rows.some((r) => r.status === 'ready');
   const uploading = rows.some((r) => r.status === 'uploading');
-  return { rows, summary, finished, patch, remove, recheck, confirm, saving, uploading, count: rows.filter(canSave).length };
+  return { rows, summary, finished, patch, remove, recheck, confirm, saving, uploading, count: rows.filter(canSave).length, attachCount: rows.filter((r) => canSave(r) && r.bookId === undefined && r.attach && r.duplicate !== undefined).length };
 }
 
 /** Object URL of the cover taken from an uploaded file; undefined while loading or when there is none. */

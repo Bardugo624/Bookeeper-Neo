@@ -205,7 +205,7 @@ describe('card', () => {
   });
 
   it('puts the reading state last in the name of a book being read', async () => {
-    renderBooks({ books: [book(1, { reading: { status: 'reading', current_page: 50, rating: null }, page_count: 100 })] });
+    renderBooks({ books: [book(1, { reading: { status: 'reading', current_page: 50, rating: null, progress_percent: null }, page_count: 100 })] });
     const link = await screen.findByRole('link', { name: /^Libro 1 Autore 1 .+/ });
     expect(link).not.toHaveAttribute('aria-label');
   });
@@ -245,9 +245,9 @@ describe('reading', () => {
   it('draws the ring only on books being read, and a mark on the read ones', async () => {
     renderBooks({
       books: [
-        book(1, { reading: { status: 'reading', current_page: 50, rating: null }, page_count: 100 }),
-        book(2, { reading: { status: 'read', current_page: 10, rating: null } }),
-        book(3, { reading: { status: 'to_read', current_page: null, rating: null } }),
+        book(1, { reading: { status: 'reading', current_page: 50, rating: null, progress_percent: null }, page_count: 100 }),
+        book(2, { reading: { status: 'read', current_page: 10, rating: null, progress_percent: null } }),
+        book(3, { reading: { status: 'to_read', current_page: null, rating: null, progress_percent: null } }),
         book(4),
       ],
     });
@@ -260,7 +260,7 @@ describe('reading', () => {
 
   it('"In lettura" asks for reading=reading and keeps it in the address', async () => {
     const view = renderBooks({
-      books: [book(1, { reading: { status: 'reading', current_page: 1, rating: null } }), book(2)],
+      books: [book(1, { reading: { status: 'reading', current_page: 1, rating: null, progress_percent: null } }), book(2)],
     });
     await screen.findByText('Libro 2');
     await userEvent.click(screen.getByRole('tab', { name: 'In lettura' }));
@@ -275,7 +275,7 @@ describe('reading', () => {
   });
 
   it('lists the state in a "Lettura" column', async () => {
-    renderBooks({ books: [book(1, { reading: { status: 'reading', current_page: 50, rating: null } })] }, '/books?view=list');
+    renderBooks({ books: [book(1, { reading: { status: 'reading', current_page: 50, rating: null, progress_percent: null } })] }, '/books?view=list');
     expect(await screen.findByRole('columnheader', { name: 'Lettura' })).toBeTruthy();
     expect(screen.getByText('In lettura · p. 50')).toBeTruthy();
   });

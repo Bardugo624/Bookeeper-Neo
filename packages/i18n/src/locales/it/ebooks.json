@@ -8,6 +8,19 @@
     "one": "Aggiungi {count} libro",
     "other": "Aggiungi {count} libri"
   },
+  "confirmAttach": {
+    "one": "Attacca {count} file",
+    "other": "Attacca {count} file"
+  },
+  "confirmBooks": {
+    "one": "{count} libro",
+    "other": "{count} libri"
+  },
+  "confirmFiles": {
+    "one": "{count} file",
+    "other": "{count} file"
+  },
+  "confirmBoth": "Aggiungi {books} e attacca {files}",
   "close": "Chiudi",
   "row": {
     "uploading": "Carico {name}",
