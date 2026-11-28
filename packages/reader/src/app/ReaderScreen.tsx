@@ -149,6 +149,15 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
     />
   );
 
+  const appearanceProps = {
+    open: appearance,
+    onOpenChange: setAppearance,
+    layout: platform,
+    format: opened?.format ?? file.format,
+    settings,
+    onChange: change,
+  };
+
   return (
     <Reader
       layout={platform}
@@ -168,6 +177,7 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
           onBookmark={notes.toggleBookmark}
           bookmarked={notes.bookmarked}
           onAppearance={() => setAppearance(true)}
+          anchorAppearance={desktop ? (trigger) => <AppearancePanel {...appearanceProps} trigger={trigger} /> : undefined}
           onPanel={() => (panelOpen ? closePanel() : openPanel(tab))}
           panelOpen={panelOpen}
           moreItems={moreItems}
@@ -196,7 +206,7 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
       overlays={
         <>
           {desktop ? null : panel}
-          <AppearancePanel open={appearance} onOpenChange={setAppearance} layout={platform} format={opened?.format ?? file.format} settings={settings} onChange={change} />
+          {desktop ? null : <AppearancePanel {...appearanceProps} />}
           <NoteEditor open={!!editing} layout={platform} value={editing?.value ?? ''} onSave={sel.saveNote} onCancel={() => setEditing(null)} />
         </>
       }

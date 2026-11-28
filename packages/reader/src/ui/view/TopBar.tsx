@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import { Menu, type MenuEntry } from '@bookeeper/ui/overlays';
 import { useReaderT } from '../../i18n';
 import { BarButton } from './BarButton';
@@ -15,6 +15,8 @@ export interface TopBarProps {
   onBookmark: () => void;
   bookmarked: boolean;
   onAppearance: () => void;
+  /** Computer: wraps the Aa button in the popover that hangs from it. It then opens and closes the popover itself. */
+  anchorAppearance?: (button: ReactElement) => ReactNode;
   onPanel: () => void;
   panelOpen: boolean;
   /** Phone: the items of «⋯». */
@@ -24,7 +26,7 @@ export interface TopBarProps {
 }
 
 export function TopBar(props: TopBarProps) {
-  const { layout, title, chapter, onBack, onSearch, onBookmark, bookmarked, onAppearance, onPanel, panelOpen, moreItems, topEnd } = props;
+  const { layout, title, chapter, onBack, onSearch, onBookmark, bookmarked, onAppearance, anchorAppearance, onPanel, panelOpen, moreItems, topEnd } = props;
   const t = useReaderT();
   const desktop = layout === 'desktop';
   // `data-tauri-drag-region` counts for the element that carries it only, so the buttons stay clickable.
@@ -50,7 +52,11 @@ export function TopBar(props: TopBarProps) {
             <BarButton tip icon={<BookmarkIcon filled={bookmarked} />} label={bookmarkLabel} onClick={onBookmark} />
           </>
         ) : null}
-        <BarButton tip={desktop} icon={<AaIcon />} label={t('reader.top.appearance')} aria-haspopup="dialog" onClick={onAppearance} />
+        {desktop && anchorAppearance ? (
+          anchorAppearance(<BarButton icon={<AaIcon />} label={t('reader.top.appearance')} aria-haspopup="dialog" />)
+        ) : (
+          <BarButton tip={desktop} icon={<AaIcon />} label={t('reader.top.appearance')} aria-haspopup="dialog" onClick={onAppearance} />
+        )}
         {desktop ? (
           <BarButton
             tip

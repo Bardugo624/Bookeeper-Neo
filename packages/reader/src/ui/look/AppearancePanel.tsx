@@ -1,6 +1,6 @@
-import type { CSSProperties, ReactNode } from 'react';
+import type { CSSProperties, ReactElement, ReactNode } from 'react';
 import { Button, Icon } from '@bookeeper/ui/base';
-import { Dialog } from '@bookeeper/ui/overlays';
+import { Popover } from '@bookeeper/ui/overlays';
 import { useReaderLocale, useReaderT } from '../../i18n';
 import {
   DEFAULT_SETTINGS,
@@ -10,6 +10,7 @@ import {
   type ReaderSettings,
   type ThemeChoice,
 } from '../../model';
+import { THEME_COLORS } from '../../model/themeColors';
 import { Sheet } from '../view/Sheet';
 import { Segmented, type SegmentedOption } from './Segmented';
 import styles from './Look.module.css';
@@ -23,6 +24,8 @@ export interface AppearancePanelProps {
   format: string;
   settings: ReaderSettings;
   onChange: (settings: ReaderSettings) => void;
+  /** Computer: the Aa button the popover hangs from. */
+  trigger?: ReactElement;
 }
 
 /** The typeface of each choice, so its name is written in it. `publisher` shows Lora, the fallback. */
@@ -33,6 +36,28 @@ export const FONT_FACES: Record<FontChoice, string> = {
   serif: 'ui-serif, Georgia, serif',
   sans: 'system-ui, sans-serif',
 };
+
+function ThemeFace({ theme }: { theme: ThemeChoice }) {
+  if (theme === 'auto') {
+    const half = (c: (typeof THEME_COLORS)['light'], cls: string) => (
+      <span className={`${styles.autoHalf} ${cls}`} style={{ background: c.page, color: c.ink }}>
+        Aa
+      </span>
+    );
+    return (
+      <span className={styles.autoFace}>
+        {half(THEME_COLORS.light, styles.autoLight)}
+        {half(THEME_COLORS.dark, styles.autoDark)}
+      </span>
+    );
+  }
+  const c = THEME_COLORS[theme];
+  return (
+    <span className={styles.autoHalf} style={{ background: c.page, color: c.ink }}>
+      Aa
+    </span>
+  );
+}
 
 const THEMES: readonly ThemeChoice[] = ['auto', 'light', 'sepia', 'dark', 'black'];
 const FONTS: readonly FontChoice[] = ['publisher', 'lora', 'inter', 'serif', 'sans'];
@@ -84,7 +109,7 @@ function Body({ layout, format, settings, onChange }: Omit<AppearancePanelProps,
   return (
     <div className={styles.panel} data-layout={layout}>
       <Row label={t('rlook.appearance.theme')}>
-        <Segmented label={t('rlook.appearance.theme')} value={settings.theme} options={option('theme', THEMES)} onChange={(v) => set('theme', v)} wrap />
+        <Segmented label={t('rlook.appearance.theme')} value={settings.theme} options={THEMES.map((v) => ({ value: v, label: t(`rlook.theme.${v}`), swatch: <ThemeFace theme={v} /> }))} onChange={(v) => set('theme', v)} tiles />
       </Row>
       <Row label={t('rlook.appearance.font')}>
         <Segmented
@@ -133,7 +158,9 @@ function Body({ layout, format, settings, onChange }: Omit<AppearancePanelProps,
           <Segmented label={t('rlook.appearance.fit')} value={settings.pdfFit} options={option('fit', FITS)} onChange={(v) => set('pdfFit', v)} />
         </Row>
       ) : null}
-      <Switch label={t('rlook.appearance.two_pages')} checked={settings.twoPages} onChange={(v) => set('twoPages', v)} disabled={false} />
+      {layout === 'phone' ? null : (
+        <Switch label={t('rlook.appearance.two_pages')} checked={settings.twoPages} onChange={(v) => set('twoPages', v)} disabled={false} />
+      )}
       <Switch label={t('rlook.appearance.justify')} checked={settings.justify} onChange={(v) => set('justify', v)} disabled={pdf} />
       <Switch label={t('rlook.appearance.hyphenate')} checked={settings.hyphenate} onChange={(v) => set('hyphenate', v)} disabled={pdf} />
       <Switch label={t('rlook.appearance.publisher')} checked={settings.publisherStyles} onChange={(v) => set('publisherStyles', v)} disabled={pdf} />
@@ -166,8 +193,11 @@ export function AppearancePanel(props: AppearancePanelProps) {
     );
   }
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} title={t('rlook.appearance.title')} footer={footer} closeLabel={t('rlook.close')}>
-      {body}
-    </Dialog>
+    <Popover open={open} onOpenChange={onOpenChange} label={t('rlook.appearance.title')} trigger={props.trigger ?? <span />} side="bottom" align="end">
+      <div className={styles.popover}>
+        {body}
+        {footer}
+      </div>
+    </Popover>
   );
 }
