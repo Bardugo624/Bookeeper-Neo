@@ -85,20 +85,20 @@ export function SelectionToolbar({ layout, theme, rect, bounds, current, onColor
       <span className={styles.sep} aria-hidden="true" />
       <button type="button" className={styles.action} onClick={onNote}>
         <Icon name="pencil" />
-        {t('rlook.selection.note')}
+        <span className={styles.actionLabel}>{t('rlook.selection.note')}</span>
       </button>
       <button type="button" className={styles.action} onClick={onCopy}>
         <Icon name="restore" />
-        {t('rlook.selection.copy')}
+        <span className={styles.actionLabel}>{t('rlook.selection.copy')}</span>
       </button>
       <button type="button" className={styles.action} onClick={onSearch}>
         <Icon name="search" />
-        {t('rlook.selection.search')}
+        <span className={styles.actionLabel}>{t('rlook.selection.search')}</span>
       </button>
       {current ? (
         <button type="button" className={styles.action} onClick={onRemove}>
           <Icon name="trash" />
-          {t('rlook.selection.remove')}
+          <span className={styles.actionLabel}>{t('rlook.selection.remove')}</span>
         </button>
       ) : null}
     </div>

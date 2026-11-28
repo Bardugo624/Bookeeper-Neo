@@ -1,4 +1,4 @@
-import { useEffect, useState, type KeyboardEvent } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { Button, Textarea } from '@bookeeper/ui/base';
 import { Dialog } from '@bookeeper/ui/overlays';
 import { useReaderT } from '../../i18n';
@@ -18,9 +18,12 @@ export interface NoteEditorProps {
 export function NoteEditor({ open, layout, value, onSave, onCancel }: NoteEditorProps) {
   const t = useReaderT();
   const [draft, setDraft] = useState(value);
+  // The draft starts from the note when the editor opens; a later change of `value` must not erase what is being typed.
+  const latest = useRef(value);
+  latest.current = value;
   useEffect(() => {
-    if (open) setDraft(value);
-  }, [open, value]);
+    if (open) setDraft(latest.current);
+  }, [open]);
 
   const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
