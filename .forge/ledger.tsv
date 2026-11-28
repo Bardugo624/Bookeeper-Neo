@@ -907,3 +907,5 @@
 2026-11-28T12:50:54Z	bookeeper-fase-10b	desktop-entry	qa	opus	PASS	-	-	-	44
 2026-11-28T12:59:06Z	bookeeper-fase-10b	mobile-offline	dwarf	opus	-	trap	a reader opened from a stored offline copy needs the real file id positions are keyed and queued by file id and an empty id is silently	a reader opened from a stored offline copy needs the real file id: positions are keyed and queued by `file.id`, and an empty id is silently… [packages/reader/src/data/positions.ts]	143	1
 2026-11-28T13:00:33Z	bookeeper-fase-10b	mobile-offline	qa	opus	PASS	-	-	-	75
+2026-11-28T13:04:54Z	bookeeper-fase-10b	mobile-entry	dwarf	sonnet	-	trap	in apps mobile search testkit book fixtures have no file formats so code reading book file formats length crashes unless the	in apps/mobile search testkit, `book()` fixtures have no `file_formats`, so code reading `book.file_formats.length` crashes unless the… [apps/mobile/src/modules/search/testkit.tsx]	204	1
+2026-11-28T13:06:51Z	bookeeper-fase-10b	mobile-entry	qa	opus	PASS	-	-	-	108
