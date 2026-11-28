@@ -1661,14 +1661,11 @@
           },
           {
             "name": "since",
-            "in": "path",
+            "in": "query",
             "description": "Only the annotations changed after this time (deleted ones included).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "integer",
-                "null"
-              ],
+              "type": "integer",
               "format": "int64"
             }
           }

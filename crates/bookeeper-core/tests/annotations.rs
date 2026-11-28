@@ -228,3 +228,50 @@ async fn deleting_the_book_deletes_its_annotations() {
             .unwrap();
     assert_eq!(n, 0);
 }
+
+#[test]
+fn since_is_an_optional_query_parameter() {
+    let spec = serde_json::to_value(bookeeper_core::openapi()).unwrap();
+    let params = spec["paths"]["/api/v1/books/{id}/annotations"]["get"]["parameters"]
+        .as_array()
+        .unwrap();
+    let since = params.iter().find(|p| p["name"] == "since").unwrap();
+    assert_eq!(since["in"], "query");
+    assert_ne!(since["required"], true);
+}
+
+#[tokio::test]
+async fn an_id_from_another_library_is_404() {
+    let c = setup().await;
+    let t = &c.s.session.access_token;
+    let (st, _) = put(&c, t, "dup", body(200)).await;
+    assert_eq!(st, 200);
+
+    let (lib2, session2) = other_library(&c.s.state).await;
+    let book2 = insert_book(&c.s.state, &lib2, "Emma").await;
+    let (l, b) = (lib2.clone(), book2.clone());
+    c.s.state
+        .db
+        .run(move |c| {
+            c.execute(
+                "INSERT INTO book_files (id, library_id, book_id, format, sha256, size_bytes, \
+                 original_name, koreader_hash, created_at) \
+                 VALUES (?1, ?2, ?3, 'epub', ?4, 1, 'a.epub', 'h2', 1)",
+                rusqlite::params![uuid::Uuid::now_v7().to_string(), l, b, SHA],
+            )
+        })
+        .await
+        .unwrap();
+    let (st, _, v) = call(
+        &c.s.state,
+        "PUT",
+        &path(&book2, "dup"),
+        Some(&session2.access_token),
+        Some(body(900)),
+    )
+    .await;
+    assert_eq!(st, 404, "{v}");
+    let mine = list(&c, t, "").await;
+    assert_eq!(mine.len(), 1);
+    assert_eq!(mine[0]["updated_at"], 200);
+}
