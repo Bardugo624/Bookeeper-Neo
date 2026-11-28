@@ -1018,3 +1018,17 @@
 2026-11-28T19:02:20Z	bookeeper-fase-11a	mobile-install	qa	opus	FAIL	finding	installsheet s text and markup are also asserted in apps mobile src modules search offline test tsx so run npx vitest run	InstallSheet's text and markup are also asserted in apps/mobile/src/modules/search/offline.test.tsx, so run `npx vitest run… [apps/mobile/src/modules/reader/InstallSheet.tsx]	92	1
 2026-11-28T19:02:49Z	bookeeper-fase-11a	apps-p3	dwarf	sonnet	-	trap	apps desktop src kit styles test ts rejects literal colors including rgb and raw bk neutral bk primary steps in module	`apps/desktop/src/kit/styles.test.ts` rejects literal colors (including `rgb()`) and raw `--bk-neutral-*`/`--bk-primary-*` steps in module… [apps/desktop/src/kit/styles.test.ts]	338	1
 2026-11-28T19:03:37Z	bookeeper-fase-11a	apps-p3	qa	opus	PASS	-	-	-	38
+2026-11-28T19:14:48Z	bookeeper-fase-11a	lookup-sources	dwarf	sonnet	-	-	-	-	52
+2026-11-28T19:14:49Z	bookeeper-fase-11a	reader-css-p3	dwarf	sonnet	-	-	-	-	54
+2026-11-28T19:15:35Z	bookeeper-fase-11a	reader-css-p3	qa	opus	PASS	-	-	-	34
+2026-11-28T19:15:58Z	bookeeper-fase-11a	lookup-sources	qa	opus	PASS	-	-	-	59
+2026-11-28T19:16:24Z	bookeeper-fase-11a	mobile-install	dwarf	sonnet	-	trap	installsheet s text and markup are also asserted in apps mobile src modules search offline test tsx so run npx vitest run	InstallSheet's text and markup are also asserted in apps/mobile/src/modules/search/offline.test.tsx, so run `npx vitest run… [apps/mobile/src/modules/reader/InstallSheet.tsx]	41	1
+2026-11-28T19:16:36Z	bookeeper-fase-11a	reader-search-keep	dwarf	opus	-	trap	foliate draws search marks with the draw function passed to view search every time a chapter s overlay is created so to hide	foliate draws search marks with the `draw` function passed to `view.search()` every time a chapter's overlay is created, so to hide… [packages/reader/vendor/foliate-js/view.js]	161	1
+2026-11-28T19:17:20Z	bookeeper-fase-11a	mobile-install	qa	opus	PASS	-	-	-	45
+2026-11-28T19:17:32Z	bookeeper-fase-11a	reader-search-keep	qa	opus	PASS	-	-	-	45
+2026-11-28T19:19:31Z	bookeeper-fase-11a	lookup-status	dwarf	sonnet	-	-	-	-	201
+2026-11-28T19:22:19Z	bookeeper-fase-11a	lookup-status	qa	opus	FAIL	verify	cargo test offline p bookeeper core test lookup google test lookup annas cargo clippy offline p bookeeper core p	cargo test --offline -p bookeeper-core --test lookup_google --test lookup_annas && cargo clippy --offline -p bookeeper-core -p… [crates/bookeeper-core/src/lookup/mod.rs]	158	1
+2026-11-28T19:24:06Z	bookeeper-fase-11a	lookup-status	dwarf	sonnet	-	-	-	-	100
+2026-11-28T19:26:08Z	bookeeper-fase-11a	lookup-status	qa	opus	FAIL	verify	ci runs cargo fmt check repo wide run cargo fmt check p crate along with clippy for rust changes	CI runs `cargo fmt --check` repo-wide; run `cargo fmt --check -p <crate>` along with clippy for Rust changes [.github/workflows/ci.yml]	112	1
+2026-11-28T19:29:16Z	bookeeper-fase-11a	lookup-status	dwarf	opus	-	-	-	-	88
+2026-11-28T19:31:13Z	bookeeper-fase-11a	lookup-status	qa	opus	PASS	-	-	-	107

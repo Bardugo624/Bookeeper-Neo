@@ -6,6 +6,8 @@
 ## Verify
 - NODE_PATH=$(npm root -g) node packages/reader/e2e/run.mjs --browsers chromium (needs `npm ci --offline` at the root first; browsers live in… [packages/reader/e2e/run.mjs]
 - cargo test --offline -p bookeeper-desktop && cargo clippy --offline -p bookeeper-desktop --all-targets -- -D warnings [apps/desktop/src-tauri/Cargo.toml]
+- CI runs `cargo fmt --check` repo-wide; run `cargo fmt --check -p <crate>` along with clippy for Rust changes [.github/workflows/ci.yml]
+- cargo test --offline -p bookeeper-core --test lookup_google --test lookup_annas && cargo clippy --offline -p bookeeper-core -p… [crates/bookeeper-core/src/lookup/mod.rs]
 - playwright and its Chromium are installed globally (`npm root -g`, browsers in PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers); a scratch script loads it… [packages/reader/e2e/run.mjs]
 - cd packages/reader && npm test && npx tsc --noEmit (after `npm ci --offline` at the root) [packages/reader/package.json]
 - cd packages/reader && npx vitest run src/app src/ui/panel src/frame src/engine && npx tsc --noEmit (after `npm ci --offline` at the root) [packages/reader/package.json]
@@ -26,6 +28,4 @@
 - a throwaway desktop vitest runs from the scratchpad with a `.mts` config that spreads `apps/desktop/vite.config`, sets `root` to apps/desktop,… [apps/desktop/vite.config.ts]
 - npm ci --offline at the root, then `npx vitest run --root packages/ui` for the kit tests [packages/ui/package.json]
 - a throwaway mobile vitest can run from outside the repo with a `.mts` config that spreads `apps/mobile/vite.config` and sets `root` to apps/mobile and… [apps/mobile/vite.config.ts]
-- cargo test --offline --release -p bookeeper-core --test perf_10k -- --ignored --nocapture [crates/bookeeper-core/tests/perf_10k.rs]
-- copy package.json, package-lock.json and the apps/*/package.json and packages/*/package.json files to a scratch dir and run `npm install --package-lock-only… [package-lock.json]
 
