@@ -29,6 +29,16 @@ describe('visibility', () => {
   });
 });
 
+describe('e-book note', () => {
+  it('says the e-books are not in the archive and how to keep them', async () => {
+    renderBackup({ role: 'admin' });
+    const note = await screen.findByRole('region', { name: 'Gli e-book' });
+    expect(note).toHaveTextContent('non sono nell\'archivio');
+    expect(note).toHaveTextContent('cartella «ebooks»');
+    expect(note).toHaveTextContent('basta copiare quelli nuovi');
+  });
+});
+
 describe('backup now', () => {
   it('saves the archive with the name from the core', async () => {
     const { platform } = renderBackup({

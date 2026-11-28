@@ -93,7 +93,7 @@ async fn book_id(state: &AppState, who: &AuthUser, id: String) -> ApiResult<Stri
 }
 
 /// Saves the processed cover on disk and in the book row. 404 when the book vanished.
-async fn store(
+pub(crate) async fn store(
     state: &AppState,
     who: AuthUser,
     id: String,

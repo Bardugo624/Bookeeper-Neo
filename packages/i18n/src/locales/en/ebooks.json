@@ -1,0 +1,42 @@
+{
+  "title": "Add e-books",
+  "description": "Check the title and authors of each file: on confirm the books are created and the files attached.",
+  "drop": "Drop the e-books to add them to the library",
+  "list": "Dropped e-books",
+  "saving": "Adding the books",
+  "confirm": {
+    "one": "Add {count} book",
+    "other": "Add {count} books"
+  },
+  "close": "Close",
+  "row": {
+    "uploading": "Uploading {name}",
+    "uploadingShort": "Uploading the file…",
+    "title": "Title",
+    "titleMissing": "A title is needed.",
+    "titleTooLong": "The title can have at most {max} characters.",
+    "authors": "Authors",
+    "authorsHint": "Separated by a semicolon.",
+    "authorsTooMany": "At most {max} authors.",
+    "authorTooLong": "Each author can have at most {max} characters.",
+    "same": "The library already has “{title}”.",
+    "attach": "Attach to that book",
+    "remove": "Remove {name}",
+    "added": "Book added",
+    "attached": "File attached"
+  },
+  "summary": {
+    "added": {
+      "one": "{count} book added.",
+      "other": "{count} books added."
+    },
+    "attached": {
+      "one": "{count} file attached to an existing book.",
+      "other": "{count} files attached to existing books."
+    },
+    "failed": {
+      "one": "{count} file did not go through.",
+      "other": "{count} files did not go through."
+    }
+  }
+}

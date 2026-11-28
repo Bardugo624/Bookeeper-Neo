@@ -1,5 +1,6 @@
+import { useT } from '../../../../app/i18n';
 import { usePermission } from '../../../../kit';
-import { SettingsFull } from '../../SettingsBlock';
+import { SettingsBlock, SettingsFull } from '../../SettingsBlock';
 import { AutoBackupList } from './AutoBackupList';
 import { BackupNowBlock } from './BackupNowBlock';
 import { RestoreBlock } from './RestoreBlock';
@@ -8,12 +9,16 @@ import { useBackupOps } from './useBackupOps';
 
 export function BackupSection() {
   const ops = useBackupOps();
+  const t = useT();
   const { can } = usePermission();
   return (
     <>
       <BackupNowBlock ops={ops} />
       <ScheduleBlock locked={ops.busy} />
       <AutoBackupList />
+      <SettingsBlock title={t('backup.ebooks.title')}>
+        <p>{t('backup.ebooks.text')}</p>
+      </SettingsBlock>
       {can('owner') ? (
         <SettingsFull>
           <RestoreBlock ops={ops} />

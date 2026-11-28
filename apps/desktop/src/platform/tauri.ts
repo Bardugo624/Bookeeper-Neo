@@ -2,8 +2,9 @@ import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { listen } from '@tauri-apps/api/event';
 import { isPermissionGranted, requestPermission, sendNotification } from '@tauri-apps/plugin-notification';
+import { ApiError } from '@bookeeper/api';
 import { createTauriTransport } from './transport';
-import { NETWORK_PROBE, type Connection, type Connections, type Found, type NotificationControls, type Platform, type ProbeOut, type SaveFileRequest, type SaveFileResult, type SharingStatus, type UpdateControls, type UpdateErrorCode, type UpdateProgress, type UpdateState } from './types';
+import { NETWORK_PROBE, type Connection, type Connections, type DownloadRequest, type DownloadResult, type Found, type NotificationControls, type Platform, type ProbeOut, type SaveFileRequest, type SaveFileResult, type SharingStatus, type UpdateControls, type UpdateErrorCode, type UpdateProgress, type UpdateState } from './types';
 
 function toBase64(bytes: Uint8Array): string {
   let bin = '';
@@ -111,6 +112,18 @@ export function tauriPlatform(): Platform {
     },
     async deviceName() {
       return navigator.platform || 'Bookeeper';
+    },
+    async downloadToFile(req: DownloadRequest) {
+      try {
+        return await invoke<DownloadResult>('download_file', {
+          url: req.url,
+          suggested_name: req.suggestedName,
+          headers: req.headers ?? {},
+          ...(req.connectionId === undefined ? {} : { connection_id: req.connectionId }),
+        });
+      } catch (e) {
+        throw new ApiError(0, 'network', e instanceof Error ? e.message : String(e));
+      }
     },
     saveFile: (req: SaveFileRequest) =>
       invoke<SaveFileResult>('save_file', {

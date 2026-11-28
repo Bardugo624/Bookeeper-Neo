@@ -25,6 +25,8 @@ const item = (n: number) => ({
   book_id: `b${n}`,
   status: 'read',
   updated_at: 1,
+  progress_percent: null,
+  progress_at: null,
   finished_at: Date.UTC(2024, 2, 1 + n) / 1000,
   book: { id: `b${n}`, title: `Libro ${n}`, authors: [], cover_color: null },
 });

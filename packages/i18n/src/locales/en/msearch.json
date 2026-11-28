@@ -41,7 +41,7 @@
       "title": "Where it is",
       "shelf": "Furniture",
       "none": "Not shelved",
-      "phrase": "{shelf}\u00a0· shelf\u00a0{row}\u00a0· slot\u00a0{slot}",
+      "phrase": "{shelf} · shelf {row} · slot {slot}",
       "button": "Where is it?",
       "row": "Shelf {row}",
       "unit": "Open the furniture"
@@ -159,5 +159,22 @@
     },
     "titleField": "Title"
   },
-  "shelves": "Shelves"
+  "shelves": "Shelves",
+  "files": {
+    "title": "Files",
+    "none": "No file is attached to this book.",
+    "missing": "The file is not on the server",
+    "download": "Download",
+    "downloadLabel": "Download {format}, {size}",
+    "downloading": "Downloading the file…",
+    "add": "Add the file",
+    "retry": "Try again",
+    "adding": "Uploading the file…",
+    "errors": {
+      "unsupported_format": "This format is not supported. Use EPUB, PDF, MOBI, AZW3, FB2 or CBZ.",
+      "drm_protected": "The file is DRM-protected and cannot be added.",
+      "file_already_attached": "This file is already attached to the book.",
+      "payload_too_large": "The file is too large."
+    }
+  }
 }

@@ -349,5 +349,33 @@
   "owner": {
     "everyone": "Di tutti",
     "me": "Tu"
+  },
+  "files": {
+    "title": "File",
+    "loading": "Caricamento dei file",
+    "error": "Non riesco a leggere i file del libro. Controlla la connessione e riprova.",
+    "retry": "Riprova",
+    "empty": "Nessun file attaccato. Aggiungi un EPUB, un PDF o un altro e-book.",
+    "download": "Scarica",
+    "downloadLabel": "Scarica {name}",
+    "downloading": "Scarico",
+    "remove": "Togli il file",
+    "removeLabel": "Togli {name}",
+    "missing": "File mancante",
+    "add": "Aggiungi il file",
+    "adding": "Carico il file",
+    "input": "Scegli un e-book",
+    "formats": "EPUB, PDF, MOBI, AZW3, FB2 o CBZ, anche trascinato qui",
+    "drop": "Rilascia il file per aggiungerlo",
+    "uploading": "Carico {name}…",
+    "confirm": {
+      "title": "Togli il file",
+      "text": "Il file sarà tolto dal libro. Se nessun altro libro lo usa, sparisce anche dal disco."
+    },
+    "errors": {
+      "tooBig": "Il file è troppo grande: il limite è 200 MB.",
+      "format": "Questo formato non è supportato. Bookeeper apre EPUB, PDF, MOBI, AZW3, FB2 e CBZ.",
+      "drm": "Il file è protetto da DRM. Bookeeper apre solo file senza protezione."
+    }
   }
 }

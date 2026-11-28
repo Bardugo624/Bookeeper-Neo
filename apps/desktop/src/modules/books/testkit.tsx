@@ -15,6 +15,7 @@ export function book(i: number, over: Partial<BookOut> = {}): BookOut {
     on_loan: false,
     tags: [],
     reading: null,
+    file_formats: [],
     created_at: 0,
     updated_at: 0,
     ...over,
@@ -77,6 +78,8 @@ export interface Library {
   extra?: (r: { method: string; path: string; body?: unknown }) => { status: number; body: unknown } | undefined;
   /** Raw (binary) requests that reached the transport, e.g. cover uploads. */
   raw?: Array<{ method: string; path: string; bytes?: Uint8Array }>;
+  /** Answers raw requests first; return undefined to fall through to the cover answers. */
+  rawHandler?: (req: { method: string; path: string; bytes?: Uint8Array }) => { status: number; body: unknown } | undefined;
 }
 
 /** Handler that answers `/me`, `/books`, `/books/:id` and `/shelves` from an in-memory list. */
@@ -132,6 +135,11 @@ export function booksPlatform(lib: Library, connections?: Connections): FakePlat
     ...base(id),
     async requestRaw(req): Promise<RawResponse> {
       platform.calls.push({ method: req.method, path: req.path, headers: req.headers });
+      const own = lib.rawHandler?.({ method: req.method, path: req.path, bytes: req.body });
+      if (own) {
+        const bytes = new TextEncoder().encode(JSON.stringify(own.body));
+        return { status: own.status, bytes, contentType: 'application/json', headers: {} as Record<string, string> };
+      }
       if (req.method === 'PUT') {
         lib.raw?.push({ method: req.method, path: req.path, bytes: req.body });
         const bytes = new TextEncoder().encode(JSON.stringify({ cover_color: '#112233' }));

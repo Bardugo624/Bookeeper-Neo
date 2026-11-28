@@ -17,3 +17,25 @@
   gap: 12px;
   padding: 16px 0;
 }
+
+.dropping {
+  outline: 2px dashed var(--bk-accent-text);
+  outline-offset: 4px;
+  border-radius: var(--bk-radius-lg);
+}
+
+.dropHint {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 24px;
+  z-index: var(--bk-z-overlay);
+  width: fit-content;
+  margin: 0 auto;
+  padding: 8px 16px;
+  border-radius: var(--bk-radius-lg);
+  background: var(--bk-surface-raised);
+  box-shadow: var(--bk-shadow-3);
+  font-size: 14px;
+  color: var(--bk-text-strong);
+  pointer-events: none;
+}

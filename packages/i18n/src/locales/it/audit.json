@@ -70,7 +70,11 @@
       "delete": "Libro eliminato",
       "cover": "Copertina cambiata",
       "cover_delete": "Copertina tolta",
-      "tags": "Tag del libro cambiati"
+      "tags": "Tag del libro cambiati",
+      "file": {
+        "add": "File e-book aggiunto",
+        "remove": "File e-book tolto"
+      }
     },
     "library": {
       "backup": "Copia di sicurezza",
@@ -132,7 +136,11 @@
       "delete": "Ha eliminato un libro",
       "cover": "Ha cambiato la copertina del libro «{title}»",
       "cover_delete": "Ha tolto la copertina del libro «{title}»",
-      "tags": "Ha cambiato i tag del libro «{title}»"
+      "tags": "Ha cambiato i tag del libro «{title}»",
+      "file": {
+        "add": "Ha aggiunto il file {format} a «{title}»",
+        "remove": "Ha tolto il file {format} da «{title}»"
+      }
     },
     "library": {
       "backup": "Ha scaricato una copia di sicurezza",
@@ -199,7 +207,11 @@
       "update": "Ha modificato un libro",
       "cover": "Ha cambiato la copertina di un libro",
       "cover_delete": "Ha tolto la copertina di un libro",
-      "tags": "Ha cambiato i tag di un libro"
+      "tags": "Ha cambiato i tag di un libro",
+      "file": {
+        "add": "Ha aggiunto un file {format} a un libro",
+        "remove": "Ha tolto un file {format} da un libro"
+      }
     },
     "reading": {
       "set": "Ha impostato lo stato di lettura di un libro: {status}",
@@ -220,7 +232,11 @@
       "update": "Ha modificato un libro non più presente",
       "cover": "Ha cambiato la copertina di un libro non più presente",
       "cover_delete": "Ha tolto la copertina di un libro non più presente",
-      "tags": "Ha cambiato i tag di un libro non più presente"
+      "tags": "Ha cambiato i tag di un libro non più presente",
+      "file": {
+        "add": "Ha aggiunto un file {format} a un libro non più presente",
+        "remove": "Ha tolto un file {format} da un libro non più presente"
+      }
     },
     "reading": {
       "set": "Ha impostato lo stato di lettura di un libro non più presente: {status}",

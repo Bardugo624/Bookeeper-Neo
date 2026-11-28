@@ -26,6 +26,10 @@
     "loading": "Caricamento…",
     "empty": "Non c'è ancora nessun backup automatico."
   },
+  "ebooks": {
+    "title": "Gli e-book",
+    "text": "Gli e-book non sono nell'archivio, che ne elenca soltanto i nomi. Per conservarli copia la cartella «ebooks» dei dati. I file non cambiano mai, quindi basta copiare quelli nuovi."
+  },
   "restore": {
     "file": "File di backup (.zip)",
     "action": "Ripristina da file…",

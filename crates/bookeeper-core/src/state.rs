@@ -58,6 +58,7 @@ impl ServerInfo {
 #[derive(Clone, Debug)]
 pub struct Files {
     pub covers_dir: PathBuf,
+    pub ebooks_dir: PathBuf,
     pub backups_dir: PathBuf,
 }
 
@@ -142,9 +143,11 @@ impl AppState {
     ) -> Result<AppState, DbError> {
         let files = Files {
             covers_dir: data_dir.join("covers"),
+            ebooks_dir: data_dir.join("ebooks"),
             backups_dir: data_dir.join("backups"),
         };
         create_dir(&files.covers_dir)?;
+        create_dir(&files.ebooks_dir)?;
         create_dir(&files.backups_dir)?;
         let secret = load_secret(&db)?;
         let http = build_http();

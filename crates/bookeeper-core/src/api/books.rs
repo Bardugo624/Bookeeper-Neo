@@ -9,6 +9,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 use utoipa::ToSchema;
 
 use crate::{
+    api::book_files::remove_unused,
     api::reading::{attach_reading, ReadingSummary},
     api::tags::{attach_tags, TagSummary},
     api::util::{new_id, normalize_isbn10, normalize_isbn13, now_secs, user_in_library, PersonRef},
@@ -89,6 +90,8 @@ pub struct BookOut {
     pub reading: Option<ReadingSummary>,
     /// Tags of the book, ordered by name.
     pub tags: Vec<TagSummary>,
+    /// Formats of the attached e-book files, without repeats, in alphabetical order.
+    pub file_formats: Vec<String>,
     pub created_at: i64,
     pub updated_at: i64,
 }
@@ -352,7 +355,8 @@ pub const SELECT_BOOK: &str = "SELECT b.id, b.isbn_13, b.isbn_10, b.title, b.sub
     b.authors_json, b.publisher, b.published_year, b.language, b.page_count, b.description, \
     b.genre, b.format, b.progressive_number, b.condition, b.acquired_at, b.price_cents, b.notes, \
     b.cover_color, sb.shelf_id, sb.row_index, sb.slot_index, l.id IS NOT NULL, \
-    b.created_at, b.updated_at, ou.id, ou.display_name \
+    b.created_at, b.updated_at, ou.id, ou.display_name, \
+    (SELECT group_concat(DISTINCT f.format) FROM book_files f WHERE f.book_id = b.id) \
     FROM books b \
     LEFT JOIN users ou ON ou.id = b.owner_user_id AND ou.library_id = b.library_id \
     LEFT JOIN shelf_books sb ON sb.book_id = b.id \
@@ -396,6 +400,17 @@ pub fn map_book(row: &rusqlite::Row<'_>) -> rusqlite::Result<BookOut> {
         on_loan: row.get(22)?,
         reading: None,
         tags: Vec::new(),
+        file_formats: {
+            let joined: Option<String> = row.get(27)?;
+            let mut formats: Vec<String> = joined
+                .iter()
+                .flat_map(|j| j.split(','))
+                .map(str::to_string)
+                .collect();
+            formats.sort();
+            formats.dedup();
+            formats
+        },
         created_at: row.get(23)?,
         updated_at: row.get(24)?,
     })
@@ -777,6 +792,7 @@ fn delete_one(
     who: &AuthUser,
     id: &str,
     now: i64,
+    files: &mut Vec<(String, String)>,
 ) -> rusqlite::Result<bool> {
     let rowid: Option<i64> = tx
         .query_row(
@@ -788,6 +804,13 @@ fn delete_one(
     let Some(rowid) = rowid else {
         return Ok(false);
     };
+    // The rows of `book_files` go with the book: note which files they named.
+    let mut stmt = tx.prepare("SELECT sha256, format FROM book_files WHERE book_id = ?1")?;
+    let named = stmt
+        .query_map([id], |r| Ok((r.get(0)?, r.get(1)?)))?
+        .collect::<rusqlite::Result<Vec<(String, String)>>>()?;
+    drop(stmt);
+    files.extend(named);
     tx.execute("DELETE FROM books_fts WHERE rowid = ?1", [rowid])?;
     tx.execute("DELETE FROM books WHERE rowid = ?1", [rowid])?;
     audit::record(tx, who, "book.delete", "book", id, None, now)?;
@@ -820,12 +843,15 @@ pub async fn delete_book(
 ) -> ApiResult<StatusCode> {
     who.require(Role::Member)?;
     let id_for_cover = id.clone();
+    let dir = state.files.ebooks_dir.clone();
     let found = state
         .db
         .run(move |conn| {
             let tx = conn.transaction()?;
-            let found = delete_one(&tx, &who, &id, now_secs())?;
+            let mut files = Vec::new();
+            let found = delete_one(&tx, &who, &id, now_secs(), &mut files)?;
             tx.commit()?;
+            remove_unused(conn, &dir, &files);
             Ok(found)
         })
         .await?;
@@ -860,18 +886,21 @@ pub async fn batch_delete(
     if body.ids.len() > 500 {
         return Err(ApiError::validation("at most 500 ids per request"));
     }
+    let dir = state.files.ebooks_dir.clone();
     let deleted = state
         .db
         .run(move |conn| {
             let tx = conn.transaction()?;
             let now = now_secs();
             let mut deleted = Vec::new();
+            let mut files = Vec::new();
             for id in &body.ids {
-                if delete_one(&tx, &who, id, now)? {
+                if delete_one(&tx, &who, id, now, &mut files)? {
                     deleted.push(id.clone());
                 }
             }
             tx.commit()?;
+            remove_unused(conn, &dir, &files);
             Ok(deleted)
         })
         .await?;
