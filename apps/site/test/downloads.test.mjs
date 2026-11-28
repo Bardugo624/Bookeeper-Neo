@@ -111,8 +111,25 @@ test('release notes render the changelog subset and nothing else', () => {
   assert.equal(notesToHtml('### Added', 'en'), '<h4>New</h4>');
 });
 
+// The 2.2.0 release: the Setup and, for the apps' updater, the NSIS installer.
+const names22 = [...names.map((n) => n.replace('2.1.0', '2.2.0')), 'Bookeeper-Setup-2.2.0.exe'];
+const release22 = {
+  ...release,
+  tag_name: 'v2.2.0',
+  assets: names22.map((name, i) => ({ name, size: 1000 + i, browser_download_url: `https://example.test/${name}` })),
+};
+
+test('the Setup is the Windows download; the NSIS installer only without it', () => {
+  const files = fromGithub(release22).files;
+  assert.equal(files.find((f) => f.id === 'windows').name, 'Bookeeper-Setup-2.2.0.exe');
+  assert.equal(files.filter((f) => f.id === 'windows').length, 1);
+  assert.ok(!files.some((f) => f.name.endsWith('_x64-setup.exe')));
+  assert.equal(fromGithub({ ...release22, assets: [...release22.assets].reverse() }).files[0].name, 'Bookeeper-Setup-2.2.0.exe');
+  assert.equal(fromGithub(release).files.find((f) => f.id === 'windows').name, 'Bookeeper_2.1.0_x64-setup.exe');
+});
+
 test('with GitHub refusing, the manifest gives version, notes and the installer links', async () => {
-  const manifest = { version: '2.1.0', notes: '### Added\n\n- novità', pub_date: '2026-11-27T03:09:00Z' };
+  const manifest = { version: '2.2.0', notes: '### Added\n\n- novità', pub_date: '2026-11-28T05:09:00Z' };
   const fetchImpl = async (url) => {
     if (url.includes('api.github.com')) return { ok: false, status: 403 };
     if (url.includes('stable.json')) return { ok: false, status: 404 };
@@ -121,12 +138,12 @@ test('with GitHub refusing, the manifest gives version, notes and the installer 
   };
   const r = await loadRelease(['index', 'github', 'manifest'], fetchImpl, ['https://r2.test/latest.json', '/updates/stable/latest.json']);
   assert.equal(r.source, 'manifest');
-  assert.equal(r.version, '2.1.0');
+  assert.equal(r.version, '2.2.0');
   assert.equal(r.notes, manifest.notes);
-  // The same names as the real 2.1.0 release, so the links point at real files.
-  assert.deepEqual(r.files.map((f) => f.name).sort(), [...names].sort());
+  // The names of the real 2.2.0 release, so the links point at real files; Windows gets the Setup.
+  assert.deepEqual(r.files.map((f) => f.name).sort(), names22.filter((n) => !n.endsWith('_x64-setup.exe')).sort());
   assert.equal(r.files.find((f) => f.id === 'windows').url,
-    'https://github.com/Bardugo624/Bookeeper-Neo/releases/download/v2.1.0/Bookeeper_2.1.0_x64-setup.exe');
+    'https://github.com/Bardugo624/Bookeeper-Neo/releases/download/v2.2.0/Bookeeper-Setup-2.2.0.exe');
 });
 
 test('a beta manifest never becomes the download source', () => {

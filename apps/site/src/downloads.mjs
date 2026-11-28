@@ -13,8 +13,11 @@ export const R2_MANIFEST = 'https://updates.neokeeper.dev/v2/stable/latest.json'
 export const VPS_MANIFEST = '/updates/stable/latest.json';
 export const MANIFESTS = [R2_MANIFEST, VPS_MANIFEST];
 
-// File ids the page knows. Order is the order of the full list.
+// File ids the page knows. Order is the order of the full list. For an id named twice the first
+// match wins: the Setup is the Windows download; the NSIS installer, the apps' update package,
+// stands in only for the releases made before the Setup.
 export const FILE_PATTERNS = [
+  ['windows', /^Bookeeper-Setup-.+\.exe$/i],
   ['windows', /_x64-setup\.exe$/i],
   ['mac-arm', /_aarch64\.dmg$/i],
   ['mac-intel', /_x64\.dmg$/i],
@@ -33,9 +36,15 @@ export function classify(name) {
   return hit ? hit[0] : null;
 }
 
+const rank = (name) => FILE_PATTERNS.findIndex(([, re]) => re.test(name));
+
 function sortFiles(files) {
-  const order = FILE_PATTERNS.map(([id]) => id);
-  return files.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+  const best = new Map();
+  for (const f of files) {
+    const held = best.get(f.id);
+    if (!held || rank(f.name) < rank(held.name)) best.set(f.id, f);
+  }
+  return [...best.values()].sort((a, b) => rank(a.name) - rank(b.name));
 }
 
 export function fromGithub(release) {
@@ -80,7 +89,7 @@ export function fromIndex(index) {
 // gives version, date and notes, and the installer names follow the release's fixed scheme.
 export function releaseFileNames(version) {
   return [
-    `Bookeeper_${version}_x64-setup.exe`,
+    `Bookeeper-Setup-${version}.exe`,
     `Bookeeper_${version}_aarch64.dmg`,
     `Bookeeper_${version}_x64.dmg`,
     `Bookeeper_${version}_amd64.AppImage`,
