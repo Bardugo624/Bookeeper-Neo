@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 import { Button, EmptyState, Icon } from '@bookeeper/ui/base';
 import { useT } from '../../app/i18n';
+import { ReadingNow } from '../reading';
 import { ErrorState, Screen, apiErrorMessage } from '../../kit';
 import { ResultList, ResultSkeletons } from './ResultList';
 import { ActiveFilters } from './ActiveFilters';
@@ -92,6 +93,9 @@ export function SearchPage() {
             : ''}
         </p>
       </div>
+      {filtering ? null : (
+        <ReadingNow onAll={() => state.setSheet({ reading: 'reading', tags: state.tags, room: state.room })} />
+      )}
       {body}
       {sheetOpen ? (
         <FilterSheet

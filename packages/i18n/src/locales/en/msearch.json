@@ -176,5 +176,9 @@
       "file_already_attached": "This file is already attached to the book.",
       "payload_too_large": "The file is too large."
     }
+  },
+  "read": {
+    "read": "Read",
+    "readPercent": "Read · {percent}%"
   }
 }
