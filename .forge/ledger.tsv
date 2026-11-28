@@ -821,3 +821,15 @@
 2026-11-28T03:39:53Z	bookeeper-fase-10a1	backup-note	qa	opus	PASS	-	-	-	42
 2026-11-28T03:43:43Z	bookeeper-fase-10a1	core-fixes	dwarf	sonnet	-	trap	adding a field to readingsummary breaks crates bookeeper core tests books api rs exact json match of reading and the desktop mobile	adding a field to ReadingSummary breaks crates/bookeeper-core/tests/books_api.rs (exact JSON match of `reading`) and the desktop/mobile… [crates/bookeeper-core/tests/books_api.rs]	317	1
 2026-11-28T03:47:39Z	bookeeper-fase-10a1	core-fixes	qa	opus	FAIL	-	-	-	229
+2026-11-28T03:56:31Z	bookeeper-fase-10a1	core-fixes	dwarf	sonnet	-	-	-	-	11
+2026-11-28T03:58:17Z	bookeeper-fase-10a1	core-fixes	qa	opus	PASS	-	-	-	99
+2026-11-28T03:58:57Z	bookeeper-fase-10a1	mobile-fixes	dwarf	sonnet	-	-	-	-	31
+2026-11-28T03:59:46Z	bookeeper-fase-10a1	mobile-fixes	qa	opus	PASS	-	-	-	43
+2026-11-28T04:01:28Z	bookeeper-fase-10a1	books-fixes	dwarf	sonnet	-	-	-	-	182
+2026-11-28T04:03:30Z	bookeeper-fase-10a1	books-fixes	qa	opus	FAIL	-	-	-	115
+2026-11-28T04:04:30Z	bookeeper-fase-10a1	books-fixes	dwarf	sonnet	-	-	-	-	55
+2026-11-28T04:05:29Z	bookeeper-fase-10a1	books-fixes	qa	opus	PASS	-	-	-	52
+2026-11-28T04:10:22Z	bookeeper-fase-10a1	platform-fixes	dwarf	sonnet	-	-	-	-	288
+2026-11-28T04:13:19Z	bookeeper-fase-10a1	platform-fixes	qa	opus	FAIL	-	-	-	170
+2026-11-28T04:13:49Z	bookeeper-fase-10a1	platform-fixes	dwarf	sonnet	-	-	-	-	23
+2026-11-28T04:16:51Z	bookeeper-fase-10a1	platform-fixes	qa	opus	PASS	-	-	-	176
