@@ -19,3 +19,16 @@
   outline: 2px solid var(--bk-focus);
   outline-offset: 2px;
 }
+
+.offline {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fileInfo {
+  margin: 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--bk-text-muted);
+}
