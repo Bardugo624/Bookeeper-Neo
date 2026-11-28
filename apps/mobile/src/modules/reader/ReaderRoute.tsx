@@ -120,19 +120,25 @@ export function ReaderRoute() {
   // `settled` says a reload made with the network up ended without a session: only then is there nothing left to wait for.
   // A reload that failed while offline says nothing about the server.
   const [settled, setSettled] = useState(false);
+  // Only the latest reload speaks: an older one that fails late does not end the wait of a newer one.
+  const reloads = useRef(0);
   const reloadSession = useMemo(
     () => (withNetwork: boolean) => {
+      const seq = ++reloads.current;
       setSettled(false);
       client
         .me()
         .then((fresh) => useSession.setState({ me: fresh, status: 'ready' }))
-        .catch(() => setSettled(withNetwork));
+        .catch(() => seq === reloads.current && setSettled(withNetwork));
     },
     [client],
   );
+  // The kept copy on screen needs no session: reading it again would only close the reader under the person.
   useEffect(() => {
-    if (online && !hasMe) reloadSession(true);
-  }, [online, hasMe, reloadSession]);
+    if (online && !hasMe && copy === null) reloadSession(true);
+  }, [online, hasMe, copy, reloadSession]);
+  // Once the kept copy is open it stays open: a session or listing arriving later does not swap the reader.
+  const copyShownFor = useRef<string | null>(null);
 
   // Without a session (the app opened with no network) or without the server's answer, the copy on the phone is what there is.
   // A failed background refetch keeps the cached answer: that still counts as an answer.
@@ -144,7 +150,8 @@ export function ReaderRoute() {
       </div>
     );
   }
-  if (copy && (!me || serverFailed)) {
+  if (copy && (copyShownFor.current === bookId || !me || serverFailed)) {
+    copyShownFor.current = bookId;
     const kept = fromCopy(copy);
     return <Reading bookId={bookId} title={kept.title} authors={[]} file={kept.file} />;
   }

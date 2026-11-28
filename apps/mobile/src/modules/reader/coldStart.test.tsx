@@ -83,4 +83,28 @@ describe('a cold start without a network', () => {
     expect(meCalls()).toBeGreaterThan(afterRetry);
     expect(view.router.state.location.pathname).toBe('/read/b1');
   });
+
+  it('the_kept_copy_stays_open_when_the_network_returns', async () => {
+    await lib.library.save({ sha256: 'sha1', format: 'epub', name: 'dune.epub', bookId: 'b1', fileId: 'f1', sizeBytes: 3 }, streamOf(new Uint8Array([1, 2, 3])), () => {}, new AbortController().signal);
+    let server = false;
+    const handler = (call: { path: string }) => {
+      if (!server) return down();
+      if (call.path === '/api/v1/me') return ok(ME);
+      if (call.path === '/api/v1/books/b1') return ok({ id: 'b1', title: 'Dune', authors: [], created_at: 1, updated_at: 1 });
+      if (call.path === '/api/v1/books/b1/files') return ok([file('f2', 'epub')]);
+      return { status: 404, body: { error_code: 'not_found', message: 'x' } };
+    };
+    setQueueForTest(memoryQueue());
+    const platform = fakePlatform({ handler, online: false });
+    pair(platform.storage);
+    renderMobile({ platform, modules: [module], route: '/read/b1' });
+    const open = await screen.findByTestId('reader');
+    expect(open).toHaveAttribute('data-file', 'f1');
+    server = true;
+    act(() => platform.network.set(true));
+    await new Promise((r) => setTimeout(r, 100));
+    // The same reader, on the same file: nothing closed or reopened under the person.
+    expect(screen.getByTestId('reader')).toBe(open);
+    expect(open).toHaveAttribute('data-file', 'f1');
+  });
 });
