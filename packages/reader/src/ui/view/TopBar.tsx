@@ -53,7 +53,7 @@ export function TopBar(props: TopBarProps) {
           </>
         ) : null}
         {desktop && anchorAppearance ? (
-          anchorAppearance(<BarButton icon={<AaIcon />} label={t('reader.top.appearance')} aria-haspopup="dialog" />)
+          anchorAppearance(<BarButton tip icon={<AaIcon />} label={t('reader.top.appearance')} aria-haspopup="dialog" />)
         ) : (
           <BarButton tip={desktop} icon={<AaIcon />} label={t('reader.top.appearance')} aria-haspopup="dialog" onClick={onAppearance} />
         )}

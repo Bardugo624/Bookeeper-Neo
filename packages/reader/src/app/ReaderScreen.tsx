@@ -79,6 +79,8 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
     },
     [engine, q, jumps, chrome],
   );
+  const appearanceRef = useRef(appearance);
+  appearanceRef.current = appearance;
   const onFrameKey = useReaderKeys({
     onNext: () => turn('next'),
     onPrev: () => turn('prev'),
@@ -94,8 +96,17 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
   useEffect(() => {
     if (!engine) return;
     const offs = [
-      engine.on('key', onFrameKey),
+      engine.on('key', (k) => {
+        // The page is an iframe: the popover never sees its keys, so close it here.
+        if (appearanceRef.current && k.key === 'Escape') setAppearance(false);
+        onFrameKey(k);
+      }),
       engine.on('tap', (m) => {
+        if (appearanceRef.current) {
+          // A click on the page is an outside click for the anchored panel; it only closes it.
+          setAppearance(false);
+          return;
+        }
         if (m.zone === 'center') chrome.onTap('center');
         else turn(m.zone === 'start' ? 'prev' : 'next');
       }),
