@@ -49,6 +49,8 @@ export default defineConfig({
       workbox: {
         // The app shell only. The API is never cached: no runtime caching at all.
         globPatterns: ['**/*.{js,css,html,woff2,png,svg}'],
+        // The reader engine trial of phase 10B is opened on purpose, never cached for every person.
+        globIgnores: ['prova-lettore/**'],
         navigateFallback: 'index.html',
         navigateFallbackAllowlist: [/^\/(?:index\.html)?$/],
         cleanupOutdatedCaches: true,

@@ -1,0 +1,46 @@
+name: Reader trial
+
+# The reader engine trial of phase 10B in Chromium, WebKit and Firefox: page-turn times in a large EPUB,
+# and a hostile EPUB whose code and remote resources must stay blocked. The results are an artifact.
+
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore: [main]
+    paths:
+      - "apps/mobile/public/prova-lettore/**"
+      - "scripts/reader-trial/**"
+      - ".github/workflows/reader-trial.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  trial:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: The books are the generator's
+        run: |
+          node scripts/reader-trial/make-epubs.mjs
+          git diff --exit-code -- apps/mobile/public/prova-lettore/libri
+      - name: Playwright and its three engines
+        run: |
+          mkdir -p "$RUNNER_TEMP/pw"
+          cd "$RUNNER_TEMP/pw"
+          npm init -y > /dev/null
+          npm install --no-audit --no-fund playwright@1.63.0
+          npx playwright install --with-deps chromium webkit firefox
+      - name: Trial
+        env:
+          NODE_PATH: ${{ runner.temp }}/pw/node_modules
+        run: node scripts/reader-trial/run.mjs reader-trial.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reader-trial
+          path: reader-trial.json
