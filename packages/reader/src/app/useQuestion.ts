@@ -48,7 +48,7 @@ export function useQuestion({ backend, opened, relocation, localAtOpen, sources,
     if (offer && resumeOpen) {
       const percent = Math.round(offer.percent);
       const s = offer.source;
-      const when = sinceText(locale, offer.at);
+      const when = sinceText(t, locale, offer.at);
       const go = () => {
         setStayed(true);
         goTo(offer.target);

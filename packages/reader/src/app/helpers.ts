@@ -48,16 +48,25 @@ export function chapterAtFraction(toc: readonly TocItem[], fraction: number): st
   return found;
 }
 
-/** «2 giorni fa», in the reader's language. */
-export function sinceText(locale: string, atSeconds: number, nowMs: number = Date.now()): string {
-  const diff = Math.round((atSeconds * 1000 - nowMs) / 1000);
-  const abs = Math.abs(diff);
-  const units: [Intl.RelativeTimeFormatUnit, number][] = [
-    ['day', 86400],
-    ['hour', 3600],
-    ['minute', 60],
-  ];
-  const fmt = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
-  for (const [unit, size] of units) if (abs >= size) return fmt.format(Math.round(diff / size), unit);
-  return fmt.format(0, 'minute');
+type T = (key: string, vars?: Record<string, string | number>) => string;
+
+/**
+ * When a position was saved: «adesso», «alle 15:49», «ieri alle 22:40»,
+ * «il 26 novembre», «il 26 novembre 2025», in the reader's language.
+ */
+export function sinceText(t: T, locale: string, atSeconds: number, nowMs: number = Date.now()): string {
+  const loc = locale.startsWith('en') ? 'en-GB' : locale;
+  const at = new Date(atSeconds * 1000);
+  const now = new Date(nowMs);
+  if (Math.abs(nowMs - atSeconds * 1000) < 60_000) return t('reader.resume.when_now');
+  const day = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const time = new Intl.DateTimeFormat(loc, { hour: '2-digit', minute: '2-digit', hour12: false }).format(at);
+  const days = Math.round((day(now) - day(at)) / 86_400_000);
+  if (days === 0) return t('reader.resume.when_today', { time });
+  if (days === 1) return t('reader.resume.when_yesterday', { time });
+  const date =
+    at.getFullYear() === now.getFullYear()
+      ? new Intl.DateTimeFormat(loc, { day: 'numeric', month: 'long' }).format(at)
+      : new Intl.DateTimeFormat(loc, { day: 'numeric', month: 'long', year: 'numeric' }).format(at);
+  return t('reader.resume.when_date', { date });
 }
