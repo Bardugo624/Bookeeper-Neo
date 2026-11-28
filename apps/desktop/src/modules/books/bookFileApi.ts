@@ -8,6 +8,8 @@ export interface BookFile {
   size_bytes: number;
   name: string;
   created_at: number;
+  /** SHA-256 of the content (the same value as its `ETag`). */
+  sha256: string;
   missing: boolean;
   uploaded_by?: { id: string; display_name: string } | null;
 }

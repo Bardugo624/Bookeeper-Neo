@@ -1,5 +1,5 @@
 import { ApiError, type Transport, type TransportResponse } from '@bookeeper/api';
-import { NETWORK_PROBE, type Connection, type Connections, type DownloadRequest, type DownloadResult, type Found, type NotificationControls, type NotificationPermission, type Platform, type ProbeOut, type SaveFileRequest, type SaveFileResult, type SharingStatus, type UpdateChannel, type UpdateProgress, type UpdateState, type WindowControls } from './types';
+import { NETWORK_PROBE, type Connection, type Connections, type DownloadRequest, type DownloadResult, type Found, type NotificationControls, type NotificationPermission, type Platform, type ProbeOut, type ReaderFileArgs, type SaveFileRequest, type SaveFileResult, type SharingStatus, type UpdateChannel, type UpdateProgress, type UpdateState, type WindowControls } from './types';
 
 type Handler = (req: {
   method: string;
@@ -18,12 +18,20 @@ export interface FakePlatform extends Platform {
   setProbe(out: ProbeOut): void;
   setFound(found: Found[]): void;
   windowCalls: string[];
+  /** Every title given to `setWindowTitle`, in order. */
+  titles: string[];
   /** Every `saveFile` request, in order. */
   saved: SaveFileRequest[];
   /** Every `downloadToFile` request, in order. */
   downloads: DownloadRequest[];
   /** Result of the next `downloadToFile` calls (default `{ saved: true }`). */
   setDownloadResult(r: DownloadResult | (() => DownloadResult | Promise<DownloadResult>)): void;
+  /** Every `readerFile` request, in order. */
+  readerFiles: ReaderFileArgs[];
+  /** Every address given to `openUrl`, in order. */
+  opened: string[];
+  /** What `readerFile` answers (default: `asset://localhost/reader/<sha256>.<format>`). */
+  setReaderFile(h: (args: ReaderFileArgs) => string | Promise<string>): void;
   /** Result of the next `saveFile` calls (default `{ saved: true }`). */
   setSaveResult(r: SaveFileResult): void;
   setMaximized(v: boolean): void;
@@ -103,6 +111,9 @@ export function fakePlatform(opts: FakePlatformOptions = {}): FakePlatform {
   let saveResult: SaveFileResult = { saved: true };
   const saved: SaveFileRequest[] = [];
   const downloads: DownloadRequest[] = [];
+  const readerFiles: ReaderFileArgs[] = [];
+  const opened: string[] = [];
+  let readerHandler: (args: ReaderFileArgs) => string | Promise<string> = (a) => `asset://localhost/reader/${a.sha256}.${a.format}`;
   let downloadResult: DownloadResult | (() => DownloadResult | Promise<DownloadResult>) = { saved: true };
   const sharingCalls: FakePlatform['sharingCalls'] = [];
   let sharingHandler: Parameters<FakePlatform['setSharingHandler']>[0] = (enabled, port, cur) => ({
@@ -117,6 +128,7 @@ export function fakePlatform(opts: FakePlatformOptions = {}): FakePlatform {
   });
   const resizeListeners = new Set<() => void>();
   const windowCalls: string[] = [];
+  const titles: string[] = [];
   const progressListeners = new Set<(p: UpdateProgress) => void>();
   let updateAnswer: UpdateState | ((channel: UpdateChannel) => UpdateState) = opts.updates?.state ?? { state: 'disabled' };
   let installHandler: (channel: UpdateChannel) => Promise<void> = () => new Promise<void>(() => {});
@@ -193,8 +205,14 @@ export function fakePlatform(opts: FakePlatformOptions = {}): FakePlatform {
     notificationsFake,
     state: opts.connections ?? { active: null, items: [] },
     windowCalls,
+    titles,
     saved,
     downloads,
+    readerFiles,
+    opened,
+    setReaderFile(h) {
+      readerHandler = h;
+    },
     setDownloadResult(r) {
       downloadResult = r;
     },
@@ -295,12 +313,22 @@ export function fakePlatform(opts: FakePlatformOptions = {}): FakePlatform {
     notifications: opts.notifications ? notifications : null,
     ...(opts.autostart ? { autostart } : {}),
     window: opts.window === false ? null : win,
+    async setWindowTitle(title) {
+      titles.push(title);
+    },
     async deviceName() {
       return 'Test device';
     },
     async downloadToFile(req) {
       downloads.push(req);
       return typeof downloadResult === 'function' ? downloadResult() : { ...downloadResult };
+    },
+    async readerFile(args) {
+      readerFiles.push(args);
+      return readerHandler(args);
+    },
+    async openUrl(url) {
+      opened.push(url);
     },
     async saveFile(req) {
       saved.push(req);

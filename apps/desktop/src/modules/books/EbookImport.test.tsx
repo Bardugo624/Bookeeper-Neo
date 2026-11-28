@@ -51,7 +51,7 @@ function setup(role: Library['role'] = 'owner', books = [book(1, { title: 'Libro
       if (r.method === 'POST' && /^\/api\/v1\/books\/[^/]+\/files$/.test(r.path)) {
         if (JSON.stringify(r.body).includes('rotto')) return { status: 500, body: { error_code: 'internal', message: 'x' } };
         attached.push({ path: r.path, body: r.body });
-        return { status: 201, body: { id: 'f', book_id: 'x', format: 'epub', size_bytes: 1, name: 'n', created_at: 0, missing: false } };
+        return { status: 201, body: { id: 'f', book_id: 'x', format: 'epub', size_bytes: 1, name: 'n', created_at: 0, sha256: 'ab'.repeat(32), missing: false } };
       }
       return undefined;
     },

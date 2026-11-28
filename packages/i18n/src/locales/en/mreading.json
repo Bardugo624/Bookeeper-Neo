@@ -44,5 +44,10 @@
   "note": {
     "label": "Note",
     "placeholder": "What did you think?"
+  },
+  "now": {
+    "title": "Reading now",
+    "all": "See all ({count})",
+    "progress": "Progress of {title}"
   }
 }

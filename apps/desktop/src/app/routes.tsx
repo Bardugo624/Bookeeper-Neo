@@ -29,6 +29,12 @@ export function publicPaths(modules: AppModule[]): string[] {
   return own.includes('/welcome') ? own : ['/welcome', ...own];
 }
 
+/** Full-window routes of the modules: they have the session, not the shell. */
+function screens(modules: AppModule[]): RouteObject[] {
+  const own = modules.flatMap((m) => m.screens ?? []);
+  return own.length === 0 ? [] : [{ errorElement: <RouteError />, children: own }];
+}
+
 export function buildRoutes(modules: AppModule[]): RouteObject[] {
   const home = firstNav(modules);
   const publics = modules.flatMap((m) => m.public ?? []);
@@ -40,6 +46,7 @@ export function buildRoutes(modules: AppModule[]): RouteObject[] {
       children: [
         ...publics,
         ...(hasWelcome ? [] : [{ path: '/welcome', element: <Welcome /> }]),
+        ...screens(modules),
         {
           element: <Shell modules={modules} />,
           // Errors stay inside the content area: sidebar and window controls remain usable.

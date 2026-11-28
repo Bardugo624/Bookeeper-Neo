@@ -1,0 +1,88 @@
+.status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 24px;
+  background: var(--rd-page);
+  color: var(--rd-ink);
+  font-family: var(--bk-font-sans, 'Inter Variable', system-ui, sans-serif);
+}
+
+.loading,
+.failure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 420px;
+  text-align: center;
+}
+
+.cover {
+  width: 120px;
+}
+
+.cover img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.message,
+.body {
+  margin: 0;
+  color: var(--rd-muted);
+  font-size: 14px;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.action {
+  min-height: 36px;
+  padding: 0 16px;
+  border: 1px solid var(--rd-accent-text);
+  border-radius: var(--bk-radius-md, 8px);
+  background: var(--rd-accent-strong);
+  color: var(--rd-on-accent);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* Phone: a finger needs 44 × 48. */
+@media (pointer: coarse) {
+  .action {
+    min-width: 44px;
+    min-height: 48px;
+  }
+}
+
+.action:focus-visible {
+  outline: 2px solid var(--rd-accent-text);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .loading {
+    animation: appear var(--bk-dur) var(--bk-ease) both;
+  }
+
+  @keyframes appear {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}

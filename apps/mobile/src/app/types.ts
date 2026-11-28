@@ -19,6 +19,8 @@ export interface MobileModule {
   tab?: TabItem;
   /** Mounted outside the shell (pairing). */
   public?: RouteObject[];
+  /** With the session but outside the shell, so without the tab bar (the reader). */
+  screens?: RouteObject[];
   /** Mounted once inside the shell while the session is open; draws nothing of its own. */
   background?: ComponentType;
 }

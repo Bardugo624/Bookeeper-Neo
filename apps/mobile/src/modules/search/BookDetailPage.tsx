@@ -9,6 +9,7 @@ import { ErrorState, Screen, apiErrorMessage } from '../../kit';
 import { ReadingBlock } from '../reading';
 import { TagsBlock } from '../tags';
 import { useSession } from '../../session';
+import { ReadButton } from './ReadButton';
 import { Description } from './Description';
 import { BookFiles } from './BookFiles';
 import { canEditBooks } from './editModel';
@@ -50,6 +51,7 @@ function Detail({ book }: { book: BookOut }) {
         {book.authors.length > 0 ? <p className={styles.authors}>{book.authors.join(', ')}</p> : null}
         <OwnerLine book={book} />
       </div>
+      <ReadButton book={book} />
       <WhereBlock book={book} />
       <LoanBlock book={book} />
       <ReadingBlock book={book} />

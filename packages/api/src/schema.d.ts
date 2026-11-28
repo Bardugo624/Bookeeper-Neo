@@ -281,6 +281,38 @@ export interface paths {
         patch: operations["patch_book"];
         trace?: never;
     };
+    "/api/v1/books/{id}/annotations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_annotations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/books/{id}/annotations/{annotation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["put_annotation"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/books/{id}/cover": {
         parameters: {
             query?: never;
@@ -1150,6 +1182,24 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AnnotationOut: {
+            cfi: string;
+            chapter?: string | null;
+            color?: string | null;
+            /** Format: int64 */
+            created_at: number;
+            /** Format: int64 */
+            deleted_at?: number | null;
+            file_sha256: string;
+            id: string;
+            kind: string;
+            note?: string | null;
+            /** Format: double */
+            percent: number;
+            text: string;
+            /** Format: int64 */
+            updated_at: number;
+        };
         /** @description JSON body of every API error response. */
         ApiErrorBody: {
             /** @description Stable, machine-readable `snake_case` code. */
@@ -1278,6 +1328,8 @@ export interface components {
             /** @description True when the file is not on the server's disk any more. */
             missing: boolean;
             name: string;
+            /** @description SHA-256 of the content, in lowercase hex: the same value as the content's `ETag`. */
+            sha256: string;
             /** Format: int64 */
             size_bytes: number;
             uploaded_by?: null | components["schemas"]["PersonRef"];
@@ -2030,6 +2082,8 @@ export interface components {
         };
         PositionOut: {
             device_id?: string | null;
+            /** @description `desktop` or `mobile`; null when the device no longer exists. */
+            device_kind?: string | null;
             device_name?: string | null;
             file_id: string;
             /** @description `cfi`, `koreader` or `kobo`. */
@@ -2039,6 +2093,37 @@ export interface components {
             /** Format: int64 */
             updated_at: number;
             value: string;
+        };
+        /** @description Body of `PUT /books/{id}/annotations/{annotation_id}`. */
+        PutAnnotation: {
+            /** @description At most 4000 characters. */
+            cfi: string;
+            /** @description At most 300 characters. */
+            chapter?: string | null;
+            /** @description `amber`, `sage`, `terracotta` or `night`: required for a highlight, absent for a bookmark. */
+            color?: string | null;
+            /** Format: int64 */
+            created_at: number;
+            /** @description Writes a tombstone. */
+            deleted: boolean;
+            /** @description A file attached to the book. */
+            file_sha256: string;
+            /** @description `highlight` or `bookmark`. */
+            kind: string;
+            /** @description At most 10000 characters. */
+            note?: string | null;
+            /**
+             * Format: double
+             * @description 0 to 100.
+             */
+            percent: number;
+            /** @description The highlighted text, at most 5000 characters. */
+            text: string;
+            /**
+             * Format: int64
+             * @description Not more than 5 minutes in the future.
+             */
+            updated_at: number;
         };
         /** @description Body of `PUT /books/{id}/tags`. */
         PutBookTags: {
@@ -3611,6 +3696,142 @@ export interface operations {
             };
             /** @description progressive_taken */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description payload_too_large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description validation: invalid body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    list_annotations: {
+        parameters: {
+            query?: {
+                /** @description Only the annotations changed after this time (deleted ones included). */
+                since?: number;
+            };
+            header?: never;
+            path: {
+                /** @description Book id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The caller's annotations in the book. Without `since`, the live ones by position; with it, everything changed after that time, deleted included */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnnotationOut"][];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description not_found: unknown book */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    put_annotation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Book id */
+                id: string;
+                /** @description Annotation id, chosen by the device */
+                annotation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PutAnnotation"];
+            };
+        };
+        responses: {
+            /** @description The stored annotation: the new one, or the saved one when it is as new or newer */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnnotationOut"];
+                };
+            };
+            /** @description bad_request: malformed JSON or wrong content type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description unauthorized, token_expired or device_revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description forbidden: guests cannot */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            /** @description not_found: unknown book, file or annotation of someone else */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

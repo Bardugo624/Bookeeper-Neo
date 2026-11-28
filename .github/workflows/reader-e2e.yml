@@ -1,0 +1,54 @@
+name: Reader e2e
+
+# The reader engine's end-to-end test in Chromium, WebKit and Firefox, on the real engine page (CSP included):
+# page-turn and search times in a large EPUB, the reading place across layout changes, a hostile EPUB that must
+# stay inert, and a clean close. The results are an artifact.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "packages/reader/**"
+      - "apps/*/reader-frame.html"
+      - ".github/workflows/reader-e2e.yml"
+  push:
+    branches-ignore: [main]
+    paths:
+      - "packages/reader/**"
+      - "apps/*/reader-frame.html"
+      - ".github/workflows/reader-e2e.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: The books are the generator's
+        run: |
+          node packages/reader/e2e/make-epubs.mjs
+          git diff --exit-code -- packages/reader/e2e/books
+      - name: Playwright and its three engines
+        run: |
+          mkdir -p "$RUNNER_TEMP/pw"
+          cd "$RUNNER_TEMP/pw"
+          npm init -y > /dev/null
+          npm install --no-audit --no-fund playwright@1.63.0
+          npx playwright install --with-deps chromium webkit firefox
+      - name: Test
+        env:
+          NODE_PATH: ${{ runner.temp }}/pw/node_modules
+        run: npm run test:e2e -w @bookeeper/reader -- --out "$GITHUB_WORKSPACE/reader-e2e.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reader-e2e
+          path: reader-e2e.json

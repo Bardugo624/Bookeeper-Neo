@@ -13,7 +13,7 @@
 }
 
 .track {
-    stroke: var(--bk-inset);
+    stroke: var(--bk-border-strong);
 }
 
 .arc {

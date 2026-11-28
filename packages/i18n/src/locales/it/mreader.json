@@ -1,0 +1,25 @@
+{
+  "loading": "Apro il lettore",
+  "error": {
+    "text": "Non riesco ad aprire il libro. Controlla la connessione e riprova."
+  },
+  "offline": {
+    "missing": "Sei offline e questo libro non è sul telefono.",
+    "download": "Scarica per leggere offline",
+    "saving": "Scarico… {percent}%",
+    "menuCancel": "Scarico… {percent}% · Annulla",
+    "cancel": "Annulla",
+    "kept": "Sul telefono · {size}",
+    "remove": "Togli dal telefono",
+    "failed": "Non sono riuscito a scaricare il libro. Riprova.",
+    "install": {
+      "title": "Per leggere offline, aggiungi Bookeeper alla schermata Home",
+      "why": "Su iPhone i libri scaricati restano solo nell'app della schermata Home. Da Safari possono sparire dopo qualche giorno.",
+      "one": "Tocca {share} **Condividi**, in basso.",
+      "two": "Scegli {plus} **Aggiungi alla schermata Home**.",
+      "three": "Apri Bookeeper dalla nuova icona e scarica il libro.",
+      "online": "Si legge comunque online.",
+      "done": "Ho capito"
+    }
+  }
+}

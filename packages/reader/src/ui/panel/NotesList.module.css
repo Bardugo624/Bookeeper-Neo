@@ -1,0 +1,203 @@
+.notes {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 16px 12px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 32px;
+  padding: 0 9px;
+  border: 1px solid var(--rd-rule);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--rd-muted);
+  font: inherit;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.chip[aria-pressed='true'] {
+  border-color: transparent;
+  background: var(--rd-accent-soft);
+  color: var(--rd-accent-text);
+}
+
+.chip:focus-visible,
+.more:focus-visible,
+.body:focus-visible,
+.swatch:focus-visible,
+.export:focus-visible {
+  outline: 2px solid var(--rd-accent-text);
+  outline-offset: 2px;
+}
+
+.dot {
+  display: inline-block;
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.list {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0 16px;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.item {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--rd-rule);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--rd-muted);
+  font-size: 13px;
+}
+
+.mark {
+  display: inline-flex;
+  flex: none;
+}
+
+.where {
+  flex: 1;
+  min-width: 0;
+}
+
+.more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: var(--bk-radius-sm);
+  background: transparent;
+  color: var(--rd-muted);
+  cursor: pointer;
+}
+
+.more:hover {
+  background: var(--rd-inset);
+}
+
+.body {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--rd-ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.text {
+  font-family: var(--bk-font-serif);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.note {
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  border-radius: var(--bk-radius-sm);
+  background: var(--rd-inset);
+  color: var(--rd-ink);
+  font-size: 14px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.colors {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.swatch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.swatch[aria-checked='true'] {
+  background: var(--rd-accent-soft);
+}
+
+.swatch .dot {
+  width: 18px;
+  height: 18px;
+}
+
+.empty {
+  flex: 1;
+  margin: 0;
+  padding: 16px;
+  color: var(--rd-muted);
+  font-size: 14px;
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--rd-rule);
+}
+
+.private {
+  color: var(--rd-muted);
+  font-size: 13px;
+}
+
+.export {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--rd-rule);
+  border-radius: var(--bk-radius-sm);
+  background: var(--rd-raised);
+  color: var(--rd-ink);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.export:hover {
+  background: var(--rd-inset);
+}
+
+/* In the sheet the content lines up with the title: no gutter of its own. */
+:global([data-variant='sheet']) .filters,
+:global([data-variant='sheet']) .list,
+:global([data-variant='sheet']) .foot {
+  padding-right: 0;
+  padding-left: 0;
+}

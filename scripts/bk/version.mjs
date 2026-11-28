@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const NL = '\\r?\\n';
-const PKGS = ['packages/ui', 'packages/api', 'packages/i18n', 'apps/desktop', 'apps/mobile', 'apps/setup'];
+const PKGS = ['packages/ui', 'packages/api', 'packages/i18n', 'packages/reader', 'apps/desktop', 'apps/mobile', 'apps/setup'];
 
 const read = (root, rel) => readFileSync(join(root, rel), 'utf8');
 

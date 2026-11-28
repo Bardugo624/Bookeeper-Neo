@@ -17,6 +17,7 @@ const TABLES: &[&str] = &[
     "tags",
     "book_tags",
     "audit_log",
+    "annotations",
     "server_meta",
 ];
 
@@ -175,7 +176,7 @@ fn a_version_1_database_is_migrated_without_losing_data() {
         (title.as_str(), status.as_str(), rating, page),
         ("Dune", "read", 5, None)
     );
-    assert_eq!(version, 5);
+    assert_eq!(version, 6);
     assert!(db
         .with(|c| c.execute("UPDATE reading SET current_page = -1", []))
         .is_err());
@@ -230,7 +231,7 @@ fn migration_0003_applies_to_a_populated_version_2_database() {
             )
         })
         .unwrap();
-    assert_eq!((rows, with_id, version), (2, 0, 5));
+    assert_eq!((rows, with_id, version), (2, 0, 6));
     // New rows take an id; the id is unique, a missing one is not.
     db.with(|c| {
         c.execute(
@@ -286,7 +287,7 @@ fn migration_0005_applies_to_a_populated_version_4_database() {
             )
         })
         .unwrap();
-    assert_eq!((percent, version), (None, 5));
+    assert_eq!((percent, version), (None, 6));
     db.with(|c| {
         c.execute_batch(
             "INSERT INTO book_files (id,library_id,book_id,format,sha256,size_bytes,original_name,koreader_hash,created_at)

@@ -1,0 +1,65 @@
+/* The sheet's own dialog, marked from an anchor inside its content. */
+[role='dialog'][data-reader-sheet-dialog] {
+  top: auto;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: var(--reader-sheet-h, 70dvh);
+  max-height: 100dvh;
+  translate: none;
+  border-radius: var(--bk-radius-lg) var(--bk-radius-lg) 0 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  touch-action: pan-y;
+}
+
+/* A sheet that fits its content: as tall as the rows, never past 92% of the screen. */
+[role='dialog'][data-reader-sheet-dialog][data-reader-sheet-fit] {
+  height: var(--reader-sheet-h, auto);
+  max-height: var(--reader-sheet-h, 92dvh);
+}
+
+/* The header holds the grip band: a vertical drag there is a pull, never a scroll the browser takes. */
+[role='dialog'][data-reader-sheet-dialog] > header {
+  touch-action: none;
+}
+
+/* The pull-up grip: the top band of the sheet. */
+[role='dialog'][data-reader-sheet-dialog]::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 36px;
+  height: 4px;
+  translate: -50% 0;
+  border-radius: 2px;
+  background: currentcolor;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [role='dialog'][data-reader-sheet-dialog] {
+    animation: reader-sheet-rise var(--bk-dur-slow) var(--bk-ease) both;
+  }
+
+  @keyframes reader-sheet-rise {
+    from {
+      transform: translateY(24px);
+      opacity: 0;
+    }
+
+    to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+}
+
+/* The close button of the sheet is 44 × 48 for a thumb; the negative margin keeps the header from growing. */
+[role='dialog'][data-reader-sheet-dialog] > header > button {
+  width: 44px;
+  height: 48px;
+  margin: -11px -9px -11px 0;
+}

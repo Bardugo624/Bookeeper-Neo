@@ -19,3 +19,14 @@ it('fake notifications are null unless asked for and follow the permission flow'
   await p.notifications!.send({ title: 'T', body: 'B' });
   expect(p.notificationsFake).toMatchObject({ requests: 1, sent: [{ title: 'T', body: 'B' }] });
 });
+
+it('fake readerFile and openUrl record their calls', async () => {
+  const p = fakePlatform();
+  const args = { bookId: 'b', fileId: 'f', sha256: 'abc', format: 'epub' };
+  expect(await p.readerFile(args)).toBe('asset://localhost/reader/abc.epub');
+  p.setReaderFile(() => 'blob:x');
+  expect(await p.readerFile(args)).toBe('blob:x');
+  await p.openUrl('https://duckduckgo.com/?q=a');
+  expect(p.readerFiles).toEqual([args, args]);
+  expect(p.opened).toEqual(['https://duckduckgo.com/?q=a']);
+});

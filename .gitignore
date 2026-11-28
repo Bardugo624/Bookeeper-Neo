@@ -37,3 +37,9 @@ coverage.txt
 
 # Rust
 target/
+
+# Reader e2e build output
+packages/reader/e2e/dist/
+
+# Reader e2e output, anywhere
+reader-e2e.json

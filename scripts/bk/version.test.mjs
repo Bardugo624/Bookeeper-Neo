@@ -14,7 +14,7 @@ const FILES = [
   'package-lock.json',
   'apps/desktop/src-tauri/tauri.conf.json',
   'packages/api/openapi.json',
-  ...['packages/ui', 'packages/api', 'packages/i18n', 'apps/desktop', 'apps/mobile', 'apps/setup'].map((p) => `${p}/package.json`),
+  ...['packages/ui', 'packages/api', 'packages/i18n', 'packages/reader', 'apps/desktop', 'apps/mobile', 'apps/setup'].map((p) => `${p}/package.json`),
 ];
 
 function copyRepo(crlf = false) {
@@ -37,7 +37,7 @@ test('bumpVersion cambia ogni posto e solo le righe con la versione di partenza'
     const changed = bumpVersion(tmp, '9.9.9');
     assert.ok(changed.includes('Cargo.toml') && changed.includes('Cargo.lock'));
     assert.ok(changed.includes('package-lock.json') && changed.includes('packages/api/openapi.json'));
-    assert.equal(changed.length, 11);
+    assert.equal(changed.length, 12);
     assert.equal(readVersion(tmp), '9.9.9');
     for (const f of FILES.filter((x) => x !== 'CHANGELOG.md')) {
       const a = lines(before[f]);

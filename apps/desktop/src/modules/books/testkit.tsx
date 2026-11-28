@@ -1,6 +1,8 @@
 import { act } from '@testing-library/react';
 import { vi } from 'vitest';
+import { useLocation, useParams } from 'react-router';
 import type { BookFacets, BookOut, RawResponse } from '@bookeeper/api';
+import type { AppModule } from '../../app';
 import { renderApp } from '../../app/testing';
 import { fakeConnection, fakePlatform, type FakePlatform } from '../../platform/testing';
 import { ME, ok } from '../../session/fixtures';
@@ -72,6 +74,8 @@ export interface Library {
   people?: Array<{ id: string; display_name: string; is_me?: boolean }>;
   /** Answer of `GET /books/:id/readers`, by book id. */
   readers?: Record<string, unknown[]>;
+  /** Book ids in the order of the caller's reading states (most recently read first); default: newest metadata. */
+  readOrder?: string[];
   /** Answer of `GET /shelves`; one shelf by default. */
   shelves?: unknown[];
   /** Answers first; return undefined to fall through to the in-memory library. */
@@ -113,6 +117,12 @@ export function libraryHandler(lib: Library) {
       const offset = Number(q.get('offset') ?? 0);
       const limit = Number(q.get('limit') ?? 50);
       return ok({ items: rows.slice(offset, offset + limit), total: rows.length });
+    }
+    if (p === '/api/v1/reading') {
+      const rows = lib.books
+        .filter((b) => b.reading && (!q.get('status') || b.reading.status === q.get('status')))
+        .sort((a, b) => (lib.readOrder ? lib.readOrder.indexOf(a.id) - lib.readOrder.indexOf(b.id) : b.updated_at - a.updated_at));
+      return ok({ items: rows.map((b) => ({ book: { id: b.id, title: b.title, authors: [], cover_color: null, page_count: null }, reading: { book_id: b.id, status: b.reading!.status } })), total: rows.length });
     }
     if (/^\/api\/v1\/books\/[^/]+\/reading$/.test(p)) return ok(null);
     const m = /^\/api\/v1\/books\/([^/]+)$/.exec(p);
@@ -158,6 +168,20 @@ export function booksPlatform(lib: Library, connections?: Connections): FakePlat
 export function renderBooks(lib: Library, route = '/books', connections?: Connections) {
   const platform = booksPlatform(lib, connections);
   return { ...renderApp({ platform, modules: [module], route }), platform };
+}
+
+/** Shows where `/read/:bookId` would take the person, in place of the reader. */
+function ReaderProbe() {
+  const { bookId } = useParams();
+  const { search } = useLocation();
+  return <p data-testid="reader-probe">{`reader ${bookId}${search}`}</p>;
+}
+
+/** Like `renderBooks`, with a stand-in for the reader route. */
+export function renderBooksWithReader(lib: Library, route = '/books') {
+  const platform = booksPlatform(lib);
+  const probe: AppModule = { id: 'reader-probe', routes: [], screens: [{ path: '/read/:bookId', element: <ReaderProbe /> }] };
+  return { ...renderApp({ platform, modules: [module, probe], route }), platform };
 }
 
 /** Paths of the list requests sent so far. */

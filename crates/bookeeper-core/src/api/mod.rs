@@ -2,6 +2,7 @@ use axum::{routing::get, Json, Router};
 
 use crate::{error::ApiError, state::AppState};
 
+pub mod annotations;
 pub mod audit;
 pub mod auth;
 pub mod backup;
@@ -76,6 +77,7 @@ pub fn router(state: AppState) -> Router {
         .merge(ebook_files::routes())
         .merge(book_files::routes())
         .merge(positions::routes())
+        .merge(annotations::routes())
         .merge(transfer::routes())
         .merge(confirm::routes())
         .merge(backup::routes())

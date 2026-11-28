@@ -1,0 +1,42 @@
+/* The sheet is the only dialog open while `data-bottom-sheet` is on <html>. */
+html[data-bottom-sheet] [role='dialog'] {
+  top: auto;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  max-height: 85dvh;
+  translate: none;
+  border-radius: var(--bk-radius-lg) var(--bk-radius-lg) 0 0;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html[data-bottom-sheet] [role='dialog'] {
+    animation: bottom-sheet-rise var(--bk-dur-slow) var(--bk-ease) both;
+  }
+
+  @keyframes bottom-sheet-rise {
+    from {
+      transform: translateY(24px);
+      opacity: 0;
+    }
+
+    to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+}
+
+/* The close button of the sheet is 44 × 48 for a thumb; the negative margin keeps the header from growing. */
+html[data-bottom-sheet] [role='dialog'] > header > button {
+  width: 44px;
+  height: 48px;
+  margin: -11px -9px -11px 0;
+}
+
+/* Titles of sheets break evenly: two balanced lines, not one long and one orphan word. */
+html[data-bottom-sheet] [role='dialog'] h2 {
+  text-wrap: balance;
+}

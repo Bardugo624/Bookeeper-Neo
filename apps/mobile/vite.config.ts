@@ -3,6 +3,8 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig, type Plugin } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+// By path, not by `@bookeeper/reader/vite`: Vite's default config loader leaves a linked package to Node, which cannot run its TypeScript.
+import { foliateAssets } from '../../packages/reader/src/vite/foliateAssets';
 
 /** A color of the design tokens (`--bk-<name>`), first definition (light theme). */
 function token(name: string): string {
@@ -21,10 +23,29 @@ const themeColor = (): Plugin => ({
   transformIndexHtml: () => [{ tag: 'meta', attrs: { name: 'theme-color', content: THEME }, injectTo: 'head' }],
 });
 
+/** The two pages of the build: the app, and the reader's engine (`/reader-frame.html`, with its own CSP). */
+export const input = {
+  main: fileURLToPath(new URL('./index.html', import.meta.url)),
+  'reader-frame': fileURLToPath(new URL('./reader-frame.html', import.meta.url)),
+};
+
+/** The app shell, and the reader: its page, foliate-js and pdf.js, so that a book opens offline. */
+export const workbox = {
+  globPatterns: ['**/*.{js,mjs,css,html,woff2,png,svg,bcmap,pfb,ttf}', 'reader/**/*.{js,mjs,css,bcmap,pfb,ttf}'],
+  // The worker of pdf.js weighs 2.1 MB.
+  maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+  // The API is never cached: no runtime caching at all. The reader's page is its own document, not the app shell.
+  navigateFallback: 'index.html',
+  navigateFallbackAllowlist: [/^\/(?:index\.html)?$/],
+  cleanupOutdatedCaches: true,
+};
+
 export default defineConfig({
   plugins: [
     react(),
     themeColor(),
+    // Serves /reader/foliate-js/ in dev and copies it into dist/ in the build. Not under Vitest: a test run must not write into its dummy outDir.
+    ...(process.env.VITEST ? [] : [foliateAssets() as unknown as Plugin]),
     // The workspace hoists Vite 5 for the 0.3 client; the app and the plugin run on Vite 7.
     VitePWA({
       // "Prompt": a new version waits until the user taps "Aggiorna".
@@ -46,18 +67,12 @@ export default defineConfig({
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
-      workbox: {
-        // The app shell only. The API is never cached: no runtime caching at all.
-        globPatterns: ['**/*.{js,css,html,woff2,png,svg}'],
-        navigateFallback: 'index.html',
-        navigateFallbackAllowlist: [/^\/(?:index\.html)?$/],
-        cleanupOutdatedCaches: true,
-      },
+      workbox,
     }) as unknown as Plugin,
   ],
   // In dev the API lives on the Bookeeper server (default port 7842), not on Vite.
   server: { port: 5174, strictPort: true, proxy: { '/api': 'http://localhost:7842' } },
-  build: { outDir: 'dist', emptyOutDir: true },
+  build: { outDir: 'dist', emptyOutDir: true, rollupOptions: { input } },
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test-setup.ts'],

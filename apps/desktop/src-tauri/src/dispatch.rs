@@ -48,7 +48,7 @@ pub(crate) fn check_request(method: &str, path: &str) -> Result<Method, &'static
 }
 
 /// Request headers to forward: the allowed ones, lower-cased, invalid values dropped.
-/// `Authorization` is forwarded only to a remote server.
+/// `Authorization` is forwarded to the remote server and to the in-process core alike.
 pub(crate) fn filter_request_headers(
     headers: &BTreeMap<String, String>,
     remote: bool,
@@ -138,7 +138,7 @@ fn apply_allowed_headers(
     mut builder: axum::http::request::Builder,
     headers: &BTreeMap<String, String>,
 ) -> axum::http::request::Builder {
-    for (name, value) in filter_request_headers(headers, false) {
+    for (name, value) in filter_request_headers(headers, true) {
         builder = builder.header(name, value);
     }
     builder
@@ -423,7 +423,7 @@ mod tests {
         assert_eq!(r.status, 200);
         assert_eq!(
             String::from_utf8(decode(&r)).unwrap(),
-            "if-none-match,x-confirm-token"
+            "authorization,if-none-match,x-confirm-token"
         );
     }
 

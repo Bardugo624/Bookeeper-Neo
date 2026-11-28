@@ -1,0 +1,5 @@
+# id	deps	difficulty	files	dwarf	qa	title
+reader-p3	-	low	packages/reader/src/ui/view/Sheet.css,packages/reader/src/app/useDocumentTheme.ts,packages/reader/src/app/useDocumentTheme.test.tsx,packages/reader/src/ui/look/appearance.test.tsx,packages/reader/reader-e2e.json,.gitignore	sonnet	opus	Lettore: i P3 della 10B2 fuori dalla cornice
+frame-p3	-	low	packages/reader/src/frame	sonnet	opus	Lettore: il risultato scelto resta segnato quando torni al suo capitolo
+mobile-p3	-	low	apps/mobile/src/modules/search/ReadButton.tsx,apps/mobile/src/modules/search/ReadButton.module.css,apps/mobile/src/modules/search/ReadButton.test.tsx	sonnet	opus	Telefono: la misura del file una volta sola
+ring-track-p3	-	low	packages/ui/src/book/ProgressRing.module.css,packages/ui/src/book/ProgressRing.test.tsx	sonnet	opus	Kit: l'anello vuoto si vede

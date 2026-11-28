@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import { fakeConnection } from './testing';
 import { browserPlatform } from './browser';
 
@@ -32,7 +32,12 @@ it('discover is empty, there is no window and probe reports a network error offl
 it('saveFile downloads through an object URL and revokes it', async () => {
   const create = vi.fn(() => 'blob:x');
   const revoke = vi.fn();
+  const realCreate = URL.createObjectURL;
+  const realRevoke = URL.revokeObjectURL;
   Object.assign(URL, { createObjectURL: create, revokeObjectURL: revoke });
+  onTestFinished(() => {
+    Object.assign(URL, { createObjectURL: realCreate, revokeObjectURL: realRevoke });
+  });
   const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
   const out = await browserPlatform('http://x').saveFile({
     suggestedName: 'a.csv',
@@ -123,5 +128,27 @@ describe('downloadToFile', () => {
       .downloadToFile({ url: '/api/v1/x', suggestedName: 'a' })
       .then(() => null, (e: unknown) => e);
     expect((failure as { code?: string }).code).toBe('network');
+  });
+
+  it('readerFile gives a temporary address of the content from the API', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response('abc'));
+    vi.stubGlobal('fetch', fetchMock);
+    const create = vi.fn().mockReturnValue('blob:z');
+    vi.stubGlobal('URL', Object.assign(URL, { createObjectURL: create }));
+    const url = await browserPlatform('http://x/').readerFile({ bookId: 'b1', fileId: 'f1', sha256: 's', format: 'epub', headers: { Authorization: 'Bearer t' } });
+    expect(url).toBe('blob:z');
+    expect(fetchMock).toHaveBeenCalledWith('http://x/api/v1/books/b1/files/f1/content', { headers: { Authorization: 'Bearer t' } });
+  });
+
+  it('readerFile rejects when the library refuses', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('no', { status: 404 })));
+    await expect(browserPlatform('http://x').readerFile({ bookId: 'b', fileId: 'f', sha256: 's', format: 'epub' })).rejects.toMatchObject({ status: 404 });
+  });
+
+  it('openUrl opens a new tab', async () => {
+    const open = vi.fn();
+    vi.stubGlobal('open', open);
+    await browserPlatform('http://x').openUrl('https://duckduckgo.com/?q=x');
+    expect(open).toHaveBeenCalledWith('https://duckduckgo.com/?q=x', '_blank', 'noopener,noreferrer');
   });
 });

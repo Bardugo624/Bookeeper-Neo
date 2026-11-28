@@ -74,6 +74,8 @@ pub struct BookFileOut {
     pub name: String,
     pub created_at: i64,
     pub uploaded_by: Option<PersonRef>,
+    /// SHA-256 of the content, in lowercase hex: the same value as the content's `ETag`.
+    pub sha256: String,
     /// True when the file is not on the server's disk any more.
     pub missing: bool,
 }
@@ -99,6 +101,7 @@ fn map_file(row: &rusqlite::Row<'_>) -> rusqlite::Result<FileRow> {
             name: row.get(4)?,
             created_at: row.get(5)?,
             uploaded_by: PersonRef::from_row(row, 6)?,
+            sha256: row.get(8)?,
             missing: false,
         },
         sha256: row.get(8)?,

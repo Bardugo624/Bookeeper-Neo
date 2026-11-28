@@ -1,6 +1,6 @@
 {
   "name": "@bookeeper/mobile",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -12,6 +12,7 @@
   "dependencies": {
     "@bookeeper/api": "*",
     "@bookeeper/i18n": "*",
+    "@bookeeper/reader": "*",
     "@bookeeper/ui": "*",
     "@tanstack/react-query": "^5.108.4",
     "@zxing/browser": "^0.1.5",

@@ -37,6 +37,7 @@ const MIGRATIONS: &[&str] = &[
     include_str!("migrations/0003_invites.sql"),
     include_str!("migrations/0004_perf.sql"),
     include_str!("migrations/0005_ebooks.sql"),
+    include_str!("migrations/0006_annotations.sql"),
 ];
 
 /// Highest schema version this build understands.

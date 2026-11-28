@@ -1,0 +1,106 @@
+.now {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.heading {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bk-text-muted);
+}
+
+.all {
+  padding: 2px 4px;
+  border: 0;
+  border-radius: var(--bk-radius-sm);
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  color: var(--bk-accent-text);
+  cursor: pointer;
+}
+
+.all:hover {
+  text-decoration: underline;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Always four equal columns, even with fewer books: a card never grows to fill the row. */
+.item {
+  min-width: 0;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  border: 1px solid var(--bk-border);
+  border-radius: var(--bk-radius-lg);
+  background: var(--bk-surface);
+  color: inherit;
+  text-decoration: none;
+}
+
+.card:hover {
+  border-color: var(--bk-border-strong);
+}
+
+.text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.title,
+.author {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--bk-text-strong);
+}
+
+.author {
+  font-size: 13px;
+  color: var(--bk-text-muted);
+}
+
+.progress {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.percent {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--bk-text-muted);
+}

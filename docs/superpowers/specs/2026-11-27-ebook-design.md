@@ -184,6 +184,12 @@ Tre fasi, ognuna con il suo run Forge e la sua release: 10A, 10B e 10C (prima KO
 
 La prova apre un EPUB grande e gira 100 pagine. Conferma il motore oppure riapre la scelta.
 
+**Esito (2026-11-28):**
+- La prova automatica conferma foliate-js. In Chromium, WebKit e Firefox una pagina compare in circa 25 ms, con un massimo di 35 ms.
+- Il codice di un libro ostile resta bloccato in tutti e tre i motori.
+- La prova sull'iPhone è stata saltata per scelta del proprietario.
+- Il resoconto è in `docs/superpowers/research/2026-11-28-prova-motore-lettore.md`.
+
 Il collaudo del Kobo e di KOReader si fa sui dispositivi del proprietario, con una lista di controlli da seguire.
 
 ### Fase 10C — Lettori e-ink

@@ -1,0 +1,100 @@
+{
+  "top": {
+    "back": "Indietro",
+    "search": "Cerca",
+    "bookmark": "Aggiungi segnalibro",
+    "bookmark_remove": "Togli il segnalibro",
+    "appearance": "Aspetto",
+    "panel": "Pannello",
+    "more": "Altro"
+  },
+  "bottom": {
+    "label": "Avanzamento e tempi",
+    "percent": "{percent}%",
+    "chapter_left": "{time} alla fine del capitolo",
+    "book_left": "{time} al libro",
+    "jump_back_al": "Torna al {percent}",
+    "jump_back_all": "Torna all'{percent}",
+    "jump_back_allo": "Torna allo {percent}",
+    "toc": "Indice",
+    "notes": "Note",
+    "search": "Cerca",
+    "bookmark": "Segna",
+    "bookmark_remove": "Togli"
+  },
+  "slider": {
+    "label": "Avanzamento nel libro",
+    "value": "{percent}%, {chapter}",
+    "value_plain": "{percent}%",
+    "hint": "{chapter} · {percent}%",
+    "hint_plain": "{percent}%"
+  },
+  "time": {
+    "min": "{minutes} min",
+    "hours": "{hours} h",
+    "hours_min": "{hours} h {minutes} min",
+    "under_a_minute": "meno di 1 min"
+  },
+  "status": {
+    "opening": "Apro il libro…",
+    "cover": "Copertina di {title}"
+  },
+  "error": {
+    "open_failed": {
+      "title": "Questo file non si apre",
+      "body": "Il file potrebbe essere danneggiato o in un formato che il lettore non conosce.",
+      "action": "Scarica il file"
+    },
+    "missing": {
+      "title": "Il file manca sul server",
+      "body": "Il libro è nella libreria ma il suo file non si trova più.",
+      "action": "Torna alla scheda del libro"
+    },
+    "offline": {
+      "title": "Sei offline e questo libro non è sul telefono",
+      "body": "Collegati a internet per leggerlo, oppure scaricalo quando hai rete.",
+      "action": "Torna alla scheda del libro"
+    }
+  },
+  "sheet": {
+    "close": "Chiudi"
+  },
+  "frame": {
+    "title": "Pagina del libro"
+  },
+  "resume": {
+    "question_mobile": "Continua da dove eri sul telefono?",
+    "question_desktop": "Continua da dove eri sul computer?",
+    "question_koreader": "Continua da dove eri su KOReader?",
+    "question_kobo": "Continua da dove eri sul Kobo?",
+    "question_other": "Continua da dove eri su un altro dispositivo?",
+    "page": "Hai segnato pagina {page} ({percent}%)",
+    "when_now": "adesso",
+    "when_today": "alle {time}",
+    "when_yesterday": "ieri alle {time}",
+    "when_date": "il {date}",
+    "when_date_elided": "l'{date}",
+    "stay": "Resta qui",
+    "go_al": "Vai al {percent}",
+    "go_all": "Vai all'{percent}",
+    "go_allo": "Vai allo {percent}"
+  },
+  "end": {
+    "question": "Hai finito il libro. Segnarlo come letto?",
+    "not_yet": "Non ancora",
+    "mark_read": "Segna come letto",
+    "marked": "Segnato come letto",
+    "failed": "Non sono riuscito a segnarlo come letto"
+  },
+  "more": {
+    "open_book": "Apri la scheda del libro"
+  },
+  "notes": {
+    "copied": "Copiato",
+    "copy_failed": "Non sono riuscito a copiare",
+    "removed": "Tolto",
+    "undo": "Annulla",
+    "exported": "Note esportate",
+    "export_failed": "Non sono riuscito a esportare le note"
+  }
+}
