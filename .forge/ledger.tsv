@@ -985,3 +985,7 @@
 2026-11-28T16:15:14Z	bookeeper-fase-10b4	reader-when	qa	opus	PASS	-	-	-	30
 2026-11-28T16:28:12Z	bookeeper-fase-10b4	search-marks	dwarf	opus	-	-	-	-	136
 2026-11-28T16:29:28Z	bookeeper-fase-10b4	search-marks	qa	opus	FAIL	trap	foliate js paginator turns pages on touch swipe by itself paginator js ontouchend snap the app sees only relocate never	foliate-js paginator turns pages on touch swipe by itself (paginator.js #onTouchEnd → snap); the app sees only `relocate`, never… [packages/reader/vendor/foliate-js/paginator.js]	68	1
+2026-11-28T17:40:22Z	bookeeper-fase-10b4b	bar-separator	dwarf	sonnet	-	trap	jsdom vitest does not apply css module styles so layout bugs like flex dropping leading spaces can t be proven by unit tests	jsdom/vitest does not apply CSS-module styles, so layout bugs like flex dropping leading spaces can't be proven by unit tests [packages/reader/src/ui/view/Bars.module.css]	44	1
+2026-11-28T17:41:22Z	bookeeper-fase-10b4b	bar-separator	qa	opus	PASS	trap	reader vitest runs in jsdom without processing css modules no test css include so getcomputedstyle checks against bars module css and other	reader vitest runs in jsdom without processing CSS modules (no test.css.include), so getComputedStyle checks against Bars.module.css and other… [packages/reader/vite.config.ts]	43	1
+2026-11-28T17:41:53Z	bookeeper-fase-10b4b	font-override	dwarf	sonnet	-	-	-	-	136
+2026-11-28T17:44:19Z	bookeeper-fase-10b4b	font-override	qa	opus	PASS	-	-	-	137
