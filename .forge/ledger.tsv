@@ -936,3 +936,5 @@
 2026-11-28T14:10:08Z	bookeeper-fase-10b1	reader-look-p3	qa	opus	PASS	-	-	-	73
 2026-11-28T14:10:15Z	bookeeper-fase-10b1	mobile-p3	dwarf	sonnet	-	-	-	-	63
 2026-11-28T14:11:50Z	bookeeper-fase-10b1	mobile-p3	qa	opus	FAIL	finding	in the mobile readerroute any change that makes me or the files book queries change while a kept copy is on screen goes through	in the mobile ReaderRoute, any change that makes `me` or the files/book queries change while a kept copy is on screen goes through… [apps/mobile/src/modules/reader/ReaderRoute.tsx]	87	1
+2026-11-28T14:19:29Z	bookeeper-fase-10b1	mobile-p3	dwarf	opus	-	-	-	-	80
+2026-11-28T14:20:46Z	bookeeper-fase-10b1	mobile-p3	qa	opus	PASS	-	-	-	69
