@@ -1,0 +1,60 @@
+{
+  "top": {
+    "back": "Indietro",
+    "search": "Cerca",
+    "bookmark": "Aggiungi segnalibro",
+    "bookmark_remove": "Togli il segnalibro",
+    "appearance": "Aspetto",
+    "panel": "Pannello",
+    "more": "Altro"
+  },
+  "bottom": {
+    "label": "Avanzamento e tempi",
+    "percent": "{percent}%",
+    "chapter_left": "{time} alla fine del capitolo",
+    "book_left": "{time} al libro",
+    "jump_back": "Torna al {percent}%",
+    "toc": "Indice",
+    "notes": "Note",
+    "search": "Cerca",
+    "bookmark": "Segna",
+    "bookmark_remove": "Togli"
+  },
+  "slider": {
+    "label": "Avanzamento nel libro",
+    "value": "{percent}%, {chapter}",
+    "value_plain": "{percent}%",
+    "hint": "{chapter} · {percent}%",
+    "hint_plain": "{percent}%"
+  },
+  "time": {
+    "min": "{minutes} min",
+    "hours": "{hours} h",
+    "hours_min": "{hours} h {minutes} min",
+    "under_a_minute": "meno di 1 min"
+  },
+  "status": {
+    "opening": "Apro il libro…",
+    "cover": "Copertina di {title}"
+  },
+  "error": {
+    "open_failed": {
+      "title": "Questo file non si apre",
+      "body": "Il file potrebbe essere danneggiato o in un formato che il lettore non conosce.",
+      "action": "Scarica il file"
+    },
+    "missing": {
+      "title": "Il file manca sul server",
+      "body": "Il libro è nella libreria ma il suo file non si trova più.",
+      "action": "Torna alla scheda del libro"
+    },
+    "offline": {
+      "title": "Sei offline e questo libro non è sul telefono",
+      "body": "Collegati a internet per leggerlo, oppure scaricalo quando hai rete.",
+      "action": "Torna alla scheda del libro"
+    }
+  },
+  "sheet": {
+    "close": "Chiudi"
+  }
+}

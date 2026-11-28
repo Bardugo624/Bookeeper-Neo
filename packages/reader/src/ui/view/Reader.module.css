@@ -1,0 +1,180 @@
+.root {
+  --rd-top: 52px;
+  --rd-bottom: 56px;
+  --rd-panel: 360px;
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--rd-page);
+  color: var(--rd-ink);
+  font-family: var(--bk-font-sans, 'Inter Variable', system-ui, sans-serif);
+}
+
+.main {
+  position: relative;
+  display: grid;
+  flex: 1;
+  grid-template-rows: var(--rd-top) minmax(0, 1fr) var(--rd-bottom);
+  min-width: 0;
+}
+
+.page {
+  grid-row: 2;
+  min-width: 0;
+  min-height: 0;
+}
+
+.page > iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.bar {
+  z-index: 2;
+  min-width: 0;
+  background: var(--rd-page);
+}
+
+.topBar {
+  grid-row: 1;
+  border-bottom: 1px solid var(--rd-rule);
+}
+
+.bottomBar {
+  grid-row: 3;
+  border-top: 1px solid var(--rd-rule);
+}
+
+.bar[data-visible='false'] {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.topBar[data-visible='false'] {
+  transform: translateY(-4px);
+}
+
+.bottomBar[data-visible='false'] {
+  transform: translateY(4px);
+}
+
+/* The thin line: the only thing left while reading. */
+.line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  width: calc(var(--rd-progress) * 100%);
+  height: 2px;
+  background: var(--rd-accent-solid);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.line[data-visible='true'] {
+  opacity: 1;
+}
+
+/* Where the mouse brings the bars back: the frame swallows pointer events, so the bands are ours. */
+.zone {
+  position: absolute;
+  right: 0;
+  left: 0;
+  z-index: 3;
+}
+
+.zoneTop {
+  top: 0;
+  height: 64px;
+}
+
+.zoneBottom {
+  bottom: 0;
+  height: 72px;
+}
+
+.panel {
+  z-index: 4;
+  flex: none;
+  width: var(--rd-panel);
+  min-height: 0;
+  border-left: 1px solid var(--rd-rule);
+  background: var(--rd-page);
+  overflow: hidden;
+}
+
+/* Under 1100 px of window the panel covers the page like a drawer. */
+@media (max-width: 1099.98px) {
+  .panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    max-width: 100%;
+  }
+}
+
+/* Phone: the page is the whole screen and the bars lie over it. */
+.root[data-layout='phone'] {
+  --rd-top: calc(52px + env(safe-area-inset-top));
+  --rd-bottom: auto;
+}
+
+.root[data-layout='phone'] .main {
+  display: block;
+}
+
+.root[data-layout='phone'] .page {
+  position: absolute;
+  inset: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+}
+
+.root[data-layout='phone'] .topBar,
+.root[data-layout='phone'] .bottomBar {
+  position: absolute;
+  right: 0;
+  left: 0;
+}
+
+.root[data-layout='phone'] .topBar {
+  top: 0;
+  padding-top: env(safe-area-inset-top);
+}
+
+.root[data-layout='phone'] .bottomBar {
+  bottom: 0;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.root[data-layout='phone'] .line {
+  right: 16px;
+  bottom: calc(env(safe-area-inset-bottom) + 8px);
+  left: 16px;
+  width: auto;
+  background: linear-gradient(to right, var(--rd-accent-solid) calc(var(--rd-progress) * 100%), transparent 0);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bar {
+    transition:
+      opacity var(--bk-dur) var(--bk-ease),
+      transform var(--bk-dur) var(--bk-ease),
+      visibility 0s linear 0s;
+  }
+
+  .bar[data-visible='false'] {
+    transition:
+      opacity var(--bk-dur-fast) var(--bk-ease),
+      transform var(--bk-dur-fast) var(--bk-ease),
+      visibility 0s linear var(--bk-dur-fast);
+  }
+
+  .line {
+    transition: opacity var(--bk-dur) var(--bk-ease);
+  }
+}
