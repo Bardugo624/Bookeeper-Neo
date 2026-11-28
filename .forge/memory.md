@@ -6,6 +6,9 @@
 ## Verify
 - NODE_PATH=$(npm root -g) node packages/reader/e2e/run.mjs --browsers chromium (needs `npm ci --offline` at the root first; browsers live in… [packages/reader/e2e/run.mjs]
 - cargo test --offline -p bookeeper-desktop && cargo clippy --offline -p bookeeper-desktop --all-targets -- -D warnings [apps/desktop/src-tauri/Cargo.toml]
+- playwright and its Chromium are installed globally (`npm root -g`, browsers in PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers); a scratch script loads it… [packages/reader/e2e/run.mjs]
+- cd packages/reader && npm test && npx tsc --noEmit (after `npm ci --offline` at the root) [packages/reader/package.json]
+- cd packages/reader && npx vitest run src/app src/ui/panel src/frame src/engine && npx tsc --noEmit (after `npm ci --offline` at the root) [packages/reader/package.json]
 - from packages/reader, `npx vitest run src/ui src/app && npx tsc --noEmit` (needs `npm ci --offline` at the root first) [packages/reader/package.json]
 - a throwaway mobile vitest in the scratchpad also needs a `node_modules` symlink to the repo root's node_modules next to the test file, and the config… [apps/mobile/vite.config.ts]
 - npm ci --offline at the root, then `npm test -w @bookeeper/ui` and `npm test -w @bookeeper/reader` [package.json]
@@ -25,6 +28,4 @@
 - a throwaway mobile vitest can run from outside the repo with a `.mts` config that spreads `apps/mobile/vite.config` and sets `root` to apps/mobile and… [apps/mobile/vite.config.ts]
 - cargo test --offline --release -p bookeeper-core --test perf_10k -- --ignored --nocapture [crates/bookeeper-core/tests/perf_10k.rs]
 - copy package.json, package-lock.json and the apps/*/package.json and packages/*/package.json files to a scratch dir and run `npm install --package-lock-only… [package-lock.json]
-- cargo test --offline -p bookeeper-core --test reading_api --test books_api --test db --test backup_api --test openapi_errors [crates/bookeeper-core/Cargo.toml]
-- npm install && npm run typecheck -w @bookeeper/mobile && npm test -w @bookeeper/mobile && npm run build -w @bookeeper/mobile && cargo test --offline -p… [apps/mobile/package.json]
 

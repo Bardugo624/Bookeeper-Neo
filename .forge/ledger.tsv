@@ -990,3 +990,31 @@
 2026-11-28T17:41:53Z	bookeeper-fase-10b4b	font-override	dwarf	sonnet	-	-	-	-	136
 2026-11-28T17:44:19Z	bookeeper-fase-10b4b	font-override	qa	opus	PASS	-	-	-	137
 2026-11-28T18:45:32Z	bookeeper-fase-11a	vps-google-key	dwarf	sonnet	-	-	-	-	23
+2026-11-28T18:46:27Z	bookeeper-fase-11a	sources-kit	dwarf	sonnet	-	-	-	-	78
+2026-11-28T18:46:29Z	bookeeper-fase-11a	vps-google-key	qa	opus	PASS	-	-	-	28
+2026-11-28T18:47:15Z	bookeeper-fase-11a	sources-kit	qa	opus	PASS	-	-	-	38
+2026-11-28T18:49:56Z	bookeeper-fase-11a	reader-search-keep	dwarf	sonnet	-	verify	cd packages reader npx vitest run src app src ui panel src frame src engine npx tsc noemit after npm ci offline at the root	cd packages/reader && npx vitest run src/app src/ui/panel src/frame src/engine && npx tsc --noEmit (after `npm ci --offline` at the root) [packages/reader/package.json]	199	1
+2026-11-28T18:49:57Z	bookeeper-fase-11a	lookup-sources	dwarf	sonnet	-	-	-	-	289
+2026-11-28T18:51:02Z	bookeeper-fase-11a	reader-page-css	dwarf	sonnet	-	-	-	-	181
+2026-11-28T18:51:33Z	bookeeper-fase-11a	lookup-sources	qa	opus	FAIL	-	-	-	85
+2026-11-28T18:51:34Z	bookeeper-fase-11a	reader-search-keep	qa	opus	FAIL	trap	foliate s view clearsearch also empties its own record of results which it uses to draw marks in chapters loaded later redrawing	foliate's `view.clearSearch()` also empties its own record of results, which it uses to draw marks in chapters loaded later; redrawing… [packages/reader/vendor/foliate-js/view.js]	87	1
+2026-11-28T18:52:31Z	bookeeper-fase-11a	reader-search-keep	dwarf	sonnet	-	trap	foliate s view clearsearch also empties its own record of results which it uses to draw marks in chapters loaded later to hide	foliate's `view.clearSearch()` also empties its own record of results, which it uses to draw marks in chapters loaded later; to hide… [packages/reader/vendor/foliate-js/view.js]	50	1
+2026-11-28T18:52:41Z	bookeeper-fase-11a	reader-page-css	qa	opus	FAIL	-	-	-	87
+2026-11-28T18:53:25Z	bookeeper-fase-11a	lookup-sources	dwarf	sonnet	-	-	-	-	105
+2026-11-28T18:53:32Z	bookeeper-fase-11a	reader-search-keep	qa	opus	FAIL	trap	foliate s view clearsearch also empties its own record of results which it uses to draw marks in chapters loaded later redrawing	foliate's `view.clearSearch()` also empties its own record of results, which it uses to draw marks in chapters loaded later; redrawing… [packages/reader/vendor/foliate-js/view.js]	51	1
+2026-11-28T18:54:37Z	bookeeper-fase-11a	reader-numbers	dwarf	sonnet	-	trap	npx vitest in packages reader fails with unresolved vitejs plugin react until npm ci offline has run at the root	`npx vitest` in packages/reader fails with unresolved `@vitejs/plugin-react` until `npm ci --offline` has run at the root [packages/reader/vitest.config.ts]	57	1
+2026-11-28T18:54:59Z	bookeeper-fase-11a	lookup-sources	qa	opus	FAIL	-	-	-	83
+2026-11-28T18:55:05Z	bookeeper-fase-11a	reader-page-css	dwarf	sonnet	-	-	-	-	136
+2026-11-28T18:56:00Z	bookeeper-fase-11a	reader-numbers	qa	opus	PASS	-	-	-	70
+2026-11-28T18:56:04Z	bookeeper-fase-11a	reader-page-css	qa	opus	PASS	-	-	-	50
+2026-11-28T18:56:07Z	bookeeper-fase-11a	reader-error-overlays	dwarf	sonnet	-	-	-	-	60
+2026-11-28T18:57:01Z	bookeeper-fase-11a	reader-error-overlays	qa	opus	PASS	-	-	-	45
+2026-11-28T18:57:02Z	bookeeper-fase-11a	mobile-install	dwarf	sonnet	-	-	-	-	49
+2026-11-28T18:57:46Z	bookeeper-fase-11a	reader-css-p3	dwarf	sonnet	-	verify	cd packages reader npm test npx tsc noemit after npm ci offline at the root	cd packages/reader && npm test && npx tsc --noEmit (after `npm ci --offline` at the root) [packages/reader/package.json]	97	1
+2026-11-28T18:57:46Z	bookeeper-fase-11a	reader-css-p3	dwarf	sonnet	-	trap	jsdom loads no css so tests that check a style must read the module css file from disk path from process cwd since	jsdom loads no CSS, so tests that check a style must read the .module.css file from disk (path from process.cwd(), since… [packages/reader/src/ui/view/bottom.test.tsx]	97	1
+2026-11-28T18:58:50Z	bookeeper-fase-11a	reader-css-p3	qa	opus	FAIL	-	-	-	52
+2026-11-28T18:59:27Z	bookeeper-fase-11a	mobile-install	qa	opus	FAIL	verify	playwright and its chromium are installed globally npm root g browsers in playwright browsers path opt pw browsers a scratch script loads it	playwright and its Chromium are installed globally (`npm root -g`, browsers in PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers); a scratch script loads it… [packages/reader/e2e/run.mjs]	132	1
+2026-11-28T19:00:37Z	bookeeper-fase-11a	mobile-install	dwarf	sonnet	-	-	-	-	63
+2026-11-28T19:02:20Z	bookeeper-fase-11a	mobile-install	qa	opus	FAIL	finding	installsheet s text and markup are also asserted in apps mobile src modules search offline test tsx so run npx vitest run	InstallSheet's text and markup are also asserted in apps/mobile/src/modules/search/offline.test.tsx, so run `npx vitest run… [apps/mobile/src/modules/reader/InstallSheet.tsx]	92	1
+2026-11-28T19:02:49Z	bookeeper-fase-11a	apps-p3	dwarf	sonnet	-	trap	apps desktop src kit styles test ts rejects literal colors including rgb and raw bk neutral bk primary steps in module	`apps/desktop/src/kit/styles.test.ts` rejects literal colors (including `rgb()`) and raw `--bk-neutral-*`/`--bk-primary-*` steps in module… [apps/desktop/src/kit/styles.test.ts]	338	1
+2026-11-28T19:03:37Z	bookeeper-fase-11a	apps-p3	qa	opus	PASS	-	-	-	38
