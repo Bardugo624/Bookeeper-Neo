@@ -1,7 +1,10 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ME, ok } from '../../session/fixtures';
+import { setLibraryForTest } from '../reader/opfsLibrary';
+import { resetOfflineForTest } from '../reader/offlineStore';
+import { fakeLibrary } from '../reader/opfsTestkit';
 import { book, renderSearch } from './testkit';
 
 function open(over: Parameters<typeof book>[1], role = 'owner') {
@@ -47,5 +50,37 @@ describe('«Leggi» on the book page', () => {
     open({ file_formats: ['epub'] });
     await userEvent.click(await screen.findByRole('link', { name: 'Leggi' }));
     expect((await screen.findByTestId('reader-probe')).textContent).toBe('reader b1');
+  });
+
+  describe('the size of the file', () => {
+    beforeEach(() => {
+      resetOfflineForTest();
+      setLibraryForTest(fakeLibrary().library);
+    });
+    afterEach(() => setLibraryForTest(null));
+
+    it('a_saved_book_shows_its_size_once', async () => {
+      const file = { id: 'f1', book_id: 'b1', format: 'epub', size_bytes: 2_500_000, name: 'dune.epub', sha256: 'sha-f1', created_at: 1, uploaded_by: null, missing: false };
+      renderSearch({
+        api: {
+          books: [book(1, { id: 'b1', file_formats: ['epub'] })],
+          override: (call) => {
+            const path = call.path.replace('/api/v1', '');
+            if (path === '/me') return ok(ME);
+            if (path === '/books/b1/files' && call.method === 'GET') return ok([file]);
+            return undefined;
+          },
+        },
+        rawHandler: async () => ({ status: 200, bytes: new Uint8Array(2000), contentType: 'application/epub+zip', headers: {} }),
+        route: '/books/b1',
+      });
+      const read = await screen.findByRole('link', { name: 'Leggi' });
+      await userEvent.click(await screen.findByRole('button', { name: 'Scarica per leggere offline' }));
+      await screen.findByRole('button', { name: 'Togli dal telefono' });
+      const block = read.nextElementSibling!;
+      expect(block.textContent).toMatch(/Sul telefono · /);
+      expect(block.textContent?.match(/\d[\d.,]*\s?(kB|MB|B)/g)).toHaveLength(1);
+      expect(block.querySelector('p')!.textContent).toBe('EPUB');
+    });
   });
 });
