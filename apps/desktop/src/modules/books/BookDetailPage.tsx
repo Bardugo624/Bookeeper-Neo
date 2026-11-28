@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router';
 import { ApiError } from '@bookeeper/api';
 import { Button, EmptyState, Icon, Skeleton } from '@bookeeper/ui/base';
@@ -22,18 +22,17 @@ export const STACK_BELOW = 920;
 
 /** Whether the three columns no longer fit: the right column then goes under the middle one. */
 function useStacked() {
-  const ref = useRef<HTMLElement>(null);
+  const [el, setEl] = useState<HTMLElement | null>(null);
   const [stacked, setStacked] = useState(false);
   useEffect(() => {
-    const el = ref.current;
     if (!el || typeof ResizeObserver === 'undefined') return;
     const measure = () => setStacked(el.clientWidth < STACK_BELOW);
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
-  });
-  return [ref, stacked] as const;
+  }, [el]);
+  return [setEl, stacked] as const;
 }
 
 export function BookDetailPage() {

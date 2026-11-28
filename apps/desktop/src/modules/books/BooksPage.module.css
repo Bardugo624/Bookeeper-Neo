@@ -18,16 +18,21 @@
   padding: 16px 0;
 }
 
-.dropping {
-  outline: 2px dashed var(--bk-accent-text);
-  outline-offset: 4px;
+/* The frame is fixed to the window, so it surrounds the label however short the page is. */
+.dropping::after {
+  content: '';
+  position: fixed;
+  inset: 8px;
+  z-index: var(--bk-z-overlay);
+  border: 2px dashed var(--bk-accent-text);
   border-radius: var(--bk-radius-lg);
+  pointer-events: none;
 }
 
 .dropHint {
   position: fixed;
   inset-inline: 0;
-  /* The frame is the page outline, 6px out of the page: the label sits well inside it. */
+  /* The frame's inner edge is 10px from the window: the label sits 30px above it, well over 16px inside. */
   bottom: 40px;
   z-index: var(--bk-z-overlay);
   width: fit-content;
