@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 import { ReaderApp } from '@bookeeper/reader/app';
 import { Spinner } from '@bookeeper/ui/base';
@@ -6,12 +6,15 @@ import { useLocale, useT } from '../../app/i18n';
 import { ErrorState } from '../../kit';
 import { usePlatform } from '../../platform';
 import { createAuthTransport, useClient, useSession } from '../../session';
+import { InstallSheet } from './InstallSheet';
 import { createMobileBackend } from './mobileBackend';
+import { opfsLibrary } from './opfsLibrary';
 import { pickFile, type BookFile } from './pickFile';
 import { readerQueue } from './queue';
 import { useAppDark } from './useAppDark';
 import { useReaderFiles } from './useBookFiles';
 import { useReaderBook } from './useReaderBook';
+import { useOfflineMenu } from './useOfflineMenu';
 import { useThemeColor } from './useThemeColor';
 import styles from './Reader.module.css';
 
@@ -28,6 +31,8 @@ function Reading({ bookId, title, authors, file }: { bookId: string; title: stri
   const deviceId = useSession((s) => s.tokens?.device_id) ?? '';
   const host = useRef<HTMLDivElement>(null);
   useThemeColor(host);
+  const [explain, setExplain] = useState(false);
+  const menuItems = useOfflineMenu({ bookId, file }, () => setExplain(true));
 
   const backend = useMemo(
     () =>
@@ -39,6 +44,9 @@ function Reading({ bookId, title, authors, file }: { bookId: string; title: stri
         deviceId,
         queue: readerQueue(),
         file: { sha256: file.sha256, format: file.format },
+        // The copy kept on the phone opens first; without it and without a network the reader says so.
+        offline: { read: (sha) => opfsLibrary().open(sha) },
+        online: () => platform.network.online(),
       }),
     [client, platform, bookId, file.id, file.sha256, file.format, deviceId],
   );
@@ -58,8 +66,10 @@ function Reading({ bookId, title, authors, file }: { bookId: string; title: stri
         platform="phone"
         locale={locale}
         appDark={appDark}
+        menuItems={menuItems}
         onClose={onClose}
       />
+      <InstallSheet open={explain} onOpenChange={setExplain} />
     </div>
   );
 }

@@ -5,6 +5,7 @@ export interface BookFileOut {
   format: string;
   size_bytes: number;
   name: string;
+  sha256: string;
   created_at: number;
   missing: boolean;
 }

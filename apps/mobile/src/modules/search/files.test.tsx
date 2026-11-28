@@ -11,6 +11,7 @@ const file = (over = {}) => ({
   format: 'epub',
   size_bytes: 2_500_000,
   name: 'dune.epub',
+  sha256: 'sha-f1',
   created_at: 1,
   uploaded_by: null,
   missing: false,

@@ -15,6 +15,8 @@ export interface MobileBackendInput {
   deviceId: string;
   queue: OfflineQueue;
   offline?: OfflineFiles;
+  /** Whether the phone has a network; without one and without a copy the reader says so, and does not try. */
+  online?: () => boolean;
   /** What the offline copy is looked up by. */
   file?: { sha256: string; format: string };
 }
@@ -43,7 +45,7 @@ function download(name: string, blob: Blob): void {
 
 /** What the phone hands to the reader, already bound to one book and one file. */
 export function createMobileBackend(input: MobileBackendInput): ReaderBackend {
-  const { client, transport, bookId, fileId, deviceId, queue, offline = noOfflineFiles, file } = input;
+  const { client, transport, bookId, fileId, deviceId, queue, offline = noOfflineFiles, file, online = () => true } = input;
   return {
     deviceId,
     async loadFile(signal, onProgress) {
@@ -56,6 +58,7 @@ export function createMobileBackend(input: MobileBackendInput): ReaderBackend {
       }
       if (!transport.requestRaw) throw new ApiError(0, 'unsupported', 'raw requests unsupported');
       signal.throwIfAborted();
+      if (!online()) throw new ApiError(0, 'offline', 'No network and no copy on the phone');
       onProgress(0);
       const res = await transport.requestRaw({ method: 'GET', path: `${P}/books/${enc(bookId)}/files/${enc(fileId)}/content` });
       signal.throwIfAborted();
