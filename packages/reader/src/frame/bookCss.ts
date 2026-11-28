@@ -32,6 +32,7 @@ export function bookCss(layout: FrameLayout): string {
   color: ${colors.ink} !important;
   background: ${colors.page} !important;
   font-size: ${fontSize}px !important;
+  ${keepBookFont ? `font-family: ${FONT_STACKS.lora};` : ''}
   -webkit-text-size-adjust: none;
   text-size-adjust: none;
   hyphens: ${hyphens};
