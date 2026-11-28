@@ -5,6 +5,7 @@ Leggi prima `docs/forge/fase-10a1/CONTRATTO.md` e `docs/forge/fase-10a/CONTRATTO
 ## File
 - `crates/bookeeper-core/src/api/`: `book_files.rs`, `reading.rs`, `ebook_files.rs` e `openapi.rs`.
 - I test in `crates/bookeeper-core/tests/`: `ebook_api.rs`, `reading.rs`, `plumbing.rs` e `openapi.rs`.
+- `crates/bookeeper-core/tests/books_api.rs`: `reading_is_per_caller_in_list_search_and_detail` confronta il JSON del riepilogo della lettura e riceve `progress_percent`.
 - `packages/api`: OpenAPI e client generato.
 - `apps/desktop/src/modules/books/BooksPage.test.tsx` e `apps/mobile/src/modules/reading/ReadingBadge.test.tsx` costruiscono un `ReadingSummary`. Il campo nuovo è obbligatorio: aggiungilo con `null`.
 
