@@ -55,7 +55,7 @@
   },
   "now": {
     "title": "In lettura",
-    "all": "Tutti i {count}",
+    "all": "Vedi tutti ({count})",
     "progress": "Avanzamento di {title}"
   }
 }

@@ -44,12 +44,12 @@ describe('«In lettura»', () => {
     expect(within(region).getAllByRole('progressbar')[0]!.getAttribute('aria-valuenow')).toBe('50');
     expect(within(region).getByText('50%')).toBeTruthy();
     expect(within(region).getByText('Autore 5')).toBeTruthy();
-    expect(within(region).getByRole('button', { name: 'Tutti i 6' })).toBeTruthy();
+    expect(within(region).getByRole('button', { name: 'Vedi tutti (6)' })).toBeTruthy();
   });
 
   it('all_applies_the_reading_filter', async () => {
-    const view = renderBooksWithReader({ books: [reading(1), reading(2), book(3)] }, '/books');
-    await userEvent.click(await screen.findByRole('button', { name: 'Tutti i 2' }));
+    const view = renderBooksWithReader({ books: [1, 2, 3, 4, 5].map((i) => reading(i)) }, '/books');
+    await userEvent.click(await screen.findByRole('button', { name: 'Vedi tutti (5)' }));
     await waitFor(() => expect(screen.queryByRole('region', { name: 'In lettura' })).toBeNull());
     expect(view.platform.calls.some((c) => c.path.includes('reading=reading') && c.path.includes('limit=60'))).toBe(true);
   });
@@ -71,7 +71,21 @@ describe('«In lettura»', () => {
 
   it('counts the books the filter lists, even without a file', async () => {
     renderBooksWithReader({ books: [reading(1), reading(2), reading(3, { file_formats: [] })] }, '/books');
-    expect(await screen.findByRole('button', { name: 'Tutti i 3' })).toBeTruthy();
+    expect(await screen.findByRole('button', { name: 'Vedi tutti (3)' })).toBeTruthy();
+  });
+
+  it('the_all_link_hides_when_every_book_is_shown', async () => {
+    renderBooksWithReader({ books: [reading(1), reading(2), book(3)] }, '/books');
+    const region = await screen.findByRole('region', { name: 'In lettura' });
+    expect(within(region).getAllByRole('link')).toHaveLength(2);
+    expect(within(region).queryByRole('button')).toBeNull();
+  });
+
+  it('the_all_link_counts_without_an_article', async () => {
+    const books = Array.from({ length: 12 }, (_, i) => reading(i + 1));
+    renderBooksWithReader({ books }, '/books');
+    expect(await screen.findByRole('button', { name: 'Vedi tutti (12)' })).toBeTruthy();
+    expect(screen.queryByText(/Tutti i/)).toBeNull();
   });
 
   it('is hidden from a guest, who cannot open the files', async () => {
