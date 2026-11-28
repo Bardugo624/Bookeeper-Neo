@@ -8,6 +8,11 @@ export const FONT_STACKS: Record<Exclude<FontChoice, 'publisher'>, string> = {
   sans: 'system-ui, sans-serif',
 };
 
+/** Goes before the book's own rules: the font a book without one falls back to, which its own rules override. */
+export function bookFontBefore(layout: FrameLayout): string {
+  return layout.font === 'publisher' && layout.publisherStyles ? `body { font-family: ${FONT_STACKS.lora}; }` : '';
+}
+
 /**
  * The reader's style sheet for the book's pages. With the publisher's styles on, the book keeps its own
  * rules and ours only fill the gaps; with them off, ours win. Colors always win: a dark theme must never
@@ -43,7 +48,13 @@ export function bookCss(layout: FrameLayout): string {
     `img, svg, video { max-width: 100%; object-fit: contain; }`,
   ];
   if (justify && publisherStyles) rules.push(`p { text-align: ${align}; }`);
-  if (own) {
+  if (!own) {
+    // The book keeps its rules, but never its colors: a dark theme must not show dark ink.
+    rules.push(`body *:not(a:any-link):not(img):not(svg):not(video) {
+  color: inherit !important;
+  background-color: transparent !important;
+}`);
+  } else {
     rules.push(`body *:not(a:any-link) {
   color: inherit !important;
   background: transparent !important;

@@ -56,6 +56,8 @@ export async function runSearch(
         }
       }
       await breathe();
+      // Before the iterator is asked for another step: a step done after a new search began would draw its marks.
+      if (cancelled()) return;
     }
   } catch (e) {
     console.error(e);

@@ -2,7 +2,7 @@ import '@bookeeper/ui/fonts.css';
 import { unwrap, wrap } from '../engine/messages';
 import type { FrameLayout, FromFrame, Mark, Target, TocItem, ToFrame } from '../engine/protocol';
 import { watchDocument, toFrameRect, type FoliateViewLike } from './docEvents';
-import { applyLayout, type Renderer } from './layout';
+import { applyColumns, applyLayout, type Renderer } from './layout';
 import { drawMark, type OverlayerClass } from './marks';
 import { runSearch, type SearchableView } from './search';
 import { SectionMap } from './sections';
@@ -315,6 +315,7 @@ export function bootFrame(options: BootOptions = {}): () => void {
     // The search runs beside everything else, so a long one never holds up a page turn.
     if (msg.type === 'search') {
       if (session) startSearch(session, msg.id, msg.query);
+      else send({ type: 'search-done', id: msg.id });
       return;
     }
     if (msg.type === 'search-stop') {
@@ -332,12 +333,17 @@ export function bootFrame(options: BootOptions = {}): () => void {
   const onKey = (e: KeyboardEvent) =>
     send({ type: 'key', key: e.key, ctrl: e.ctrlKey, meta: e.metaKey, shift: e.shiftKey, alt: e.altKey });
 
+  const onResize = () => {
+    if (session) applyColumns(session.view.renderer, session.layout);
+  };
+  window.addEventListener('resize', onResize);
   window.addEventListener('message', onMessage);
   window.addEventListener('keydown', onKey);
   window.addEventListener('error', onError, true);
   send({ type: 'ready' });
 
   return () => {
+    window.removeEventListener('resize', onResize);
     window.removeEventListener('message', onMessage);
     window.removeEventListener('keydown', onKey);
     window.removeEventListener('error', onError, true);

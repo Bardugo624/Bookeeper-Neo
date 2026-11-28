@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { FrameLayout } from '../engine/protocol';
-import { bookCss } from './bookCss';
+import { bookCss, bookFontBefore } from './bookCss';
 
 const layout: FrameLayout = {
   colors: {
@@ -45,10 +45,13 @@ describe('bookCss', () => {
 
   it('with the publisher styles on, the book keeps its own rules', () => {
     const out = css({ font: 'publisher' });
-    expect(out).not.toContain('body *');
-    // The book's own font stays; the reader only forces the colors.
+    // The book's own font stays (Lora goes in the sheet before the book's); the reader forces the colors, also on children.
     expect(out).not.toContain('Lora');
+    expect(out).not.toContain('line-height: inherit');
     expect(out).toMatch(/color: #eeeff0 !important/);
+    expect(out).toContain('color: inherit !important');
+    expect(bookFontBefore({ ...layout, font: 'publisher' })).toContain('Lora');
+    expect(bookFontBefore({ ...layout, font: 'publisher', publisherStyles: false })).toBe('');
   });
 
   it('with the publisher styles off, the reader forces its own', () => {

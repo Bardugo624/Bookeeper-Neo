@@ -1,5 +1,5 @@
 import type { FrameLayout } from '../engine/protocol';
-import { bookCss } from './bookCss';
+import { bookCss, bookFontBefore } from './bookCss';
 import { isDarkColor } from './marks';
 
 const GAPS: Record<FrameLayout['margins'], string> = { narrow: '4%', medium: '7%', wide: '10%' };
@@ -13,7 +13,11 @@ export function fontFaceCss(): string {
   const rules: string[] = [];
   for (const sheet of Array.from(document.styleSheets)) {
     try {
-      for (const rule of Array.from(sheet.cssRules)) if (rule instanceof CSSFontFaceRule) rules.push(rule.cssText);
+      const base = sheet.href ?? location.href;
+      for (const rule of Array.from(sheet.cssRules)) {
+        // The book's pages load from `blob:` URLs, where a root-relative `url()` resolves to nothing.
+        if (rule instanceof CSSFontFaceRule) rules.push(absoluteUrls(rule.cssText, base));
+      }
     } catch {
       // A sheet from another origin cannot be read; the frame has none.
     }
@@ -21,17 +25,35 @@ export function fontFaceCss(): string {
   return rules.join('\n');
 }
 
+/** Rewrites each `url()` of `css` against `base`. */
+export function absoluteUrls(css: string, base: string): string {
+  return css.replace(/url\(\s*(?:"([^"]*)"|'([^']*)'|([^)\s]*))\s*\)/g, (all, a, b, c) => {
+    const ref = a ?? b ?? c ?? '';
+    if (ref.startsWith('data:')) return all;
+    try {
+      return `url("${new URL(ref, base).href}")`;
+    } catch {
+      return all;
+    }
+  });
+}
+
 export interface Renderer extends HTMLElement {
   setStyles?: (styles: string | [string, string]) => void;
 }
 
+/** One column, or two when the reader asked for them and the frame is wide enough (checked again on each resize). */
+export function applyColumns(renderer: HTMLElement, layout: FrameLayout): void {
+  const twoColumns = layout.twoPages && window.innerWidth >= TWO_PAGES_MIN_WIDTH;
+  renderer.setAttribute('max-column-count', twoColumns ? '2' : '1');
+}
+
 /** Gives the renderer the attributes and styles of `layout`. `format` is the extension of the book. */
 export function applyLayout(view: HTMLElement, renderer: Renderer, layout: FrameLayout, format: string): void {
-  const twoColumns = layout.twoPages && window.innerWidth >= TWO_PAGES_MIN_WIDTH;
   renderer.setAttribute('flow', layout.flow);
   renderer.setAttribute('gap', GAPS[layout.margins]);
   renderer.setAttribute('max-inline-size', `${MAX_COLUMN}px`);
-  renderer.setAttribute('max-column-count', twoColumns ? '2' : '1');
+  applyColumns(renderer, layout);
   if (layout.animated) renderer.setAttribute('animated', '');
   else renderer.removeAttribute('animated');
   if (format === 'pdf') renderer.setAttribute('zoom', layout.pdfFit === 'width' ? 'fit-width' : 'fit-page');
@@ -43,5 +65,5 @@ export function applyLayout(view: HTMLElement, renderer: Renderer, layout: Frame
   document.documentElement.style.background = layout.colors.page;
   document.body.style.background = layout.colors.page;
 
-  renderer.setStyles?.([fontFaceCss(), bookCss(layout)]);
+  renderer.setStyles?.([`${fontFaceCss()}\n${bookFontBefore(layout)}`, bookCss(layout)]);
 }
