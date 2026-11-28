@@ -1,10 +1,11 @@
-import { invoke } from '@tauri-apps/api/core';
+import { convertFileSrc, invoke } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { listen } from '@tauri-apps/api/event';
+import { openUrl } from '@tauri-apps/plugin-opener';
 import { isPermissionGranted, requestPermission, sendNotification } from '@tauri-apps/plugin-notification';
 import { ApiError } from '@bookeeper/api';
 import { createTauriTransport } from './transport';
-import { NETWORK_PROBE, type Connection, type Connections, type DownloadRequest, type DownloadResult, type Found, type NotificationControls, type Platform, type ProbeOut, type SaveFileRequest, type SaveFileResult, type SharingStatus, type UpdateControls, type UpdateErrorCode, type UpdateProgress, type UpdateState } from './types';
+import { NETWORK_PROBE, type Connection, type Connections, type DownloadRequest, type DownloadResult, type Found, type NotificationControls, type Platform, type ProbeOut, type ReaderFileArgs, type SaveFileRequest, type SaveFileResult, type SharingStatus, type UpdateControls, type UpdateErrorCode, type UpdateProgress, type UpdateState } from './types';
 
 function toBase64(bytes: Uint8Array): string {
   let bin = '';
@@ -125,6 +126,22 @@ export function tauriPlatform(): Platform {
         throw new ApiError(0, 'network', e instanceof Error ? e.message : String(e));
       }
     },
+    async readerFile(args: ReaderFileArgs) {
+      try {
+        const path = await invoke<string>('reader_file', {
+          book_id: args.bookId,
+          file_id: args.fileId,
+          sha256: args.sha256,
+          format: args.format,
+          headers: args.headers ?? {},
+          ...(args.connectionId === undefined ? {} : { connection_id: args.connectionId }),
+        });
+        return convertFileSrc(path);
+      } catch (e) {
+        throw new ApiError(0, 'network', e instanceof Error ? e.message : String(e));
+      }
+    },
+    openUrl: (url) => openUrl(url),
     saveFile: (req: SaveFileRequest) =>
       invoke<SaveFileResult>('save_file', {
         suggested_name: req.suggestedName,

@@ -131,6 +131,17 @@ export interface NotificationControls {
   send(n: { title: string; body: string }): Promise<void>;
 }
 
+export interface ReaderFileArgs {
+  connectionId?: string;
+  bookId: string;
+  fileId: string;
+  /** The hash the library announced for the file; the copy is checked against it. */
+  sha256: string;
+  format: string;
+  /** Request headers, normally the session's `Authorization`. */
+  headers?: Record<string, string>;
+}
+
 export interface Platform {
   kind: 'tauri' | 'browser';
   transport(connectionId?: string): Transport;
@@ -152,6 +163,14 @@ export interface Platform {
    * The name proposed is the one in the answer's `Content-Disposition`. Rejects on a network failure.
    */
   downloadToFile(req: DownloadRequest): Promise<DownloadResult>;
+  /**
+   * The address the reader reads the book's file from. The desktop app copies it into its cache
+   * first (checked against `sha256`) and answers an `asset` address; the browser answers a
+   * temporary address of the content. Rejects when the file cannot be had.
+   */
+  readerFile(args: ReaderFileArgs): Promise<string>;
+  /** Opens a web address in the system browser (the browser: a new tab). */
+  openUrl(url: string): Promise<void>;
   /** `null` where the app cannot serve the library on the network (browser). */
   sharing: SharingControls | null;
   /** `null` where the app cannot update itself (browser). */
