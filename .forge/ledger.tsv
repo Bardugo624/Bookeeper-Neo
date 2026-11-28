@@ -843,3 +843,5 @@
 2026-11-28T11:03:09Z	bookeeper-fase-10b	server-frame	qa	opus	PASS	-	-	-	73
 2026-11-28T11:03:10Z	bookeeper-fase-10b	positions-backup	dwarf	sonnet	-	trap	backup rs id columns accept only a za z0 9 1 64 on restore so client chosen ids must be declared text	backup.rs `Id` columns accept only [A-Za-z0-9-]{1,64} on restore, so client-chosen ids must be declared `Text` [crates/bookeeper-core/src/backup.rs]	58	1
 2026-11-28T11:03:40Z	bookeeper-fase-10b	local-auth	dwarf	sonnet	-	-	-	-	26
+2026-11-28T11:04:09Z	bookeeper-fase-10b	positions-backup	qa	opus	PASS	-	-	-	52
+2026-11-28T11:04:54Z	bookeeper-fase-10b	local-auth	qa	opus	PASS	-	-	-	66
