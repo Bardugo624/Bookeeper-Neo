@@ -1,0 +1,3 @@
+# id	deps	difficulty	files	dwarf	qa	title
+font-override	-	medium	packages/reader/src/frame/bookCss.ts,packages/reader/src/frame/bookCss.test.ts	sonnet	opus	Lettore: il carattere scelto arriva a tutto il libro
+bar-separator	-	low	packages/reader/src/ui/view/BottomBar.tsx,packages/reader/src/ui/view/Bars.module.css,packages/reader/src/ui/view/bottom.test.tsx	sonnet	opus	Lettore: lo spazio prima di «·» nella barra in basso
