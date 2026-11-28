@@ -184,6 +184,30 @@ describe('annotation store', () => {
     expect(s.list().map((a) => a.id)).toEqual(['b', 'c', 'd']);
   });
 
+  it('own_writes_move_since_forward', async () => {
+    const { backend } = fakeBackend();
+    const s = createAnnotationStore(backend, book, clock, uuid);
+    await s.sync();
+    await s.add(hl);
+    await s.sync();
+    // That pull still asked from the old `since`, so nothing remote is skipped.
+    expect(backend.listAnnotations).toHaveBeenLastCalledWith(0);
+    await s.sync();
+    const at = (backend.putAnnotation as unknown as { mock: { results: Array<{ value: Promise<AnnotationOut> }> } }).mock.results[0]!.value;
+    const written = (await at).updated_at;
+    expect(backend.listAnnotations).toHaveBeenLastCalledWith(Math.max(0, written - 600));
+  });
+
+  it('a_remote_edit_before_an_own_write_is_not_skipped', async () => {
+    const { backend, state } = fakeBackend();
+    const s = createAnnotationStore(backend, book, clock, uuid);
+    await s.sync();
+    state.remote.set('other', { ...state.remote.get('id-1'), id: 'other', updated_at: 1500, deleted_at: null } as never);
+    await s.add(hl);
+    await s.sync();
+    expect(s.list().map((a) => a.id)).toContain('other');
+  });
+
   it('an_empty_first_pull_still_sees_later_tombstones', async () => {
     const { backend, state } = fakeBackend();
     const s = createAnnotationStore(backend, book, clock, uuid);
