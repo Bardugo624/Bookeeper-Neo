@@ -24,6 +24,15 @@ const OperationContext = createContext<OperationState | null>(null);
 export function BridgeProvider({ bridge, children }: { bridge: Bridge; children: ReactNode }) {
   const [progress, setProgress] = useState<ProgressEvent | null>(null);
   const [running, setRunning] = useState(0);
+  // An operation can end after the provider is gone; React must not hear of it then.
+  const mounted = useRef(true);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -43,10 +52,13 @@ export function BridgeProvider({ bridge, children }: { bridge: Bridge; children:
       progress,
       busy: running > 0,
       begin() {
+        if (!mounted.current) return;
         setProgress(null);
         setRunning((n) => n + 1);
       },
-      end: () => setRunning((n) => Math.max(0, n - 1)),
+      end: () => {
+        if (mounted.current) setRunning((n) => Math.max(0, n - 1));
+      },
     }),
     [progress, running],
   );
