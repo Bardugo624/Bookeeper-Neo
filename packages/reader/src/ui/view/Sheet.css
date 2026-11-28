@@ -57,3 +57,9 @@
   height: 48px;
   margin: -11px -9px -11px 0;
 }
+
+/* The sheet takes the reader theme's raised surface and ink (set on the document by `useDocumentTheme`). */
+[role='dialog'][data-reader-sheet-dialog] {
+  background: var(--bk-surface-raised);
+  color: var(--bk-text);
+}
