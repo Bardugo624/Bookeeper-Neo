@@ -55,6 +55,14 @@ export function createAnnotationStore(
   let since: number | undefined;
   const notify = () => listeners.forEach((fn) => fn());
 
+  /** Latest `updated_at` of our own writes; folded into `since` only after a pull. */
+  let ownMax = 0;
+
+  function written(r: AnnotationOut): void {
+    ownMax = Math.max(ownMax, r.updated_at);
+    merge(r);
+  }
+
   /** The last edit wins; a tie keeps what is here. */
   function merge(r: AnnotationOut): boolean {
     const l = all.get(r.id);
@@ -93,7 +101,7 @@ export function createAnnotationStore(
 
   async function push(a: AnnotationOut): Promise<void> {
     try {
-      merge(await backend.putAnnotation(a.id, toPut(a)));
+      written(await backend.putAnnotation(a.id, toPut(a)));
     } catch (e) {
       // A rejection is final: the edit stays here and is not retried.
       if (isNetworkError(e)) {
@@ -157,7 +165,7 @@ export function createAnnotationStore(
       await hydrated;
       const drained = await backend.queue.drain(async (op) => {
         if (op.type !== 'annotation' || op.bookId !== book.bookId) return 'skip';
-        merge(await backend.putAnnotation(op.id, op.body));
+        written(await backend.putAnnotation(op.id, op.body));
       });
       if (!drained) return false;
       try {
@@ -170,6 +178,8 @@ export function createAnnotationStore(
         // After a full load, later pulls must ask with `since` so they also
         // bring tombstones, even when this first load was empty.
         since ??= 0;
+        // The pull from the old `since` succeeded, so own writes may move it.
+        since = Math.max(since, ownMax);
         if (changed) notify();
         return true;
       } catch (e) {

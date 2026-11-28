@@ -1,13 +1,16 @@
 import { useEffect } from 'react';
+import { usePlatform } from '../../platform';
 
-/** The window's title is `title` while the component is on screen, then what it was. */
+const APP_TITLE = 'Bookeeper';
+
+/** The native window's title is `title` while the component is on screen, then «Bookeeper». */
 export function useWindowTitle(title: string | null): void {
+  const platform = usePlatform();
   useEffect(() => {
     if (!title) return;
-    const before = document.title;
-    document.title = title;
+    void platform.setWindowTitle(title).catch(() => {});
     return () => {
-      document.title = before;
+      void platform.setWindowTitle(APP_TITLE).catch(() => {});
     };
-  }, [title]);
+  }, [platform, title]);
 }

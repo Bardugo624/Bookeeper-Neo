@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Dialog } from '@bookeeper/ui/overlays';
 import { useReaderT } from '../../i18n';
-import './Sheet.module.css';
+import './Sheet.css';
 
 export interface SheetProps {
   open: boolean;

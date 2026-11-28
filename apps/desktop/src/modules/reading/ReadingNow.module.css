@@ -37,14 +37,14 @@
 
 .row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-/* Four cards at most: a fifth column never opens, so the cards keep their width. */
+/* Always four equal columns, even with fewer books: a card never grows to fill the row. */
 .item {
   min-width: 0;
 }

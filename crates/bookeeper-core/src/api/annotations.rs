@@ -43,6 +43,7 @@ pub fn routes() -> axum::Router<AppState> {
 pub struct Doc;
 
 #[derive(Debug, Deserialize, utoipa::IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct AnnotationsQuery {
     /// Only the annotations changed after this time (deleted ones included).
     pub since: Option<i64>,
@@ -272,20 +273,23 @@ pub async fn put_annotation(
             if !file_ok {
                 return Ok(Err(ApiError::not_found()));
             }
-            // (owner, book, updated_at) of the saved row, if any.
-            let saved: Option<(String, String, i64)> = tx
+            // (owner, book, library, updated_at) of the saved row, if any: the id is
+            // unique across the whole server, so look it up everywhere.
+            let saved: Option<(String, String, String, i64)> = tx
                 .query_row(
-                    "SELECT user_id, book_id, updated_at FROM annotations \
-                     WHERE id = ?1 AND library_id = ?2",
-                    params![annotation_id, who.library_id],
-                    |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
+                    "SELECT user_id, book_id, library_id, updated_at FROM annotations \
+                     WHERE id = ?1",
+                    params![annotation_id],
+                    |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?)),
                 )
                 .optional()?;
             match saved {
-                Some((owner, book, _)) if owner != who.user_id || book != id => {
+                Some((owner, book, lib, _))
+                    if owner != who.user_id || book != id || lib != who.library_id =>
+                {
                     return Ok(Err(ApiError::not_found()));
                 }
-                Some((_, _, at)) if at >= body.updated_at => {}
+                Some((_, _, _, at)) if at >= body.updated_at => {}
                 Some(_) => {
                     tx.execute(
                         "UPDATE annotations SET file_sha256 = ?1, kind = ?2, cfi = ?3, text = ?4, \

@@ -1,4 +1,4 @@
-import { useRef, type CSSProperties, type KeyboardEvent } from 'react';
+import { useRef, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
 import { cx } from '../view/cx';
 import styles from './Look.module.css';
 
@@ -7,6 +7,8 @@ export interface SegmentedOption<T extends string | number> {
   label: string;
   /** The label is written in its own face (the typeface row). */
   style?: CSSProperties;
+  /** Tiles only: drawn above the label, hidden from assistive technology. */
+  swatch?: ReactNode;
 }
 
 export interface SegmentedProps<T extends string | number> {
@@ -17,10 +19,12 @@ export interface SegmentedProps<T extends string | number> {
   onChange: (value: T) => void;
   disabled?: boolean;
   wrap?: boolean;
+  /** Square tiles with a swatch above the name (the theme row). */
+  tiles?: boolean;
 }
 
 /** A row of exclusive choices: a radio group drawn as joined buttons. */
-export function Segmented<T extends string | number>({ label, value, options, onChange, disabled = false, wrap = false }: SegmentedProps<T>) {
+export function Segmented<T extends string | number>({ label, value, options, onChange, disabled = false, wrap = false, tiles = false }: SegmentedProps<T>) {
   const group = useRef<HTMLDivElement>(null);
   const selected = options.some((o) => o.value === value);
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -33,7 +37,7 @@ export function Segmented<T extends string | number>({ label, value, options, on
     group.current?.querySelectorAll<HTMLButtonElement>('button')[options.indexOf(next)]?.focus();
   };
   return (
-    <div ref={group} onKeyDown={onKeyDown} role="radiogroup" aria-label={label} className={cx(styles.segmented, wrap && styles.wrap)} data-disabled={disabled || undefined}>
+    <div ref={group} onKeyDown={onKeyDown} role="radiogroup" aria-label={label} className={cx(tiles ? styles.tiles : styles.segmented, wrap && styles.wrap)} data-disabled={disabled || undefined}>
       {options.map((o, i) => (
         <button
           key={o.value}
@@ -43,10 +47,11 @@ export function Segmented<T extends string | number>({ label, value, options, on
           tabIndex={o.value === value || (!selected && i === 0) ? 0 : -1}
           disabled={disabled}
           style={o.style}
-          className={styles.option}
+          className={tiles ? styles.tile : styles.option}
           onClick={() => onChange(o.value)}
         >
-          {o.label}
+          {tiles ? <span className={styles.tileFace} aria-hidden="true">{o.swatch}</span> : null}
+          {tiles ? <span className={styles.tileLabel}>{o.label}</span> : o.label}
         </button>
       ))}
     </div>

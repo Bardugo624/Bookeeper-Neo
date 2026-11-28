@@ -3725,13 +3725,14 @@ export interface operations {
     };
     list_annotations: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Only the annotations changed after this time (deleted ones included). */
+                since?: number;
+            };
             header?: never;
             path: {
                 /** @description Book id */
                 id: string;
-                /** @description Only the annotations changed after this time (deleted ones included). */
-                since: number | null;
             };
             cookie?: never;
         };

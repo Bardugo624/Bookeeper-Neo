@@ -121,7 +121,7 @@
 
 /* Phone: the page is the whole screen and the bars lie over it. */
 .root[data-layout='phone'] {
-  --rd-top: calc(52px + env(safe-area-inset-top));
+  --rd-top: calc(52px + var(--rd-safe-top, env(safe-area-inset-top)));
   --rd-bottom: auto;
 }
 
@@ -131,7 +131,7 @@
 
 .root[data-layout='phone'] .page {
   position: absolute;
-  inset: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  inset: var(--rd-safe-top, env(safe-area-inset-top)) 0 env(safe-area-inset-bottom);
 }
 
 .root[data-layout='phone'] .topBar,
@@ -143,7 +143,7 @@
 
 .root[data-layout='phone'] .topBar {
   top: 0;
-  padding-top: env(safe-area-inset-top);
+  padding-top: var(--rd-safe-top, env(safe-area-inset-top));
 }
 
 .root[data-layout='phone'] .bottomBar {

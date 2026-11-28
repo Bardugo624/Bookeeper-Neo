@@ -79,6 +79,8 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
     },
     [engine, q, jumps, chrome],
   );
+  const appearanceRef = useRef(appearance);
+  appearanceRef.current = appearance;
   const onFrameKey = useReaderKeys({
     onNext: () => turn('next'),
     onPrev: () => turn('prev'),
@@ -94,8 +96,17 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
   useEffect(() => {
     if (!engine) return;
     const offs = [
-      engine.on('key', onFrameKey),
+      engine.on('key', (k) => {
+        // The page is an iframe: the popover never sees its keys, so close it here.
+        if (appearanceRef.current && k.key === 'Escape') setAppearance(false);
+        onFrameKey(k);
+      }),
       engine.on('tap', (m) => {
+        if (appearanceRef.current) {
+          // A click on the page is an outside click for the anchored panel; it only closes it.
+          setAppearance(false);
+          return;
+        }
         if (m.zone === 'center') chrome.onTap('center');
         else turn(m.zone === 'start' ? 'prev' : 'next');
       }),
@@ -149,6 +160,15 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
     />
   );
 
+  const appearanceProps = {
+    open: appearance,
+    onOpenChange: setAppearance,
+    layout: platform,
+    format: opened?.format ?? file.format,
+    settings,
+    onChange: change,
+  };
+
   return (
     <Reader
       layout={platform}
@@ -168,6 +188,7 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
           onBookmark={notes.toggleBookmark}
           bookmarked={notes.bookmarked}
           onAppearance={() => setAppearance(true)}
+          anchorAppearance={desktop ? (trigger) => <AppearancePanel {...appearanceProps} trigger={trigger} /> : undefined}
           onPanel={() => (panelOpen ? closePanel() : openPanel(tab))}
           panelOpen={panelOpen}
           moreItems={moreItems}
@@ -196,7 +217,7 @@ export function ReaderScreen({ backend, book, file, platform, appDark, topEnd, m
       overlays={
         <>
           {desktop ? null : panel}
-          <AppearancePanel open={appearance} onOpenChange={setAppearance} layout={platform} format={opened?.format ?? file.format} settings={settings} onChange={change} />
+          {desktop ? null : <AppearancePanel {...appearanceProps} />}
           <NoteEditor open={!!editing} layout={platform} value={editing?.value ?? ''} onSave={sel.saveNote} onCancel={() => setEditing(null)} />
         </>
       }

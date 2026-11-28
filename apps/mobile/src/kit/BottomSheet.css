@@ -1,5 +1,5 @@
 /* The sheet is the only dialog open while `data-bottom-sheet` is on <html>. */
-:global(html[data-bottom-sheet]) :global([role='dialog']) {
+html[data-bottom-sheet] [role='dialog'] {
   top: auto;
   right: 0;
   bottom: 0;
@@ -12,11 +12,11 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  :global(html[data-bottom-sheet]) :global([role='dialog']) {
-    animation: rise var(--bk-dur-slow) var(--bk-ease) both;
+  html[data-bottom-sheet] [role='dialog'] {
+    animation: bottom-sheet-rise var(--bk-dur-slow) var(--bk-ease) both;
   }
 
-  @keyframes rise {
+  @keyframes bottom-sheet-rise {
     from {
       transform: translateY(24px);
       opacity: 0;
@@ -27,4 +27,11 @@
       opacity: 1;
     }
   }
+}
+
+/* The close button of the sheet is 44 × 48 for a thumb; the negative margin keeps the header from growing. */
+html[data-bottom-sheet] [role='dialog'] > header > button {
+  width: 44px;
+  height: 48px;
+  margin: -11px -9px -11px 0;
 }

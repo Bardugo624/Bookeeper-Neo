@@ -97,6 +97,9 @@ export function browserPlatform(baseUrl: string): Platform {
     updates: null,
     notifications: browserNotifications(),
     window: null,
+    async setWindowTitle(title) {
+      document.title = title;
+    },
     async deviceName() {
       return 'Browser';
     },

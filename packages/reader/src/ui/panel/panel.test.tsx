@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
@@ -8,6 +8,7 @@ import { NotesList, type NotesListProps } from './NotesList';
 import { SearchTab, type SearchTabProps } from './SearchTab';
 import { TocList } from './TocList';
 import { NOTES, TOC, hit } from './fixtures';
+import type { SearchHit } from './types';
 
 const it_ = (ui: React.ReactElement) => render(<ReaderLocale locale="it">{ui}</ReaderLocale>);
 
@@ -204,6 +205,31 @@ describe('SearchTab', () => {
       </ReaderLocale>,
     );
     expect(screen.getByText('1 risultato')).toHaveAttribute('aria-live', 'polite');
+  });
+
+  it('search_count_is_announced_at_the_end_not_per_result', () => {
+    vi.useFakeTimers();
+    try {
+      const view = (results: SearchHit[], done: boolean) => (
+        <ReaderLocale locale="it">
+          <SearchTab query="monti" onQueryChange={() => {}} results={results} progress={0.5} done={done} onPick={() => {}} />
+        </ReaderLocale>
+      );
+      const { rerender, container } = render(view(RESULTS.slice(0, 1), false));
+      const live = () => container.querySelector('[aria-live]')!.textContent;
+      expect(live()).toBe('1 risultato finora');
+      rerender(view(RESULTS.slice(0, 2), false));
+      expect(live()).toBe('1 risultato finora');
+      act(() => void vi.advanceTimersByTime(1000));
+      rerender(view(RESULTS, false));
+      expect(live()).toBe('1 risultato finora');
+      act(() => void vi.advanceTimersByTime(1000));
+      expect(live()).toBe('3 risultati finora');
+      rerender(view(RESULTS, true));
+      expect(live()).toBe('3 risultati');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('says_when_nothing_was_found', () => {

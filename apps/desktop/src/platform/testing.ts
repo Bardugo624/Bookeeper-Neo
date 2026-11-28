@@ -18,6 +18,8 @@ export interface FakePlatform extends Platform {
   setProbe(out: ProbeOut): void;
   setFound(found: Found[]): void;
   windowCalls: string[];
+  /** Every title given to `setWindowTitle`, in order. */
+  titles: string[];
   /** Every `saveFile` request, in order. */
   saved: SaveFileRequest[];
   /** Every `downloadToFile` request, in order. */
@@ -28,7 +30,7 @@ export interface FakePlatform extends Platform {
   readerFiles: ReaderFileArgs[];
   /** Every address given to `openUrl`, in order. */
   opened: string[];
-  /** What `readerFile` answers (default: `asset://reader/<sha256>.<format>`). */
+  /** What `readerFile` answers (default: `asset://localhost/reader/<sha256>.<format>`). */
   setReaderFile(h: (args: ReaderFileArgs) => string | Promise<string>): void;
   /** Result of the next `saveFile` calls (default `{ saved: true }`). */
   setSaveResult(r: SaveFileResult): void;
@@ -126,6 +128,7 @@ export function fakePlatform(opts: FakePlatformOptions = {}): FakePlatform {
   });
   const resizeListeners = new Set<() => void>();
   const windowCalls: string[] = [];
+  const titles: string[] = [];
   const progressListeners = new Set<(p: UpdateProgress) => void>();
   let updateAnswer: UpdateState | ((channel: UpdateChannel) => UpdateState) = opts.updates?.state ?? { state: 'disabled' };
   let installHandler: (channel: UpdateChannel) => Promise<void> = () => new Promise<void>(() => {});
@@ -202,6 +205,7 @@ export function fakePlatform(opts: FakePlatformOptions = {}): FakePlatform {
     notificationsFake,
     state: opts.connections ?? { active: null, items: [] },
     windowCalls,
+    titles,
     saved,
     downloads,
     readerFiles,
@@ -309,6 +313,9 @@ export function fakePlatform(opts: FakePlatformOptions = {}): FakePlatform {
     notifications: opts.notifications ? notifications : null,
     ...(opts.autostart ? { autostart } : {}),
     window: opts.window === false ? null : win,
+    async setWindowTitle(title) {
+      titles.push(title);
+    },
     async deviceName() {
       return 'Test device';
     },

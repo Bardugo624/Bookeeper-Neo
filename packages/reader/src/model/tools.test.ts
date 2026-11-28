@@ -46,6 +46,20 @@ describe('ticks', () => {
     const toc = [item(0.5, [item(0.6) as never]), item(0), item(0.2), item(0.5), item(null)];
     expect(chapterTicks(toc, [0, 0.3, 1])).toEqual([0.2, 0.5]);
   });
+
+  it('at_most_forty_ticks_and_the_first_stays', () => {
+    const toc = Array.from({ length: 200 }, (_, i) => ({ label: 'c', href: `h${i}`, fraction: (i + 1) / 201, children: [] }));
+    const ticks = chapterTicks(toc, [0, 1]);
+    expect(ticks.length).toBeLessThanOrEqual(40);
+    expect(ticks.length).toBeGreaterThan(30);
+    expect(ticks[0]).toBe(1 / 201);
+    for (let i = 1; i < ticks.length; i++) expect(ticks[i]! - ticks[i - 1]!).toBeGreaterThanOrEqual(1 / 40 - 1e-9);
+  });
+
+  it('keeps_close_ticks_when_there_are_forty_or_fewer', () => {
+    const toc = [0.1, 0.11, 0.5].map((fraction, i) => ({ label: 'c', href: `h${i}`, fraction, children: [] }));
+    expect(chapterTicks(toc, [0, 1])).toEqual([0.1, 0.11, 0.5]);
+  });
 });
 
 const meta = { title: 'I promessi sposi', author: 'Alessandro Manzoni' };

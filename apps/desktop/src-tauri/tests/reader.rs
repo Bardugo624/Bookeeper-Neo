@@ -303,3 +303,98 @@ async fn a_remote_library_streams_the_file() {
     .await
     .is_err());
 }
+
+#[test]
+fn stale_partial_files_are_cleaned() {
+    let dir = tempfile::tempdir().unwrap();
+    let now = std::time::SystemTime::now();
+    let age = |name: &str, secs: u64| {
+        let f = std::fs::File::create(dir.path().join(name)).unwrap();
+        f.set_modified(now - std::time::Duration::from_secs(secs))
+            .unwrap();
+    };
+    age(".0192-old.part", 2 * 3600);
+    age(".bookeeper-0192-old.tmp", 2 * 3600);
+    age(".0192-fresh.part", 60);
+    age(".bookeeper-0192-fresh.tmp", 60);
+    // A visible file is never touched by the sweep, however old.
+    age(&format!("{:064x}.epub", 1), 5 * 3600);
+    let keep = dir.path().join(format!("{:064x}.epub", 1));
+    prune(dir.path(), KEEP, &keep);
+    assert_eq!(
+        names(dir.path()),
+        vec![
+            ".0192-fresh.part".to_owned(),
+            ".bookeeper-0192-fresh.tmp".to_owned(),
+            format!("{:064x}.epub", 1),
+        ]
+    );
+}
+
+#[tokio::test]
+async fn two_requests_for_the_same_book_download_once() {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::sync::Arc;
+
+    let app = router(AppState::for_tests());
+    let token = setup(&app).await;
+    let u = upload(&app, &token).await;
+
+    // A server in front of the library that counts the downloads of the file's content.
+    let hits = Arc::new(AtomicUsize::new(0));
+    let counter = Arc::clone(&hits);
+    let counted =
+        axum::Router::new()
+            .fallback_service(app.clone())
+            .layer(axum::middleware::from_fn(
+                move |req: axum::extract::Request, next: axum::middleware::Next| {
+                    let counter = Arc::clone(&counter);
+                    async move {
+                        if req.uri().path().ends_with("/content") {
+                            counter.fetch_add(1, Ordering::SeqCst);
+                        }
+                        next.run(req).await
+                    }
+                },
+            ));
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let url = format!("http://{}", listener.local_addr().unwrap());
+    tokio::spawn(async move { axum::serve(listener, counted).await.unwrap() });
+
+    let (_d, store) = store();
+    let conn = Connection {
+        id: uuid::Uuid::now_v7().to_string(),
+        kind: ConnectionKind::Remote,
+        url: Some(url),
+        fingerprint: None,
+        library_name: None,
+        user_name: None,
+        device_id: None,
+        access_token: None,
+        refresh_token: None,
+    };
+    store.upsert(conn.clone()).unwrap();
+    let cache = tempfile::tempdir().unwrap();
+    let headers = bearer(&u.token);
+    let req = ReaderFile {
+        connection_id: Some(&conn.id),
+        ..request(&u, &u.sha, &headers)
+    };
+    let other = router(AppState::for_tests());
+    let (a, b) = tokio::join!(
+        fetch(&store, other.clone(), cache.path(), &req),
+        fetch(&store, other, cache.path(), &req)
+    );
+    let (a, b) = (a.unwrap(), b.unwrap());
+    assert_eq!(a, b);
+    assert_eq!(std::fs::read(&a).unwrap(), u.bytes);
+    assert_eq!(
+        hits.load(Ordering::SeqCst),
+        1,
+        "the file was downloaded twice"
+    );
+    assert_eq!(
+        names(&cache.path().join("reader")),
+        vec![format!("{}.epub", u.sha)]
+    );
+}
