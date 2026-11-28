@@ -1,7 +1,7 @@
 {
   "name": "Prova del lettore di Bookeeper",
   "short_name": "Prova lettore",
-  "start_url": "./",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f6f3ec",
