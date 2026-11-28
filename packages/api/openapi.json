@@ -1643,6 +1643,203 @@
         ]
       }
     },
+    "/api/v1/books/{id}/annotations": {
+      "get": {
+        "tags": [
+          "reading"
+        ],
+        "operationId": "list_annotations",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "since",
+            "in": "path",
+            "description": "Only the annotations changed after this time (deleted ones included).",
+            "required": true,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The caller's annotations in the book. Without `since`, the live ones by position; with it, everything changed after that time, deleted included",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnnotationOut"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: guests cannot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: unknown book",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/books/{id}/annotations/{annotation_id}": {
+      "put": {
+        "tags": [
+          "reading"
+        ],
+        "operationId": "put_annotation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "annotation_id",
+            "in": "path",
+            "description": "Annotation id, chosen by the device",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PutAnnotation"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "The stored annotation: the new one, or the saved one when it is as new or newer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotationOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad_request: malformed JSON or wrong content type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized, token_expired or device_revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden: guests cannot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: unknown book, file or annotation of someone else",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation: invalid body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/books/{id}/cover": {
       "get": {
         "tags": [
@@ -6993,6 +7190,73 @@
   },
   "components": {
     "schemas": {
+      "AnnotationOut": {
+        "type": "object",
+        "required": [
+          "id",
+          "file_sha256",
+          "kind",
+          "cfi",
+          "text",
+          "percent",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "cfi": {
+            "type": "string"
+          },
+          "chapter": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "deleted_at": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "file_sha256": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "percent": {
+            "type": "number",
+            "format": "double"
+          },
+          "text": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "ApiErrorBody": {
         "type": "object",
         "description": "JSON body of every API error response.",
@@ -10032,6 +10296,77 @@
           },
           "value": {
             "type": "string"
+          }
+        }
+      },
+      "PutAnnotation": {
+        "type": "object",
+        "description": "Body of `PUT /books/{id}/annotations/{annotation_id}`.",
+        "required": [
+          "file_sha256",
+          "kind",
+          "cfi",
+          "text",
+          "percent",
+          "created_at",
+          "updated_at",
+          "deleted"
+        ],
+        "properties": {
+          "cfi": {
+            "type": "string",
+            "description": "At most 4000 characters."
+          },
+          "chapter": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "At most 300 characters."
+          },
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`amber`, `sage`, `terracotta` or `night`: required for a highlight, absent for a bookmark."
+          },
+          "created_at": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "deleted": {
+            "type": "boolean",
+            "description": "Writes a tombstone."
+          },
+          "file_sha256": {
+            "type": "string",
+            "description": "A file attached to the book."
+          },
+          "kind": {
+            "type": "string",
+            "description": "`highlight` or `bookmark`."
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "At most 10000 characters."
+          },
+          "percent": {
+            "type": "number",
+            "format": "double",
+            "description": "0 to 100."
+          },
+          "text": {
+            "type": "string",
+            "description": "The highlighted text, at most 5000 characters."
+          },
+          "updated_at": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Not more than 5 minutes in the future."
           }
         }
       },

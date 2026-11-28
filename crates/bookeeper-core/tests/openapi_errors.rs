@@ -19,6 +19,8 @@ const NO_CLIENT_ERROR: &[(&str, &str)] = &[
 /// remove the entry here.
 const ROLE_GATED: &[(&str, &str)] = &[
     ("post", "/api/v1/backup"),
+    ("get", "/api/v1/books/{id}/annotations"),
+    ("put", "/api/v1/books/{id}/annotations/{annotation_id}"),
     ("post", "/api/v1/restore"),
     ("get", "/api/v1/backups"),
     ("get", "/api/v1/backups/config"),

@@ -12,6 +12,8 @@ import { transferApi } from './resources/transfer';
 import { backupApi } from './resources/backup';
 import { labelsApi } from './resources/labels';
 import { readingApi } from './resources/reading';
+import { positionsApi } from './resources/positions';
+import { annotationsApi } from './resources/annotations';
 import { tagsApi } from './resources/tags';
 import { roomsApi } from './resources/rooms';
 import { auditApi } from './resources/audit';
@@ -54,6 +56,8 @@ export function createClient(t: Transport) {
     ...backupApi(t),
     ...labelsApi(t),
     ...readingApi(t),
+    ...positionsApi(t),
+    ...annotationsApi(t),
     ...tagsApi(t),
     ...roomsApi(t),
     ...auditApi(t),
