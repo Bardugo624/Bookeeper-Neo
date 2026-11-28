@@ -105,6 +105,17 @@ describe('useReaderKeys', () => {
     return { h, handle: result.current };
   }
 
+  it('leaves_keys_a_component_already_handled', () => {
+    const { h } = setup();
+    const tab = document.createElement('button');
+    tab.setAttribute('role', 'tab');
+    document.body.append(tab);
+    tab.addEventListener('keydown', (e) => e.preventDefault());
+    fireEvent.keyDown(tab, { key: 'ArrowRight' });
+    expect(h.onNext).not.toHaveBeenCalled();
+    tab.remove();
+  });
+
   it('esc_closes_the_top_layer_first', () => {
     const popover = { open: true, close: vi.fn() };
     const panel = { open: true, close: vi.fn() };

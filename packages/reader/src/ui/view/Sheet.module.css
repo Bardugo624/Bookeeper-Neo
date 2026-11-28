@@ -1,19 +1,35 @@
 /* The sheet is the only dialog open while `data-reader-sheet` is on <html>. */
-:global(html[data-reader-sheet]) :global([role='dialog']) {
+:global([role='dialog'][data-reader-sheet-dialog]) {
   top: auto;
   right: 0;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 70dvh;
+  height: var(--reader-sheet-h, 70dvh);
   max-height: 100dvh;
   translate: none;
   border-radius: var(--bk-radius-lg) var(--bk-radius-lg) 0 0;
   padding-bottom: env(safe-area-inset-bottom);
+  touch-action: pan-y;
+}
+
+/* The pull-up grip: the top band of the sheet. */
+:global([role='dialog'][data-reader-sheet-dialog])::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 36px;
+  height: 4px;
+  translate: -50% 0;
+  border-radius: 2px;
+  background: currentcolor;
+  opacity: 0.3;
+  pointer-events: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  :global(html[data-reader-sheet]) :global([role='dialog']) {
+  :global([role='dialog'][data-reader-sheet-dialog]) {
     animation: rise var(--bk-dur-slow) var(--bk-ease) both;
   }
 

@@ -1,9 +1,10 @@
 // @vitest-environment node
 import { readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { expect, it } from 'vitest';
 
-const dir = join(process.cwd(), 'src/ui/view');
+const dir = dirname(fileURLToPath(import.meta.url));
 const MEDIA = '@media (prefers-reduced-motion: no-preference)';
 
 /** The CSS with every `@media (prefers-reduced-motion: no-preference) { … }` block cut out. */

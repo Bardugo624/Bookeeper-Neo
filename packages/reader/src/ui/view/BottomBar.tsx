@@ -67,9 +67,9 @@ export function BottomBar(props: BottomBarProps) {
 
   return (
     <div className={styles.bottom} data-layout={layout} data-asking={question ? '' : undefined} aria-label={t('reader.bottom.label')} role="group">
-      <div className={styles.row} aria-live="polite">
+      <div className={styles.row}>
         {question ? (
-          <div className={styles.question}>
+          <div className={styles.question} role="status" aria-live="polite">
             {question.icon ? <span className={styles.questionIcon}>{QUESTION_ICONS[question.icon]}</span> : null}
             <p className={styles.questionText}>
               <strong>{question.text}</strong>

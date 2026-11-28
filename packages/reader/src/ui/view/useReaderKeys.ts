@@ -43,7 +43,7 @@ export function useReaderKeys(keys: ReaderKeys): (k: KeyInfo) => void {
       return true;
     }
     if (k.ctrl || k.meta || k.alt) return false;
-    if (target?.closest(INTERACTIVE) || target?.closest('[role="slider"]')) return false;
+    if (target?.closest(INTERACTIVE) || target?.closest('[role="slider"],[role="tablist"]')) return false;
     if (k.key === ' ' && target?.closest(OWN_KEYS)) return false;
     if (k.key === 'ArrowRight' || k.key === 'PageDown' || (k.key === ' ' && !k.shift)) h.onNext();
     else if (k.key === 'ArrowLeft' || k.key === 'PageUp' || (k.key === ' ' && k.shift)) h.onPrev();
@@ -56,6 +56,8 @@ export function useReaderKeys(keys: ReaderKeys): (k: KeyInfo) => void {
       const target = e.target instanceof Element ? e.target : null;
       // Dialogs and menus (Radix) look after their own keys, Esc included.
       if (target?.closest('[role="dialog"],[role="menu"]')) return;
+      // A component that already took the key (tabs, lists…) keeps it.
+      if (e.defaultPrevented) return;
       const k = { key: e.key, ctrl: e.ctrlKey, meta: e.metaKey, shift: e.shiftKey, alt: e.altKey };
       if (k.key === 'Escape' && target?.closest(INTERACTIVE) && !ref.current.layers.some((l) => l.open)) return;
       if (handle(k, target)) e.preventDefault();

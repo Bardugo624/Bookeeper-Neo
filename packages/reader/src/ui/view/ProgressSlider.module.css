@@ -96,3 +96,9 @@
     transition: opacity var(--bk-dur-fast) var(--bk-ease);
   }
 }
+
+@media (pointer: coarse) {
+  .track {
+    height: 44px;
+  }
+}

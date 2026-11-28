@@ -79,7 +79,7 @@ export function ProgressSlider({ fraction, ticks, chapterAt, onSeek }: ProgressS
 
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.ctrlKey || e.metaKey || e.altKey) return;
-    const base = draft ?? fraction;
+    const base = draft ?? held ?? fraction;
     const next: Record<string, number> = {
       ArrowRight: base + STEP,
       ArrowUp: base + STEP,

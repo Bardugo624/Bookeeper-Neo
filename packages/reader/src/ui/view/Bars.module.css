@@ -227,7 +227,18 @@
   color: var(--rd-on-accent);
 }
 
-/* Phone */
+/* Phone: touch targets of 44 × 48 */
+.bottom[data-layout='phone'] .jumpBack,
+.bottom[data-layout='phone'] .plain,
+.bottom[data-layout='phone'] .primary {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.bottom[data-layout='phone'] :global([data-track]) {
+  height: 44px;
+}
+
 .bottom[data-layout='phone'] {
   padding: 4px 16px 0;
 }
