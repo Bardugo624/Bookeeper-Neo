@@ -45,8 +45,9 @@ describe('bookCss', () => {
 
   it('with the publisher styles on, the book keeps its own rules', () => {
     const out = css({ font: 'publisher' });
-    // The book's own font stays (Lora goes in the sheet before the book's); the reader forces the colors, also on children.
-    expect(out).not.toContain('Lora');
+    // Lora sits on `html`, so the book's rules beat it only by naming a font; the body gets no font of ours.
+    expect(out).toMatch(/html \{[^}]*font-family: 'Lora Variable'/);
+    expect(out).not.toMatch(/body \{[^}]*font-family/);
     expect(out).not.toContain('line-height: inherit');
     expect(out).toMatch(/color: #eeeff0 !important/);
     expect(out).toContain('color: inherit !important');

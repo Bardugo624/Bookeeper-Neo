@@ -39,6 +39,11 @@
     "medium": "Medi",
     "wide": "Ampi"
   },
+  "margins_short": {
+    "narrow": "S",
+    "medium": "M",
+    "wide": "L"
+  },
   "flow": {
     "paginated": "Pagine",
     "scrolled": "Scorrimento"

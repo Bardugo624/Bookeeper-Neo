@@ -48,7 +48,13 @@
   color: var(--bk-text-muted);
 }
 
+.icon {
+  display: inline-flex;
+  vertical-align: text-bottom;
+  margin: 0 2px;
+  color: var(--bk-accent-text);
+}
+
 .done {
   width: 100%;
-  min-height: 48px;
 }

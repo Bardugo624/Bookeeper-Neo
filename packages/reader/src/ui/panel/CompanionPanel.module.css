@@ -45,5 +45,7 @@
 }
 
 .body[data-variant='sheet'] .tabs {
+  padding-right: 0;
+  padding-left: 0;
   padding-top: 4px;
 }

@@ -12,6 +12,17 @@
   gap: 6px;
 }
 
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* The desktop popover keeps the two rows stacked. */
+.panel[data-layout='desktop'] .pair {
+  grid-template-columns: 1fr;
+}
+
 .rowLabel {
   color: var(--bk-text-muted);
   font-size: 13px;

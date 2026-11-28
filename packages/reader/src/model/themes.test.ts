@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { HIGHLIGHT_COLORS, THEME_COLORS, frameLayout, DEFAULT_SETTINGS, resolveTheme, swatch, themeVars, veil, type Theme } from './index';
+import { HIGHLIGHT_COLORS, THEME_COLORS, frameLayout, DEFAULT_SETTINGS, resolveTheme, swatch, themeVars, overlayVars, veil, type Theme } from './index';
 
 const lum = (hex: string): number => {
   const [r, g, b] = [1, 3, 5].map((i) => {
@@ -55,5 +55,13 @@ describe('themes', () => {
   it('two_pages_off_gives_one_column', () => {
     expect(frameLayout({ ...DEFAULT_SETTINGS, twoPages: false }, 'light', false).twoPages).toBe(false);
     expect(frameLayout(DEFAULT_SETTINGS, 'light', false).twoPages).toBe(true);
+  });
+
+  it('overlay_vars_follow_the_theme', () => {
+    const dark = overlayVars('dark');
+    expect(dark['--bk-surface-raised']).toBe(THEME_COLORS.dark.raised);
+    expect(dark['--bk-text']).toBe(THEME_COLORS.dark.ink);
+    expect(dark['color-scheme']).toBe('dark');
+    expect(overlayVars('light')['color-scheme']).toBe('light');
   });
 });

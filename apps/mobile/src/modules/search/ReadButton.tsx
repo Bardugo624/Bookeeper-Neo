@@ -1,10 +1,13 @@
 import { Link } from 'react-router';
 import type { BookOut } from '@bookeeper/api';
 import { Icon } from '@bookeeper/ui/base';
-import { useT } from '../../app/i18n';
+import { useLocale, useT } from '../../app/i18n';
+import { OfflineControl } from '../reader/OfflineControl';
+import { pickFile } from '../reader/pickFile';
 import { ringPercent } from '../reading';
 import { useSession } from '../../session';
-import { canSeeFiles } from './filesModel';
+import { canSeeFiles, formatSize } from './filesModel';
+import { useBookFiles } from './useBookFiles';
 import styles from './ReadButton.module.css';
 
 /** Address of the reader on a book. */
@@ -16,13 +19,26 @@ export const readPath = (bookId: string) => `/read/${encodeURIComponent(bookId)}
  */
 export function ReadButton({ book }: { book: BookOut }) {
   const t = useT();
+  const locale = useLocale();
   const allowed = canSeeFiles(useSession((s) => s.me?.user.role)) && book.file_formats.length > 0;
+  const files = useBookFiles(book.id, allowed);
   if (!allowed) return null;
+  // The same file «Leggi» opens (the API lists them in upload order, not in reading order).
+  const picked = files.data ? pickFile(files.data, null) : null;
+  const file = picked && !picked.missing ? picked : null;
   const percent = book.reading?.status === 'reading' ? ringPercent(book.reading, book.page_count) : null;
   return (
-    <Link to={readPath(book.id)} className={styles.read}>
-      <Icon name="book" size={18} />
-      {percent ? t('msearch.read.readPercent', { percent }) : t('msearch.read.read')}
-    </Link>
+    <>
+      <Link to={readPath(book.id)} className={styles.read}>
+        <Icon name="book" size={18} />
+        {percent ? t('msearch.read.readPercent', { percent }) : t('msearch.read.read')}
+      </Link>
+      {file ? (
+        <div className={styles.offline}>
+          <OfflineControl target={{ bookId: book.id, file }} />
+          <p className={styles.fileInfo}>{`${file.format.toUpperCase()} · ${formatSize(locale, file.size_bytes)}`}</p>
+        </div>
+      ) : null}
+    </>
   );
 }

@@ -3,17 +3,13 @@ import type { BookOut } from '@bookeeper/api';
 import { Button, Icon } from '@bookeeper/ui/base';
 import { useLocale, useT } from '../../app/i18n';
 import { apiErrorMessage } from '../../kit';
-import { OfflineControl } from '../reader/OfflineControl';
-import { useSession } from '../../session';
-import { FILE_ACCEPT, canSeeFiles, formatSize } from './filesModel';
+import { FILE_ACCEPT, formatSize } from './filesModel';
 import { useAddFile, useBookFiles, useDownloadFile } from './useBookFiles';
 import blocks from './Blocks.module.css';
 import styles from './BookFiles.module.css';
 
 /** The e-book files of a book: format, size and a download; people who can edit may add one. */
 export function BookFiles({ book, canAdd }: { book: BookOut; canAdd: boolean }) {
-  // The file routes answer 403 to guests; only the sections that can read are offered a copy.
-  const canRead = canSeeFiles(useSession((s) => s.me?.user.role));
   const t = useT();
   const locale = useLocale();
   const files = useBookFiles(book.id, true);
@@ -70,11 +66,6 @@ export function BookFiles({ book, canAdd }: { book: BookOut; canAdd: boolean }) 
               >
                 {t('msearch.files.download')}
               </Button>
-            )}
-            {file.missing || !canRead ? null : (
-              <div className={styles.offline}>
-                <OfflineControl target={{ bookId: book.id, file }} />
-              </div>
             )}
           </li>
         ))}

@@ -30,8 +30,10 @@ import {
   Search,
   Server,
   Settings,
+  Share,
   Smartphone,
   Square,
+  SquarePlus,
   Sun,
   Trash2,
   TriangleAlert,
@@ -83,6 +85,8 @@ const ICONS = {
   users: Users,
   user: User,
   bell: Bell,
+  share: Share,
+  'square-plus': SquarePlus,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;

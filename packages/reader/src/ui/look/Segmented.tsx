@@ -5,6 +5,8 @@ import styles from './Look.module.css';
 export interface SegmentedOption<T extends string | number> {
   value: T;
   label: string;
+  /** The full accessible name, when the visible label is an abbreviation. */
+  name?: string;
   /** The label is written in its own face (the typeface row). */
   style?: CSSProperties;
   /** Tiles only: drawn above the label, hidden from assistive technology. */
@@ -44,6 +46,7 @@ export function Segmented<T extends string | number>({ label, value, options, on
           type="button"
           role="radio"
           aria-checked={o.value === value}
+          aria-label={o.name}
           tabIndex={o.value === value || (!selected && i === 0) ? 0 : -1}
           disabled={disabled}
           style={o.style}
